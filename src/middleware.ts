@@ -227,15 +227,17 @@ async function handleCronProtection(
 ): Promise<NextResponse | null> {
   if (pathname.startsWith("/api/cron/")) {
     const expectedSecret = process.env.CRON_SECRET || "";
-    const xCronSecret = req.headers.get("x-cron-secret");
+    const xCronSecret = req.headers.get("x-cron-secret") || req.headers.get("x-api-key");
     const authHeader = req.headers.get("authorization");
     const bearerSecret = authHeader?.replace(/^bearer /i, "")?.trim() || null;
+    const querySecret = req.nextUrl.searchParams.get("key") || req.nextUrl.searchParams.get("secret");
 
     const isXCronValid = await verifyCronSecret(xCronSecret, expectedSecret);
     const isBearerValid = await verifyCronSecret(bearerSecret, expectedSecret);
+    const isQueryValid = await verifyCronSecret(querySecret, expectedSecret);
 
-    if (!isXCronValid && !isBearerValid) {
-      return applyCSP(NextResponse.json({ error: "Forbidden" }, { status: 403 }));
+    if (!isXCronValid && !isBearerValid && !isQueryValid) {
+      return applyCSP(NextResponse.json({ error: "Forbidden: Invalid Cron Secret" }, { status: 403 }));
     }
   }
   return null;
