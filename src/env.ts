@@ -303,16 +303,21 @@ const isServer = typeof window === "undefined";
 const _env = envSchema.safeParse(process.env);
 
 if (!_env.success) {
+  const formatted = _env.error.format();
   const errorMessage = `Invalid environment variables:\n${JSON.stringify(
-    _env.error.format(),
+    formatted,
     null,
     2,
   )}`;
 
+  const missingOrInvalid = Object.keys(formatted)
+    .filter((k) => k !== "_errors")
+    .join(", ");
+
   if (!isBuildTime && isServer) {
     console.error(errorMessage);
     throw new Error(
-      "Application cannot start: missing or invalid environment variables. Check server logs.",
+      `Application cannot start: missing or invalid environment variables (${missingOrInvalid}). Check server logs.`,
     );
   } else if (isBuildTime) {
     // During build, log warning but don't throw. Vercel injects runtime secrets separately.
@@ -327,8 +332,11 @@ if (
   isServer &&
   process.env.NODE_ENV === "production"
 ) {
+  const missingOrInvalid = Object.keys(_env.error.format())
+    .filter((k) => k !== "_errors")
+    .join(", ");
   throw new Error(
-    `[FATAL] Environment validation failed in production. Fix .env before deploying.\n${_env.error?.message ?? "Unknown validation error"}`,
+    `[FATAL] Environment validation failed in production (${missingOrInvalid}). Fix .env before deploying.\n${_env.error?.message ?? "Unknown validation error"}`,
   );
 }
 

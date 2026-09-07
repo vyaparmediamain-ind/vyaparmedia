@@ -234,7 +234,24 @@ await checkStorageHealth(healthCheck);
 await checkEmailHealth(healthCheck);
 await checkCronHealth(healthCheck);
 
+const envCheck: Record<string, string> = {};
+const CRITICAL_KEYS = [
+"DATABASE_URL", "PGBOUNCER_URL", "PRISMA_ACCELERATE_URL", "NEXTAUTH_URL",
+"NEXTAUTH_SECRET", "AUTH_SECRET", "REDIS_URL", "RAZORPAY_KEY_ID",
+"RAZORPAY_KEY_SECRET", "RAZORPAY_WEBHOOK_SECRET", "RAZORPAY_ACCOUNT_NUMBER",
+"GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_SECRET", "CRON_SECRET", "HMAC_KEY",
+"ENCRYPTION_KEYS", "CONTRACT_SIGNING_SECRET", "RESEND_API_KEY",
+"PROMETHEUS_AUTH_TOKEN", "SENTRY_DSN", "NEXT_PUBLIC_SENTRY_DSN",
+"SENTRY_ENVIRONMENT", "NEXT_PUBLIC_SENTRY_ENVIRONMENT", "STORAGE_PROVIDER",
+"NEXT_PUBLIC_APP_URL", "APP_BASE_URL", "KYC_PROVIDER", "KYC_API_KEY",
+"MSG91_TEMPLATE_ID"
+];
+for (const k of CRITICAL_KEYS) {
+const val = process.env[k];
+envCheck[k] = val ? `SET (length: ${val.length})` : "MISSING";
+}
+
 const statusCode = healthCheck.status === "OK" ? 200 : 503;
 
-return NextResponse.json(healthCheck, { status: statusCode });
+return NextResponse.json({ ...healthCheck, envAudit: envCheck }, { status: statusCode });
 }
