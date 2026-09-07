@@ -84,7 +84,7 @@ throw AppError.badRequest("Invalid state parameter");
 }
 
 const params = new URLSearchParams({
-client_id: env.GOOGLE_CLIENT_ID,
+client_id: env.GOOGLE_CLIENT_ID || "",
 redirect_uri: redirectUri,
 response_type: "code",
 scope: "https://www.googleapis.com/auth/youtube.readonly",
