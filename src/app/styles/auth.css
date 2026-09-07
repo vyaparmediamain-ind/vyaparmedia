@@ -1,0 +1,539 @@
+/* Authentication and Onboarding Layouts */
+.auth-wrapper {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: clamp(16px, 5vw, 24px);
+  position: relative;
+  overflow-x: hidden;
+}
+
+.auth-bg-wrapper {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+}
+
+.auth-bg-overlay {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at center, rgba(10, 10, 20, 0.8) 0%, rgba(10, 10, 20, 0.95) 100%);
+}
+
+.auth-card {
+  width: 100%;
+  min-width: 0;
+  padding: clamp(24px, 4vw, 40px);
+  position: relative;
+  z-index: 1;
+  transition: max-width var(--transition-slow);
+}
+
+.auth-logo-row {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 32px;
+}
+
+.auth-form-group {
+  margin-bottom: 20px;
+}
+
+.auth-field-relative {
+  position: relative;
+}
+
+.auth-field-password-input {
+  padding-right: 40px;
+}
+
+.auth-field-password-toggle {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  color: var(--color-text-muted);
+}
+
+.auth-link {
+  color: var(--color-primary-light);
+}
+
+.auth-link:hover {
+  text-decoration: underline;
+}
+
+.auth-divider {
+  margin-top: 12px;
+}
+
+.auth-footer-text {
+  text-align: center;
+  color: var(--color-text-secondary);
+  font-size: 14px;
+}
+
+.auth-footer-link {
+  color: var(--color-primary-light);
+  font-weight: 600;
+}
+
+/* User Type Selection */
+.usertype-title {
+  text-align: center;
+  font-size: clamp(24px, 3vw, 28px);
+  font-weight: 800;
+  margin-bottom: 8px;
+}
+
+.usertype-subtitle {
+  text-align: center;
+  color: var(--color-text-secondary);
+  font-size: 14px;
+  margin-bottom: 32px;
+}
+
+.usertype-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  margin-bottom: 32px;
+}
+
+@media (max-width: 640px) {
+  .usertype-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.usertype-card {
+  padding: 28px 24px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border);
+  background: var(--color-bg-card);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: visible;
+  white-space: normal;
+  width: 100%;
+  box-sizing: border-box;
+  font-family: inherit;
+}
+
+.usertype-card:hover {
+  border-color: var(--color-primary-light);
+  transform: translateY(-2px);
+}
+
+.usertype-card-selected {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px var(--color-primary), var(--shadow-md);
+  background: linear-gradient(135deg, rgba(37, 99, 235, 0.08) 0%, var(--color-bg-card) 100%);
+}
+
+.usertype-icon-wrapper {
+  width: 64px;
+  height: 64px;
+  border-radius: var(--radius-md);
+  background: var(--color-bg-tertiary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  margin-bottom: 16px;
+  transition: all 0.3s ease;
+  flex-shrink: 0;
+}
+
+.usertype-card:hover .usertype-icon-wrapper {
+  transform: scale(1.08);
+  background: var(--gradient-primary);
+}
+
+.usertype-card-name {
+  font-size: 18px;
+  font-weight: 800;
+  margin-bottom: 8px;
+  color: var(--color-text-primary);
+  white-space: normal;
+}
+
+.usertype-card-desc {
+  font-size: 13px;
+  color: var(--color-text-secondary);
+  line-height: 1.5;
+  margin-bottom: 16px;
+  white-space: normal;
+  word-break: normal;
+  overflow-wrap: break-word;
+  max-width: 100%;
+}
+
+.usertype-benefit-list {
+  padding: 0;
+  margin: 0;
+  list-style: none;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+  white-space: normal;
+}
+
+.usertype-benefit-item {
+  font-size: 12px;
+  color: var(--color-text-muted);
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  white-space: normal;
+  line-height: 1.4;
+}
+
+/* Helper utilities for login / register */
+.login-card {
+  max-width: 420px;
+}
+
+.auth-bg-image {
+  object-fit: cover;
+  opacity: 0.4;
+}
+
+.auth-banner {
+  padding: 12px 16px;
+  background: rgba(37, 99, 235, 0.08);
+  border: 1px solid rgba(37, 99, 235, 0.25);
+  border-radius: var(--radius-md);
+  line-height: 1.5;
+}
+
+.auth-error-banner {
+  padding: 12px 16px;
+  background: rgba(244, 63, 94, 0.08);
+  border: 1px solid rgba(244, 63, 94, 0.3);
+  border-radius: var(--radius-md);
+  color: var(--color-accent-rose);
+  font-size: 14px;
+  animation: slideDown 0.3s ease-out;
+}
+
+.auth-divider-row {
+  margin: 24px 0;
+  display: flex;
+  align-items: center;
+  color: var(--color-text-muted);
+  font-size: 14px;
+}
+
+.auth-divider-line {
+  flex: 1;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.auth-divider-text {
+  padding: 0 16px;
+}
+
+.auth-google-btn {
+  background: #fff !important;
+  color: #333 !important;
+  margin-bottom: 24px;
+  gap: 12px;
+}
+
+.register-card-step1 {
+  max-width: 800px !important;
+}
+
+.register-card-step2 {
+  max-width: 520px !important;
+}
+
+.verified-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background-color: rgba(16, 185, 129, 0.12);
+  border: 1px solid rgba(16, 185, 129, 0.25);
+  color: var(--color-accent-emerald);
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.otp-button {
+  padding: 0 18px;
+  height: 44px;
+  font-size: 13px;
+  font-weight: 700;
+  border: none;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  background: var(--color-primary);
+  color: #fff;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+}
+
+.otp-button:hover:not(:disabled) {
+  background: var(--color-primary-light);
+  transform: translateY(-1px);
+}
+
+.otp-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.auth-otp-row {
+  display: flex !important;
+  flex-direction: row !important;
+  gap: 10px !important;
+  align-items: center !important;
+  width: 100% !important;
+  flex-wrap: nowrap !important;
+}
+
+.auth-otp-row > .input-wrapper {
+  flex: 1 1 auto !important;
+  min-width: 0 !important;
+  width: 100% !important;
+}
+
+.auth-otp-row > .input-wrapper .input {
+  width: 100% !important;
+  height: 44px !important;
+  min-height: 44px !important;
+  max-height: 44px !important;
+  box-sizing: border-box !important;
+}
+
+.auth-phone-row {
+  display: flex !important;
+  flex-direction: row !important;
+  gap: 8px !important;
+  align-items: center !important;
+  width: 100% !important;
+  flex-wrap: nowrap !important;
+}
+
+.auth-input-phone-prefix {
+  flex: 0 0 auto !important;
+  height: 44px !important;
+  min-height: 44px !important;
+  max-height: 44px !important;
+  padding: 0 14px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  background: var(--color-bg-tertiary) !important;
+  border: 1px solid var(--color-border) !important;
+  border-radius: var(--radius-md) !important;
+  color: var(--color-text-secondary) !important;
+  font-size: 14px !important;
+  font-weight: 600 !important;
+  box-sizing: border-box !important;
+}
+
+.usertype-benefit-icon {
+  color: var(--color-accent-emerald);
+  width: 14px;
+  height: 14px;
+  display: inline-block;
+  vertical-align: middle;
+  margin-right: 4px;
+}
+
+.auth-submit-btn {
+  width: 100%;
+  padding: 14px;
+  font-size: 16px;
+  margin-bottom: 24px;
+}
+
+.auth-submit-btn:disabled {
+  opacity: 0.5;
+}
+
+.reset-bg-glow {
+  position: absolute;
+  top: 20%;
+  right: 10%;
+  width: 400px;
+  height: 400px;
+  background: radial-gradient(circle, rgba(37, 99, 235, 0.2) 0%, transparent 70%);
+  border-radius: 50%;
+  filter: blur(80px);
+}
+
+.auth-terms-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.auth-checkbox {
+  margin-top: 4px;
+}
+
+/* OTP field and general utility styles */
+.auth-input-verified {
+  opacity: 0.7;
+}
+
+.auth-input-otp {
+  font-family: 'Courier New', monospace;
+  font-weight: 700;
+  font-size: 18px;
+  text-align: center;
+  letter-spacing: 0;
+}
+
+.auth-otp-status-banner {
+  padding: 12px 16px;
+  border-radius: var(--radius-md);
+  margin-bottom: 20px;
+  font-size: 13px;
+}
+
+.auth-otp-status-banner.verified {
+  background-color: rgba(16, 185, 129, 0.12);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  color: var(--color-accent-emerald);
+}
+
+.auth-otp-status-banner.warning {
+  background-color: rgba(245, 158, 11, 0.12);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+  color: var(--color-accent-amber);
+}
+
+.auth-error-msg {
+  font-size: 12px;
+  color: var(--color-accent-rose);
+  margin-top: 4px;
+}
+
+.auth-success-msg {
+  font-size: 12px;
+  color: var(--color-accent-emerald);
+  margin-bottom: 8px;
+}
+
+/* Onboarding step 2 header & password field utilities */
+.auth-back-btn {
+  background: none !important;
+  border: none !important;
+  color: var(--color-text-secondary) !important;
+  font-size: 14px !important;
+  cursor: pointer;
+  margin-bottom: 16px !important;
+  display: flex !important;
+  align-items: center;
+  gap: 4px !important;
+}
+
+.auth-header-container {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.auth-header-icon {
+  font-size: 36px;
+}
+
+.auth-header-title {
+  font-size: 24px;
+  font-weight: 800;
+}
+
+.auth-header-subtitle {
+  color: var(--color-text-secondary);
+  font-size: 14px;
+}
+
+.forgot-password-glow {
+  filter: blur(80px);
+}
+
+.forgot-password-glow-primary {
+  top: 20%;
+  left: 10%;
+  width: 400px;
+  height: 400px;
+  background: radial-gradient(circle, rgba(37, 99, 235, 0.2) 0%, transparent 70%);
+}
+
+.forgot-password-glow-secondary {
+  right: 10%;
+  bottom: 20%;
+  width: 350px;
+  height: 350px;
+  background: radial-gradient(circle, rgba(16, 185, 129, 0.2) 0%, transparent 70%);
+}
+
+.forgot-password-card {
+  max-width: 420px;
+}
+
+.forgot-password-message[data-status="success"] {
+  color: var(--color-accent-emerald);
+  border: 1px solid var(--color-accent-emerald);
+  background: rgba(16, 185, 129, 0.1);
+}
+
+.forgot-password-message[data-status="error"] {
+  color: var(--color-accent-rose);
+  border: 1px solid var(--color-accent-rose);
+  background: rgba(244, 63, 94, 0.1);
+}
+
+.forgot-password-dev-link {
+  color: var(--color-text-secondary);
+  border: 1px dashed var(--color-border);
+  background: var(--color-bg-tertiary);
+  border-radius: var(--radius-sm);
+  padding: 8px 12px;
+}
+
+.forgot-password-dev-anchor {
+  color: var(--color-primary-light);
+  text-decoration: underline;
+}
+
+@media (max-width: 640px) {
+  .forgot-password-glow-primary {
+    left: -30%;
+    width: 280px;
+    height: 280px;
+  }
+
+  .forgot-password-glow-secondary {
+    right: -25%;
+    width: 260px;
+    height: 260px;
+  }
+}
+
+

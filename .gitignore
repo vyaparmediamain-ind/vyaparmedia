@@ -1,0 +1,65 @@
+# dependencies
+/node_modules
+/.pnp
+.pnp.js
+
+# testing
+/coverage
+
+# next.js
+/.next/
+/out/
+
+# production
+/build
+
+# misc
+*.pem
+.DS_Store
+*.local
+.env
+.env*.local
+.env*.backup
+.env.backup
+.terraform-version
+.python-version
+
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# local env files
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# prisma
+/prisma/*.db
+/prisma/*.db-journal
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts
+
+# Local database & Redis artifacts
+/local-db/
+dump.rdb
+*.rdb
+
+# local infra
+/infra/
+*.zip
+*.log
+
+# user generated uploads (PII / untrusted)
+/public/uploads/
+
+# Debug scripts artifacts
+scripts/*.png
+
+# Generated PWA service worker (tracked manually now)
+# /public/sw.js
+

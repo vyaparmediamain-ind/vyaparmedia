@@ -1,0 +1,15 @@
+/*
+  globals.css — VYAPARMEDIA design system entry point.
+  We do NOT import Tailwind utilities here because the
+  entire codebase uses custom CSS classes (base.css /
+  components.css / landing.css / dashboard.css / admin.css).
+  Removing the Tailwind preflight import prevents it from
+  resetting body/html colours and interfering with our
+  custom dark‑theme CSS variables.
+*/
+@import "./styles/base.css";
+@import "./styles/components.css";
+@import "./styles/landing.css";
+@import "./styles/dashboard.css";
+@import "./styles/admin.css";
+@import "./styles/auth.css";

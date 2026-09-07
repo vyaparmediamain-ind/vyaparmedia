@@ -1,0 +1,49 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "regions": ["bom1"],
+  "functions": {
+    "src/app/api/cron/content-auto-approve/route.ts": {
+      "maxDuration": 60
+    },
+    "src/app/api/cron/engagement/route.ts": {
+      "maxDuration": 60
+    },
+    "src/app/api/cron/lift-suspensions/route.ts": {
+      "maxDuration": 60
+    },
+    "src/app/api/cron/post-monitor/route.ts": {
+      "maxDuration": 60
+    },
+    "src/app/api/cron/social-proof/route.ts": {
+      "maxDuration": 60
+    },
+    "src/app/api/cron/weekly-challenges/route.ts": {
+      "maxDuration": 60
+    },
+    "src/app/api/cron/ledger-scan/route.ts": {
+      "maxDuration": 60
+    },
+    "src/app/api/upload/route.ts": {
+      "maxDuration": 60
+    },
+    "src/app/api/payments/webhook/route.ts": {
+      "maxDuration": 60
+    },
+    "src/app/api/cron/cleanup-oauth/route.ts": {
+      "maxDuration": 60
+    },
+    "src/app/api/cron/reconcile-payouts/route.ts": {
+      "maxDuration": 60
+    },
+    "src/app/api/cron/expire-signatures/route.ts": {
+      "maxDuration": 60
+    },
+    "src/app/api/cron/cleanup-idempotency/route.ts": {
+      "maxDuration": 60
+    },
+    "src/app/api/cron/stale-fulfillment/route.ts": {
+      "maxDuration": 60
+    }
+  }
+}
+

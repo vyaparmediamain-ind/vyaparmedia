@@ -1,0 +1,1294 @@
+// Influencer Marketplace - Database Schema
+// Phase 1: Foundation & Core
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ==================== USER MANAGEMENT ====================
+
+enum UserType {
+  INFLUENCER
+  BRAND
+  ADMIN
+}
+
+enum UserStatus {
+  PENDING_VERIFICATION
+  ACTIVE
+  SUSPENDED
+  BANNED
+  FLAGGED
+  DELETED
+}
+
+enum VerificationLevel {
+  NONE
+  BASIC // Phone + Email
+  IDENTITY // PAN + Bank verified
+  FULL // All verifications complete
+}
+
+model User {
+  id                String            @id @default(cuid())
+  email             String            @unique
+  phone             String?           @unique
+  passwordHash      String
+  userType          UserType
+  status            UserStatus        @default(PENDING_VERIFICATION)
+  verificationLevel VerificationLevel @default(NONE)
+  emailVerified     Boolean           @default(false)
+  phoneVerified     Boolean           @default(false)
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+  deletedAt         DateTime? // Soft delete for compliance
+
+  // Security & Audit
+  lastLoginAt         DateTime?
+  lastPasswordChange  DateTime  @default(now())
+  failedLoginAttempts Int       @default(0)
+  lockedUntil         DateTime?
+  isTwoFactorEnabled  Boolean   @default(false)
+  twoFactorSecret     String?
+  twoFactorRecoveryCodes String?
+
+  // Relations
+  influencerProfile       InfluencerProfile?
+  brandProfile            BrandProfile?
+  oauthAccounts           OAuthAccount[]
+  oauthStates             OAuthState[]
+  verificationDocs        VerificationDocument[]
+  taxCompliance           IndiaTaxCompliance?
+  wallet                  Wallet?
+  sentMessages            Message[]              @relation("SentMessages")
+  receivedMessages        Message[]              @relation("ReceivedMessages")
+  notifications           Notification[]
+  activityLogs            ActivityLog[]
+  bankAccounts            BankAccount[]
+  disputes                Dispute[]
+  violations              UserViolation[]
+  reviewsWritten          Review[]               @relation("Reviewer")
+  reviewsReceived         Review[]               @relation("ReviewReceiver")
+  notificationPreferences Json?                  @default("{\"email\":{\"marketing\":true,\"updates\":true,\"security\":true}}")
+  creditorClaims          DebtClaim[]            @relation("CreditorUser")
+  blocksSent              UserBlock[]            @relation("UserBlocksSent")
+  blocksReceived          UserBlock[]            @relation("UserBlocksReceived")
+  reportsSent             UserReport[]           @relation("UserReportsSent")
+  reportsReceived         UserReport[]           @relation("UserReportsReceived")
+
+  // Gamification
+  xp                Int                     @default(0)
+  level             Int                     @default(1)
+  badges            UserBadge[]
+  challengeProgress UserChallengeProgress[]
+  referralCode      String                  @unique @default(cuid())
+  referredBy        String?
+  referredUsers     User[]                  @relation("Referrals")
+  referrer          User?                   @relation("Referrals", fields: [referredBy], references: [id])
+
+  // Trust & Security
+  trustScore         Int                 @default(600)
+  deviceFingerprints DeviceFingerprint[]
+  loginAttempts      LoginAttempt[]
+
+  // Password Reset
+  resetToken       String?
+  resetTokenExpiry DateTime?
+
+  refreshTokens RefreshToken[]
+  otpTokens     OtpToken[]
+
+  @@index([userType, status])
+  @@index([email])
+  @@index([referralCode])
+  @@index([referredBy])
+  @@index([createdAt])
+  @@index([updatedAt])
+}
+
+model RefreshToken {
+  id              String   @id @default(cuid())
+  token           String   @unique
+  userId          String
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt       DateTime
+  revoked         Boolean  @default(false)
+  createdAt       DateTime @default(now())
+  replacedByToken String?
+
+  @@index([userId])
+}
+
+model OAuthAccount {
+  id                String    @id @default(cuid())
+  userId            String
+  provider          String // instagram, youtube, google
+  providerAccountId String
+  accessToken       String?
+  refreshToken      String?
+  expiresAt         DateTime?
+  scope             String?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@index([userId])
+}
+
+model OAuthState {
+  id        String   @id @default(cuid())
+  userId    String
+  state     String
+  provider  String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([state])
+  @@index([userId])
+  @@index([expiresAt]) // L3 FIX: cleanup-oauth cron filters by expiresAt; without this index, it causes full table scans
+}
+
+model LoginAttempt {
+  id            String   @id @default(cuid())
+  userId        String?
+  email         String
+  ipAddress     String
+  userAgent     String?
+  success       Boolean  @default(false)
+  failureReason String?
+  createdAt     DateTime @default(now())
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([email])
+  @@index([ipAddress])
+  @@index([createdAt])
+}
+
+model DeviceFingerprint {
+  id           String   @id @default(cuid())
+  userId       String
+  fingerprint  String
+  lastIp       String
+  lastLocation String?
+  userAgent    String?
+  isTrusted    Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  lastSeenAt   DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, fingerprint])
+  @@index([userId])
+}
+
+// ==================== PROFILES ====================
+
+model InfluencerProfile {
+  id          String  @id @default(cuid())
+  userId      String  @unique
+  displayName String
+  bio         String?
+  avatar      String?
+  city        String?
+  state       String?
+  address     String?
+  pinCode     String?
+
+  // Demographics
+  gender String?
+  age    Int?
+
+  // Social Media Stats
+  instagramHandle         String?
+  instagramFollowers      Int?
+  instagramEngagementRate Float? // Basis points
+  youtubeHandle           String?
+  youtubeSubscribers      Int?
+  youtubeEngagementRate   Float? // Basis points
+
+  // Categories & Niches
+  categories String // fashion, food, tech, etc. (comma separated)
+  languages  String // hindi, english, etc. (comma separated)
+
+  // Rates (paise)
+  minRate Int?
+  maxRate Int?
+  minInstagramRate Int?
+  maxInstagramRate Int?
+  minYoutubeRate   Int?
+  maxYoutubeRate   Int?
+
+  // Verification Scores (Rule-based)
+  followerAuthenticityScore Int       @default(50) // 0-100
+  contentQualityScore       Int       @default(50) // 0-100
+  accountAge                DateTime?
+
+  // Featured Status (Weekly Challenge Reward)
+  isFeatured    Boolean   @default(false)
+  featuredUntil DateTime?
+
+  // Stats
+  totalDeals     Int @default(0)
+  completedDeals Int @default(0)
+  averageRating  Int @default(0) // 0-500 (5.00)
+  totalEarnings  Int @default(0)
+  totalReviews   Int @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user             User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  applications     Application[]
+  deals            Deal[]        @relation("InfluencerDeals")
+  reviews          Review[]      @relation("InfluencerReviews")
+  createdCampaigns Campaign[]    @relation("CreatedCampaigns")
+
+  @@index([totalDeals])
+  @@index([minRate])
+  @@index([instagramHandle])
+  @@index([youtubeHandle])
+  @@index([isFeatured])
+}
+
+model BrandProfile {
+  id          String  @id @default(cuid())
+  userId      String  @unique
+  companyName String
+  logo        String?
+  website     String?
+  description String?
+  industry    String?
+  city        String?
+  state       String?
+  address     String?
+  pinCode     String?
+
+  // Verification (PII - Requires Encryption in Transit/Rest)
+  /// @encrypted
+  gstNumber     String?
+  /// @encrypted
+  panNumber     String?
+  /// @encrypted
+  cinNumber     String?
+  isGstVerified Boolean @default(false)
+  isPanVerified Boolean @default(false)
+  isCinVerified Boolean @default(false)
+
+  // Stats
+  totalCampaigns  Int @default(0)
+  activeCampaigns Int @default(0)
+  totalSpent      Int @default(0)
+  averageRating   Int @default(0) // 0-500 (5.00)
+  totalReviews    Int @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  campaigns Campaign[]
+  deals     Deal[]     @relation("BrandDeals")
+  reviews   Review[]   @relation("BrandReviews")
+}
+
+// ==================== VERIFICATION ====================
+
+enum DocumentType {
+  PAN_CARD
+  AADHAAR
+  GST_CERTIFICATE
+  CIN_CERTIFICATE
+  BANK_STATEMENT
+  SELFIE
+  MSME_CERTIFICATE
+  STARTUP_CERTIFICATE
+}
+
+enum DocumentStatus {
+  PENDING
+  VERIFIED
+  REJECTED
+}
+
+model VerificationDocument {
+  id              String         @id @default(cuid())
+  userId          String
+  type            DocumentType
+  documentUrl     String
+  status          DocumentStatus @default(PENDING)
+  verifiedAt      DateTime?
+  rejectionReason String?
+  metadata        Json?
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([status])
+}
+
+model IndiaTaxCompliance {
+  id                       String    @id @default(cuid())
+  userId                   String    @unique
+  /// @encrypted
+  panNumber                String?
+  panLast4                 String?
+  /// @encrypted
+  gstin                    String?
+  gstinLast4               String?
+  gstStateCode             String?
+  gstRegistrationType      String    @default("UNREGISTERED")
+  gstTurnoverSlab          String?
+  /// @encrypted
+  itrAcknowledgementNumber String?
+  itrAcknowledgementLast4  String?
+  itrAssessmentYear        String?
+  tdsSection               String?
+  eInvoiceApplicable       Boolean   @default(false)
+  status                   String    @default("ACTION_REQUIRED")
+  submittedAt              DateTime?
+  verifiedAt               DateTime?
+  rejectionReason          String?
+  createdAt                DateTime  @default(now())
+  updatedAt                DateTime  @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([status])
+  @@index([gstRegistrationType])
+  @@index([eInvoiceApplicable])
+}
+
+// ==================== CAMPAIGNS ====================
+
+enum CampaignStatus {
+  DRAFT
+  PENDING_APPROVAL
+  ACTIVE
+  PAUSED
+  COMPLETED
+  CANCELLED
+}
+
+enum ContentType {
+  INSTAGRAM_POST
+  INSTAGRAM_REEL
+  INSTAGRAM_STORY
+  YOUTUBE_VIDEO
+  YOUTUBE_SHORT
+}
+
+model Campaign {
+  id           String  @id @default(cuid())
+  brandId      String?
+  influencerId String? // ADDED: Allow influencers to create campaigns (e.g. collabs)
+
+  title        String
+  description  String
+  requirements String
+  guidelines   String?
+
+  // Budget
+  totalBudget         Int  @default(0)
+  perInfluencerBudget Int?
+  reservedAmount      Int  @default(0)
+  fundedAmount        Int  @default(0)
+  reservedTotalAmount Int  @default(0)
+
+  // Targeting (Changed from Comma-separated Strings to PostgreSQL Arrays for indexing)
+  targetCategories  String[]
+  targetCities      String[]
+  targetLanguages   String[]
+  targetGender      String? // "MALE", "FEMALE", "ANY"
+  targetAgeMin      Int?
+  targetAgeMax      Int?
+  minFollowers      Int      @default(5000)
+  maxFollowers      Int?
+  minEngagementRate Int? // Basis points
+
+  // Deliverables
+  deliverables Json // Array of {type, count, specs}
+
+  // Product Seeding
+  requiresProduct    Boolean @default(false)
+  productName        String?
+  productValue       Int? // Value of the product (paise)
+  productDescription String?
+
+  // Timeline
+  applicationDeadline DateTime?
+  contentDeadline     DateTime
+  postingDeadline     DateTime
+
+  // Status
+  status         CampaignStatus @default(DRAFT)
+  isDirectInvite Boolean        @default(false)
+
+  // Stats
+  totalApplications   Int @default(0)
+  selectedInfluencers Int @default(0)
+  maxInfluencers      Int?
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  brand        BrandProfile?      @relation(fields: [brandId], references: [id])
+  influencer   InfluencerProfile? @relation("CreatedCampaigns", fields: [influencerId], references: [id]) // Relation
+  applications Application[]
+  deals        Deal[]
+
+  @@index([status])
+  @@index([createdAt])
+  @@index([totalBudget])
+  @@index([brandId])
+  @@index([influencerId])
+  @@index([status, applicationDeadline, totalBudget]) // ADDED: Composite filtering
+}
+
+// ==================== APPLICATIONS & DEALS ====================
+
+enum ApplicationStatus {
+  PENDING
+  SHORTLISTED
+  SELECTED
+  REJECTED
+  WITHDRAWN
+  FLAGGED
+}
+
+model Application {
+  id           String @id @default(cuid())
+  campaignId   String
+  influencerId String
+
+  proposal          String
+  proposedRate      Int       @default(0)
+  estimatedDelivery DateTime?
+
+  status          ApplicationStatus @default(PENDING)
+  rejectionReason String?
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  campaign   Campaign          @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  influencer InfluencerProfile @relation(fields: [influencerId], references: [id], onDelete: Cascade)
+
+  @@unique([campaignId, influencerId])
+  @@index([status])
+  @@index([campaignId])
+  @@index([influencerId])
+}
+
+enum DealStatus {
+  PENDING_SIGNATURE
+  PAYMENT_PENDING
+  PAYMENT_HELD
+  ACTIVE
+  CONTENT_SUBMITTED
+  REVISION_REQUESTED
+  CONTENT_APPROVED
+  POSTED
+  VERIFICATION_PENDING
+  VERIFIED
+  COMPLETED
+  DISPUTED
+  CANCELLED
+}
+
+enum ProductFulfillmentStatus {
+  NOT_REQUIRED
+  ADDRESS_PENDING
+  READY_TO_DISPATCH
+  DISPATCHED
+  RECEIVED
+}
+
+model Deal {
+  id           String  @id @default(cuid())
+  campaignId   String
+  influencerId String
+  brandId      String?
+
+  // Contract Terms
+  amount      Int @default(0)
+  platformFee Int @default(0)
+  gatewayFee  Int @default(0)
+  totalAmount Int @default(0)
+  influencerPayout Int?
+  reservedFromWallet Boolean @default(false)
+
+  // Tax fields (populated at deal completion for reporting)
+  tdsDeducted Int @default(0)  // TDS amount in paise (0 if below 194-O threshold)
+  grossPayout Int @default(0)  // Influencer gross before TDS
+  netPayout   Int @default(0)  // Influencer net after TDS
+
+  contractTerms     Json // Full contract details
+  contractSignature Json? // Digital signatures from both parties
+
+  // Product Seeding Lifecycle
+  requiresProduct          Boolean                  @default(false)
+  productName              String?
+  productValue             Int?
+  productHandlingFee       Int                      @default(0)
+  productFulfillmentStatus ProductFulfillmentStatus @default(NOT_REQUIRED)
+  shippingAddress          Json?
+  dispatchTrackingNumber   String?
+  dispatchCarrier          String?
+  dispatchedAt             DateTime?
+  productReceivedAt        DateTime?
+
+  // Timeline
+  submissionDeadline DateTime
+  reviewPeriodHours  Int      @default(48)
+  postingDeadline    DateTime
+
+  // Status Tracking
+  status DealStatus @default(PENDING_SIGNATURE)
+  reconcileFailures Int @default(0)
+
+  // Signatures
+  brandSignedAt      DateTime?
+  influencerSignedAt DateTime?
+
+  // Content
+  submittedContentUrl String?
+  submittedAt         DateTime?
+
+  // Revisions
+  revisionsUsed Int @default(0)
+  maxRevisions  Int @default(2)
+
+  // Approval
+  approvedAt      DateTime?
+  rejectionReason String?
+
+  // Posting
+  postUrl  String?
+  postedAt DateTime?
+
+  // Verification
+  requiresPostVerification Boolean   @default(true)
+  verifiedAt             DateTime?
+  verificationScreenshot String?
+  verificationHash       String?
+
+  startedAt DateTime?
+
+  // Post Monitoring
+  isPostAlive              Boolean   @default(true)
+  lastPostCheck            DateTime?
+  postCheckCount           Int       @default(0)
+  consecutiveMissingChecks Int       @default(0)
+
+  // Completion
+  completedAt DateTime?
+  signDeadline DateTime?
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  campaign   Campaign          @relation(fields: [campaignId], references: [id])
+  influencer InfluencerProfile @relation("InfluencerDeals", fields: [influencerId], references: [id])
+  brand      BrandProfile?     @relation("BrandDeals", fields: [brandId], references: [id])
+
+  messages            Message[]
+  paymentHold         PaymentHold?
+  transactions        Transaction[]
+  disputes            Dispute[]
+  reviews             Review[]
+  contentSubmissions  ContentSubmission[]
+  engagementSnapshots EngagementSnapshot[]
+  debtClaims          DebtClaim[]
+
+  @@index([status])
+  @@index([campaignId])
+  @@index([influencerId])
+  @@index([brandId])
+  @@index([createdAt])
+  @@index([updatedAt])
+  @@index([status, updatedAt])
+  @@index([productFulfillmentStatus])
+  @@index([brandId, status, deletedAt])
+  @@index([influencerId, status, deletedAt])
+  @@index([campaignId, status, deletedAt])
+  @@index([completedAt])              // NEW: FY range queries
+  @@index([influencerId, completedAt]) // NEW: Influencer income summary
+  @@index([brandId, completedAt])     // NEW: Brand spend by FY
+}
+
+model ContentSubmission {
+  updatedAt   DateTime  @updatedAt
+  id          String    @id @default(cuid())
+  dealId      String
+  version     Int       @default(1)
+  contentUrl  String
+  contentUrls Json?
+  notes       String?
+  status      String    @default("PENDING") // PENDING, APPROVED, REVISION_REQUESTED
+  feedback    String?
+  submittedAt DateTime  @default(now())
+  reviewedAt  DateTime?
+
+  deal Deal @relation(fields: [dealId], references: [id], onDelete: Cascade)
+
+  @@index([dealId])
+}
+
+// ==================== PAYMENTS ====================
+
+model Wallet {
+  id             String   @id @default(cuid())
+  userId         String   @unique
+  balance        Int      @default(0) // In paise
+  pendingBalance Int      @default(0)
+  totalEarned    Int      @default(0)
+  totalWithdrawn Int      @default(0)
+  totalDeposited Int      @default(0)
+  totalSpent     Int      @default(0)
+  debt           Int      @default(0)
+  isFrozen       Boolean  @default(false)
+  frozenReason   String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transactions Transaction[]
+  withdrawals  Withdrawal[]
+  debtorClaims DebtClaim[]   @relation("DebtorWallet")
+}
+
+enum TransactionType {
+  CREDIT
+  DEBIT
+  WITHDRAWAL
+  REFUND
+  CLAWBACK
+  PLATFORM_FEE
+  CHARGEBACK
+}
+
+enum TransactionStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  REVERSED
+}
+
+model Transaction {
+  deletedAt         DateTime?
+  id                String            @id @default(cuid())
+  walletId          String
+  dealId            String?
+  withdrawalId      String?
+  type              TransactionType
+  amount            Int               @default(0)
+  status            TransactionStatus @default(PENDING)
+  description       String?
+  metadata          Json?
+  razorpayOrderId   String?           @unique
+  razorpayPaymentId String?           @unique
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+
+  wallet     Wallet      @relation(fields: [walletId], references: [id])
+  deal       Deal?       @relation(fields: [dealId], references: [id])
+  withdrawal Withdrawal? @relation(fields: [withdrawalId], references: [id])
+
+  @@index([walletId, status])
+  @@index([dealId])
+  @@index([withdrawalId])
+  @@index([createdAt])
+  @@index([walletId, createdAt])
+  @@index([type, status, createdAt])
+  @@index([razorpayOrderId])
+  @@index([razorpayPaymentId])
+}
+
+enum PaymentHoldStatus {
+  PENDING
+  HELD
+  CAPTURED
+  RELEASED
+  EXPIRED
+  FAILED
+}
+
+model PaymentHold {
+  id                String            @id @default(cuid())
+  dealId            String            @unique
+  razorpayOrderId   String            @unique
+  razorpayPaymentId String?
+  amount            Int               @default(0)
+  status            PaymentHoldStatus @default(PENDING)
+  expiresAt         DateTime
+  capturedAt        DateTime?
+  releasedAt        DateTime?
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+
+  deal Deal @relation(fields: [dealId], references: [id])
+
+  @@index([status])
+  @@index([expiresAt])
+}
+
+enum WithdrawalStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+  PENDING_REVIEW
+  REVERSED
+}
+
+model Withdrawal {
+  id                String           @id @default(cuid())
+  walletId          String
+  amount            Int              @default(0)
+  bankAccountName   String
+  /// @encrypted
+  bankAccountNumber String
+  bankAccountHash   String?          // Deterministic HMAC for efficient duplicate detection
+  ifscCode          String
+  /// @encrypted
+  upiId             String?
+  upiIdHash         String?          // Deterministic HMAC for efficient duplicate detection
+  status            WithdrawalStatus @default(PENDING)
+  razorpayPayoutId  String?
+  processedAt       DateTime?
+  failureReason     String?
+  adminNotes        String?
+  isManualReview    Boolean          @default(false)
+  riskScore         Int              @default(0)
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+
+  wallet       Wallet        @relation(fields: [walletId], references: [id])
+  transactions Transaction[]
+
+  @@index([walletId])
+  @@index([status])
+  @@index([walletId, createdAt])
+  @@index([createdAt])
+  @@index([bankAccountHash])
+  @@index([upiIdHash])
+}
+
+model BankAccount {
+  deletedAt     DateTime?
+  id            String    @id @default(cuid())
+  userId        String
+  accountName   String
+  /// @encrypted
+  accountNumber String
+  accountNumberHash String?
+  ifscCode      String
+  bankName      String
+  /// @encrypted
+  upiId         String?
+  upiIdHash     String?
+  isDefault     Boolean   @default(false)
+  isVerified    Boolean   @default(false) // Set to true after Razorpay Fund Account Validation (penny-drop)
+  verifiedAt    DateTime?                 // Timestamp of successful verification
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([accountNumberHash])
+  @@index([upiIdHash])
+}
+
+// ==================== DISPUTES ====================
+
+enum DisputeType {
+  QUALITY
+  TIMELINE
+  PAYMENT
+  CONTENT_DELETED
+  TERMS_VIOLATION
+  OTHER
+}
+
+enum DisputeStatus {
+  OPEN
+  TIER1_AUTO
+  TIER2_MEDIATION
+  TIER3_ARBITRATION
+  RESOLVED
+  CLOSED
+}
+
+model Dispute {
+  deletedAt      DateTime?
+  id             String        @id @default(cuid())
+  dealId         String
+  raisedByUserId String
+  type           DisputeType
+  description    String
+  status         DisputeStatus @default(OPEN)
+  tier           Int           @default(1)
+  resolvedAmicably Boolean     @default(false)
+
+  // Resolution
+  resolution       String?
+  resolvedByUserId String?
+  resolvedAt       DateTime?
+
+  // Outcome
+  brandOutcome      String? // JSON: {refund_percentage, trust_score_change}
+  influencerOutcome String? // JSON: {payment_percentage, trust_score_change}
+  dealStatusAtCreation String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  deal     Deal              @relation(fields: [dealId], references: [id])
+  raisedBy User              @relation(fields: [raisedByUserId], references: [id])
+  evidence DisputeEvidence[]
+
+  @@index([status])
+  @@index([dealId])
+}
+
+model DisputeEvidence {
+  updatedAt         DateTime  @updatedAt
+  deletedAt         DateTime?
+  id                String    @id @default(cuid())
+  disputeId         String
+  submittedByUserId String
+  type              String // screenshot, message, document
+  url               String
+  description       String?
+  submittedAt       DateTime  @default(now())
+
+  dispute Dispute @relation(fields: [disputeId], references: [id], onDelete: Cascade)
+
+  @@index([disputeId])
+}
+
+// ==================== REVIEWS ====================
+
+model Review {
+  updatedAt    DateTime  @updatedAt
+  deletedAt    DateTime?
+  id           String    @id @default(cuid())
+  dealId       String
+  reviewerType String // BRAND or INFLUENCER
+  reviewerId   String
+  receiverId   String
+  rating       Int // 1-5
+  comment      String?
+
+  // Specific ratings
+  communicationRating Int?
+  qualityRating       Int?
+  timelinessRating    Int?
+
+  // Separate foreign keys for different reviewee types
+  influencerRevieweeId String?
+  brandRevieweeId      String?
+
+  createdAt DateTime @default(now())
+
+  deal       Deal               @relation(fields: [dealId], references: [id])
+  reviewer   User               @relation("Reviewer", fields: [reviewerId], references: [id])
+  receiver   User               @relation("ReviewReceiver", fields: [receiverId], references: [id])
+  influencer InfluencerProfile? @relation("InfluencerReviews", fields: [influencerRevieweeId], references: [id])
+  brand      BrandProfile?      @relation("BrandReviews", fields: [brandRevieweeId], references: [id])
+
+  @@unique([dealId, reviewerId, receiverId])
+  @@index([reviewerId])
+  @@index([receiverId])
+  @@index([receiverId, rating])
+  @@index([influencerRevieweeId])
+  @@index([brandRevieweeId])
+}
+
+// ==================== MESSAGING ====================
+
+model Message {
+  updatedAt  DateTime  @updatedAt
+  deletedAt  DateTime?
+  id         String    @id @default(cuid())
+  dealId     String?
+  senderId   String
+  receiverId String
+  content    String
+  isRead     Boolean   @default(false)
+  readAt     DateTime?
+
+  messageType String  @default("TEXT") // TEXT, FILE, OFFER, CONTRACT_ACCEPTANCE, SYSTEM
+  fileUrl     String?
+  isBlocked   Boolean @default(false)
+  hasWarning  Boolean @default(false)
+  metadata    Json?
+
+  createdAt DateTime @default(now())
+
+  deal     Deal? @relation(fields: [dealId], references: [id])
+  sender   User  @relation("SentMessages", fields: [senderId], references: [id])
+  receiver User  @relation("ReceivedMessages", fields: [receiverId], references: [id])
+
+  @@index([senderId])
+  @@index([receiverId])
+  @@index([dealId])
+  @@index([createdAt])
+  @@index([dealId, createdAt])
+}
+
+// ==================== GAMIFICATION ====================
+
+model Badge {
+  updatedAt   DateTime @updatedAt
+  id          String   @id @default(cuid())
+  name        String   @unique
+  description String
+  icon        String
+  category    String // achievement, special, brand
+  xpReward    Int      @default(0)
+  criteria    Json // Rule-based criteria
+  createdAt   DateTime @default(now())
+
+  userBadges UserBadge[]
+}
+
+model UserBadge {
+  updatedAt DateTime @updatedAt
+  id        String   @id @default(cuid())
+  userId    String
+  badgeId   String
+  earnedAt  DateTime @default(now())
+
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  badge Badge @relation(fields: [badgeId], references: [id])
+
+  @@unique([userId, badgeId])
+  @@index([userId])
+  @@index([badgeId])
+}
+
+// ==================== NOTIFICATIONS ====================
+
+model Notification {
+  updatedAt DateTime @updatedAt
+  id        String   @id @default(cuid())
+  userId    String
+  type      String // deal_update, payment, review, etc.
+  title     String
+  message   String
+  data      Json? // Additional data
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, isRead])
+  @@index([createdAt])
+}
+
+// ==================== SECURITY & LOGGING ====================
+
+model AuditLog {
+  updatedAt  DateTime @updatedAt
+  id         String   @id @default(cuid())
+  actorId    String
+  actionType String // e.g. "ADMIN_OVERRIDE", "DISPUTE_RESOLUTION"
+  entityType String // e.g. "Deal", "Wallet"
+  entityId   String
+  beforeJSON Json?
+  afterJSON  Json?
+  ipAddress  String?
+  timestamp  DateTime @default(now())
+
+  @@index([entityType, entityId])
+  @@index([actorId])
+  @@index([timestamp])
+}
+
+model ActivityLog {
+  id         String   @id @default(cuid())
+  userId     String
+  action     String
+  entityType String? // Campaign, Deal, etc.
+  entityId   String?
+  metadata   Json?
+  ipAddress  String?
+  createdAt  DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([action])
+  @@index([createdAt])
+}
+
+// Note: RateLimitCounter model was removed. Rate limiting is handled entirely
+// via Redis (see src/lib/rate-limit.ts). The DB table has been dropped.
+
+// ==================== VIOLATIONS & PENALTIES ====================
+
+enum ViolationType {
+  SPAM
+  FRAUD
+  HARASSMENT
+  TERMS_VIOLATION
+  CONTENT_POLICY
+  LATE_RESPONSE
+  OTHER
+}
+
+enum ViolationSeverity {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum ViolationAction {
+  WARNING
+  TEMP_SUSPENSION
+  PERMANENT_BAN
+  TRUST_SCORE_LOG
+  NONE
+}
+
+model UserViolation {
+  updatedAt   DateTime          @updatedAt
+  id          String            @id @default(cuid())
+  userId      String
+  type        ViolationType
+  severity    ViolationSeverity
+  description String
+  evidence    String? // URL or text
+  action      ViolationAction
+  metadata    Json?
+
+  startsAt  DateTime  @default(now())
+  expiresAt DateTime? // For suspensions
+
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([expiresAt])
+  @@index([action])
+}
+
+// ==================== WEBHOOK IDEMPOTENCY ====================
+
+model ProcessedWebhookEvent {
+  updatedAt   DateTime @updatedAt
+  id          String   @id @default(cuid())
+  eventId     String   @unique // Razorpay event ID
+  eventType   String // e.g. "payment.captured"
+  processedAt DateTime @default(now())
+  payload     Json? // Optional: store payload for debugging
+
+  @@index([eventId])
+}
+
+// ==================== WEEKLY CHALLENGES ====================
+
+model WeeklyChallenge {
+  updatedAt   DateTime @updatedAt
+  id          String   @id @default(cuid())
+  weekId      String // e.g. "2026-W06"
+  challengeId String // template ID from challenge pool
+  title       String
+  description String
+  icon        String
+  type        String // DEALS, EARNINGS, REVIEWS, etc.
+  target      String // INFLUENCER, BRAND
+  goal        Int
+  xpReward    Int
+  bonusPerk   String?
+  difficulty  String // EASY, MEDIUM, HARD
+  startsAt    DateTime
+  endsAt      DateTime
+  createdAt   DateTime @default(now())
+
+  progress UserChallengeProgress[]
+
+  @@unique([weekId, challengeId])
+  @@index([startsAt, endsAt])
+  @@index([weekId])
+}
+
+model UserChallengeProgress {
+  updatedAt       DateTime  @updatedAt
+  id              String    @id @default(cuid())
+  userId          String
+  challengeId     String // matches WeeklyChallenge.challengeId
+  weekId          String
+  currentProgress Int       @default(0)
+  goal            Int
+  completed       Boolean   @default(false)
+  completedAt     DateTime?
+  createdAt       DateTime  @default(now())
+
+  user      User            @relation(fields: [userId], references: [id])
+  challenge WeeklyChallenge @relation(fields: [weekId, challengeId], references: [weekId, challengeId])
+
+  @@unique([userId, challengeId, weekId])
+  @@index([userId, weekId])
+  @@index([weekId, challengeId])
+}
+
+// ==================== ENGAGEMENT TRACKING ====================
+
+model EngagementSnapshot {
+  updatedAt DateTime @updatedAt
+  id        String   @id @default(cuid())
+  dealId    String
+  interval  String // '24h', '48h', '7d'
+
+  // Metrics
+  views    Int @default(0)
+  likes    Int @default(0)
+  comments Int @default(0)
+  shares   Int @default(0)
+  saves    Int @default(0)
+  clicks   Int @default(0)
+
+  // Calculated (Basis points: 100 = 1.00%)
+  engagementRate   Int @default(0)
+  clickThroughRate Int @default(0)
+  estimatedReach   Int @default(0)
+
+  // Whether values were produced by rule-based estimation (true) or
+  // real API data from Instagram/YouTube (false).
+  // Defaults to true so that existing rows are correctly classified.
+  isEstimated Boolean @default(true)
+
+  capturedAt DateTime @default(now())
+  createdAt  DateTime @default(now())
+
+  deal Deal @relation(fields: [dealId], references: [id], onDelete: Cascade)
+
+  @@unique([dealId, interval])
+  @@index([dealId])
+}
+
+// ==================== OTP TOKENS ====================
+
+enum OtpTokenType {
+  EMAIL_VERIFICATION
+  PHONE_VERIFICATION
+  LOGIN_OTP
+}
+
+model OtpToken {
+  id          String       @id @default(cuid())
+  userId      String
+  type        OtpTokenType
+  hashedToken String
+  expiresAt   DateTime
+  attempts    Int          @default(0)
+  maxAttempts Int          @default(5)
+  consumedAt  DateTime?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, type])
+  @@index([expiresAt])
+}
+
+// ==================== IDEMPOTENCY ====================
+
+model IdempotencyKey {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  userId    String?
+  response  Json?
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([key])
+  @@index([expiresAt])
+}
+
+// ==================== DEBT CLAIMS ====================
+
+enum DebtStatus {
+  PENDING
+  RECOVERED
+  CANCELLED
+}
+
+model DebtClaim {
+  id              String     @id @default(cuid())
+  debtorWalletId  String
+  creditorUserId  String
+  dealId          String
+  amount          Int        // Remaining debt amount in Paise
+  originalAmount  Int        // Original debt amount in Paise
+  status          DebtStatus @default(PENDING)
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+
+  debtorWallet Wallet @relation("DebtorWallet", fields: [debtorWalletId], references: [id], onDelete: Cascade)
+  creditor     User   @relation("CreditorUser", fields: [creditorUserId], references: [id], onDelete: Cascade)
+  deal         Deal   @relation(fields: [dealId], references: [id], onDelete: Cascade)
+
+  @@index([debtorWalletId, status, createdAt])
+  @@index([creditorUserId])
+  @@index([dealId])
+}
+
+model BlogSubscriber {
+  id               String   @id @default(cuid())
+  email            String   @unique
+  verified         Boolean  @default(false)
+  unsubscribeToken String   @unique @default(cuid())
+  createdAt        DateTime @default(now())
+}
+
+model UserBlock {
+  id             String   @id @default(cuid())
+  blockingUserId String
+  blockedUserId  String
+  createdAt      DateTime @default(now())
+
+  blockingUser User @relation("UserBlocksSent", fields: [blockingUserId], references: [id], onDelete: Cascade)
+  blockedUser  User @relation("UserBlocksReceived", fields: [blockedUserId], references: [id], onDelete: Cascade)
+
+  @@unique([blockingUserId, blockedUserId])
+  @@index([blockingUserId])
+  @@index([blockedUserId])
+}
+
+model UserReport {
+  id          String   @id @default(cuid())
+  reporterId  String
+  reportedId  String
+  reason      String
+  description String?
+  createdAt   DateTime @default(now())
+
+  reporter User @relation("UserReportsSent", fields: [reporterId], references: [id], onDelete: Cascade)
+  reported User @relation("UserReportsReceived", fields: [reportedId], references: [id], onDelete: Cascade)
+
+  @@index([reporterId])
+  @@index([reportedId])
+}
