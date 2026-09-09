@@ -254,20 +254,23 @@ contract
 if (!limitCheck.allowed) {
 throw AppError.badRequest(limitCheck.message || "Maximum revisions reached");
 }
-
-if (limitCheck.cost > 0) {
-const brandWallet = await tx.wallet.findUnique({
-where: { userId },
-select: { id: true, balance: true },
-});
-assertSufficientBalance(brandWallet, limitCheck.cost);
-if (!brandWallet) {
-throw AppError.notFound("Brand wallet not found");
-}
-await tx.wallet.update({
-where: { id: brandWallet.id },
-data: { balance: { decrement: limitCheck.cost } },
-});
+  if (limitCheck.cost > 0) {
+    await tx.$queryRaw`SELECT id FROM "Wallet" WHERE "userId" = ${userId} FOR UPDATE`;
+    const brandWallet = await tx.wallet.findUnique({
+      where: { userId },
+      select: { id: true, balance: true },
+    });
+    if (!brandWallet) {
+      throw AppError.notFound("Brand wallet not found");
+    }
+    assertSufficientBalance(brandWallet, limitCheck.cost);
+    const debitResult = await tx.wallet.updateMany({
+      where: { id: brandWallet.id, balance: { gte: limitCheck.cost } },
+      data: { balance: { decrement: limitCheck.cost } },
+    });
+    if (debitResult.count === 0) {
+      throw AppError.badRequest("Insufficient wallet balance for revision charge.");
+    }
 await tx.transaction.create({
 data: {
 walletId: brandWallet.id,

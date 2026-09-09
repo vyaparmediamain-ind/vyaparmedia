@@ -96,13 +96,20 @@ throw AppError.badRequest("Influencer wallet missing during clawback");
 
 // Debit Platform Treasury for platform's portion of the refund
 if (treasuryClawback > 0) {
-await ensurePlatformTreasury(tx);
-await tx.wallet.updateMany({
-where: { userId: "PLATFORM_TREASURY" },
-data: {
-balance: { decrement: treasuryClawback },
-},
-});
+  await ensurePlatformTreasury(tx);
+  const treasuryWallet = await tx.wallet.findUnique({
+    where: { userId: "PLATFORM_TREASURY" },
+    select: { balance: true },
+  });
+  const deductAmount = Math.min(treasuryWallet?.balance ?? 0, treasuryClawback);
+  if (deductAmount > 0) {
+    await tx.wallet.updateMany({
+      where: { userId: "PLATFORM_TREASURY", balance: { gte: deductAmount } },
+      data: {
+        balance: { decrement: deductAmount },
+      },
+    });
+  }
 }
 
   const transactions = [];

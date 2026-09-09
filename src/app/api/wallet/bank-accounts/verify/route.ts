@@ -5,6 +5,7 @@ import { z } from "zod";
 import { logger } from "@/lib/logger";
 import { decrypt } from "@/lib/encryption";
 import { validateFundAccount } from "@/lib/razorpay";
+import { hasMatchingNameTokens } from "@/lib/kyc";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { AppError } from "@/lib/errors";
 
@@ -66,19 +67,33 @@ async function _handler_POST(req: NextRequest) {
     });
   }
 
-  // 3. UPI accounts — auto-verify (penny-drop FAV is not applicable for VPA).
-  //    Previously this returned HTTP 400, leaving isVerified=false and permanently
-  //    blocking UPI users from withdrawing (withdraw route requires isVerified=true).
+  // 3. UPI accounts — verify against registered user identity name
   const isUpiAccount =
     bankAccount.ifscCode === "UPI00000000" || bankAccount.accountNumber === "UPI_PAYOUT";
   if (isUpiAccount) {
+    const influencer = await prisma.influencerProfile.findUnique({
+      where: { userId },
+      select: { displayName: true },
+    });
+    const brand = await prisma.brandProfile.findUnique({
+      where: { userId },
+      select: { companyName: true },
+    });
+    const verifiedName = influencer?.displayName || brand?.companyName || "";
+    if (verifiedName && !hasMatchingNameTokens(bankAccount.accountName, verifiedName)) {
+      return NextResponse.json({
+        success: false,
+        error: "The name on the UPI account does not match your registered profile name.",
+      }, { status: 400 });
+    }
+
     await prisma.bankAccount.updateMany({
       where: { id: bankAccountId, userId },
       data: { isVerified: true, verifiedAt: new Date() },
     });
     return NextResponse.json({
       success: true,
-      message: "UPI account auto-verified successfully.",
+      message: "UPI account verified successfully.",
     });
   }
 

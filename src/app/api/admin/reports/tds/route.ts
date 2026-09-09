@@ -138,6 +138,8 @@ const totalNet = tdsTransactions.reduce((s, t) => s + ((t.metadata as Record<str
 
 
 export const GET = apiWrapper(_handler, {
-requirePermission: "MANAGE_PLATFORM_FINANCE",
-rateLimit: RATE_LIMIT_CONFIGS.REPORTS,
+  requireAuth: true,
+  requireAdmin: true,
+  requirePermission: "MANAGE_PLATFORM_FINANCE",
+  rateLimit: RATE_LIMIT_CONFIGS.REPORTS,
 });

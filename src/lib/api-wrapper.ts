@@ -228,37 +228,49 @@ url,
 return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 }
 
-let decodedUrl = req.url.toLowerCase();
-try {
-decodedUrl = decodeURIComponent(req.url).toLowerCase();
-} catch {
-logger.warn(`[WAF] Malformed URL encoding on ${url}`, { requestId });
-}
+    let decodedPath = req.nextUrl.pathname.toLowerCase();
+    let decodedSearch = req.nextUrl.search.toLowerCase();
+    try {
+      decodedPath = decodeURIComponent(req.nextUrl.pathname).toLowerCase();
+      decodedSearch = decodeURIComponent(req.nextUrl.search).toLowerCase();
+    } catch {
+      logger.warn(`[WAF] Malformed URL encoding on ${url}`, { requestId });
+    }
+
+    const pathTraversalPattern = /(?:\.\.\/|\.\.\\|etc\/passwd|boot\.ini)/i;
+    const scannerPattern = /(?:\/wp-admin|\.env|\.git|phpinfo)/i;
+
+    // High confidence path attacks: ban malicious scanner / path traversal
+    if (pathTraversalPattern.test(decodedPath) || scannerPattern.test(decodedPath)) {
+      logger.error(`[WAF] Critical path threat detected on ${url} from IP ${ip}. Banning IP.`, {
+        requestId,
+        url,
+        ip,
+      });
+      await banIp(ip, "WAF: Threat signature matched", 24 * 60 * 60);
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
 
     const sqlInjectionPatterns = [
       /\b(?:union\s+select|drop\s+table|insert\s+into|delete\s+from|alter\s+table)\b/i,
       /;\s*--/i,
     ];
-const pathTraversalPattern = /(?:\.\.\/|\.\.\\|etc\/passwd|boot\.ini)/i;
-const cmdInjectionPattern = /[;|&`] (?:[{}]|eval|exec|system)/i;
-const scannerPattern = /(?:\/wp-admin|\.env|\.git|phpinfo)/i;
+    const cmdInjectionPattern = /[;|&`] (?:[{}]|eval|exec|system)/i;
 
-if (
-sqlInjectionPatterns.some((pattern) => pattern.test(decodedUrl)) ||
-pathTraversalPattern.test(decodedUrl) ||
-cmdInjectionPattern.test(decodedUrl) ||
-scannerPattern.test(decodedUrl)
-) {
-logger.error(`[WAF] Threat detected on ${url} from IP ${ip}. Banning IP.`, {
-requestId,
-url,
-ip,
-});
-await banIp(ip, "WAF: Threat signature matched", 24 * 60 * 60);
-return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-}
+    // Reject SQL / Command injection queries without immediately banning whole shared CGNAT IP
+    if (
+      sqlInjectionPatterns.some((pattern) => pattern.test(decodedPath) || pattern.test(decodedSearch)) ||
+      cmdInjectionPattern.test(decodedPath) || cmdInjectionPattern.test(decodedSearch)
+    ) {
+      logger.warn(`[WAF] Blocked suspicious request payload on ${url} from IP ${ip}`, {
+        requestId,
+        url,
+        ip,
+      });
+      return NextResponse.json({ error: "Invalid request parameters" }, { status: 400 });
+    }
 
-return null;
+    return null;
 }
 
 async function performRateLimiting(

@@ -34,11 +34,12 @@ redisUrl,
 
 const globalForRedis = global as unknown as { redis: Redis };
 const redisOptions: RedisOptions = {
-lazyConnect: isBuildTime,
-connectTimeout: 10000,
-enableOfflineQueue: true,
-maxRetriesPerRequest: null,
-enableReadyCheck: !shouldDisableReadyCheck,
+  lazyConnect: isBuildTime,
+  connectTimeout: 5000,
+  enableOfflineQueue: false,
+  maxRetriesPerRequest: 3,
+  commandTimeout: 3000,
+  enableReadyCheck: !shouldDisableReadyCheck,
 retryStrategy(times) {
 if (isBuildTime) return null;
 

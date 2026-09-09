@@ -548,23 +548,44 @@ error: "Verification service unavailable",
 // ==================== HELPERS ====================
 
 function tokenizeAndCleanName(name: string): string[] {
+  const commonTokens = new Set([
+    "kumar", "singh", "devi", "prasad", "sri", "shree", "mr", "mrs", "miss", "dr",
+    "shri", "smt", "prof", "ca", "adv", "and", "co", "ltd", "pvt", "private", "limited",
+  ]);
+
   return name
     .toLowerCase()
     .replace(/^(mr|ms|mrs|dr|prof|ca|adv|shri|smt|m\/s)\.?\s+/i, "")
+    .replace(/[^a-z0-9\s]/g, "")
     .split(/\s+/)
-    .filter((t) => t.length >= 2);
+    .filter((t) => t.length >= 2 && !commonTokens.has(t));
 }
 
 export function hasMatchingNameTokens(nameA: string, nameB: string): boolean {
+  const cleanA = nameA.toLowerCase().trim().replace(/[^a-z0-9]/g, "");
+  const cleanB = nameB.toLowerCase().trim().replace(/[^a-z0-9]/g, "");
+  if (cleanA === cleanB && cleanA.length >= 3) {
+    return true;
+  }
+
   const tokensA = tokenizeAndCleanName(nameA);
   const tokensB = tokenizeAndCleanName(nameB);
 
-  return (
-    tokensA.length > 0 &&
-    tokensB.length > 0 &&
-    (tokensA.some((ta) => tokensB.includes(ta)) ||
-      tokensB.some((tb) => tokensA.includes(tb)))
-  );
+  if (tokensA.length === 0 || tokensB.length === 0) {
+    // If all words were common tokens, fall back to exact non-empty word match
+    const rawA = nameA.toLowerCase().replace(/[^a-z0-9\s]/g, "").split(/\s+/).filter(t => t.length >= 2);
+    const rawB = nameB.toLowerCase().replace(/[^a-z0-9\s]/g, "").split(/\s+/).filter(t => t.length >= 2);
+    if (rawA.length === 0 || rawB.length === 0) return false;
+    const commonMatches = rawA.filter(t => rawB.includes(t));
+    return commonMatches.length >= 2 && commonMatches.length === Math.min(rawA.length, rawB.length);
+  }
+
+  const matchingTokens = tokensA.filter((ta) => tokensB.includes(ta));
+  const unionSize = new Set([...tokensA, ...tokensB]).size;
+  const jaccard = unionSize > 0 ? matchingTokens.length / unionSize : 0;
+
+  // Match if at least 2 distinct distinctive tokens match, or Jaccard similarity is >= 0.6
+  return matchingTokens.length >= 2 || (matchingTokens.length >= 1 && jaccard >= 0.6);
 }
 
 function maskDocument(doc: string, visibleDigits: number): string {

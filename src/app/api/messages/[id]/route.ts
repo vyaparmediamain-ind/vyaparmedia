@@ -222,8 +222,6 @@ async function executeOfferEscrowTransaction(params: EscrowTxParams) {
         where: { id: brandWallet.id },
         data: {
           balance: { decrement: params.totalAmountToLock },
-          pendingBalance: { increment: params.totalAmountToLock },
-          totalSpent: { increment: params.totalAmountToLock },
         },
       });
 

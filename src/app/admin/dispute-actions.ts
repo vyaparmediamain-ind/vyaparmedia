@@ -271,6 +271,14 @@ async function handleReleaseInfluencer(tx: Prisma.TransactionClient, dispute: Di
     }
   }
 
+  await tx.campaign.update({
+    where: { id: dispute.deal.campaignId },
+    data: {
+      reservedAmount: { decrement: dispute.deal.amount },
+      reservedTotalAmount: { decrement: dispute.deal.totalAmount || dispute.deal.amount },
+    },
+  });
+
   return { gamificationReferrerId };
 }
 

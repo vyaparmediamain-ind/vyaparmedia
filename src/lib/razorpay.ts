@@ -379,13 +379,20 @@ const fundCacheKey = isUpiPayout
 ? `rzp:fund:upi:${upiHash}`
 : `rzp:fund:${bankHash}`;
 
-// Step 1: Resolve or create Contact
-const contactId = await resolveOrCreateRazorpayContact(params, authHeader, contactCacheKey);
+  // Fast fail early if circuit breaker is currently OPEN to avoid hanging on contact/fund account fetches
+  const isCircuitOpen = await redis.get("cb:open:razorpay:createPayout");
+  if (isCircuitOpen) {
+    logger.warn("[CircuitBreaker] FAST FAIL: Razorpay payout circuit is currently OPEN.");
+    throw AppError.badRequest("Service unavailable for 'razorpay:createPayout'. Circuit is OPEN.");
+  }
 
-// Step 2: Resolve or create Fund Account
-const fundAccountId = await resolveOrCreateRazorpayFundAccount(params, contactId, authHeader, fundCacheKey, isUpiPayout);
+  // Step 1: Resolve or create Contact
+  const contactId = await resolveOrCreateRazorpayContact(params, authHeader, contactCacheKey);
 
-// Step 3: Create payout (always new idempotency via X-Payout-Idempotency header)
+  // Step 2: Resolve or create Fund Account
+  const fundAccountId = await resolveOrCreateRazorpayFundAccount(params, contactId, authHeader, fundCacheKey, isUpiPayout);
+
+  // Step 3: Create payout (always new idempotency via X-Payout-Idempotency header)
 const payout = await withCircuitBreaker("razorpay:createPayout", async () => {
   const res = await fetch("https://api.razorpay.com/v1/payouts", {
     method: "POST",

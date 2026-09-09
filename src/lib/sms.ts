@@ -125,74 +125,94 @@ To: `whatsapp:${to}`,
 Body: message,
 });
 
-const credentials = `${accountSid}:${authToken}`;
-const authHeader = `Basic ${Buffer.from(credentials).toString("base64")}`;
+    const credentials = `${accountSid}:${authToken}`;
+    const authHeader = `Basic ${Buffer.from(credentials).toString("base64")}`;
 
-const response = await fetch(
-`https://api.twilio.com/2010-04-01/Accounts/${accountSid}/Messages.json`,
-{
-method: "POST",
-headers: {
-Authorization: authHeader,
-"Content-Type": "application/x-www-form-urlencoded",
-},
-body,
-},
-);
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 15_000);
 
-if (!response.ok) {
-logger.warn("Twilio WhatsApp OTP delivery failed", {
-status: response.status,
-response: await response.text().catch(() => ""),
-});
-}
+      const response = await fetch(
+      `https://api.twilio.com/2010-04-01/Accounts/${accountSid}/Messages.json`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: authHeader,
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+        body,
+        signal: controller.signal,
+      },
+    );
+    clearTimeout(timeoutId);
 
-return response.ok;
+    if (!response.ok) {
+      logger.warn("Twilio WhatsApp OTP delivery failed", {
+        status: response.status,
+        response: await response.text().catch(() => ""),
+      });
+    }
+
+    return response.ok;
+  } catch (err) {
+    logger.warn("Twilio WhatsApp OTP request failed or timed out", { error: err instanceof Error ? err.message : String(err) });
+    return false;
+  }
 }
 
 async function sendViaMetaWhatsApp(phone: string, otp: string) {
-const phoneNumberId = process.env.WHATSAPP_PHONE_NUMBER_ID;
-const accessToken = process.env.WHATSAPP_ACCESS_TOKEN;
-const templateName = process.env.WHATSAPP_OTP_TEMPLATE_NAME;
-const languageCode = process.env.WHATSAPP_TEMPLATE_LANGUAGE || "en_US";
-const to = e164IndianPhone(phone)?.replace("+", "");
+  try {
+    const phoneNumberId = process.env.WHATSAPP_PHONE_NUMBER_ID;
+    const accessToken = process.env.WHATSAPP_ACCESS_TOKEN;
+    const templateName = process.env.WHATSAPP_OTP_TEMPLATE_NAME;
+    const languageCode = process.env.WHATSAPP_TEMPLATE_LANGUAGE || "en_US";
+    const to = e164IndianPhone(phone)?.replace("+", "");
 
-if (!phoneNumberId || !accessToken || !templateName || !to) return false;
+    if (!phoneNumberId || !accessToken || !templateName || !to) return false;
 
-const response = await fetch(
-`https://graph.facebook.com/v20.0/${phoneNumberId}/messages`,
-{
-method: "POST",
-headers: {
-Authorization: `Bearer ${accessToken}`,
-"Content-Type": "application/json",
-},
-body: JSON.stringify({
-messaging_product: "whatsapp",
-to,
-type: "template",
-template: {
-name: templateName,
-language: { code: languageCode },
-components: [
-{
-type: "body",
-parameters: [{ type: "text", text: otp }],
-},
-],
-},
-}),
-},
-);
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 15_000);
 
-if (!response.ok) {
-logger.warn("Meta WhatsApp OTP delivery failed", {
-status: response.status,
-response: await response.text().catch(() => ""),
-});
-}
+    const response = await fetch(
+      `https://graph.facebook.com/v20.0/${phoneNumberId}/messages`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          messaging_product: "whatsapp",
+          to,
+          type: "template",
+          template: {
+            name: templateName,
+            language: { code: languageCode },
+            components: [
+              {
+                type: "body",
+                parameters: [{ type: "text", text: otp }],
+              },
+            ],
+          },
+        }),
+        signal: controller.signal,
+      },
+    );
+    clearTimeout(timeoutId);
 
-return response.ok;
+    if (!response.ok) {
+      logger.warn("Meta WhatsApp OTP delivery failed", {
+        status: response.status,
+        response: await response.text().catch(() => ""),
+      });
+    }
+
+    return response.ok;
+  } catch (err) {
+    logger.warn("Meta WhatsApp OTP request failed or timed out", { error: err instanceof Error ? err.message : String(err) });
+    return false;
+  }
 }
 
 async function sendWhatsAppOtp(phone: string, otp: string) {
@@ -364,33 +384,35 @@ await redis.del(key);
 return { success: false, error: "OTP not found or expired" };
 }
 
-if (stored.attempts >= OTP_MAX_ATTEMPTS) {
-await redis.del(key);
-return { success: false, error: "Maximum attempts exceeded" };
-}
+  const attemptsKey = `${key}:attempts`;
+  const attempts = await redis.incr(attemptsKey);
+  if (attempts === 1) {
+    await redis.expire(attemptsKey, OTP_TTL_SECONDS);
+  }
+
+  if (attempts > OTP_MAX_ATTEMPTS) {
+    await redis.del(key);
+    await redis.del(attemptsKey);
+    return { success: false, error: "Maximum attempts exceeded" };
+  }
 
   const cleanOtp = String(otp ?? "").trim();
   const submittedHash = hashOtp(normalized, purpose, cleanOtp);
   const isValid = safeEqualHex(stored.hash, submittedHash);
-if (!isValid) {
-const ttl = await redis.ttl(key);
-if (ttl > 0) {
-await redis.setex(
-key,
-ttl,
-JSON.stringify({ ...stored, attempts: stored.attempts + 1 }),
-);
-}
-return { success: false, error: "Invalid OTP" };
-}
+  if (!isValid) {
+    return { success: false, error: "Invalid OTP" };
+  }
 
-await redis.del(key);
-logger.info("Phone OTP verified", {
-phone: normalized,
-purpose,
-deliveredVia: stored.deliveredVia,
-fallbackUsed: stored.fallbackUsed,
-});
+  await Promise.allSettled([
+    redis.del(key),
+    redis.del(attemptsKey),
+  ]);
+  logger.info("Phone OTP verified", {
+    phone: normalized,
+    purpose,
+    deliveredVia: stored.deliveredVia,
+    fallbackUsed: stored.fallbackUsed,
+  });
 
-return { success: true };
+  return { success: true };
 }

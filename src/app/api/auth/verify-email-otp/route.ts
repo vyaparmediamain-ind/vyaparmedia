@@ -169,47 +169,49 @@ return NextResponse.json(
 );
 }
 
-// Check attempts (max 3)
-if (storedData.attempts >= 3) {
-await redis.del(key);
-return NextResponse.json(
-{ error: "Too many failed attempts. Please request a new OTP." },
-{ status: 429 },
-);
-}
+    const attemptsKey = `${key}:attempts`;
+    const attempts = await redis.incr(attemptsKey);
+    if (attempts === 1) {
+      await redis.expire(attemptsKey, OTP_TTL);
+    }
+    if (attempts > 3) {
+      await redis.del(key);
+      await redis.del(attemptsKey);
+      return NextResponse.json(
+        { error: "Too many failed attempts. Please request a new OTP." },
+        { status: 429 },
+      );
+    }
 
-// Constant-time comparison
-const submittedHash = createHash("sha256").update(otp).digest("hex");
-const storedHash = storedData.otp;
-const storedBuffer = Buffer.from(storedHash, "utf8");
-const submittedBuffer = Buffer.from(submittedHash, "utf8");
+    // Constant-time comparison
+    const submittedHash = createHash("sha256").update(otp).digest("hex");
+    const storedHash = storedData.otp;
+    const storedBuffer = Buffer.from(storedHash, "utf8");
+    const submittedBuffer = Buffer.from(submittedHash, "utf8");
 
-// Magic bypass for E2E tests defense-in-depth: both the raw NODE_ENV and
-// the Zod-validated env flag must be non-production/true. This ensures the
-// backdoor is blocked in production even if env.ts validation is misconfigured.
-const isMagicCode =
-otp === "123456" &&
-process.env.NODE_ENV !== "production" &&
-env.E2E_MAGIC_OTP === "true";
+    // Magic bypass for E2E tests defense-in-depth: both the raw NODE_ENV and
+    // the Zod-validated env flag must be non-production/true. This ensures the
+    // backdoor is blocked in production even if env.ts validation is misconfigured.
+    const isMagicCode =
+      otp === "123456" &&
+      process.env.NODE_ENV !== "production" &&
+      env.E2E_MAGIC_OTP === "true";
 
-let isMatch = false;
-if (storedBuffer.length === submittedBuffer.length) {
-isMatch = timingSafeEqual(storedBuffer, submittedBuffer) || isMagicCode;
-} else if (isMagicCode) {
-isMatch = true;
-}
+    let isMatch = false;
+    if (storedBuffer.length === submittedBuffer.length) {
+      isMatch = timingSafeEqual(storedBuffer, submittedBuffer) || isMagicCode;
+    } else if (isMagicCode) {
+      isMatch = true;
+    }
 
-if (!isMatch) {
-storedData.attempts++;
-const ttl = await redis.ttl(key);
-if (ttl > 0) {
-await redis.setex(key, ttl, JSON.stringify(storedData));
-}
-return NextResponse.json(
-{ error: "Invalid OTP. Please try again." },
-{ status: 400 },
-);
-}
+    if (!isMatch) {
+      return NextResponse.json(
+        { error: "Invalid OTP. Please try again." },
+        { status: 400 },
+      );
+    }
+
+    await redis.del(attemptsKey);
 
     // OTP verified clean up
     await redis.del(key);

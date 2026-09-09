@@ -25,15 +25,19 @@ const isDevelopment = process.env.NODE_ENV === "development";
 * Automatically redacts sensitive patterns before they reach the storage
 */
 function maskPIIPrimitive(data: string): string {
-// Mask Email
-if (data.includes("@") && data.includes(".")) {
-return data.replace(/^([^@]{2})[^@]*(@.*)$/, "$1***$2");
-}
-// Mask Phone (approximate)
-if (/^\+?(?:91)?[6-9]\d{9}$/.test(data.replace(/[\s-]/g, ""))) {
-return data.slice(0, 3) + "***" + data.slice(-2);
-}
-return data;
+  let masked = data;
+  // Mask Indian PAN (5 letters, 4 digits, 1 letter)
+  masked = masked.replace(/\b[A-Z]{5}[0-9]{4}[A-Z]\b/gi, "[REDACTED_PAN]");
+  // Mask 12-digit Indian Aadhaar
+  masked = masked.replace(/\b\d{4}\s?\d{4}\s?\d{4}\b/g, "[REDACTED_AADHAAR]");
+  // Mask Email (unanchored, anywhere in string)
+  masked = masked.replace(/([a-zA-Z0-9._%+-]{2})[a-zA-Z0-9._%+-]*(@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/g, "$1***$2");
+  // Mask Phone numbers (10-digit Indian numbers with optional country code)
+  masked = masked.replace(/(?:\+?91[\s-]?)?[6-9]\d{9}\b/g, (match) => {
+    const clean = match.replace(/[\s+-]/g, "");
+    return clean.slice(0, 3) + "****" + clean.slice(-3);
+  });
+  return masked;
 }
 
 function maskPII(data: unknown): unknown {

@@ -19,6 +19,7 @@ creditInfluencerPayoutWithTax,
 recordPlatformFeeRevenue,
 } from "@/lib/deal-settlement";
 import { releaseIdempotencyKey } from "@/lib/idempotency";
+import { randomUUID } from "node:crypto";
 
 export class PaymentService {
   static async createWalletTopUpOrder(userId: string, amountInPaise: number) {
@@ -124,13 +125,14 @@ key: process.env.RAZORPAY_KEY_ID,
 * Phase 1: DB Lock & Validate (Atomic)
 * Phase 2: DB Transaction for state updates
 */
-static async processDealCompletion(dealId: string) {
-const lockKey = `lock:deal_completion:${dealId}`;
-const acquired = await redis.set(lockKey, "LOCKED", "EX", 60, "NX");
-if (!acquired) {
-logger.info("processDealCompletion already running for this deal, skipping.", { dealId });
-return;
-}
+  static async processDealCompletion(dealId: string) {
+    const lockToken = randomUUID();
+    const lockKey = `lock:deal_completion:${dealId}`;
+    const acquired = await redis.set(lockKey, lockToken, "EX", 60, "NX");
+    if (!acquired) {
+      logger.info("processDealCompletion already running for this deal, skipping.", { dealId });
+      return;
+    }
 try {
 const deal = await prisma.deal.findUnique({
 where: { id: dealId },
@@ -321,10 +323,20 @@ dealId,
 error,
 });
 }
-} finally {
-await redis.del(lockKey);
-}
-}
+    } finally {
+      // Safely release only OUR lock via Lua CAS to avoid deleting another worker's lock
+      const releaseLua = `
+        if redis.call('get', KEYS[1]) == ARGV[1] then
+          return redis.call('del', KEYS[1])
+        else
+          return 0
+        end
+      `;
+      await redis.eval(releaseLua, 1, lockKey, lockToken).catch((delErr) => {
+        logger.error("Failed to release deal completion lock", delErr, { lockKey });
+      });
+    }
+  }
 
   static async executeWithdrawalDbTransaction(
     tx: Prisma.TransactionClient,

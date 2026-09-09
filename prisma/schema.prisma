@@ -627,6 +627,9 @@ model Deal {
   @@index([brandId, status, deletedAt])
   @@index([influencerId, status, deletedAt])
   @@index([campaignId, status, deletedAt])
+  @@index([status, signDeadline, deletedAt])
+  @@index([status, completedAt, deletedAt])
+  @@index([status, isPostAlive])
   @@index([completedAt])              // NEW: FY range queries
   @@index([influencerId, completedAt]) // NEW: Influencer income summary
   @@index([brandId, completedAt])     // NEW: Brand spend by FY
@@ -711,6 +714,8 @@ model Transaction {
   withdrawal Withdrawal? @relation(fields: [withdrawalId], references: [id])
 
   @@index([walletId, status])
+  @@index([walletId, type, createdAt])
+  @@index([walletId, status, createdAt])
   @@index([dealId])
   @@index([withdrawalId])
   @@index([createdAt])
@@ -1036,6 +1041,8 @@ model ActivityLog {
   user User @relation(fields: [userId], references: [id])
 
   @@index([userId])
+  @@index([userId, action, createdAt])
+  @@index([userId, createdAt])
   @@index([action])
   @@index([createdAt])
 }
