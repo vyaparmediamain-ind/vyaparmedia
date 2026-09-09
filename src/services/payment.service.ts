@@ -137,12 +137,13 @@ where: { id: dealId },
 include: { influencer: true, brand: true },
 });
 
-if (
-!deal ||
-!["VERIFIED", "CONTENT_APPROVED"].includes(deal.status)
-) {
-return;
-}
+    if (
+      !deal ||
+      !["VERIFIED", "CONTENT_APPROVED"].includes(deal.status) ||
+      (deal.status === "CONTENT_APPROVED" && deal.requiresPostVerification !== false)
+    ) {
+      return;
+    }
 
 await PaymentService.checkAndBlockLatePost(deal, dealId);
 
@@ -441,11 +442,25 @@ await redis.del(lockKey);
       throw AppError.badRequest(`Payout failed: connection error. Funds returned to wallet.`);
     }
 
+    if (errorMsg.includes("Circuit is OPEN")) {
+      // Circuit breaker is open — request was never dispatched to Razorpay. Safe to restore balance immediately.
+      await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
+        await PaymentService.refundFailedWithdrawal(
+          withdrawalId,
+          tx,
+          "Payout service temporarily unavailable (circuit open)",
+          undefined,
+          false
+        );
+      });
+      await releaseIdempotencyKey(idempotencyKey, userId);
+      throw AppError.badRequest("Payout gateway is temporarily down for maintenance. Funds have been returned to your wallet.");
+    }
+
     const isAmbiguousTimeout =
       errorMsg.includes("timeout") ||
       errorMsg.includes("fetch") ||
-      errorMsg.includes("network") ||
-      errorMsg.includes("Circuit is OPEN");
+      errorMsg.includes("network");
 
     if (isAmbiguousTimeout) {
       // Genuinely ambiguous — keep as PROCESSING for webhook reconciliation

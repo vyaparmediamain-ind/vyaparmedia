@@ -11,6 +11,7 @@ httpRequestDurationMs,
 httpRequestsTotal,
 systemErrorsTotal,
 } from "./metrics";
+import { getSecureClientIp } from "./ip";
 import { AppError } from "./errors";
 
 import type { RATE_LIMIT_CONFIGS } from "./rate-limit";
@@ -60,6 +61,7 @@ userRateLimit?: {
 bucket: keyof typeof RATE_LIMIT_CONFIGS;
 errorMessage?: string;
 };
+maxBodySize?: number; // Maximum allowed body size in bytes (default: 2MB)
 validate?: {
 body?: z.ZodSchema;
 query?: z.ZodSchema;
@@ -120,19 +122,17 @@ const start = Date.now();
 const requestId = randomUUID();
 const method = req.method;
 const url = req.nextUrl.pathname;
-    const forwardedFor = req.headers.get("x-forwarded-for");
-    const ip = forwardedFor
-      ? forwardedFor.split(",")[0]?.trim() || "unknown"
-      : req.headers.get("x-real-ip") || "unknown";
+    const ip = getSecureClientIp(req);
 
-// Request body size protection: reject bodies > 2MB
-const contentLength = req.headers.get("content-length");
-if (contentLength && Number.parseInt(contentLength, 10) > 2 * 1024 * 1024) {
-return NextResponse.json(
-{ error: "Payload Too Large", requestId },
-{ status: 413 },
-);
-}
+    // Request body size protection: reject bodies exceeding maxBodySize (default 2MB)
+    const maxAllowedBytes = options?.maxBodySize ?? 2 * 1024 * 1024;
+    const contentLength = req.headers.get("content-length");
+    if (contentLength && Number.parseInt(contentLength, 10) > maxAllowedBytes) {
+      return NextResponse.json(
+        { error: "Payload Too Large", requestId },
+        { status: 413 },
+      );
+    }
 
 // Sanitize URL to avoid high cardinality in metrics
 const sanitizedUrl = url
@@ -235,12 +235,10 @@ decodedUrl = decodeURIComponent(req.url).toLowerCase();
 logger.warn(`[WAF] Malformed URL encoding on ${url}`, { requestId });
 }
 
-const sqlInjectionPatterns = [
-/\b(?:union\s+select|drop\s+table|insert\s+into|delete\s+from|alter\s+table)\b/i,
-/;\s*--/i,
-/\/\*/i,
-/\*\//i,
-];
+    const sqlInjectionPatterns = [
+      /\b(?:union\s+select|drop\s+table|insert\s+into|delete\s+from|alter\s+table)\b/i,
+      /;\s*--/i,
+    ];
 const pathTraversalPattern = /(?:\.\.\/|\.\.\\|etc\/passwd|boot\.ini)/i;
 const cmdInjectionPattern = /[;|&`] (?:[{}]|eval|exec|system)/i;
 const scannerPattern = /(?:\/wp-admin|\.env|\.git|phpinfo)/i;

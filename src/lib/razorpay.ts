@@ -35,9 +35,13 @@ function isFuzzyNameMatch(submittedName: string, registeredName: string | null):
   const cSubmitted = clean(submittedName);
   const cRegistered = clean(registeredName);
 
+  if (!cSubmitted || !cRegistered) return false;
   if (cSubmitted === cRegistered) return true;
 
-  if (cSubmitted.includes(cRegistered) || cRegistered.includes(cSubmitted)) return true;
+  // Only allow substring matching if both names have significant length (>= 4 chars)
+  if (cSubmitted.length >= 4 && cRegistered.length >= 4) {
+    if (cSubmitted.includes(cRegistered) || cRegistered.includes(cSubmitted)) return true;
+  }
 
   return false;
 }
@@ -382,32 +386,33 @@ const contactId = await resolveOrCreateRazorpayContact(params, authHeader, conta
 const fundAccountId = await resolveOrCreateRazorpayFundAccount(params, contactId, authHeader, fundCacheKey, isUpiPayout);
 
 // Step 3: Create payout (always new idempotency via X-Payout-Idempotency header)
-const payoutRes = await withCircuitBreaker("razorpay:createPayout", async () => {
-return fetch("https://api.razorpay.com/v1/payouts", {
-method: "POST",
-headers: {
-Authorization: `Basic ${authHeader}`,
-"Content-Type": "application/json",
-"X-Payout-Idempotency": params.referenceId,
-},
-body: JSON.stringify({
-account_number: accountNumber,
-fund_account_id: fundAccountId,
-amount: params.amount,
-currency: "INR",
-mode: isUpiPayout ? "UPI" : "IMPS",
-purpose: params.purpose || "payout",
-queue_if_low_balance: true,
-reference_id: params.referenceId,
-}),
-});
-});
-  const payout = await payoutRes.json();
+const payout = await withCircuitBreaker("razorpay:createPayout", async () => {
+  const res = await fetch("https://api.razorpay.com/v1/payouts", {
+    method: "POST",
+    headers: {
+      Authorization: `Basic ${authHeader}`,
+      "Content-Type": "application/json",
+      "X-Payout-Idempotency": params.referenceId,
+    },
+    body: JSON.stringify({
+      account_number: accountNumber,
+      fund_account_id: fundAccountId,
+      amount: params.amount,
+      currency: "INR",
+      mode: isUpiPayout ? "UPI" : "IMPS",
+      purpose: params.purpose || "payout",
+      queue_if_low_balance: true,
+      reference_id: params.referenceId,
+    }),
+  });
 
-  if (payout.error || !payoutRes.ok) {
-    const errorDescription = payout.error?.description || "Payout creation failed";
-    throw new AppError(errorDescription, payoutRes.status, ApiErrorCode.GATEWAY_ERROR);
+  const data = await res.json();
+  if (data.error || !res.ok) {
+    const errorDescription = data.error?.description || "Payout creation failed";
+    throw new AppError(errorDescription, res.status, ApiErrorCode.GATEWAY_ERROR);
   }
+  return data;
+});
 
 return {
 payoutId: payout.id,

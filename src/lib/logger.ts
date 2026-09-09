@@ -81,6 +81,9 @@ timestamp({ format: "YYYY-MM-DD HH:mm:ss" }),
 errors({ stack: true }), // Include stack trace
 metadata({ fillExcept: ["timestamp", "level", "message", "stack"] }),
 format((info) => {
+if (typeof info.message === "string") {
+info.message = maskPIIPrimitive(info.message);
+}
 if (info.metadata) {
 info.metadata = maskPII(info.metadata);
 }

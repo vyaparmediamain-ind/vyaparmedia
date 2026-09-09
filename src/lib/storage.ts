@@ -234,7 +234,9 @@ Bucket: S3_BUCKET,
 Key: key,
 Body: file,
 ContentType: contentType,
-CacheControl: "public, max-age=31536000, immutable",
+CacheControl: key.startsWith("verification/")
+  ? "private, no-cache, no-store"
+  : "public, max-age=31536000, immutable",
 }),
 );
 

@@ -42,18 +42,24 @@ badges: { include: { badge: true } },
 
 if (!user) notFound();
 
-// Regenerate presigned URLs for all KYC documents on load
-// documentUrl stores either a full URL (already public/CDN) or an S3 key.
-// For keys (no http prefix), we generate a fresh 1-hour presigned URL.
+// Regenerate presigned URLs for all KYC documents on load.
+// Verification documents in S3/R2 are private and require presigned URLs.
 const docsWithRefreshedUrls = await Promise.all(
 user.verificationDocs.map(async (doc: typeof user.verificationDocs[number]) => {
 if (!doc.documentUrl) return doc;
-// If it's already a full URL (CDN / local path), use as-is
-if (doc.documentUrl.startsWith("http") || doc.documentUrl.startsWith("/")) {
+// If local filesystem path, serve as-is
+if (doc.documentUrl.startsWith("/uploads/")) {
 return doc;
 }
-// Otherwise treat as S3 key and generate fresh presigned URL (1h)
-const signedUrl = await getSignedUrl(doc.documentUrl, 3600);
+// Extract S3 key if documentUrl is a full S3/CDN URL
+let key = doc.documentUrl;
+const verificationIdx = key.indexOf("verification/");
+if (verificationIdx !== -1) {
+key = key.substring(verificationIdx);
+// Strip any existing query params if already presigned
+key = key.split("?")[0]!;
+}
+const signedUrl = await getSignedUrl(key, 3600);
 return { ...doc, documentUrl: signedUrl || doc.documentUrl };
 }),
 );

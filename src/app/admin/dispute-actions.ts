@@ -115,16 +115,12 @@ const brandWallet = await tx.wallet.findUnique({ where: { userId: brandUserId } 
   const refundAmount = dispute.deal.totalAmount || dispute.deal.amount;
 
   if (dispute.deal.reservedFromWallet) {
-    const updateResult = await tx.wallet.updateMany({
-      where: { id: brandWallet.id, pendingBalance: { gte: refundAmount } },
+    await tx.wallet.update({
+      where: { id: brandWallet.id },
       data: {
         balance: { increment: refundAmount },
-        pendingBalance: { decrement: refundAmount },
       },
     });
-    if (updateResult.count === 0) {
-      throw AppError.badRequest("Invalid deal state: missing refundable wallet reserve.");
-    }
   }
 
   await tx.transaction.create({
@@ -185,14 +181,14 @@ async function secureBrandFundsForRelease(
   deal: DisputeWithDeal["deal"],
 ) {
   if (deal.brand?.userId && deal.reservedFromWallet) {
-    const reserveAmount = deal.totalAmount || deal.amount;
-    const debitResult = await tx.wallet.updateMany({
-      where: { userId: deal.brand.userId, pendingBalance: { gte: reserveAmount } },
-      data: { pendingBalance: { decrement: reserveAmount } },
+    // For wallet-reserved deals, funds were already committed and deducted from withdrawable balance upon deal creation.
+    // Ensure the brand wallet exists.
+    const brandWallet = await tx.wallet.findUnique({
+      where: { userId: deal.brand.userId },
+      select: { id: true },
     });
-
-    if (debitResult.count === 0) {
-      throw AppError.badRequest("Invalid deal state: Missing pending balance in brand's wallet. Concurrent process detected.");
+    if (!brandWallet) {
+      throw AppError.badRequest("Brand wallet not found for deal release.");
     }
   } else if (!deal.reservedFromWallet) {
     const paymentHold = await tx.paymentHold.findUnique({

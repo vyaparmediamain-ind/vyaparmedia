@@ -429,4 +429,6 @@ return ApiResponse.error("Internal Server Error", 500);
 
 
 // Wrapped handlers via apiWrapper
-export const POST = apiWrapper(_handler_POST);
+export const POST = apiWrapper(_handler_POST, {
+  maxBodySize: 50 * 1024 * 1024,
+});

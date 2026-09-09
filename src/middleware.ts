@@ -50,6 +50,8 @@ const BASE_CSP = [
   "font-src 'self' https://fonts.gstatic.com data:",
   `connect-src 'self' https://*.googleapis.com https://*.razorpay.com https://api.razorpay.com https://graph.instagram.com https://api.instagram.com https://graph.facebook.com https://api.msg91.com https://surepass.io https://*.surepass.io https://*.ingest.sentry.io https://*.sentry.io https://va.vercel-scripts.com https://vitals.vercel-insights.com${storageConnectStr}`,
   "frame-src 'self' https://checkout.razorpay.com https://*.razorpay.com",
+  "frame-ancestors 'none'",
+  "form-action 'self'",
   "worker-src 'self' blob:",
   "object-src 'none'",
   "base-uri 'self'",
@@ -151,11 +153,19 @@ req: NextRequest,
 pathname: string,
 applyCSP: (response: NextResponse) => NextResponse
 ): Promise<NextResponse | null> {
-const ua = (req.headers.get("user-agent") || "").toLowerCase();
-const requestFingerprint = `${ua} ${pathname.toLowerCase()} ${req.nextUrl.search.toLowerCase()}`;
-if (checkWafPatterns(requestFingerprint)) {
-return applyCSP(NextResponse.json({ error: "Forbidden" }, { status: 403 }));
-}
+  const ua = (req.headers.get("user-agent") || "").toLowerCase();
+  let decodedPath = pathname.toLowerCase();
+  let decodedSearch = req.nextUrl.search.toLowerCase();
+  try {
+    decodedPath = decodeURIComponent(pathname).toLowerCase();
+    decodedSearch = decodeURIComponent(req.nextUrl.search).toLowerCase();
+  } catch {
+    // Keep raw strings on malformed URI encoding
+  }
+  const requestFingerprint = `${ua} ${decodedPath} ${decodedSearch}`;
+  if (checkWafPatterns(requestFingerprint)) {
+    return applyCSP(NextResponse.json({ error: "Forbidden" }, { status: 403 }));
+  }
 
 const ip = getSecureClientIp(req);
 if (ip !== "unknown" && (await checkEdgeIpBlacklist(ip))) {

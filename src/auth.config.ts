@@ -51,11 +51,11 @@ session.error = token.error as string;
 }
 return session;
 },
-async authorized({ auth: _session }) {
-return true;
-},
-},
-providers: [],
+    async authorized({ auth: _session }) {
+      return true;
+    },
+  },
+  providers: [],
   cookies: {
     sessionToken: {
       name:
@@ -64,7 +64,7 @@ providers: [],
           : "authjs.session-token",
       options: {
         httpOnly: true,
-        sameSite: (process.env.NODE_ENV === "production" ? "strict" : "lax") as "strict" | "lax",
+        sameSite: "lax",
         path: "/",
         secure: process.env.NODE_ENV === "production",
       },

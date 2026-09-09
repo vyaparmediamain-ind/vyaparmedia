@@ -94,7 +94,14 @@ createdAt: new Date().toISOString(),
 );
 
 // Send OTP via email
-await sendVerificationEmail(email, otp);
+const sent = await sendVerificationEmail(email, otp);
+if (!sent) {
+  logger.error("Failed to send verification email OTP", undefined, { email });
+  return NextResponse.json(
+    { error: "Failed to send verification email. Please try again later." },
+    { status: 500 },
+  );
+}
 
 if (process.env.NODE_ENV === "development") {
 logger.debug(`[DEV] Email OTP for ${email}: ${otp}`);

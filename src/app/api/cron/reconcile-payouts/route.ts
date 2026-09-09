@@ -49,9 +49,12 @@ async function _handler_POST(_req: NextRequest) {
 // Find all deals that are VERIFIED but completedAt is null.
 // NOTE: Late-post-blocked deals are moved to PAYMENT_PENDING (adminFlag=LATE_POST_BLOCKED)
 // by processDealCompletion before throwing, so they are automatically excluded here.
-const verifiedDeals = await prisma.deal.findMany({
+  const verifiedDeals = await prisma.deal.findMany({
     where: {
-      status: { in: ["VERIFIED", "CONTENT_APPROVED"] },
+      OR: [
+        { status: "VERIFIED" },
+        { status: "CONTENT_APPROVED", requiresPostVerification: false },
+      ],
       completedAt: null,
       deletedAt: null,
       reconcileFailures: { lt: 3 },
@@ -59,7 +62,7 @@ const verifiedDeals = await prisma.deal.findMany({
     select: { id: true },
     take: 100,
     orderBy: { createdAt: "asc" },
-});
+  });
 
 logger.info("Found verified deals needing payout reconciliation", { count: verifiedDeals.length });
 

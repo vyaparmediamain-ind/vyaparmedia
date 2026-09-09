@@ -514,5 +514,7 @@ return NextResponse.json(
 
 // Wrapped handlers via apiWrapper
 export const GET = apiWrapper(_handler_GET);
-export const POST = apiWrapper(_handler_POST);
+export const POST = apiWrapper(_handler_POST, {
+  maxBodySize: 10 * 1024 * 1024,
+});
 export const PUT = apiWrapper(_handler_PUT);
