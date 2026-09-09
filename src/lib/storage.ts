@@ -229,15 +229,16 @@ return uploadToLocal(file, key);
 
 try {
 await client.send(
-new PutObjectCommand({
-Bucket: S3_BUCKET,
-Key: key,
-Body: file,
-ContentType: contentType,
-CacheControl: key.startsWith("verification/")
-  ? "private, no-cache, no-store"
-  : "public, max-age=31536000, immutable",
-}),
+      new PutObjectCommand({
+        Bucket: S3_BUCKET,
+        Key: key,
+        Body: file,
+        ContentType: contentType,
+        ContentDisposition: key.startsWith("verification/") ? "attachment" : "inline",
+        CacheControl: key.startsWith("verification/")
+          ? "private, no-cache, no-store"
+          : "public, max-age=31536000, immutable",
+      }),
 );
 
 return {

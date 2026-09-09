@@ -152,6 +152,7 @@ async function verifyWalletBalance(userId: string): Promise<VerificationAnomaly 
             where: {
               brandId: brandProfile.id,
               status: { in: ACTIVE_DEAL_STATUSES as DealStatus[] },
+              reservedFromWallet: false,
             },
             _sum: { totalAmount: true },
           }),

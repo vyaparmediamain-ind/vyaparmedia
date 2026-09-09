@@ -245,11 +245,10 @@ analysis.refundPercentage = refundPct;
 totalAmount = getDealTotalAmount(deal);
 feeRatio = payoutPct / 100;
 const payoutBase = deal.influencerPayout ?? deal.amount;
-const feeBase = (deal.platformFee || 0) + (deal.gatewayFee || 0);
 influencerShare = Math.round(payoutBase * feeRatio);
-const feeShare = Math.round(feeBase * feeRatio);
+brandRefund = Math.min(totalAmount - influencerShare, Math.round(totalAmount * (refundPct / 100)));
+const feeShare = Math.max(0, totalAmount - influencerShare - brandRefund);
 settlementCharge = influencerShare + feeShare;
-brandRefund = Math.round(totalAmount * (refundPct / 100));
 influencerClawback = Math.round(payoutBase * (refundPct / 100));
 treasuryClawback = Math.max(0, brandRefund - influencerClawback);
 }

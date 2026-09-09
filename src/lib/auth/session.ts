@@ -189,6 +189,8 @@ if (typeof token.id === "string") {
 await redis.set(
 `active_session:${token.id}`,
 newRefreshToken.token,
+"EX",
+7 * 24 * 60 * 60,
 );
 }
 } catch (redisErr) {

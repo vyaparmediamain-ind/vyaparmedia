@@ -322,6 +322,7 @@ logger.critical("CAPTURE_FAILED: Deal completion failed", {
 dealId,
 error,
 });
+throw error;
 }
     } finally {
       // Safely release only OUR lock via Lua CAS to avoid deleting another worker's lock

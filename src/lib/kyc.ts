@@ -14,6 +14,17 @@ import { getErrorMessage } from "./utils";
 
 const KYC_API_KEY = process.env.KYC_API_KEY;
 const KYC_PROVIDER = process.env.KYC_PROVIDER || "manual"; // 'digilocker' | 'surepass' | 'idfy' | 'manual'
+const KYC_TIMEOUT_MS = 10_000;
+
+async function fetchWithTimeout(url: string, init: RequestInit = {}, timeoutMs = KYC_TIMEOUT_MS): Promise<Response> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    return await fetch(url, { ...init, signal: controller.signal });
+  } finally {
+    clearTimeout(timer);
+  }
+}
 
 // ==================== TYPES ====================
 
@@ -100,7 +111,7 @@ error: "Manual KYC requires admin review",
 
 try {
 if (KYC_PROVIDER === "surepass") {
-const res = await fetch("https://kyc-api.surepass.io/api/v1/pan/pan", {
+const res = await fetchWithTimeout("https://kyc-api.surepass.io/api/v1/pan/pan", {
 method: "POST",
 headers: {
 Authorization: `Bearer ${KYC_API_KEY}`,
@@ -172,7 +183,7 @@ error: "Manual KYC requires admin review",
 
 try {
 if (KYC_PROVIDER === "surepass") {
-const res = await fetch(
+const res = await fetchWithTimeout(
 "https://kyc-api.surepass.io/api/v1/corporate/gstin",
 {
 method: "POST",
@@ -248,7 +259,7 @@ error: "Manual bank verification requires admin review",
 
 try {
 if (KYC_PROVIDER === "surepass") {
-const res = await fetch(
+const res = await fetchWithTimeout(
 "https://kyc-api.surepass.io/api/v1/bank-verification/",
 {
 method: "POST",
@@ -328,7 +339,7 @@ async function surepassVerifyAadhaar(
 aadhaarNumber: string,
 ): Promise<KYCVerifyResult> {
 // Step 1: Generate OTP
-const otpRes = await fetch(
+const otpRes = await fetchWithTimeout(
 "https://kyc-api.surepass.io/api/v1/aadhaar-v2/generate-otp",
 {
 method: "POST",
@@ -435,7 +446,7 @@ error: "Please connect your DigiLocker account first",
 
 const decryptedAccessToken = decrypt(oauth.accessToken);
 
-const profileRes = await fetch("https://api.digilocker.gov.in/account/profile", {
+const profileRes = await fetchWithTimeout("https://api.digilocker.gov.in/account/profile", {
 headers: {
 Authorization: `Bearer ${decryptedAccessToken}`,
 },
@@ -502,7 +513,7 @@ error: "KYC API key not configured",
 }
 
 try {
-const res = await fetch(
+const res = await fetchWithTimeout(
 "https://kyc-api.surepass.io/api/v1/aadhaar-v2/submit-otp",
 {
 method: "POST",

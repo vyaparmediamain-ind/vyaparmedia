@@ -151,12 +151,39 @@ logger.info(`[API] ${method} ${url} - Started`, { requestId, ip });
 let rateLimitHeaders: Record<string, string> | undefined;
 
 try {
-// 2. WAF Checks
-const wafResponse = await performWafChecks(req, ip, url, requestId);
-if (wafResponse) {
-endTimer({ status_code: wafResponse.status.toString() });
-return wafResponse;
-}
+    // 2. CSRF & Cross-Site Mutation Defense
+    const MUTATING_METHODS = new Set(["POST", "PUT", "PATCH", "DELETE"]);
+    if (MUTATING_METHODS.has(method)) {
+      const secFetchSite = req.headers.get("sec-fetch-site");
+      if (secFetchSite === "cross-site") {
+        logger.warn(`[CSRF] Blocked cross-site mutation to ${url}`, { requestId, ip });
+        endTimer({ status_code: "403" });
+        return NextResponse.json({ error: "Forbidden: Cross-site request rejected" }, { status: 403 });
+      }
+
+      const origin = req.headers.get("origin");
+      const host = req.headers.get("host");
+      if (origin && host) {
+        try {
+          const originHost = new URL(origin).host;
+          if (originHost !== host) {
+            logger.warn(`[CSRF] Origin mismatch: ${originHost} vs ${host}`, { requestId, url });
+            endTimer({ status_code: "403" });
+            return NextResponse.json({ error: "Forbidden: Invalid origin" }, { status: 403 });
+          }
+        } catch {
+          endTimer({ status_code: "403" });
+          return NextResponse.json({ error: "Forbidden: Malformed origin" }, { status: 403 });
+        }
+      }
+    }
+
+    // 3. WAF Checks
+    const wafResponse = await performWafChecks(req, ip, url, requestId);
+    if (wafResponse) {
+      endTimer({ status_code: wafResponse.status.toString() });
+      return wafResponse;
+    }
 
 // 3. Rate Limiting
 const rlResult = await performRateLimiting(ip, url, requestId, options);

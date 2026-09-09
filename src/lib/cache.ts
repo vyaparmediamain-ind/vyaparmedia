@@ -51,7 +51,7 @@ try {
 const normalizedPattern = pattern.trim();
 const namespace = normalizedPattern.split(":")[0] || "";
 
-const ALLOWED_NAMESPACES = ["deal", "platform_fee"];
+const ALLOWED_NAMESPACES = ["deal", "platform_fee", "admin", "campaign", "user", "wallet"];
 if (!ALLOWED_NAMESPACES.includes(namespace)) {
 logger.warn(`[CACHE] Refused invalidation for forbidden namespace: ${namespace}`);
 return;

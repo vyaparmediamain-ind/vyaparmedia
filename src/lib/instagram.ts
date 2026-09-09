@@ -387,23 +387,37 @@ profile.followersCount * (engagementRate / 100) * 3,
 * Returns false if it redirects to the login page (redirect: "manual" returns 302/301/307) or returns 404/403.
 */
 export async function checkIsInstagramPostPublic(permalink: string): Promise<boolean> {
-if (!permalink) return false;
-try {
-const res = await fetch(permalink, {
-method: "GET",
-headers: {
-"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-},
-redirect: "manual",
-});
+  if (!permalink) return false;
+  try {
+    const parsed = new URL(permalink);
+    if (parsed.protocol !== "https:") return false;
 
-if (res.status === 404 || res.status === 403 || res.status === 302 || res.status === 301 || res.status === 307) {
-return false;
-}
-return true;
-} catch (err) {
-logger.warn("Unauthenticated Instagram public check failed, defaulting to true", { permalink, error: err });
-return true;
-}
+    const allowedHosts = new Set(["www.instagram.com", "instagram.com", "instagr.am"]);
+    if (!allowedHosts.has(parsed.hostname.toLowerCase())) return false;
+
+    // Ensure path is restricted to valid post permalinks (/p/, /reel/, /tv/)
+    if (!/^\/(p|reel|tv)\/[\w-]+/i.test(parsed.pathname)) return false;
+
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10_000);
+
+    const res = await fetch(parsed.toString(), {
+      method: "GET",
+      headers: {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+      },
+      redirect: "manual",
+      signal: controller.signal,
+    });
+    clearTimeout(timeoutId);
+
+    if (res.status === 404 || res.status === 403 || res.status === 302 || res.status === 301 || res.status === 307) {
+      return false;
+    }
+    return true;
+  } catch (err) {
+    logger.warn("Unauthenticated Instagram public check failed, defaulting to true", { permalink, error: err });
+    return true;
+  }
 }
 

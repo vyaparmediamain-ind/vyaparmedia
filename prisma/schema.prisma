@@ -871,6 +871,7 @@ model Dispute {
 
   @@index([status])
   @@index([dealId])
+  @@index([raisedByUserId])
 }
 
 model DisputeEvidence {

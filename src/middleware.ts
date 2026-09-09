@@ -44,7 +44,7 @@ const storageImageStr = storageImageSources.length > 0 ? " " + storageImageSourc
 // Unified Content Security Policy supporting Next.js SSR/hydration, inline styles, Google, Razorpay, and Vercel analytics
 const BASE_CSP = [
   "default-src 'self'",
-  "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.google.com https://*.googleapis.com https://checkout.razorpay.com https://*.razorpay.com https://va.vercel-scripts.com",
+  "script-src 'self' 'unsafe-inline' https://*.google.com https://*.googleapis.com https://checkout.razorpay.com https://*.razorpay.com https://va.vercel-scripts.com",
   "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
   `img-src 'self' data: blob: https://lh3.googleusercontent.com https://avatars.githubusercontent.com https://images.unsplash.com${storageImageStr}`,
   "font-src 'self' https://fonts.gstatic.com data:",
