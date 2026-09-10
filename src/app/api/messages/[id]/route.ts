@@ -419,10 +419,11 @@ export const PATCH = apiWrapper(async (req, { params }) => {
     return handleDeclinedOffer(message, currentMetadata, session.user.id);
   }
 
-  const offerAmount = Number(currentMetadata.amount || 0);
-  if (offerAmount <= 0) {
+  const rawAmount = currentMetadata.amount;
+  const offerAmount = typeof rawAmount === "number" ? rawAmount : Number.NaN;
+  if (!Number.isInteger(offerAmount) || offerAmount < 10000 || offerAmount > 100000000) {
     return NextResponse.json(
-      { error: "Invalid offer amount. Offer cannot be accepted." },
+      { error: "Invalid offer amount. Offer amount must be an integer in paise between ₹100 and ₹10,00,000." },
       { status: 400 }
     );
   }

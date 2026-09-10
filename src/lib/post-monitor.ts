@@ -825,52 +825,69 @@ counters.failed++;
 }
 }
 
+const POST_MONITOR_CURSOR_KEY = "cron:post_monitor:cursor";
+const POST_MONITOR_BATCH_LIMIT = 50;
+
 export async function runDailyPostMonitoring(): Promise<{
-totalChecked: number;
-alive: number;
-failed: number;
-clawbacksTriggered: number;
-skipped: number;
+  totalChecked: number;
+  alive: number;
+  failed: number;
+  clawbacksTriggered: number;
+  skipped: number;
 }> {
-const thirtyOneDaysAgo = new Date(Date.now() - 31 * 86400 * 1000);
+  const thirtyOneDaysAgo = new Date(Date.now() - 31 * 86400 * 1000);
+  const { redis } = await import("./redis");
+  const cursor = (await redis.get(POST_MONITOR_CURSOR_KEY)) || undefined;
 
-// Monitor only completed deals because clawback requires a settled payout.
-const deals = await prisma.deal.findMany({
-where: {
-status: "COMPLETED",
-isPostAlive: true,
-postUrl: { not: null },
-OR: [
-{ completedAt: { gte: thirtyOneDaysAgo } },
-{ verifiedAt: { gte: thirtyOneDaysAgo } },
-{ postedAt: { gte: thirtyOneDaysAgo } },
-],
-},
-select: {
-id: true,
-completedAt: true,
-verifiedAt: true,
-postedAt: true,
-contractTerms: true,
-lastPostCheck: true,
-},
-});
+  // Monitor only completed deals with cursor and limit to avoid OOM / serverless timeout
+  const deals = await prisma.deal.findMany({
+    where: {
+      status: "COMPLETED",
+      isPostAlive: true,
+      postUrl: { not: null },
+      OR: [
+        { completedAt: { gte: thirtyOneDaysAgo } },
+        { verifiedAt: { gte: thirtyOneDaysAgo } },
+        { postedAt: { gte: thirtyOneDaysAgo } },
+      ],
+      ...(cursor ? { id: { gt: cursor } } : {}),
+    },
+    select: {
+      id: true,
+      completedAt: true,
+      verifiedAt: true,
+      postedAt: true,
+      contractTerms: true,
+      lastPostCheck: true,
+    },
+    orderBy: { id: "asc" },
+    take: POST_MONITOR_BATCH_LIMIT,
+  });
 
-const counters: MonitoringCounters = {
-totalChecked: 0,
-alive: 0,
-failed: 0,
-clawbacksTriggered: 0,
-skipped: 0,
-};
+  const counters: MonitoringCounters = {
+    totalChecked: 0,
+    alive: 0,
+    failed: 0,
+    clawbacksTriggered: 0,
+    skipped: 0,
+  };
 
-for (const deal of deals) {
-await processSingleDealMonitoring(deal, counters);
+  for (const deal of deals) {
+    await processSingleDealMonitoring(deal, counters);
+    // Rate limit: 100ms between checks to avoid overwhelming external services
+    await new Promise((resolve) => setTimeout(resolve, 100));
+  }
 
-// Rate limit: 100ms between checks to avoid overwhelming external services
-await new Promise((resolve) => setTimeout(resolve, 100));
-}
+  // Persist cursor or reset if batch complete
+  if (deals.length === POST_MONITOR_BATCH_LIMIT) {
+    const nextCursor = deals.at(-1)?.id;
+    if (nextCursor) {
+      await redis.setex(POST_MONITOR_CURSOR_KEY, 86400, nextCursor);
+    }
+  } else {
+    await redis.del(POST_MONITOR_CURSOR_KEY);
+  }
 
-return counters;
+  return counters;
 }
 

@@ -4,7 +4,7 @@ import { apiWrapper } from "@/lib/api-wrapper";
 import { processSecureWebhook } from "@/lib/razorpay";
 import { markWebhookProcessed } from "@/lib/idempotency";
 import prisma from "@/lib/db";
-import { Prisma } from "@prisma/client";
+import { Prisma, TransactionType, TransactionStatus } from "@prisma/client";
 import { logger } from "@/lib/logger";
 import { redis } from "@/lib/redis";
 import { sendWithdrawalEmail } from "@/lib/email";
@@ -262,10 +262,53 @@ async function handlePayoutWebhook(payload: { event?: string; payload?: { payout
 
       if (!freshWithdrawal || freshWithdrawal.status === "FAILED" || freshWithdrawal.status === "REVERSED") {
         if (event === "payout.processed") {
-          logger.critical("POTENTIAL_DOUBLE_PAYOUT: payout.processed received for withdrawal already in FAILED or REVERSED status", {
+          // CRITICAL FIX: payout.processed arrived AFTER the withdrawal was already refunded.
+          // This means the creator got money in their bank AND has the refunded balance in their wallet.
+          // Execute automatic clawback to prevent double-payout.
+          logger.warn("POTENTIAL_DOUBLE_PAYOUT: payout.processed received for already-refunded withdrawal — executing automatic clawback", {
             withdrawalId,
             payoutId,
             status: freshWithdrawal?.status,
+            amount: withdrawal.amount,
+          });
+
+          // Claw back up to the available balance; any remainder becomes a debt
+          const currentWallet = await tx.wallet.findUnique({ where: { id: withdrawal.walletId } });
+          if (currentWallet) {
+            const deductAmount = Math.min(currentWallet.balance, withdrawal.amount);
+            const pendingDebt = withdrawal.amount - deductAmount;
+
+            await tx.wallet.update({
+              where: { id: currentWallet.id },
+              data: {
+                balance: { decrement: deductAmount },
+                totalWithdrawn: { increment: withdrawal.amount },
+                ...(pendingDebt > 0 ? { debt: { increment: pendingDebt } } : {}),
+              },
+            });
+
+            await tx.transaction.create({
+              data: {
+                walletId: currentWallet.id,
+                withdrawalId: withdrawal.id,
+                type: "CLAWBACK" as TransactionType,
+                amount: deductAmount,
+                status: "COMPLETED" as TransactionStatus,
+                description: `Auto-clawback: delayed payout.processed (${payoutId}) for already-refunded withdrawal. Debt: ${pendingDebt} paise.`,
+                metadata: { source: "double_payout_clawback", payoutId, pendingDebt },
+              },
+            });
+          }
+
+          // Mark withdrawal as COMPLETED since the bank payout did go through
+          await tx.withdrawal.update({
+            where: { id: withdrawal.id },
+            data: {
+              status: "COMPLETED",
+              processedAt: new Date(),
+              razorpayPayoutId: payoutId,
+              adminNotes: "Auto-reconciled: payout.processed arrived after earlier failure refund. Balance clawed back.",
+            },
           });
         } else {
           logger.info("Withdrawal already processed, ignoring webhook", { withdrawalId, status: freshWithdrawal?.status });

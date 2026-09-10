@@ -5,6 +5,10 @@ import { logger } from "@/lib/logger";
 import { awardBadgeIfNotExists } from "@/lib/gamification-engine";
 import { validateCronSecret } from "../guard";
 import { subDays } from "date-fns";
+import { acquireDistributedLock, releaseDistributedLock } from "@/lib/lock";
+
+const LOCK_KEY = "cron:tenure-badges:lock";
+const LOCK_TTL_SECS = 300;
 
 async function awardVeteranBadges(now: Date): Promise<number> {
   const oneYearAgo = subDays(now, 365);
@@ -19,10 +23,16 @@ async function awardVeteranBadges(now: Date): Promise<number> {
     orderBy: { createdAt: "asc" },
   });
 
+  let awarded = 0;
   for (const user of veterans) {
-    await awardBadgeIfNotExists(user.id, "platform_veteran");
+    try {
+      await awardBadgeIfNotExists(user.id, "platform_veteran");
+      awarded++;
+    } catch (err) {
+      logger.error("Failed to award veteran badge to user", { userId: user.id, error: err });
+    }
   }
-  return veterans.length;
+  return awarded;
 }
 
 async function awardBrandAmbassadorBadges(now: Date): Promise<number> {
@@ -38,10 +48,16 @@ async function awardBrandAmbassadorBadges(now: Date): Promise<number> {
     orderBy: { createdAt: "asc" },
   });
 
+  let awarded = 0;
   for (const user of brandAmbassadors) {
-    await awardBadgeIfNotExists(user.id, "brand_ambassador");
+    try {
+      await awardBadgeIfNotExists(user.id, "brand_ambassador");
+      awarded++;
+    } catch (err) {
+      logger.error("Failed to award brand ambassador badge to user", { userId: user.id, error: err });
+    }
   }
-  return brandAmbassadors.length;
+  return awarded;
 }
 
 async function awardOgMemberBadges(): Promise<number> {
@@ -57,10 +73,16 @@ async function awardOgMemberBadges(): Promise<number> {
     orderBy: { createdAt: "asc" },
   });
 
+  let awarded = 0;
   for (const user of ogMembers) {
-    await awardBadgeIfNotExists(user.id, "og_member");
+    try {
+      await awardBadgeIfNotExists(user.id, "og_member");
+      awarded++;
+    } catch (err) {
+      logger.error("Failed to award OG member badge to user", { userId: user.id, error: err });
+    }
   }
-  return ogMembers.length;
+  return awarded;
 }
 
 async function awardHotCreatorBadges(now: Date): Promise<string[]> {
@@ -73,6 +95,7 @@ async function awardHotCreatorBadges(now: Date): Promise<string[]> {
     },
     _count: { id: true },
     orderBy: { _count: { id: "desc" } },
+    take: 20,
   });
 
   const hotCreatorUserIds: string[] = [];
@@ -84,13 +107,17 @@ async function awardHotCreatorBadges(now: Date): Promise<string[]> {
 
       for (const item of tiedInfluencers) {
         if (item.influencerId) {
-          const influencer = await prisma.influencerProfile.findUnique({
-            where: { id: item.influencerId },
-            select: { userId: true },
-          });
-          if (influencer) {
-            hotCreatorUserIds.push(influencer.userId);
-            await awardBadgeIfNotExists(influencer.userId, "hot_creator");
+          try {
+            const influencer = await prisma.influencerProfile.findUnique({
+              where: { id: item.influencerId },
+              select: { userId: true },
+            });
+            if (influencer) {
+              await awardBadgeIfNotExists(influencer.userId, "hot_creator");
+              hotCreatorUserIds.push(influencer.userId);
+            }
+          } catch (err) {
+            logger.error("Failed to award hot creator badge", { influencerId: item.influencerId, error: err });
           }
         }
       }
@@ -102,29 +129,42 @@ async function awardHotCreatorBadges(now: Date): Promise<string[]> {
 async function _handler_POST(_req: NextRequest) {
   await validateCronSecret(_req);
 
-  const now = new Date();
+  const lockToken = await acquireDistributedLock(LOCK_KEY, LOCK_TTL_SECS);
+  if (!lockToken) {
+    return NextResponse.json({
+      success: true,
+      message: "Tenure badges award job already running, skipping",
+      data: { locked: true },
+    });
+  }
 
-  const veteransAwarded = await awardVeteranBadges(now);
-  const brandAmbassadorsAwarded = await awardBrandAmbassadorBadges(now);
-  const ogMembersAwarded = await awardOgMemberBadges();
-  const hotCreatorUserIds = await awardHotCreatorBadges(now);
+  try {
+    const now = new Date();
 
-  logger.info("Tenure and leaderboard badges cron execution complete", {
-    veteransAwarded,
-    brandAmbassadorsAwarded,
-    ogMembersAwarded,
-    hotCreatorAwardedTo: hotCreatorUserIds.join(", "),
-  });
+    const veteransAwarded = await awardVeteranBadges(now);
+    const brandAmbassadorsAwarded = await awardBrandAmbassadorBadges(now);
+    const ogMembersAwarded = await awardOgMemberBadges();
+    const hotCreatorUserIds = await awardHotCreatorBadges(now);
 
-  return NextResponse.json({
-    success: true,
-    badgesAwarded: {
-      platform_veteran: veteransAwarded,
-      brand_ambassador: brandAmbassadorsAwarded,
-      og_member: ogMembersAwarded,
-      hot_creator: hotCreatorUserIds.length,
-    },
-  });
+    logger.info("Tenure and leaderboard badges cron execution complete", {
+      veteransAwarded,
+      brandAmbassadorsAwarded,
+      ogMembersAwarded,
+      hotCreatorAwardedTo: hotCreatorUserIds.join(", "),
+    });
+
+    return NextResponse.json({
+      success: true,
+      badgesAwarded: {
+        platform_veteran: veteransAwarded,
+        brand_ambassador: brandAmbassadorsAwarded,
+        og_member: ogMembersAwarded,
+        hot_creator: hotCreatorUserIds.length,
+      },
+    });
+  } finally {
+    await releaseDistributedLock(LOCK_KEY, lockToken);
+  }
 }
 
 export const GET = apiWrapper(_handler_POST);

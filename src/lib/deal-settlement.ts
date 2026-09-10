@@ -1,5 +1,5 @@
 import { Prisma } from "@prisma/client";
-import { ensurePlatformTreasury } from "./db";
+import { ensurePlatformTreasury, ensureTdsTreasury } from "./db";
 import { creditWalletWithDebtAdjustment } from "./wallet-debt";
 
 type DealFeeInput = {
@@ -165,17 +165,47 @@ params.metadata as Record<string, unknown> | undefined,
         },
       },
     });
+
+    // Double-entry accounting: credit the dedicated TDS withholding treasury wallet
+    // so total debits and credits across the platform balance sheet remain equal.
+    const tdsTreasuryWallet = await ensureTdsTreasury(tx);
+    await tx.wallet.update({
+      where: { id: tdsTreasuryWallet.id },
+      data: { balance: { increment: tdsAmount } },
+    });
+
+    await tx.transaction.create({
+      data: {
+        walletId: tdsTreasuryWallet.id,
+        dealId: params.dealId,
+        type: "CREDIT",
+        amount: tdsAmount,
+        status: "COMPLETED",
+        description: `TDS liability credited to tax treasury (Section ${appliedSection}, ${appliedRatePercent}) for deal: ${params.dealId}`,
+        metadata: {
+          source: "tds_withholding",
+          grossPayout,
+          netPayout,
+          tdsSection: appliedSection,
+          tdsRate: is194J ? 0.10 : 0.001,
+          influencerUserId: params.userId,
+        },
+      },
+    });
   }
 
-// Populate tax fields on Deal for financial reporting
-await tx.deal.update({
-where: { id: params.dealId },
-data: {
-tdsDeducted: tdsAmount,
-grossPayout,
-netPayout,
-},
-});
+  // Lock the deal row to serialize concurrent milestone payouts or settlements
+  await tx.$queryRaw`SELECT id FROM "Deal" WHERE id = ${params.dealId} FOR UPDATE`;
+
+  // Increment tax and payout fields on Deal (supporting milestone / partial payouts)
+  await tx.deal.update({
+    where: { id: params.dealId },
+    data: {
+      tdsDeducted: { increment: tdsAmount },
+      grossPayout: { increment: grossPayout },
+      netPayout: { increment: netPayout },
+    },
+  });
 
 return { grossPayout, tdsAmount, netPayout };
 }

@@ -221,6 +221,14 @@ body: successRes,
 return ApiResponse.success({ alreadyProcessed: true }, "Withdrawal already processed");
 }
 
+    if (withdrawal.status === "rejected" || withdrawal.status === "failed" || withdrawal.status === "reversed") {
+      await releaseIdempotencyKey(idempotencyKey, session.user.id);
+      return ApiResponse.error(
+        `Payout was rejected or failed by payment provider (status: ${withdrawal.status}). Your wallet balance has been restored.`,
+        400,
+      );
+    }
+
 const responseMessage = withdrawal.status === "PENDING_REVIEW"
 ? "Withdrawal requires manual review. It will be reviewed by our team."
 : "Withdrawal initiated successfully";

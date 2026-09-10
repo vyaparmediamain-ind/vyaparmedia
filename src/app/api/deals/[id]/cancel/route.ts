@@ -41,61 +41,87 @@ return NextResponse.json({ success: false, message: "Too many requests" }, { sta
 const resolvedParams = await context.params;
 const dealId = String(resolvedParams.id ?? '');
 
-const deal = await prisma.deal.findUnique({
-where: { id: dealId },
-include: {
-influencer: true,
-brand: true,
-},
-});
+// NOTE: Do NOT load deal here. It must be fetched inside the serializable
+// transaction under a row lock to avoid TOCTOU races (cancel vs. content submission,
+// cancel vs. auto-approval, etc.).
+const MAX_RETRIES = 5;
+let lastError: unknown;
 
-if (!deal) {
-return NextResponse.json({ success: false, message: "Deal not found" }, { status: 404 });
+for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+  try {
+    await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
+      // CRITICAL: Acquire FOR UPDATE row lock FIRST so concurrent content submission
+      // or milestone release cannot change deal status between our read and write.
+      const lockedRows = await tx.$queryRaw<Array<{ id: string; status: string }>>`
+        SELECT id, status FROM "Deal" WHERE id = ${dealId} FOR UPDATE
+      `;
+      if (!lockedRows.length) {
+        throw AppError.notFound("Deal not found");
+      }
+
+      const lockedStatus = lockedRows[0]!.status;
+      if (["COMPLETED", "CANCELLED", "DISPUTED"].includes(lockedStatus)) {
+        throw AppError.badRequest(`Deal cannot be cancelled in status ${lockedStatus}`);
+      }
+
+      const deal = await tx.deal.findUnique({
+        where: { id: dealId },
+        include: { influencer: true, brand: true },
+      });
+
+      if (!deal) {
+        throw AppError.notFound("Deal not found");
+      }
+
+      // Only the brand owner who created the deal can cancel it
+      if (deal.brand?.userId !== session.user.id) {
+        throw AppError.forbidden("Forbidden. Only the brand can cancel this deal.");
+      }
+
+      const cancelSummary = await calculateCancellation(dealId, tx);
+      const { refundAmount, payoutAmount, platformFeeKept, reason } = cancelSummary;
+
+      await executeCancellationTransaction(tx, deal, cancelSummary, session.user.id);
+
+      await createActivityLog({
+        userId: session.user.id,
+        action: "CANCEL_DEAL",
+        entityType: "Deal",
+        entityId: dealId,
+        metadata: {
+          payoutAmount,
+          refundAmount,
+          platformFeeKept,
+          reason,
+        },
+      }, tx);
+    }, {
+      isolationLevel: Prisma.TransactionIsolationLevel.Serializable,
+    });
+
+    return NextResponse.json({ success: true, message: `Deal cancelled successfully.` });
+
+  } catch (txError) {
+    const isSerializationFailure =
+      txError instanceof Prisma.PrismaClientKnownRequestError && txError.code === "P2034";
+
+    if (isSerializationFailure && attempt < MAX_RETRIES) {
+      // Jittered exponential backoff: 50-150ms per attempt
+      const backoffMs = 50 + Math.floor(Math.random() * 100);
+      await new Promise((r) => setTimeout(r, backoffMs));
+      lastError = txError;
+      continue;
+    }
+
+    if (txError instanceof AppError) throw txError;
+    logger.error("Database transaction failed during cancellation", txError);
+    return NextResponse.json({ success: false, message: "Database transaction failed during cancellation" }, { status: 500 });
+  }
 }
 
-// Only the brand owner who created the deal can cancel it
-if (deal.brand?.userId !== session.user.id) {
-return NextResponse.json({ success: false, message: "Forbidden. Only the brand can cancel this deal." }, { status: 403 });
-}
+logger.error("All serializable retries exhausted during deal cancellation", lastError);
+return NextResponse.json({ success: false, message: "Deal is temporarily being modified. Please try again in a moment." }, { status: 409 });
 
-// Verify deal is in a cancelable state
-if (["COMPLETED", "CANCELLED", "DISPUTED"].includes(deal.status)) {
-return NextResponse.json({ success: false, message: `Deal cannot be cancelled in status ${deal.status}` }, { status: 400 });
-}
-
-// DB updates in transaction
-try {
-  await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
-    // H4 FIX: calculateCancellation must run inside the transaction after locking the deal row.
-    // Calling it outside is a TOCTOU race — deal status can change between calculation
-    // and execution, causing stale payout amounts to be used for financial settlement.
-    const cancelSummary = await calculateCancellation(dealId, tx);
-    const { refundAmount, payoutAmount, platformFeeKept, reason } = cancelSummary;
-
-    await executeCancellationTransaction(tx, deal, cancelSummary, session.user.id);
-
-    await createActivityLog({
-      userId: session.user.id,
-      action: "CANCEL_DEAL",
-      entityType: "Deal",
-      entityId: dealId,
-      metadata: {
-        payoutAmount,
-        refundAmount,
-        platformFeeKept,
-        reason,
-      },
-    }, tx);
-  }, {
-    isolationLevel: Prisma.TransactionIsolationLevel.Serializable,
-  });
-
-  return NextResponse.json({ success: true, message: `Deal cancelled successfully.` });
-} catch (txError) {
-if (txError instanceof AppError) throw txError;
-logger.error("Database transaction failed during cancellation", txError);
-return NextResponse.json({ success: false, message: "Database transaction failed during cancellation" }, { status: 500 });
-}
 } catch (error: unknown) {
 if (error instanceof AppError) throw error;
 logger.error("POST /api/deals/[id]/cancel error", { error: (error instanceof Error ? error.message : String(error)) });

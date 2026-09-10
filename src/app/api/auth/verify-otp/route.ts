@@ -184,13 +184,19 @@ return ApiResponse.error("Verification failed. Please try again.", 500);
 }
 
 export const POST = apiWrapper(async function POST(request: NextRequest) {
-try {
-let body: unknown;
-try {
-body = await request.json();
-} catch {
-return ApiResponse.error("Invalid request body");
-}
+  try {
+    const ip = getSecureClientIp(request);
+    const ipRateLimit = await checkRateLimit(ip, "AUTH");
+    if (!ipRateLimit.success) {
+      return ApiResponse.tooManyRequests("Too many verification attempts. Please try again later.");
+    }
+
+    let body: unknown;
+    try {
+      body = await request.json();
+    } catch {
+      return ApiResponse.error("Invalid request body");
+    }
 
 if (body && typeof body === "object" && Object.hasOwn(body, "userId")) {
 const validation = validateLegacyPayload(body);

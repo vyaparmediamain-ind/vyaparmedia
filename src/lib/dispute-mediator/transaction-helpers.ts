@@ -507,6 +507,15 @@ if (dealStatus === "COMPLETED") {
 const res = await handleCompletedDealPostSettlement(tx, params);
 influencerRefResult = res.influencerRefResult;
 brandRefResult = res.brandRefResult;
+// Release campaign reserved amounts for COMPLETED deals (split/influencer-favored disputes).
+// These were locked when the deal was funded and must be freed regardless of verdict type.
+await tx.campaign.update({
+where: { id: deal.campaignId },
+data: {
+reservedAmount: { decrement: deal.amount },
+reservedTotalAmount: { decrement: getDealTotalAmount(deal) },
+},
+});
 } else {
 await tx.campaign.update({
 where: { id: deal.campaignId },

@@ -69,9 +69,22 @@ response.emailSent = result.sent;
 return NextResponse.json(response, { status: 200 });
 }
 
-async function handleCompleteReset(body: unknown) {
-const parsed = completeResetSchema.safeParse(body);
-if (!parsed.success) {
+async function handleCompleteReset(request: NextRequest, body: unknown) {
+  const ip = getSecureClientIp(request);
+  const ipLimit = await checkRateLimit(ip, "PASSWORD_RESET");
+  if (!ipLimit.success) {
+    return NextResponse.json(
+      {
+        success: false,
+        error: "Too many password reset attempts. Please try again later.",
+        message: "Too many password reset attempts. Please try again later.",
+      },
+      { status: 429 },
+    );
+  }
+
+  const parsed = completeResetSchema.safeParse(body);
+  if (!parsed.success) {
 const firstIssue = parsed.error.issues[0];
 const fieldName = firstIssue?.path.join(".") || "";
 const issueMsg = firstIssue?.message || "Invalid value";
@@ -154,7 +167,7 @@ if (body && typeof body === "object" && !Array.isArray(body) && body.action === 
 return await handleRequestReset(request, body);
 }
 
-return await handleCompleteReset(body);
+    return await handleCompleteReset(request, body);
 } catch (error: unknown) {
 return handleResetError(error);
 }

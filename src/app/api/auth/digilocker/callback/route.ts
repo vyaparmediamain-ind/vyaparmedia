@@ -6,25 +6,37 @@ import { encrypt } from "@/lib/encryption";
 import { auth } from "@/lib/auth";
 import { appUrl, getConfiguredAppUrl } from "@/lib/app-url";
 
-async function exchangeDigiLockerToken(code: string, codeVerifier: string, baseUrl: string) {
-const tokenResponse = await fetch(
-"https://accounts.digilocker.gov.in/oauth2/token",
-{
-method: "POST",
-headers: {
-"Content-Type": "application/x-www-form-urlencoded",
-},
-body: new URLSearchParams({
-grant_type: "authorization_code",
-code,
-redirect_uri: `${baseUrl}/api/auth/digilocker/callback`,
-client_id: process.env.DIGILOCKER_CLIENT_ID || "",
-client_secret: process.env.DIGILOCKER_CLIENT_SECRET || "",
-code_verifier: codeVerifier,
-}),
+const DIGILOCKER_TIMEOUT_MS = 15_000;
+
+async function fetchWithTimeout(url: string, init: RequestInit = {}, timeoutMs = DIGILOCKER_TIMEOUT_MS): Promise<Response> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    return await fetch(url, { ...init, signal: controller.signal });
+  } finally {
+    clearTimeout(timer);
+  }
 }
-);
-return await tokenResponse.json();
+
+async function exchangeDigiLockerToken(code: string, codeVerifier: string, baseUrl: string) {
+  const tokenResponse = await fetchWithTimeout(
+    "https://accounts.digilocker.gov.in/oauth2/token",
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      body: new URLSearchParams({
+        grant_type: "authorization_code",
+        code,
+        redirect_uri: `${baseUrl}/api/auth/digilocker/callback`,
+        client_id: process.env.DIGILOCKER_CLIENT_ID || "",
+        client_secret: process.env.DIGILOCKER_CLIENT_SECRET || "",
+        code_verifier: codeVerifier,
+      }),
+    },
+  );
+  return await tokenResponse.json();
 }
 
 const SUPPORTED_DOC_TYPES = new Set(["AADHAAR", "PAN"]);
@@ -34,9 +46,10 @@ async function processDigiLockerDoc(
   userId: string,
   doc: { id: string; type: string; uri?: string; issuer?: string; issueDate?: string }
 ) {
-  const docResponse = await fetch(
+  const docResponse = await fetchWithTimeout(
     `https://api.digilocker.gov.in/account/documents/${doc.id}`,
-    { headers: { Authorization: `Bearer ${accessToken}` } }
+    { headers: { Authorization: `Bearer ${accessToken}` } },
+    DIGILOCKER_TIMEOUT_MS,
   );
 
   if (!docResponse.ok) {
@@ -70,9 +83,10 @@ async function processDigiLockerDoc(
 
 async function fetchAndStoreDigiLockerDocs(accessToken: string, userId: string) {
   try {
-    const documentsResponse = await fetch(
+    const documentsResponse = await fetchWithTimeout(
       "https://api.digilocker.gov.in/account/documents",
-      { headers: { Authorization: `Bearer ${accessToken}` } }
+      { headers: { Authorization: `Bearer ${accessToken}` } },
+      DIGILOCKER_TIMEOUT_MS,
     );
 
     if (!documentsResponse.ok) {
@@ -172,14 +186,15 @@ appUrl("/dashboard/settings?tab=verification&error=token_exchange_failed", req.n
 );
 }
 
-const profileResponse = await fetch(
-"https://api.digilocker.gov.in/account/profile",
-{
-headers: {
-Authorization: `Bearer ${tokenData.access_token}`,
-},
-}
-);
+    const profileResponse = await fetchWithTimeout(
+      "https://api.digilocker.gov.in/account/profile",
+      {
+        headers: {
+          Authorization: `Bearer ${tokenData.access_token}`,
+        },
+      },
+      DIGILOCKER_TIMEOUT_MS,
+    );
 const profileData = await profileResponse.json();
 
 if (!profileData.id) {

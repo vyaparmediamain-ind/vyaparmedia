@@ -399,34 +399,73 @@ qualityRating: z.number().int().min(1).max(5).optional(),
 timelinessRating: z.number().int().min(1).max(5).optional(),
 });
 
-// ==================== MESSAGE SCHEMAS ====================
-
-export const messageSchema = z.object({
-dealId: dbIdSchema.optional(),
-receiverId: dbIdSchema,
-content: z.string().trim().max(2000, "Message truncated. Avoid lengthy chats over 2000chars limit.").optional().default(""),
-messageType: z
-.enum(["TEXT", "FILE", "OFFER"])
-.optional(),
-fileUrl: z
-.string()
-.trim()
-.refine((val) => {
-if (!val) return true;
-if (val.startsWith("/")) return true;
-try {
-const u = new URL(val);
-return u.protocol === "http:" || u.protocol === "https:";
-} catch {
-return false;
-}
-}, "Must be a valid remote asset URL or local path")
-.optional(),
-// Restrict metadata to a safe, typed shape no arbitrary nested prototype overrides
-metadata: z
-.record(z.string(), z.union([z.string(), z.number(), z.boolean()]))
-.optional(),
+export const offerMetadataSchema = z.object({
+  title: z.string().trim().min(3, "Title must be at least 3 characters").max(100, "Title cannot exceed 100 characters"),
+  description: z.string().trim().max(1000).optional().default(""),
+  deliverables: z.string().trim().min(3, "Deliverables must be specified").max(1000),
+  amount: z
+    .number()
+    .int("Offer amount must be an integer in paise")
+    .min(10000, "Minimum offer amount is ₹100 (10,000 paise)")
+    .max(100000000, "Maximum offer amount is ₹10,00,000 (10,00,00,000 paise)"),
+  currency: z.literal("INR").optional().default("INR"),
+  contentDeadline: z.string().datetime({ message: "Content deadline must be a valid ISO date string" }),
+  postingDeadline: z.string().datetime({ message: "Posting deadline must be a valid ISO date string" }),
+  status: z.enum(["PENDING", "ACCEPTED", "DECLINED"]).optional().default("PENDING"),
 });
+
+export const messageSchema = z
+  .object({
+    dealId: dbIdSchema.optional(),
+    receiverId: dbIdSchema,
+    content: z
+      .string()
+      .trim()
+      .max(2000, "Message truncated. Avoid lengthy chats over 2000chars limit.")
+      .optional()
+      .default(""),
+    messageType: z.enum(["TEXT", "FILE", "OFFER"]).optional(),
+    fileUrl: z
+      .string()
+      .trim()
+      .refine((val) => {
+        if (!val) return true;
+        if (val.startsWith("/")) return true;
+        try {
+          const u = new URL(val);
+          return u.protocol === "http:" || u.protocol === "https:";
+        } catch {
+          return false;
+        }
+      }, "Must be a valid remote asset URL or local path")
+      .optional(),
+    // Restrict metadata to a safe, typed shape
+    metadata: z
+      .record(z.string(), z.union([z.string(), z.number(), z.boolean()]))
+      .optional(),
+  })
+  .superRefine((val, ctx) => {
+    if (val.messageType === "OFFER") {
+      if (!val.metadata) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["metadata"],
+          message: "Offer messages must include structured offer metadata",
+        });
+        return;
+      }
+      const parsedOffer = offerMetadataSchema.safeParse(val.metadata);
+      if (!parsedOffer.success) {
+        for (const issue of parsedOffer.error.issues) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ["metadata", ...issue.path],
+            message: issue.message,
+          });
+        }
+      }
+    }
+  });
 
 // ==================== TYPE EXPORTS ====================
 

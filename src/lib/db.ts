@@ -453,4 +453,48 @@ logger.warn("Failed to ensure PLATFORM_TREASURY DB-level delete protection trigg
 return wallet;
 }
 
+/**
+ * Ensures that the TDS_WITHHOLDING_TREASURY user and wallet exist in the database.
+ * Used for strict double-entry tracking of tax liabilities (TDS withheld under Section 194-O / 194J).
+ */
+export async function ensureTdsTreasury(tx?: Prisma.TransactionClient) {
+  const client = tx || prisma;
+
+  const user = await client.user.findUnique({
+    where: { id: "TDS_WITHHOLDING_TREASURY" },
+  });
+
+  if (!user) {
+    await client.user.create({
+      data: {
+        id: "TDS_WITHHOLDING_TREASURY",
+        email: "tds-treasury@platform.local",
+        phone: "+919999999998",
+        passwordHash: `sys:${randomBytes(32).toString("hex")}`,
+        userType: "BRAND",
+        status: "ACTIVE",
+        verificationLevel: "FULL",
+        emailVerified: true,
+        phoneVerified: true,
+      },
+    });
+  }
+
+  let wallet = await client.wallet.findUnique({
+    where: { userId: "TDS_WITHHOLDING_TREASURY" },
+  });
+
+  if (!wallet) {
+    wallet = await client.wallet.create({
+      data: {
+        userId: "TDS_WITHHOLDING_TREASURY",
+        balance: 0,
+        pendingBalance: 0,
+      },
+    });
+  }
+
+  return wallet;
+}
+
 export default prisma;

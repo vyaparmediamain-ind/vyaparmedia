@@ -439,21 +439,27 @@ let captured = 0;
 let skipped = 0;
 let errors = 0;
 
-// Find all verified/completed deals with post URLs
-const deals = await prisma.deal.findMany({
-where: {
-status: { in: ["VERIFIED", "COMPLETED"] },
-postUrl: { not: null },
-postedAt: { not: null },
-},
-select: {
-id: true,
-postedAt: true,
-engagementSnapshots: {
-select: { interval: true },
-},
-},
-});
+  // Restrict to deals verified/posted within the active window (last 8 days)
+  // because snapshots are only captured up to 7 days (168 hours) post-verification.
+  const eightDaysAgo = new Date(Date.now() - 8 * 24 * 60 * 60 * 1000);
+
+  // Find all verified/completed deals with post URLs within the active monitoring window
+  const deals = await prisma.deal.findMany({
+    where: {
+      status: { in: ["VERIFIED", "COMPLETED"] },
+      postUrl: { not: null },
+      postedAt: { gte: eightDaysAgo },
+    },
+    select: {
+      id: true,
+      postedAt: true,
+      engagementSnapshots: {
+        select: { interval: true },
+      },
+    },
+    orderBy: { postedAt: "desc" },
+    take: 100, // Safe batch limit per invocation
+  });
 
 for (const deal of deals) {
 if (!deal.postedAt) continue;

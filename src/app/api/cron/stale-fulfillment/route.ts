@@ -5,7 +5,7 @@ import prisma from "@/lib/db";
 import { DisputeType } from "@prisma/client";
 import { NotificationService } from "@/services/notification.service";
 import { logger } from "@/lib/logger";
-import { acquireDistributedLock, releaseDistributedLock } from "@/lib/lock";
+import { acquireDistributedLock, releaseDistributedLock, extendDistributedLock } from "@/lib/lock";
 
 /**
 * Stale Product Fulfillment Scanner Daily Cron
@@ -321,7 +321,7 @@ async function processSingleStaleDeal(
   }
 }
 
-async function scanStaleFulfillmentDeals(): Promise<{
+async function scanStaleFulfillmentDeals(lockKey: string, lockToken: string): Promise<{
   scanned: number;
   reminded: number;
   escalated: number;
@@ -333,6 +333,8 @@ async function scanStaleFulfillmentDeals(): Promise<{
   let skipped = 0;
   let cursor: string | undefined = undefined;
   let hasMore = true;
+  const MAX_BATCHES = 20; // Bound to 4,000 deals per run to prevent serverless timeout
+  let batchCount = 0;
 
   // M14 FIX: Pre-fetch admin details to avoid N+1 queries during deal processing loop
   const admins = await prisma.user.findMany({
@@ -343,7 +345,10 @@ async function scanStaleFulfillmentDeals(): Promise<{
   const allAdminIds = admins.map((a) => a.id);
   const firstAdminId = allAdminIds[0] || null;
 
-  while (hasMore) {
+  while (hasMore && batchCount < MAX_BATCHES) {
+    batchCount++;
+    await extendDistributedLock(lockKey, lockToken, LOCK_TTL_SECS);
+
     const batch = (await prisma.deal.findMany({
       where: {
         requiresProduct: true,
@@ -374,12 +379,20 @@ async function scanStaleFulfillmentDeals(): Promise<{
     }
 
     for (const deal of batch) {
-      const res = await processSingleStaleDeal(deal, firstAdminId, allAdminIds);
-      if (res.reminded) {
-        reminded++;
-      } else if (res.escalated) {
-        escalated++;
-      } else if (res.skipped) {
+      try {
+        const res = await processSingleStaleDeal(deal, firstAdminId, allAdminIds);
+        if (res.reminded) {
+          reminded++;
+        } else if (res.escalated) {
+          escalated++;
+        } else if (res.skipped) {
+          skipped++;
+        }
+      } catch (itemErr) {
+        logger.error("STALE_FULFILLMENT: Failed to process deal, continuing batch", {
+          dealId: deal.id,
+          error: itemErr instanceof Error ? itemErr.message : String(itemErr),
+        });
         skipped++;
       }
     }
@@ -403,7 +416,7 @@ async function _handler_POST(_req: NextRequest) {
   }
 
   try {
-    const result = await scanStaleFulfillmentDeals();
+    const result = await scanStaleFulfillmentDeals(LOCK_KEY, lockToken);
 
     logger.info("STALE_FULFILLMENT: Scan complete", result);
 

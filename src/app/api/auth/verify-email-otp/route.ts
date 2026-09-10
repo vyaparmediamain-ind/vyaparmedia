@@ -124,6 +124,15 @@ return NextResponse.json(
 // POST: Verify Email OTP
 export const POST = apiWrapper(async function POST(request: NextRequest) {
 try {
+const ip = getSecureClientIp(request);
+const ipRateLimit = await checkRateLimit(ip, "AUTH");
+if (!ipRateLimit.success) {
+return NextResponse.json(
+{ error: "Too many verification attempts. Please try again later." },
+{ status: 429 },
+);
+}
+
 let body;
 try {
 body = await request.json();
