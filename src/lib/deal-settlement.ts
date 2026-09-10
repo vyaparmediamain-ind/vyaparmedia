@@ -71,7 +71,10 @@ async function calculateTdsForPayout(
   );
 
   const totalEarnings = previousFyEarnings + grossPayout;
-  const tdsThreshold = is194J ? 3_000_000 : TDS_THRESHOLD; // Rs 30,000 for 194J, Rs 5,00,000 for 194-O
+  const hasPan = Boolean(taxCompliance?.panLast4);
+  // Under Second Proviso to Section 194-O(1), the Rs 5,00,000 threshold only applies if PAN/Aadhaar is furnished.
+  // If no PAN is furnished, threshold is 0 and TDS is deducted from the first rupee under Section 206AA.
+  const tdsThreshold = !hasPan ? 0 : (is194J ? 3_000_000 : TDS_THRESHOLD);
   if (totalEarnings < tdsThreshold) return 0;
 
   // Calculate total TDS required on entire FY earnings, then subtract already-deducted amounts.
@@ -81,7 +84,6 @@ async function calculateTdsForPayout(
     0,
   );
   
-  const hasPan = Boolean(taxCompliance?.panLast4);
   const tdsRate = calculateApplicableTdsRate(hasPan, is194J);
 
   const totalRequiredTds = Math.round(totalEarnings * tdsRate);

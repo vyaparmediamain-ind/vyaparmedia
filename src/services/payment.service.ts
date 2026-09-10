@@ -191,7 +191,7 @@ throw AppError.badRequest("NO_RESERVED_CAMPAIGN_FUNDS");
 }
 
 const dealUpdate = await tx.deal.updateMany({
-where: { id: deal.id, status: { not: "COMPLETED" } },
+where: { id: deal.id, status: { in: ["VERIFIED", "CONTENT_APPROVED"] } },
 data: { status: "COMPLETED", completedAt: new Date() },
 });
 
@@ -435,9 +435,17 @@ throw error;
     const errorMsg = getErrorMessage(error) || "";
     logger.error("PAYOUT_FAILED: Payout creation failed", { userId, error });
 
+    const errCause = (error as { cause?: { code?: string; message?: string } })?.cause;
+    const causeCode = errCause?.code || "";
+    const causeMsg = errCause?.message || "";
+
     const isConnectionNeverEstablished =
       errorMsg.includes("ECONNREFUSED") ||
-      errorMsg.includes("ENOTFOUND");
+      errorMsg.includes("ENOTFOUND") ||
+      causeCode === "ECONNREFUSED" ||
+      causeCode === "ENOTFOUND" ||
+      causeMsg.includes("ECONNREFUSED") ||
+      causeMsg.includes("ENOTFOUND");
 
     if (isConnectionNeverEstablished) {
       // Request never reached Razorpay — definitely safe to restore balance
@@ -471,9 +479,12 @@ throw error;
     }
 
     const isAmbiguousTimeout =
-      errorMsg.includes("timeout") ||
-      errorMsg.includes("fetch") ||
-      errorMsg.includes("network");
+      errorMsg.includes("ETIMEDOUT") ||
+      errorMsg.includes("ESOCKETTIMEDOUT") ||
+      errorMsg.toLowerCase().includes("timeout") ||
+      causeCode === "ETIMEDOUT" ||
+      causeCode === "UND_ERR_CONNECT_TIMEOUT" ||
+      causeMsg.toLowerCase().includes("timeout");
 
     if (isAmbiguousTimeout) {
       // Genuinely ambiguous — keep as PROCESSING for webhook reconciliation

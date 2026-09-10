@@ -451,11 +451,11 @@ monitoringDay: number;
 }
 
 async function deductInfluencerAndCreateDebtClaim(config: DeductInfluencerConfig) {
-const {
-tx,
-influencerWallet,
-influencerUserId,
-deductAmount,
+  const {
+    tx,
+    influencerWallet,
+    influencerUserId: _influencerUserId,
+    deductAmount,
 debtPending,
 brandUserId,
 dealId,
@@ -463,13 +463,23 @@ clawbackPercentage,
 reason,
 monitoringDay,
 } = config;
-await tx.wallet.update({
-where: { userId: influencerUserId },
-data: {
-...(deductAmount > 0 ? { balance: { decrement: deductAmount } } : {}),
-...(debtPending > 0 ? { debt: { increment: debtPending } } : {}),
-},
-});
+  if (deductAmount > 0) {
+    const updated = await tx.wallet.updateMany({
+      where: { id: influencerWallet.id, balance: { gte: deductAmount } },
+      data: {
+        balance: { decrement: deductAmount },
+        ...(debtPending > 0 ? { debt: { increment: debtPending } } : {}),
+      },
+    });
+    if (updated.count === 0) {
+      throw new Error(`CONCURRENT_WALLET_MUTATION: Insufficient balance during clawback for wallet ${influencerWallet.id}`);
+    }
+  } else if (debtPending > 0) {
+    await tx.wallet.update({
+      where: { id: influencerWallet.id },
+      data: { debt: { increment: debtPending } },
+    });
+  }
 
 if (debtPending > 0 && brandUserId) {
 await tx.debtClaim.create({
@@ -545,14 +555,17 @@ reason,
 monitoringDay,
 } = config;
 
-const influencerWallet = await tx.wallet.findUnique({
-where: { userId: influencerUserId },
-});
+  // Row-level lock on influencer wallet to prevent race conditions against concurrent withdrawals
+  const [lockedWallet] = await tx.$queryRaw<Array<{ id: string; balance: number; debt: number }>>`
+    SELECT id, balance, debt FROM "Wallet" WHERE "userId" = ${influencerUserId} FOR UPDATE
+  `;
 
-if (!influencerWallet) return;
+  if (!lockedWallet) return;
 
-const deductAmount = Math.max(0, Math.min(influencerWallet.balance, clawbackAmountPaise));
-const debtPending = clawbackAmountPaise - deductAmount;
+  const influencerWallet = lockedWallet;
+
+  const deductAmount = Math.max(0, Math.min(influencerWallet.balance, clawbackAmountPaise));
+  const debtPending = clawbackAmountPaise - deductAmount;
 
 if (deductAmount > 0 || debtPending > 0) {
 await deductInfluencerAndCreateDebtClaim({

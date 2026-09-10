@@ -15,13 +15,12 @@ const TYPING_TTL_SECONDS = 7;
 const TYPING_REFRESH_SECONDS = 4;
 
 const SENDER_SELECT_PROJECTION = {
-id: true,
-email: true,
-userType: true,
-influencerProfile: {
-select: { displayName: true, avatar: true },
-},
-brandProfile: { select: { companyName: true, logo: true } },
+  id: true,
+  userType: true,
+  influencerProfile: {
+    select: { displayName: true, avatar: true },
+  },
+  brandProfile: { select: { companyName: true, logo: true } },
 };
 
 type ConversationAccess = {

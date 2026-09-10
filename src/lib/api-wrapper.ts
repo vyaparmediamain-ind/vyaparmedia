@@ -368,13 +368,31 @@ if (!shouldRequireAuth) {
 return null;
 }
 
-const session = await auth();
-if (!session?.user?.id) {
-return NextResponse.json(
-{ error: "Unauthorized", message: "Authentication required." },
-{ status: 401 },
-);
-}
+  const session = await auth();
+  if (!session?.user?.id || (session as { error?: string }).error) {
+    const isRevoked = (session as { error?: string })?.error === "SessionRevoked";
+    return NextResponse.json(
+      {
+        error: "Unauthorized",
+        message: isRevoked
+          ? "Your session has expired or was revoked. Please log in again."
+          : "Authentication required.",
+      },
+      { status: 401 },
+    );
+  }
+
+  // Enforce account status: immediately block suspended, banned, or deleted users
+  const userStatus = (session.user as { status?: string })?.status;
+  if (userStatus && ["BANNED", "SUSPENDED", "DELETED"].includes(userStatus)) {
+    return NextResponse.json(
+      {
+        error: "Forbidden",
+        message: `Account is ${userStatus.toLowerCase()}. Access denied.`,
+      },
+      { status: 403 },
+    );
+  }
 // Attach session to request for handlers that need it
 (req as NextRequest & { session: Session }).session = session;
 

@@ -86,25 +86,27 @@ if (!allowedDealStatuses.includes(deal.status)) {
 throw AppError.badRequest("Cannot raise dispute on a completed or cancelled deal");
 }
 
-// Create dispute - starts at Tier 1 (Auto) with a lock on the deal
-const dispute = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
-// 1. Lock the deal row to prevent concurrent dispute creations
-await tx.deal.update({
-where: { id: data.dealId },
-data: { updatedAt: new Date() },
-});
+    // Create dispute - starts at Tier 1 (Auto) with a lock on the deal
+    const dispute = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
+      // 1. Lock the deal row with FOR UPDATE and re-validate status to prevent race with completion/cancellation
+      const [lockedDeal] = await tx.$queryRaw<Array<{ id: string; status: DealStatus }>>`
+        SELECT id, status FROM "Deal" WHERE id = ${data.dealId} FOR UPDATE
+      `;
+      if (!lockedDeal || !allowedDealStatuses.includes(lockedDeal.status)) {
+        throw AppError.badRequest("Cannot raise dispute on a completed or cancelled deal");
+      }
 
-// 2. Check for existing open dispute inside the locked transaction
-const existingDispute = await tx.dispute.findFirst({
-where: {
-dealId: data.dealId,
-status: { notIn: ["RESOLVED", "CLOSED"] },
-},
-});
+      // 2. Check for existing open dispute inside the locked transaction
+      const existingDispute = await tx.dispute.findFirst({
+        where: {
+          dealId: data.dealId,
+          status: { notIn: ["RESOLVED", "CLOSED"] },
+        },
+      });
 
-if (existingDispute) {
-throw AppError.badRequest("An open dispute already exists for this deal");
-}
+      if (existingDispute) {
+        throw AppError.badRequest("An open dispute already exists for this deal");
+      }
 
       const newDispute = await tx.dispute.create({
         data: {
@@ -114,15 +116,22 @@ throw AppError.badRequest("An open dispute already exists for this deal");
           description: data.description,
           status: "TIER1_AUTO",
           tier: 1,
-          dealStatusAtCreation: deal.status,
+          dealStatusAtCreation: lockedDeal.status,
         },
       });
 
-// Update deal status
-await tx.deal.update({
-where: { id: data.dealId },
-data: { status: "DISPUTED" },
-});
+      // Update deal status conditionally
+      const updatedDeal = await tx.deal.updateMany({
+        where: {
+          id: data.dealId,
+          status: { in: allowedDealStatuses as DealStatus[] },
+        },
+        data: { status: "DISPUTED" },
+      });
+
+      if (updatedDeal.count === 0) {
+        throw AppError.badRequest("Deal status changed concurrently, cannot dispute");
+      }
 
 // Notification 1: Raiser
 await NotificationService.createNotification({

@@ -137,8 +137,17 @@ return false;
 }
 
 async function verifyActiveSessionToken(userId: string, currentRefreshToken: unknown): Promise<boolean> {
-const activeToken = await redis.get(`active_session:${userId}`);
-return !activeToken || activeToken === currentRefreshToken;
+  try {
+    const activeToken = await redis.get(`active_session:${userId}`);
+    if (!activeToken) {
+      // In development without Redis, allow fallback; in production, fail closed
+      return process.env.NODE_ENV !== "production";
+    }
+    return activeToken === currentRefreshToken;
+  } catch (err) {
+    logger.warn("Active session token check error", { userId, error: String(err) });
+    return process.env.NODE_ENV !== "production";
+  }
 }
 
 async function checkSessionSecurityAndStatus(token: Record<string, unknown>): Promise<{ valid: boolean; status?: string }> {

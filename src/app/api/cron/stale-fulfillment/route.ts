@@ -5,7 +5,7 @@ import prisma from "@/lib/db";
 import { DisputeType } from "@prisma/client";
 import { NotificationService } from "@/services/notification.service";
 import { logger } from "@/lib/logger";
-import { redis } from "@/lib/redis";
+import { acquireDistributedLock, releaseDistributedLock } from "@/lib/lock";
 
 /**
 * Stale Product Fulfillment Scanner Daily Cron
@@ -391,33 +391,33 @@ async function scanStaleFulfillmentDeals(): Promise<{
 async function _handler_POST(_req: NextRequest) {
   await validateCronSecret(_req);
 
-// Redis lock to prevent concurrent runs
-const acquired = await redis.set(LOCK_KEY, "LOCKED", "EX", LOCK_TTL_SECS, "NX");
-if (!acquired) {
-logger.info("STALE_FULFILLMENT: Already running, skipping to avoid race condition.");
-return NextResponse.json({
-success: true,
-message: "Stale fulfillment scan already running skipped",
-data: { locked: true },
-});
-}
+  // Redis lock to prevent concurrent runs
+  const lockToken = await acquireDistributedLock(LOCK_KEY, LOCK_TTL_SECS);
+  if (!lockToken) {
+    logger.info("STALE_FULFILLMENT: Already running, skipping to avoid race condition.");
+    return NextResponse.json({
+      success: true,
+      message: "Stale fulfillment scan already running skipped",
+      data: { locked: true },
+    });
+  }
 
-try {
-const result = await scanStaleFulfillmentDeals();
+  try {
+    const result = await scanStaleFulfillmentDeals();
 
-logger.info("STALE_FULFILLMENT: Scan complete", result);
+    logger.info("STALE_FULFILLMENT: Scan complete", result);
 
-return NextResponse.json({
-success: true,
-message: `Stale fulfillment scan complete ${result.reminded} reminded, ${result.escalated} escalated`,
-data: {
-...result,
-scannedAt: new Date().toISOString(),
-},
-});
-} finally {
-await redis.del(LOCK_KEY);
-}
+    return NextResponse.json({
+      success: true,
+      message: `Stale fulfillment scan complete ${result.reminded} reminded, ${result.escalated} escalated`,
+      data: {
+        ...result,
+        scannedAt: new Date().toISOString(),
+      },
+    });
+  } finally {
+    await releaseDistributedLock(LOCK_KEY, lockToken);
+  }
 }
 
 export const GET = apiWrapper(_handler_POST);

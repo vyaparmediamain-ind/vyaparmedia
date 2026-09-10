@@ -1,5 +1,5 @@
 import { PaymentService } from "@/services/payment.service";
-import { redis } from "@/lib/redis";
+import { acquireDistributedLock, releaseDistributedLock, extendDistributedLock } from "@/lib/lock";
 import { invalidateDealCache, ExpiredDealCandidate } from "./helpers";
 import prisma from "@/lib/db";
 import { Prisma } from "@prisma/client";
@@ -156,8 +156,8 @@ async function processBatchOfCandidateDeals(
 
 export async function autoApproveExpiredContent(now: Date = new Date()) {
   const lockKey = "cron:auto_approve_expired_content:lock";
-  const acquired = await redis.set(lockKey, "LOCKED", "EX", 300, "NX");
-  if (!acquired) {
+  const lockToken = await acquireDistributedLock(lockKey, 300);
+  if (!lockToken) {
     logger.info("autoApproveExpiredContent already running, skipping to avoid race condition.");
     return { processed: 0, skipped: 0, scanned: 0, locked: true };
   }
@@ -173,7 +173,7 @@ export async function autoApproveExpiredContent(now: Date = new Date()) {
 
     while (hasMore) {
       // Extend the lock for another 5 minutes during processing to prevent expiration under heavy backlog
-      await redis.expire(lockKey, 300);
+      await extendDistributedLock(lockKey, lockToken, 300);
 
       const candidateDeals = await prisma.deal.findMany({
         where: {
@@ -218,7 +218,7 @@ export async function autoApproveExpiredContent(now: Date = new Date()) {
       scanned,
     };
   } finally {
-    await redis.del("cron:auto_approve_expired_content:lock");
+    await releaseDistributedLock(lockKey, lockToken);
   }
 }
 export function accumulateVerificationFlags(

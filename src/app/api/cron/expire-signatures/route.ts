@@ -7,7 +7,7 @@ import { validateCronSecret } from "../guard";
 import { getDealTotalAmount } from "@/lib/utils";
 import { AppError } from "@/lib/errors";
 
-import { redis } from "@/lib/redis";
+import { acquireDistributedLock, releaseDistributedLock } from "@/lib/lock";
 
 type ExpiredSignatureDeal = Prisma.DealGetPayload<{
   include: {
@@ -34,8 +34,8 @@ async function _handler_POST(_req: NextRequest) {
 
   // M11 FIX: Acquire distributed lock to prevent concurrent cron execution
   const lockKey = "cron:expire-signatures:lock";
-  const acquired = await redis.set(lockKey, "LOCKED", "EX", 300, "NX");
-  if (!acquired) {
+  const lockToken = await acquireDistributedLock(lockKey, 300);
+  if (!lockToken) {
     logger.warn("cron:expire-signatures: Lock acquisition failed, execution skipped.");
     return NextResponse.json({
       success: true,
@@ -115,8 +115,8 @@ async function _handler_POST(_req: NextRequest) {
       results,
     });
   } finally {
-    // Release lock safely
-    await redis.del(lockKey).catch(() => {});
+    // Release lock safely via CAS
+    await releaseDistributedLock(lockKey, lockToken);
   }
 }
 

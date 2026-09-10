@@ -32,7 +32,7 @@ export async function isIpBanned(ip: string): Promise<boolean> {
   }
 }
 
-async function revokeToken(
+export async function revokeToken(
   jti: string,
   durationSeconds: number = 86400,
 ): Promise<void> {

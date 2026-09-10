@@ -20,7 +20,8 @@ const withdrawalSchema = z.object({
       .min(
         env.MIN_WITHDRAWAL_AMOUNT,
         `Minimum withdrawal is INR ${env.MIN_WITHDRAWAL_AMOUNT / 100}`,
-      ),
+      )
+      .max(50_000_000, "Maximum single withdrawal is INR 5,00,000"),
   ),
   /**
    * bankAccountId is the ONLY accepted payment destination.

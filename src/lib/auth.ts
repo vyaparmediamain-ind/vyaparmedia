@@ -274,6 +274,14 @@ logger.info("User signed out", { userId });
 if (message.token.refreshToken) {
 await revokeRefreshToken(message.token.refreshToken as string);
 }
+if (message.token.jti) {
+try {
+const { revokeToken } = await import("./blacklist");
+await revokeToken(message.token.jti as string);
+} catch (e) {
+logger.warn("Failed to revoke token jti on signout", { error: e });
+}
+}
 if (userId) {
 try {
 await redis.del(`active_session:${userId}`);
