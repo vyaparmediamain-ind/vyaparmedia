@@ -334,5 +334,5 @@ return applyCSP(NextResponse.next());
 });
 
 export const config = {
-  matcher: ["/((?!api/payments/webhook|api/metrics|_next/static|_next/image|favicon.ico).*)"],
+  matcher: ["/((?!api/payments/webhook|api/webhooks/razorpay|api/metrics|_next/static|_next/image|favicon.ico).*)"],
 };

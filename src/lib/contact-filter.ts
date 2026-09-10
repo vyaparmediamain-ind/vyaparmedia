@@ -52,23 +52,42 @@ regex.lastIndex = 0;
 return regex.exec(text) !== null;
 }
 
+function stripZeroWidthAndHomoglyphs(str: string): string {
+  let clean = str.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  clean = clean.replace(/[\u200B-\u200D\uFEFF\u0000-\u001F\u007F-\u009F]/g, "");
+  clean = normalizeHomoglyphs(clean);
+  return clean;
+}
+
 function checkBasicContacts(content: string, findings: string[], options?: { allowUrls?: boolean }) {
-if (
-testRegex(CONTACT_REGEX.email, content) ||
-testRegex(CONTACT_REGEX.emailObfuscated, content) ||
-content.toLowerCase().includes(" at gmail dot") ||
-content.toLowerCase().includes(" at yahoo dot")
-) {
-findings.push("email");
-}
+  const deobfuscated = stripZeroWidthAndHomoglyphs(content).toLowerCase();
 
-if (testRegex(CONTACT_REGEX.phone, content)) {
-findings.push("phone");
-}
+  if (
+    testRegex(CONTACT_REGEX.email, content) ||
+    testRegex(CONTACT_REGEX.email, deobfuscated) ||
+    testRegex(CONTACT_REGEX.emailObfuscated, content) ||
+    testRegex(CONTACT_REGEX.emailObfuscated, deobfuscated) ||
+    /(?:at|@)\s*(?:gmail|yahoo|outlook|hotmail|proton|icloud)\s*(?:dot|\.)/i.test(deobfuscated)
+  ) {
+    if (!findings.includes("email")) findings.push("email");
+  }
 
-if (!options?.allowUrls && testRegex(CONTACT_REGEX.url, content)) {
-findings.push("url");
-}
+  if (testRegex(CONTACT_REGEX.phone, content) || testRegex(CONTACT_REGEX.phone, deobfuscated)) {
+    if (!findings.includes("phone")) findings.push("phone");
+  }
+
+  // Detect spaced, dotted, or segmented 10-digit/12-digit Indian mobile numbers (e.g. 9 8 7 6 5 4 3 2 1 0, +91 98765 43210)
+  const allDigits = deobfuscated.replace(/\D/g, "");
+  const isIndianPhone =
+    (allDigits.length === 10 && /^[6-9]\d{9}$/.test(allDigits)) ||
+    (allDigits.length === 12 && /^91[6-9]\d{9}$/.test(allDigits));
+  if (isIndianPhone) {
+    if (!findings.includes("phone")) findings.push("phone");
+  }
+
+  if (!options?.allowUrls && (testRegex(CONTACT_REGEX.url, content) || testRegex(CONTACT_REGEX.url, deobfuscated))) {
+    if (!findings.includes("url")) findings.push("url");
+  }
 }
 
 function checkSocialAndUpi(content: string, normalizedContent: string, findings: string[]) {

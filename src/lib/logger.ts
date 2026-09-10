@@ -40,7 +40,7 @@ function maskPIIPrimitive(data: string): string {
   return masked;
 }
 
-function maskPII(data: unknown): unknown {
+export function maskPII(data: unknown): unknown {
 if (typeof data !== "object" || data === null) {
 if (typeof data === "string") {
 return maskPIIPrimitive(data);

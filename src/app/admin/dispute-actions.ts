@@ -3,6 +3,7 @@
 import { AppError } from "@/lib/errors";
 
 import prisma from "@/lib/db";
+import { z } from "zod";
 import { redis } from "@/lib/redis";
 import { Prisma } from "@prisma/client";
 import { revalidatePath } from "next/cache";
@@ -282,72 +283,90 @@ async function handleReleaseInfluencer(tx: Prisma.TransactionClient, dispute: Di
   return { gamificationReferrerId };
 }
 
+const resolveDisputeSchema = z.object({
+  disputeId: z.string().cuid("Invalid dispute ID"),
+  decision: z.enum(["REFUND_BRAND", "RELEASE_INFLUENCER"]),
+  reason: z.string().trim().min(5, "Reason must be at least 5 characters").max(1000, "Reason must be at most 1000 characters"),
+});
+
 export async function resolveDispute(
-disputeId: string,
-decision: "REFUND_BRAND" | "RELEASE_INFLUENCER",
-reason: string,
+  disputeId: string,
+  decision: "REFUND_BRAND" | "RELEASE_INFLUENCER",
+  reason: string,
 ) {
-const session = await requireAdmin();
+  const parsed = resolveDisputeSchema.parse({ disputeId, decision, reason });
+  const session = await requireAdmin();
 
-const dispute = await prisma.dispute.findUnique({
-where: { id: disputeId },
-include: {
-deal: {
-include: {
-influencer: { select: { userId: true } },
-brand: { select: { userId: true } },
-},
-},
-},
-});
+  const dispute = await prisma.dispute.findUnique({
+    where: { id: parsed.disputeId },
+    include: {
+      deal: {
+        include: {
+          influencer: { select: { userId: true } },
+          brand: { select: { userId: true } },
+        },
+      },
+    },
+  });
 
-if (!dispute) throw AppError.notFound("Dispute not found");
-if (dispute.deal.status === "COMPLETED") {
-  throw AppError.badRequest("Cannot resolve dispute for an already completed deal.");
-}
-if (dispute.deal.status === "CANCELLED") {
-  throw AppError.badRequest("Cannot resolve dispute for an already cancelled deal.");
-}
+  if (!dispute) throw AppError.notFound("Dispute not found");
 
-const confidence = await determineDisputeConfidence(disputeId, dispute);
+  // Conflict of interest prevention: admins cannot adjudicate disputes where they are an interested party
+  if (
+    dispute.deal.influencer?.userId === session.user.id ||
+    dispute.deal.brand?.userId === session.user.id
+  ) {
+    throw AppError.forbidden("Admins cannot adjudicate disputes in which they are a participating party.");
+  }
 
-let gamificationReferrerId: string | null = null;
-await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
-const payoutAmount = dispute.deal.influencerPayout ?? dispute.deal.amount;
-// 1. Update Dispute Status
-const lockCheck = await tx.dispute.updateMany({
-where: {
-id: disputeId,
-status: { notIn: ["RESOLVED", "CLOSED"] },
-},
-data: {
-status: "RESOLVED",
-resolution: reason,
-resolvedByUserId: session.user.id,
-resolvedAt: new Date(),
-brandOutcome:
-decision === "REFUND_BRAND"
-? JSON.stringify({ action: "REFUND", refund_percentage: 100, confidence })
-: null,
-influencerOutcome:
-decision === "RELEASE_INFLUENCER"
-? JSON.stringify({ action: "RELEASE", payment_percentage: 100, confidence })
-: null,
-},
-});
+  if (dispute.deal.status === "COMPLETED") {
+    throw AppError.badRequest("Cannot resolve dispute for an already completed deal.");
+  }
+  if (dispute.deal.status === "CANCELLED") {
+    throw AppError.badRequest("Cannot resolve dispute for an already cancelled deal.");
+  }
 
-if (lockCheck.count === 0) {
-throw AppError.badRequest("Dispute already resolved, closed, or concurrent request detected.");
-}
+  const confidence = await determineDisputeConfidence(parsed.disputeId, dispute);
 
-// 2. Handle Deal & Funds
-if (decision === "REFUND_BRAND") {
-await handleRefundBrand(tx, dispute, reason);
-} else {
-const res = await handleReleaseInfluencer(tx, dispute, payoutAmount);
-gamificationReferrerId = res.gamificationReferrerId;
-}
-});
+  let gamificationReferrerId: string | null = null;
+  await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
+    const payoutAmount = dispute.deal.influencerPayout ?? dispute.deal.amount;
+    // 1. Update Dispute Status
+    const lockCheck = await tx.dispute.updateMany({
+      where: {
+        id: parsed.disputeId,
+        status: { notIn: ["RESOLVED", "CLOSED"] },
+      },
+      data: {
+        status: "RESOLVED",
+        resolution: parsed.reason,
+        resolvedByUserId: session.user.id,
+        resolvedAt: new Date(),
+        brandOutcome:
+          parsed.decision === "REFUND_BRAND"
+            ? JSON.stringify({ action: "REFUND", refund_percentage: 100, confidence })
+            : null,
+        influencerOutcome:
+          parsed.decision === "RELEASE_INFLUENCER"
+            ? JSON.stringify({ action: "RELEASE", payment_percentage: 100, confidence })
+            : null,
+      },
+    });
+
+    if (lockCheck.count === 0) {
+      throw AppError.badRequest("Dispute already resolved, closed, or concurrent request detected.");
+    }
+
+    // 2. Handle Deal & Funds with strict explicit branching
+    if (parsed.decision === "REFUND_BRAND") {
+      await handleRefundBrand(tx, dispute, parsed.reason);
+    } else if (parsed.decision === "RELEASE_INFLUENCER") {
+      const res = await handleReleaseInfluencer(tx, dispute, payoutAmount);
+      gamificationReferrerId = res.gamificationReferrerId;
+    } else {
+      throw AppError.badRequest("Invalid resolution decision");
+    }
+  });
 
 if (gamificationReferrerId) {
 try {

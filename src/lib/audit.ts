@@ -1,6 +1,6 @@
 import prisma from "./db";
 import { Prisma } from "@prisma/client";
-import { logger } from "./logger";
+import { logger, maskPII } from "./logger";
 
 export enum ActivityAction {
   // Auth Events
@@ -93,34 +93,14 @@ export async function createActivityLog(
 
   const normalizedAction = params.action.toString();
   const normalizedEntityType = (params.entityType || "USER").toUpperCase();
-
-  // If this is a LOGIN action, update the existing recent login record for this user instead of creating duplicate entries
-  if (normalizedAction === "LOGIN" || normalizedAction === ActivityAction.LOGIN) {
-    const existingLogin = await client.activityLog.findFirst({
-      where: {
-        userId: params.userId,
-        action: normalizedAction,
-      },
-      orderBy: { createdAt: "desc" },
-    });
-
-    if (existingLogin) {
-      const updated = await client.activityLog.update({
-        where: { id: existingLogin.id },
-        data: {
-          createdAt: new Date(),
-          metadata: (params.metadata as Prisma.InputJsonValue | undefined) ?? {},
-          ipAddress: params.ipAddress ?? existingLogin.ipAddress,
-        },
-      });
-      return updated;
-    }
-  }
+  const maskedMetadata = params.metadata
+    ? (maskPII(params.metadata) as Prisma.InputJsonValue)
+    : ({} as Prisma.InputJsonValue);
 
   const data: Prisma.ActivityLogUncheckedCreateInput = {
     userId: params.userId,
     action: normalizedAction,
-    metadata: (params.metadata as Prisma.InputJsonValue | undefined) ?? {},
+    metadata: maskedMetadata,
   };
 
   if (params.entityType !== undefined) data.entityType = params.entityType;
@@ -136,7 +116,7 @@ export async function createActivityLog(
       actionType: params.action.toString(),
       entityType: normalizedEntityType,
       entityId: params.entityId || params.userId,
-      afterJSON: (params.metadata as Prisma.InputJsonValue | undefined) ?? Prisma.JsonNull,
+      afterJSON: maskedMetadata ?? Prisma.JsonNull,
       ipAddress: params.ipAddress ?? null,
     },
   }).catch((err) => {
@@ -174,8 +154,8 @@ export async function createAuditLog(
     actionType: params.actionType,
     entityType: params.entityType.toUpperCase(),
     entityId: params.entityId || params.actorId,
-    beforeJSON: (params.beforeJSON as Prisma.InputJsonValue | undefined) ?? Prisma.JsonNull,
-    afterJSON: (params.afterJSON as Prisma.InputJsonValue | undefined) ?? Prisma.JsonNull,
+    beforeJSON: params.beforeJSON ? (maskPII(params.beforeJSON) as Prisma.InputJsonValue) : Prisma.JsonNull,
+    afterJSON: params.afterJSON ? (maskPII(params.afterJSON) as Prisma.InputJsonValue) : Prisma.JsonNull,
   };
 
   if (params.ipAddress !== undefined) data.ipAddress = params.ipAddress;

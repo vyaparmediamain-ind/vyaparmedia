@@ -61,7 +61,8 @@ userRateLimit?: {
 bucket: keyof typeof RATE_LIMIT_CONFIGS;
 errorMessage?: string;
 };
-maxBodySize?: number; // Maximum allowed body size in bytes (default: 2MB)
+  maxBodySize?: number; // Maximum allowed body size in bytes (default: 2MB)
+  skipCsrf?: boolean; // Skip CSRF check for verified external webhooks (e.g. Razorpay)
 validate?: {
 body?: z.ZodSchema;
 query?: z.ZodSchema;
@@ -153,7 +154,7 @@ let rateLimitHeaders: Record<string, string> | undefined;
 try {
     // 2. CSRF & Cross-Site Mutation Defense
     const MUTATING_METHODS = new Set(["POST", "PUT", "PATCH", "DELETE"]);
-    if (MUTATING_METHODS.has(method)) {
+    if (!options?.skipCsrf && MUTATING_METHODS.has(method)) {
       const secFetchSite = req.headers.get("sec-fetch-site");
       if (secFetchSite === "cross-site") {
         logger.warn(`[CSRF] Blocked cross-site mutation to ${url}`, { requestId, ip });

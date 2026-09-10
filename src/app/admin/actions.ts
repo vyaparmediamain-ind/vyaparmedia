@@ -69,10 +69,13 @@ message:
 }
 
 export async function approveUser(userId: string) {
-const _session = await requireAdmin();
+  const _session = await requireAdmin();
+  if (_session.user.id === userId) {
+    throw AppError.forbidden("Admins cannot self-approve their own account verification");
+  }
 
-// Custom logic not yet in Service, keeping here but using transaction
-await prisma.$transaction(
+  // Custom logic not yet in Service, keeping here but using transaction
+  await prisma.$transaction(
 async (tx: Prisma.TransactionClient) => {
 // Accept pending docs
 await tx.verificationDocument.updateMany({
@@ -172,31 +175,33 @@ export async function rejectUser(userId: string, reason: string) {
   // AdminService.updateUserStatus supports 'set_verification' but logic here is specific to rejection
   // Let's stick to direct DB for now as it's specific to verification flow not generic status management
 
-  await prisma.user.update({
-    where: { id: userId },
-    data: {
-      status: "PENDING_VERIFICATION",
-      verificationLevel: "NONE",
-      trustScore: 0,
-    },
-  });
+  await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
+    await tx.user.update({
+      where: { id: userId },
+      data: {
+        status: "PENDING_VERIFICATION",
+        verificationLevel: "NONE",
+        trustScore: 0,
+      },
+    });
 
-  await prisma.verificationDocument.updateMany({
-    where: {
-      userId: userId,
-      status: "PENDING",
-    },
-    data: {
-      status: "REJECTED",
-      rejectionReason: validatedReason,
-    },
-  });
+    await tx.verificationDocument.updateMany({
+      where: {
+        userId: userId,
+        status: "PENDING",
+      },
+      data: {
+        status: "REJECTED",
+        rejectionReason: validatedReason,
+      },
+    });
 
-  await NotificationService.createNotification({
-    userId,
-    type: "system",
-    title: "Verification Rejected",
-    message: `Your verification was rejected. Reason: ${validatedReason}. Please re-upload documents.`,
+    await NotificationService.createNotification({
+      userId,
+      type: "system",
+      title: "Verification Rejected",
+      message: `Your verification was rejected. Reason: ${validatedReason}. Please re-upload documents.`,
+    }, tx);
   });
 
 revalidatePath("/admin/verifications");
@@ -212,10 +217,21 @@ await createActivityLog({
 }
 
 export async function approveDocument(docId: string, userId: string) {
-  await requireAdmin();
+  const session = await requireAdmin();
+  if (session.user.id === userId) {
+    throw AppError.forbidden("Admins cannot self-approve their own documents");
+  }
 
-await prisma.$transaction(
-async (tx: Prisma.TransactionClient) => {
+  await prisma.$transaction(
+    async (tx: Prisma.TransactionClient) => {
+      const existingDoc = await tx.verificationDocument.findUnique({
+        where: { id: docId },
+        select: { userId: true },
+      });
+      if (!existingDoc || existingDoc.userId !== userId) {
+        throw AppError.notFound("Document not found for this user");
+      }
+
       const doc = await tx.verificationDocument.update({
         where: { id: docId },
         data: {
@@ -285,42 +301,53 @@ export async function rejectDocument(
     .max(500, "Reason cannot exceed 500 characters")
     .parse(reason);
 
-  const doc = await prisma.verificationDocument.update({
-    where: { id: docId },
-    data: { status: "REJECTED", rejectionReason: validatedReason },
+  await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
+    const existingDoc = await tx.verificationDocument.findUnique({
+      where: { id: docId },
+      select: { userId: true, type: true },
+    });
+    if (!existingDoc || existingDoc.userId !== userId) {
+      throw AppError.notFound("Document not found for this user");
+    }
+
+    const doc = await tx.verificationDocument.update({
+      where: { id: docId },
+      data: { status: "REJECTED", rejectionReason: validatedReason },
+    });
+
+    if (doc.type === "PAN_CARD" || doc.type === "GST_CERTIFICATE") {
+      await tx.indiaTaxCompliance.updateMany({
+        where: { userId },
+        data: {
+          status: "REJECTED",
+          rejectionReason: validatedReason,
+          verifiedAt: null,
+        },
+      });
+    }
+
+    const user = await tx.user.findUnique({
+      where: { id: userId },
+      select: { verificationLevel: true },
+    });
+
+    if (user?.verificationLevel === "FULL") {
+      await tx.user.update({
+        where: { id: userId },
+        data: { verificationLevel: "BASIC", status: "PENDING_VERIFICATION" }, // Downgrade
+      });
+    }
+
+    await NotificationService.createNotification({
+      userId,
+      type: "system",
+      title: "Document Rejected",
+      message: `Your ${doc.type.replace("_", " ")} was rejected. Reason: ${validatedReason}. Please re-upload.`,
+    }, tx);
   });
 
-  if (doc.type === "PAN_CARD" || doc.type === "GST_CERTIFICATE") {
-    await prisma.indiaTaxCompliance.updateMany({
-      where: { userId },
-      data: {
-        status: "REJECTED",
-        rejectionReason: validatedReason,
-        verifiedAt: null,
-      },
-    });
-  }
-
-const user = await prisma.user.findUnique({
-where: { id: userId },
-});
-
-if (user?.verificationLevel === "FULL") {
-await prisma.user.update({
-where: { id: userId },
-data: { verificationLevel: "BASIC", status: "PENDING_VERIFICATION" }, // Downgrade
-});
-}
-
-await NotificationService.createNotification({
-userId,
-type: "system",
-title: "Document Rejected",
-message: `Your ${doc.type.replace("_", " ")} was rejected. Reason: ${reason}. Please re-upload.`,
-});
-
-revalidatePath("/admin/verifications");
-revalidatePath(`/admin/verifications/${userId}`);
+  revalidatePath("/admin/verifications");
+  revalidatePath(`/admin/verifications/${userId}`);
 }
 
 export async function banUser(userId: string) {
@@ -442,8 +469,12 @@ await createActivityLog({
 }
 
 export async function awardBadgeAction(formData: FormData) {
-const userId = formData.get("userId") as string;
-const badgeId = formData.get("badgeId") as string;
-if (!userId || !badgeId) return;
-await awardBadgeManually(userId, badgeId);
+  const session = await requireAdmin();
+  const userId = formData.get("userId") as string;
+  const badgeId = formData.get("badgeId") as string;
+  if (!userId || !badgeId) return;
+  if (session.user.id === userId) {
+    throw AppError.forbidden("Admins cannot award badges to their own accounts");
+  }
+  await awardBadgeManually(userId, badgeId);
 }

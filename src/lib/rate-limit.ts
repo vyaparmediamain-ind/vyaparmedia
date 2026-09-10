@@ -121,9 +121,9 @@ API_DEFAULT: { limit: 120, window: 60 }, // 120 req/min per user
 REVIEWS: { limit: 10, window: 3600 },
 WITHDRAWAL: { limit: 3, window: 86400, securityCritical: true }, // 3 withdrawals per day (anti-fraud)
 UPLOAD: { limit: 10, window: 3600, securityCritical: true }, // 10 uploads per hour
-DISPUTES: { limit: 5, window: 3600 }, // 5 dispute submissions per hour
-PROFILE_UPDATE: { limit: 10, window: 3600 }, // 10 profile updates per hour
-BANK_ACCOUNT: { limit: 10, window: 3600 }, // 10 bank account updates per hour
+DISPUTES: { limit: 5, window: 3600, securityCritical: true }, // 5 dispute submissions per hour
+PROFILE_UPDATE: { limit: 10, window: 3600, securityCritical: true }, // 10 profile updates per hour
+BANK_ACCOUNT: { limit: 10, window: 3600, securityCritical: true }, // 10 bank account updates per hour
 PASSWORD_RESET: { limit: 3, window: 3600, securityCritical: true }, // 3 requests per hour
 REPORTS: { limit: 10, window: 60 }, // 10 report downloads per minute (prevent heavy DB query abuse)
 USER_REPORTS: { limit: 5, window: 3600 }, // 5 user report submissions per hour

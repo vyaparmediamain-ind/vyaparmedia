@@ -261,7 +261,15 @@ async function handlePayoutWebhook(payload: { event?: string; payload?: { payout
       const freshWithdrawal = freshWithdrawals[0];
 
       if (!freshWithdrawal || freshWithdrawal.status === "FAILED" || freshWithdrawal.status === "REVERSED") {
-        logger.info("Withdrawal already processed, ignoring webhook", { withdrawalId, status: freshWithdrawal?.status });
+        if (event === "payout.processed") {
+          logger.critical("POTENTIAL_DOUBLE_PAYOUT: payout.processed received for withdrawal already in FAILED or REVERSED status", {
+            withdrawalId,
+            payoutId,
+            status: freshWithdrawal?.status,
+          });
+        } else {
+          logger.info("Withdrawal already processed, ignoring webhook", { withdrawalId, status: freshWithdrawal?.status });
+        }
         return;
       }
 
@@ -352,8 +360,8 @@ return NextResponse.json(
   if (!acquired) {
     logger.warn("Webhook collision detected, concurrent processing locked", { eventKey: result.eventKey });
     return NextResponse.json(
-      { success: true, message: "Webhook is currently processing elsewhere" },
-      { status: 200 },
+      { success: false, message: "Webhook is currently processing elsewhere, please retry" },
+      { status: 429, headers: { "Retry-After": "5" } },
     );
   }
 
@@ -390,4 +398,4 @@ throw error;
 return NextResponse.json({ success: true, message: "Webhook processed" }, { status: 200 });
 }
 
-export const POST = apiWrapper(_handler_POST);
+export const POST = apiWrapper(_handler_POST, { skipCsrf: true });

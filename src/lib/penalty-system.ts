@@ -18,6 +18,7 @@ import { logger } from "./logger";
 import { applyResolution } from "./dispute-mediator";
 import { NotificationService } from "@/services/notification.service";
 import { createActivityLog } from "./audit";
+import { revokeAllUserSessions } from "./blacklist";
 import { ESCROW_HELD_STATUSES } from "./utils";
 
 // ==================== TYPES ====================
@@ -172,12 +173,18 @@ await prisma.user.update({
 where: { id: userId },
 data: { status: "SUSPENDED" },
 });
+await revokeAllUserSessions(userId).catch((err) => {
+  logger.error("Failed to revoke sessions on penalty suspension", err, { userId });
+});
 }
 
 if (tier.action === "PERMANENT_BAN") {
 await prisma.user.update({
 where: { id: userId },
 data: { status: "BANNED" },
+});
+await revokeAllUserSessions(userId).catch((err) => {
+  logger.error("Failed to revoke sessions on penalty ban", err, { userId });
 });
 }
 

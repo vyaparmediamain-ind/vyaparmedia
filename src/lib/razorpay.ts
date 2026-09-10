@@ -183,11 +183,21 @@ status: refund.status,
 * Uses RazorpayX API directly for payouts.
 * Caches Contact and Fund Account IDs in Redis to avoid duplicate creation.
 */
+async function fetchWithTimeout(url: string, options: RequestInit, timeoutMs = 10000): Promise<Response> {
+  const controller = new AbortController();
+  const id = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    return await fetch(url, { ...options, signal: controller.signal });
+  } finally {
+    clearTimeout(id);
+  }
+}
+
 async function searchExistingContact(params: PayoutParams, authHeader: string): Promise<string | null> {
 const refId = params.userId || params.referenceId;
 if (!refId) return null;
 try {
-const searchRes = await fetch(`https://api.razorpay.com/v1/contacts?reference_id=${encodeURIComponent(refId)}`, {
+const searchRes = await fetchWithTimeout(`https://api.razorpay.com/v1/contacts?reference_id=${encodeURIComponent(refId)}`, {
 method: "GET",
 headers: { Authorization: `Basic ${authHeader}` },
 });
@@ -206,7 +216,7 @@ return null;
 }
 
 async function createRazorpayContact(params: PayoutParams, authHeader: string): Promise<string> {
-const contactRes = await fetch("https://api.razorpay.com/v1/contacts", {
+const contactRes = await fetchWithTimeout("https://api.razorpay.com/v1/contacts", {
 method: "POST",
 headers: {
 Authorization: `Basic ${authHeader}`,
@@ -233,7 +243,7 @@ isUpiPayout: boolean,
 params: PayoutParams,
 ): Promise<string | null> {
 try {
-const searchRes = await fetch(`https://api.razorpay.com/v1/fund_accounts?contact_id=${encodeURIComponent(contactId)}`, {
+const searchRes = await fetchWithTimeout(`https://api.razorpay.com/v1/fund_accounts?contact_id=${encodeURIComponent(contactId)}`, {
 method: "GET",
 headers: { Authorization: `Basic ${authHeader}` },
 });
@@ -261,7 +271,7 @@ authHeader: string,
 isUpiPayout: boolean,
 params: PayoutParams,
 ): Promise<string> {
-const fundAccountRes = await fetch(
+const fundAccountRes = await fetchWithTimeout(
 "https://api.razorpay.com/v1/fund_accounts",
 {
 method: "POST",
@@ -394,7 +404,7 @@ const fundCacheKey = isUpiPayout
 
   // Step 3: Create payout (always new idempotency via X-Payout-Idempotency header)
 const payout = await withCircuitBreaker("razorpay:createPayout", async () => {
-  const res = await fetch("https://api.razorpay.com/v1/payouts", {
+  const res = await fetchWithTimeout("https://api.razorpay.com/v1/payouts", {
     method: "POST",
     headers: {
       Authorization: `Basic ${authHeader}`,
@@ -411,7 +421,7 @@ const payout = await withCircuitBreaker("razorpay:createPayout", async () => {
       queue_if_low_balance: true,
       reference_id: params.referenceId,
     }),
-  });
+  }, 10000);
 
   const data = await res.json();
   if (data.error || !res.ok) {
@@ -433,12 +443,12 @@ export async function getPayout(payoutId: string) {
 const { keyId, keySecret } = getRazorpayCredentials();
 const authHeader = Buffer.from(`${keyId}:${keySecret}`).toString("base64");
 
-const res = await fetch(`https://api.razorpay.com/v1/payouts/${encodeURIComponent(payoutId)}`, {
+const res = await fetchWithTimeout(`https://api.razorpay.com/v1/payouts/${encodeURIComponent(payoutId)}`, {
 method: "GET",
 headers: {
 Authorization: `Basic ${authHeader}`,
 },
-});
+}, 10000);
 
 if (!res.ok) {
 throw AppError.badRequest(`Failed to fetch payout status: ${res.statusText}`);
@@ -523,15 +533,18 @@ return { isValid: true, isDuplicate: false, eventKey };
 * Verify payment signature (for frontend callback)
 */
 export function verifyPaymentSignature(params: {
-orderId: string;
-paymentId: string;
-signature: string;
+  orderId: string;
+  paymentId: string;
+  signature: string;
 }): boolean {
-const text = `${params.orderId}|${params.paymentId}`;
-const expectedSignature = crypto
-.createHmac("sha256", process.env.RAZORPAY_KEY_SECRET!)
-.update(text)
-.digest("hex");
+  if (!process.env.RAZORPAY_KEY_SECRET || !params?.signature || !params?.orderId || !params?.paymentId) {
+    return false;
+  }
+  const text = `${params.orderId}|${params.paymentId}`;
+  const expectedSignature = crypto
+    .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET)
+    .update(text)
+    .digest("hex");
 
 const sigBuffer = Buffer.from(params.signature);
 const expectedBuffer = Buffer.from(expectedSignature);

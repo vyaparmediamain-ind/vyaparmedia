@@ -306,11 +306,6 @@ await updateTrustAndLevel(deal.influencer.userId, "DEAL_VERIFIED");
 } catch (error) {
 const msg = getErrorMessage(error);
 
-// If payment genuinely failed (not ambiguous/timeout), release idempotency lock so retry is possible
-if (msg !== "LATE_POST_PAYMENT_BLOCKED") {
-await releaseIdempotencyKey(`deal_completion:${dealId}`).catch(() => {});
-}
-
 if (msg === "NO_RESERVED_CAMPAIGN_FUNDS") {
 await prisma.deal.updateMany({
 where: { id: dealId, status: { not: "COMPLETED" } },

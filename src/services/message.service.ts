@@ -503,6 +503,12 @@ private static async applyContactFilterToContent(
           }
         }
 
+        const uploadsRoot = path.resolve(process.cwd(), "public", "uploads");
+        if (filePath && !filePath.startsWith(uploadsRoot + path.sep)) {
+          logger.warn("Potential path traversal in chat attachment path", { fileUrl, filePath });
+          filePath = "";
+        }
+
         if (filePath) {
           const exists = await fs.access(filePath).then(() => true).catch(() => false);
           if (exists) {
