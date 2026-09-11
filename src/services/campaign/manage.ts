@@ -222,6 +222,9 @@ include: { brand: { select: { userId: true } } },
 if (!campaignData || campaignData.deletedAt || campaignData.brand?.userId !== userId) {
 throw AppError.notFound("Campaign not found or unauthorized");
 }
+if (campaignData.status !== "DRAFT") {
+throw AppError.badRequest("Campaign is not in DRAFT status");
+}
 
 const tierCheck = await checkVerificationTierForAmount(
 userId,
@@ -231,6 +234,35 @@ campaignData.totalBudget,
 if (!tierCheck.allowed) {
 throw new TierError(tierCheck.reason || "Verification required", tierErrorResponse(tierCheck));
 }
+
+// Compute platform fee and required escrow hold amounts outside transaction to avoid transaction timeout
+const brandFee = await resolveBrandPlatformFee(userId);
+const isProductOnly = campaignData.requiresProduct && campaignData.totalBudget === 0;
+const productHandlingFee = calculateProductHandlingFee(
+campaignData.productValue,
+campaignData.requiresProduct,
+isProductOnly,
+brandFee.effectivePlatformFee,
+);
+const fundedDealSlots = estimateCampaignDealSlots(
+campaignData.totalBudget,
+campaignData.perInfluencerBudget,
+campaignData.maxInfluencers,
+);
+const fundingAmounts = calculateTotalAmount(
+campaignData.totalBudget,
+brandFee.effectivePlatformFee,
+productHandlingFee * fundedDealSlots,
+);
+const fundingTierCheck = await checkVerificationTierForAmount(
+userId,
+"BRAND",
+fundingAmounts.totalAmount,
+);
+if (!fundingTierCheck.allowed) {
+throw new TierError(fundingTierCheck.reason || "Verification required", tierErrorResponse(fundingTierCheck));
+}
+const amountPaise = fundingAmounts.totalAmount;
 
 const result = await prisma.$transaction(
 async (tx: Prisma.TransactionClient) => {
@@ -246,33 +278,6 @@ if (campaign.status !== "DRAFT") {
 throw AppError.badRequest("Campaign is not in DRAFT status");
 }
 
-const brandFee = await resolveBrandPlatformFee(userId);
-const isProductOnly = campaign.requiresProduct && campaign.totalBudget === 0;
-const productHandlingFee = calculateProductHandlingFee(
-campaign.productValue,
-campaign.requiresProduct,
-isProductOnly,
-brandFee.effectivePlatformFee,
-);
-const fundedDealSlots = estimateCampaignDealSlots(
-campaign.totalBudget,
-campaign.perInfluencerBudget,
-campaign.maxInfluencers,
-);
-const fundingAmounts = calculateTotalAmount(
-campaign.totalBudget,
-brandFee.effectivePlatformFee,
-productHandlingFee * fundedDealSlots,
-);
-const fundingTierCheck = await checkVerificationTierForAmount(
-userId,
-"BRAND",
-fundingAmounts.totalAmount,
-);
-if (!fundingTierCheck.allowed) {
-throw new TierError(fundingTierCheck.reason || "Verification required", tierErrorResponse(fundingTierCheck));
-}
-const amountPaise = fundingAmounts.totalAmount;
 const wallet = await tx.wallet.findUnique({ where: { userId } });
 if (!wallet) {
   throw AppError.badRequest("Brand wallet not found");
@@ -289,7 +294,7 @@ pendingBalance: { increment: amountPaise },
 });
 
 if (updateResult.count === 0) {
-throw AppError.badRequest("Insufficient wallet balance or concurrent transaction detected",);
+throw AppError.badRequest("Insufficient wallet balance or concurrent transaction detected");
 }
 
 await tx.transaction.create({
@@ -322,23 +327,24 @@ where: { id: campaignId },
 data: { status: "ACTIVE", fundedAmount: amountPaise },
 });
 
-await createActivityLog({
+return updatedCampaign;
+},
+{
+maxWait: 5000,
+timeout: 15000,
+isolationLevel: Prisma.TransactionIsolationLevel.Serializable,
+},
+);
+
+// Non-critical audit log written outside the transaction to avoid timeout
+createActivityLog({
 userId,
 action: "ACTIVATE_CAMPAIGN",
 entityType: "Campaign",
 entityId: campaignId,
-}, tx);
-
-return updatedCampaign;
-},
-{
-// Serializable prevents a concurrent cancelCampaign from racing on
-// wallet state while budget funds are being moved from balance
-// pendingBalance. The updateMany atomic guard is the primary safety
-// net; Serializable is a belt-and-suspenders defence.
-isolationLevel: Prisma.TransactionIsolationLevel.Serializable,
-},
-);
+}).catch((logErr) => {
+logger.warn("[ActivityLog] Failed to log campaign activation", { error: logErr, campaignId });
+});
 
 logger.info("Campaign activated successfully", { userId, campaignId });
 return result;
