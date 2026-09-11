@@ -4,7 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useParams, useRouter } from "next/navigation";
 import { formatCurrency, formatDate } from "@/lib/utils-client";
-import { Button, Input, Textarea } from "@/components/ui";
+import { Button, Input, Textarea, Modal } from "@/components/ui";
 import { ApplicationsList } from "@/components/dashboard/campaigns/details/ApplicationsList";
 import { useCampaignDetail } from "@/components/dashboard/campaigns/details/useCampaignDetail";
 
@@ -370,62 +370,61 @@ Apply to Campaign
 </div>
 </div>
 
-{/* Apply Modal */}
-{showApplyModal && (
-<div className="modal-overlay">
-<div className="modal-content max-w-500 card p-6">
-<h3 className="font-bold text-lg mb-4 text-primary">Apply to Campaign</h3>
+      {/* Apply Modal */}
+      <Modal
+        open={showApplyModal}
+        onClose={() => setShowApplyModal(false)}
+        title="Apply to Campaign"
+        maxWidth="500px"
+      >
+        <div className="grid gap-4">
+          <Textarea
+            label="Proposal Description (Why should the brand hire you?)"
+            id="proposal"
+            placeholder="Write a professional proposal explaining your content ideas and fit for this campaign (Minimum 50 characters)..."
+            value={proposal}
+            onChange={(e) => setProposal(e.target.value)}
+            required
+            className="h-160"
+          />
 
-<div className="grid gap-4">
-<Textarea
-label="Proposal Description (Why should the brand hire you?)"
-id="proposal"
-placeholder="Write a professional proposal explaining your content ideas and fit for this campaign (Minimum 50 characters)..."
-value={proposal}
-onChange={(e) => setProposal(e.target.value)}
-required
-className="h-160"
-/>
+          <div>
+            <Input
+              label="Your Proposed Payout (Rs)"
+              id="proposed-rate"
+              type="number"
+              placeholder="Rate in Rs"
+              value={proposedRate || ""}
+              onChange={(e) => setProposedRate(Number(e.target.value))}
+              required
+            />
+            {recommendedPayout > 0 && (
+              <span className="text-muted text-2xs mt-1 block">
+                Recommended for your stats: {(recommendedPayout / 100).toLocaleString()}
+              </span>
+            )}
+          </div>
 
-<div>
-<Input
-label="Your Proposed Payout (Rs)"
-id="proposed-rate"
-type="number"
-placeholder="Rate in Rs"
-value={proposedRate || ""}
-onChange={(e) => setProposedRate(Number(e.target.value))}
-required
-/>
-{recommendedPayout > 0 && (
-<span className="text-muted text-2xs mt-1 block">
-Recommended for your stats: {(recommendedPayout / 100).toLocaleString()}
-</span>
-)}
-</div>
-
-<div className="flex justify-end gap-2 mt-4">
-<Button
-type="button"
-variant="secondary"
-onClick={() => setShowApplyModal(false)}
-disabled={isSubmitting}
->
-Cancel
-</Button>
-<Button
-type="button"
-variant="primary"
-onClick={handleApply}
-disabled={isSubmitting || proposedRate <= 0}
->
-{isSubmitting ? "..." : "Submit"}
-</Button>
-</div>
-</div>
-</div>
-</div>
-)}
-</div>
-);
+          <div className="flex justify-end gap-2 mt-4">
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={() => setShowApplyModal(false)}
+              disabled={isSubmitting}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              variant="primary"
+              onClick={handleApply}
+              disabled={isSubmitting || proposedRate <= 0}
+            >
+              {isSubmitting ? "..." : "Submit"}
+            </Button>
+          </div>
+        </div>
+      </Modal>
+    </div>
+  );
 }

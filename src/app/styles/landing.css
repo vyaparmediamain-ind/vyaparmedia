@@ -172,20 +172,24 @@
 
   /* === MODAL OVERLAYS === */
   .modal-overlay {
-    padding: 12px !important;
+    padding: 12px 12px calc(88px + env(safe-area-inset-bottom, 12px)) 12px !important;
     align-items: flex-end !important;
+    z-index: 99999 !important;
     /* slide-up-sheet on mobile */
   }
 
   /* Modal inner cards */
   .modal-overlay > div,
-  .modal-overlay > .card {
+  .modal-overlay > .card,
+  .modal-container {
     width: 100% !important;
     max-width: 100% !important;
-    max-height: 92vh !important;
+    max-height: calc(100dvh - 110px) !important;
     overflow-y: auto !important;
-    border-radius: var(--radius-xl) var(--radius-xl) 0 0 !important;
+    border-radius: var(--radius-xl) var(--radius-xl) var(--radius-xl) var(--radius-xl) !important;
     padding: 20px 16px !important;
+    margin-bottom: 0 !important;
+    z-index: 100000 !important;
   }
 
   /* === NOTIFICATION DROPDOWN === */

@@ -99,34 +99,54 @@ export async function checkAndAwardBadges(
   const relevantBadgeIds = TRIGGER_TO_BADGES[trigger] || [];
   const badgesToCheck = unearnedBadges.filter((b) => relevantBadgeIds.includes(b.id));
 
-  // Pre-fetch common data in parallel for efficiency
+  // Early return if no badges are eligible for evaluation on this trigger
+  if (badgesToCheck.length === 0) {
+    return;
+  }
+
+  // Reuse profile objects already loaded on user to avoid redundant DB queries
+  const influencerProfile = user.influencerProfile;
+  const brandProfile = user.brandProfile;
+
+  // Conditionally query only the auxiliary metrics required by the specific candidate badges
+  const needsWallet = badgesToCheck.some((b) => b.id.startsWith("earn_"));
+  const needsCompletedDeals = badgesToCheck.some(
+    (b) => b.id.startsWith("first_deal") || b.id.endsWith("_deals") || b.id === "fraud_shield",
+  );
+  const needsFraudViolations = badgesToCheck.some((b) => b.id === "fraud_shield");
+  const needsZeroRevisions = badgesToCheck.some(
+    (b) => b.id === "strict_compliance" || b.id === "no_revisions",
+  );
+
   const [
     wallet,
-    influencerProfile,
-    brandProfile,
     completedDealsCount,
     fraudViolationsCount,
     zeroRevisionDealsCount,
   ] = await Promise.all([
-    db.wallet.findUnique({ where: { userId } }),
-    db.influencerProfile.findUnique({ where: { userId } }),
-    db.brandProfile.findUnique({ where: { userId } }),
-    db.deal.count({
-      where: {
-        influencer: { userId },
-        status: { in: ["COMPLETED", "VERIFIED"] },
-      },
-    }),
-    db.userViolation.count({
-      where: { userId, type: "FRAUD" },
-    }),
-    db.deal.count({
-      where: {
-        influencer: { userId },
-        status: { in: ["COMPLETED", "VERIFIED"] },
-        revisionsUsed: 0,
-      },
-    }),
+    needsWallet ? db.wallet.findUnique({ where: { userId } }) : null,
+    needsCompletedDeals
+      ? db.deal.count({
+          where: {
+            influencer: { userId },
+            status: { in: ["COMPLETED", "VERIFIED"] },
+          },
+        })
+      : 0,
+    needsFraudViolations
+      ? db.userViolation.count({
+          where: { userId, type: "FRAUD" },
+        })
+      : 0,
+    needsZeroRevisions
+      ? db.deal.count({
+          where: {
+            influencer: { userId },
+            status: { in: ["COMPLETED", "VERIFIED"] },
+            revisionsUsed: 0,
+          },
+        })
+      : 0,
   ]);
 
   for (const badge of badgesToCheck) {

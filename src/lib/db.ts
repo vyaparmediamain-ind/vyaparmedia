@@ -233,12 +233,17 @@ return isLikelyEncrypted(val) ? decrypt(val) : val;
 }
 
 function logSlowQueriesAndAudit(model: string, operation: string, duration: number) {
-if (duration > 500) {
-// Log slow queries (potential DoS/performance issue) without dumping raw PII data
-logger.warn(
-`[DB SECURITY] SLOW QUERY DETECTED: ${model}.${operation} took ${duration.toFixed(2)}ms`,
-);
-}
+  const defaultThreshold = process.env.NODE_ENV === "production" ? 1000 : 2000;
+  const slowThreshold =
+    Number(process.env.DB_SLOW_QUERY_THRESHOLD_MS || process.env.SLOW_QUERY_THRESHOLD_MS) ||
+    defaultThreshold;
+
+  if (duration > slowThreshold) {
+    // Log slow queries (potential DoS/performance issue) without dumping raw PII data
+    logger.warn(
+      `[DB SECURITY] SLOW QUERY DETECTED: ${model}.${operation} took ${duration.toFixed(2)}ms (threshold: ${slowThreshold}ms)`,
+    );
+  }
 
 // --- 5. Enterprise Audit Trail (CDC simulation for sensitive financial models) ---
 if (

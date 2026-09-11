@@ -861,8 +861,10 @@ dialog.pwa-install-overlay {
 
 @media (max-width: 640px) {
   .modal-body {
-    padding: 16px 18px;
-    max-height: calc(100dvh - 120px);
+    padding: 16px 18px 28px;
+    max-height: calc(100dvh - 180px);
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
   }
 }
 

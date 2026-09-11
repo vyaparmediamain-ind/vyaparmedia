@@ -61,93 +61,69 @@ userType: "BRAND" | "INFLUENCER",
   const nowIST = new Date(Date.now() + 5.5 * 60 * 60 * 1000);
   const startOfMonth = new Date(Date.UTC(nowIST.getUTCFullYear(), nowIST.getUTCMonth(), 1, 0, 0, 0) - 5.5 * 60 * 60 * 1000);
 
-if (userType === "BRAND") {
-const [profile, campaigns] = await Promise.all([
-prisma.brandProfile.findUnique({
-where: { userId },
-select: { id: true },
-}),
-prisma.brandProfile.findUnique({
-where: { userId },
-select: { id: true },
-}).then(p => p ? prisma.campaign.findMany({
-where: {
-brandId: p.id,
-createdAt: { gte: startOfMonth },
-status: { notIn: ["CANCELLED"] },
-},
-select: {
-totalBudget: true,
-requiresProduct: true,
-productValue: true,
-maxInfluencers: true,
-perInfluencerBudget: true,
-},
-}) : [])
-]);
+  if (userType === "BRAND") {
+    const profile = await prisma.brandProfile.findUnique({
+      where: { userId },
+      select: {
+        id: true,
+        campaigns: {
+          where: {
+            createdAt: { gte: startOfMonth },
+            status: { notIn: ["CANCELLED"] },
+          },
+          select: {
+            totalBudget: true,
+            requiresProduct: true,
+            productValue: true,
+            maxInfluencers: true,
+            perInfluencerBudget: true,
+          },
+        },
+      },
+    });
 
-if (!profile) return 0;
-return campaigns.reduce((sum: number, c: {
-totalBudget: number;
-requiresProduct: boolean;
-productValue: number | null;
-maxInfluencers: number | null;
-perInfluencerBudget: number | null;
-}) => {
-if (c.totalBudget > 0) return sum + c.totalBudget;
-if (c.requiresProduct && c.productValue) {
-const slots = c.maxInfluencers && c.maxInfluencers > 0 ? c.maxInfluencers : 1;
-return sum + (c.productValue * slots);
-}
-return sum;
-}, 0);
-} else {
-const [profile, apps] = await Promise.all([
-prisma.influencerProfile.findUnique({
-where: { userId },
-select: { id: true },
-}),
-prisma.influencerProfile.findUnique({
-where: { userId },
-select: { id: true },
-}).then(p => p ? prisma.application.findMany({
-where: {
-influencerId: p.id,
-createdAt: { gte: startOfMonth },
-status: { notIn: ["REJECTED", "WITHDRAWN"] },
-},
-select: {
-campaign: {
-select: {
-perInfluencerBudget: true,
-requiresProduct: true,
-productValue: true,
-totalBudget: true,
-},
-},
-},
-}) : [])
-]);
+    if (!profile) return 0;
+    return profile.campaigns.reduce((sum: number, c) => {
+      if (c.totalBudget > 0) return sum + c.totalBudget;
+      if (c.requiresProduct && c.productValue) {
+        const slots = c.maxInfluencers && c.maxInfluencers > 0 ? c.maxInfluencers : 1;
+        return sum + c.productValue * slots;
+      }
+      return sum;
+    }, 0);
+  } else {
+    const profile = await prisma.influencerProfile.findUnique({
+      where: { userId },
+      select: {
+        id: true,
+        applications: {
+          where: {
+            createdAt: { gte: startOfMonth },
+            status: { notIn: ["REJECTED", "WITHDRAWN"] },
+          },
+          select: {
+            campaign: {
+              select: {
+                perInfluencerBudget: true,
+                requiresProduct: true,
+                productValue: true,
+                totalBudget: true,
+              },
+            },
+          },
+        },
+      },
+    });
 
-if (!profile) return 0;
-return apps.reduce(
-(sum: number, a: {
-campaign: {
-perInfluencerBudget: number | null;
-requiresProduct: boolean;
-productValue: number | null;
-totalBudget: number;
-};
-}) => {
-const isProductOnly = a.campaign.requiresProduct && a.campaign.totalBudget === 0;
-if (isProductOnly) {
-return sum + (a.campaign.productValue || 0);
-}
-return sum + (a.campaign.perInfluencerBudget || 0);
-},
-0,
-);
-}
+    if (!profile) return 0;
+    return profile.applications.reduce((sum: number, a) => {
+      const isProductOnly = a.campaign.requiresProduct && a.campaign.totalBudget === 0;
+      if (isProductOnly) {
+        return sum + (a.campaign.productValue || 0);
+      }
+      return sum + (a.campaign.perInfluencerBudget || 0);
+    }, 0);
+  }
 }
 
 // Helper: Has Tier 3 business doc (Brand only)

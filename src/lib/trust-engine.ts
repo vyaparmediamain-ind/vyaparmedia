@@ -353,23 +353,43 @@ return completeness;
 }
 
 async function recalculateInfluencerDRSInternal(
-userId: string,
-user: { createdAt: Date; verificationLevel: string },
+  userId: string,
+  user: { createdAt: Date; verificationLevel: string },
 ): Promise<DRSResult> {
-const { profile, fiveStarReviews, poorReviews } = await fetchInfluencerBasicStats(userId);
-const { onTimeDeliveries, lateDeliveries, contentRejections } = await fetchInfluencerDealStats(userId);
-const { disputesLost, disputesWon } = await fetchInfluencerDisputes(userId);
+  const [
+    basicStats,
+    dealStats,
+    disputeStats,
+    referralStats,
+    termsViolationsCount,
+    fraudViolationsList,
+  ] = await Promise.all([
+    fetchInfluencerBasicStats(userId),
+    fetchInfluencerDealStats(userId),
+    fetchInfluencerDisputes(userId),
+    prisma.user.aggregate({
+      where: { referredBy: userId, trustScore: { gte: 700 } }, // Quality referrals
+      _count: true,
+      _avg: { trustScore: true },
+    }),
+    prisma.userViolation.count({ where: { userId, type: "TERMS_VIOLATION" } }),
+    prisma.userViolation.findMany({
+      where: { userId, type: "FRAUD" },
+      select: { metadata: true, description: true },
+    }),
+  ]);
 
-const [referralStats, termsViolationsCount, fraudViolations, paymentFraudAttempts] = await Promise.all([
-prisma.user.aggregate({
-where: { referredBy: userId, trustScore: { gte: 700 } }, // Quality referrals
-_count: true,
-_avg: { trustScore: true },
-}),
-prisma.userViolation.count({ where: { userId, type: "TERMS_VIOLATION" } }),
-prisma.userViolation.count({ where: { userId, type: "FRAUD" } }),
-prisma.userViolation.count({ where: { userId, type: "PAYMENT_FRAUD" as ViolationType } }),
-]);
+  const { profile, fiveStarReviews, poorReviews } = basicStats;
+  const { onTimeDeliveries, lateDeliveries, contentRejections } = dealStats;
+  const { disputesLost, disputesWon } = disputeStats;
+
+const fraudViolations = fraudViolationsList.length;
+const paymentFraudAttempts = fraudViolationsList.filter((v: { metadata: unknown; description: string }) => {
+  const meta = v.metadata && typeof v.metadata === "object" ? (v.metadata as Record<string, unknown>) : null;
+  return meta?.category === "PAYMENT_FRAUD" ||
+    v.description.includes("PAYMENT_FRAUD") ||
+    v.description.toLowerCase().includes("payment fraud");
+}).length;
 
 const completeness = calcProfileCompleteness(profile, user.verificationLevel);
 

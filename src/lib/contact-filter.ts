@@ -90,9 +90,10 @@ function checkBasicContacts(content: string, findings: string[], options?: { all
 function checkSocialAndUpi(content: string, normalizedContent: string, findings: string[]) {
 if (
 testRegex(CONTACT_REGEX.socialHandle, content) ||
-["whatsapp", "instagram", "telegram", "linktree", "gmailcom", "insta", "ig", "wp"].some((kw) =>
+["whatsapp", "instagram", "telegram", "linktree", "gmailcom", "insta"].some((kw) =>
 normalizedContent.includes(kw),
-)
+) ||
+/\b(?:ig|wp)\s*[:@\d_-]/i.test(content)
 ) {
 findings.push("social");
 }
@@ -218,9 +219,10 @@ const normalizedFilename = cleanAndNormalizeText(filename);
 
 if (
 testRegex(CONTACT_REGEX.socialHandle, filename) ||
-["whatsapp", "instagram", "telegram", "linktree", "gmailcom", "insta", "ig", "wp"].some((kw) =>
+["whatsapp", "instagram", "telegram", "linktree", "gmailcom", "insta"].some((kw) =>
 normalizedFilename.includes(kw),
-)
+) ||
+/\b(?:ig|wp)\b|ig_|wp_/i.test(filename)
 ) {
 findings.push("attachment_social");
 }
