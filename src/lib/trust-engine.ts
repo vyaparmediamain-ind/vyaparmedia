@@ -4,7 +4,7 @@
 */
 
 import prisma from "./db";
-import { Prisma, ViolationType, VerificationLevel } from "@prisma/client";
+import { Prisma, VerificationLevel } from "@prisma/client";
 import { createActivityLog } from "./audit";
 import { logger } from "./logger";
 import {
