@@ -81,6 +81,7 @@ export function validateCampaignForm(formData: CampaignFormData): ValidationResu
 const result = createCampaignSchema.safeParse({
 title: formData.title.trim(),
 description: formData.description.trim(),
+requirements: formData.requirements.trim(),
 perInfluencerBudget: formData.perInfluencerBudget,
 maxInfluencers: formData.maxInfluencers ?? 1,
 minFollowers: formData.minFollowers,

@@ -7,8 +7,12 @@ export const createCampaignSchema = z.object({
     .max(100, "Title cannot exceed 100 characters"),
   description: z
     .string()
-    .min(20, "Description must be at least 20 characters")
+    .min(10, "Description must be at least 10 characters")
     .max(2000, "Description cannot exceed 2000 characters"),
+  requirements: z
+    .string()
+    .min(10, "Requirements must be at least 10 characters")
+    .max(2000, "Requirements cannot exceed 2000 characters"),
   perInfluencerBudget: z
     .number({ message: "Budget per influencer must be a number" })
     .min(0, "Budget per influencer cannot be negative")

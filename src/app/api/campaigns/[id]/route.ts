@@ -265,14 +265,22 @@ rate: d.rate === undefined ? undefined : toPaise(d.rate),
 })),
 };
 
-const campaign = await CampaignService.updateDraftCampaign(
+const updatedCampaign = await CampaignService.updateDraftCampaign(
 id!,
 userId,
 payload,
 );
 
+let finalCampaign = updatedCampaign;
+let responseMessage = "Campaign updated successfully";
+
+if (parsedBody.data.status === "ACTIVE") {
+  finalCampaign = await CampaignService.activateDraftCampaign(userId, id!);
+  responseMessage = "Campaign updated and published successfully";
+}
+
 return NextResponse.json(
-{ success: true, message: "Campaign updated successfully", data: campaign },
+{ success: true, message: responseMessage, data: finalCampaign },
 { status: 200 },
 );
 } catch (error: unknown) {

@@ -237,19 +237,19 @@ export default function CreateCampaignClient() {
       const postingDeadline = new Date(formData.postingDeadline);
 
       const url = editCampaignId ? `/api/campaigns/${editCampaignId}` : "/api/campaigns";
-      const method = editCampaignId ? "PATCH" : "POST";
+      const method = editCampaignId ? "PUT" : "POST";
 
       const response = await fetch(url, {
         method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...formData,
-          totalBudget: Math.round(formData.totalBudget * 100),
-          perInfluencerBudget: Math.round(formData.perInfluencerBudget * 100),
-          productValue: Math.round((formData.productValue || 0) * 100),
+          totalBudget: Math.round(formData.totalBudget),
+          perInfluencerBudget: Math.round(formData.perInfluencerBudget),
+          productValue: Math.round(formData.productValue || 0),
           deliverables: formData.deliverables.map((d) => ({
             ...d,
-            rate: Math.round((d.rate || 0) * 100),
+            rate: Math.round(d.rate || 0),
           })),
           maxFollowers: formData.maxFollowers || 0,
           maxInfluencers: formData.maxInfluencers || null,
