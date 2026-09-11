@@ -456,6 +456,8 @@ model Campaign {
   @@index([brandId])
   @@index([influencerId])
   @@index([status, applicationDeadline, totalBudget]) // ADDED: Composite filtering
+  @@index([brandId, status, deletedAt])
+  @@index([status, deletedAt])
 }
 
 // ==================== APPLICATIONS & DEALS ====================
@@ -492,6 +494,8 @@ model Application {
   @@index([status])
   @@index([campaignId])
   @@index([influencerId])
+  @@index([campaignId, status, deletedAt])
+  @@index([influencerId, status, deletedAt])
 }
 
 enum DealStatus {
@@ -723,6 +727,8 @@ model Transaction {
   @@index([type, status, createdAt])
   @@index([razorpayOrderId])
   @@index([razorpayPaymentId])
+  @@index([walletId, deletedAt, createdAt])
+  @@index([walletId, status, deletedAt, createdAt])
 }
 
 enum PaymentHoldStatus {
@@ -819,6 +825,7 @@ model BankAccount {
   @@index([userId])
   @@index([accountNumberHash])
   @@index([upiIdHash])
+  @@index([userId, deletedAt])
 }
 
 // ==================== DISPUTES ====================
@@ -888,6 +895,7 @@ model DisputeEvidence {
   dispute Dispute @relation(fields: [disputeId], references: [id], onDelete: Cascade)
 
   @@index([disputeId])
+  @@index([submittedByUserId])
 }
 
 // ==================== REVIEWS ====================
@@ -958,6 +966,9 @@ model Message {
   @@index([dealId])
   @@index([createdAt])
   @@index([dealId, createdAt])
+  @@index([receiverId, isRead, deletedAt])
+  @@index([senderId, receiverId, createdAt])
+  @@index([dealId, receiverId, isRead])
 }
 
 // ==================== GAMIFICATION ====================
@@ -1008,6 +1019,7 @@ model Notification {
 
   @@index([userId, isRead])
   @@index([createdAt])
+  @@index([userId, createdAt])
 }
 
 // ==================== SECURITY & LOGGING ====================
@@ -1099,6 +1111,7 @@ model UserViolation {
   @@index([userId])
   @@index([expiresAt])
   @@index([action])
+  @@index([userId, createdAt])
 }
 
 // ==================== WEBHOOK IDEMPOTENCY ====================

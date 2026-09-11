@@ -249,7 +249,7 @@ influencerShare = Math.round(payoutBase * feeRatio);
 brandRefund = Math.min(totalAmount - influencerShare, Math.round(totalAmount * (refundPct / 100)));
 const feeShare = Math.max(0, totalAmount - influencerShare - brandRefund);
 settlementCharge = influencerShare + feeShare;
-influencerClawback = Math.round(payoutBase * (refundPct / 100));
+influencerClawback = payoutBase - influencerShare; // Exact residual prevents 1-paisa inflation
 treasuryClawback = Math.max(0, brandRefund - influencerClawback);
 }
 

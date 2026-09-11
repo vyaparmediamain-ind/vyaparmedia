@@ -210,20 +210,26 @@ async function executeOfferEscrowTransaction(params: EscrowTxParams) {
         where: { userId: params.brandUserId },
       });
 
-      if (!brandWallet || brandWallet.balance < params.totalAmountToLock) {
-        const availableInr = brandWallet ? (brandWallet.balance / 100).toLocaleString("en-IN") : "0";
-        const requiredInr = (params.totalAmountToLock / 100).toLocaleString("en-IN");
-        throw new Error(
-          `Insufficient brand wallet balance (Available: ₹${availableInr}, Required: ₹${requiredInr}). Please top up your wallet to accept this offer.`
-        );
+      if (!brandWallet) {
+        throw new Error("Brand wallet not found.");
       }
 
-      await tx.wallet.update({
-        where: { id: brandWallet.id },
+      const brandWalletUpdate = await tx.wallet.updateMany({
+        where: {
+          userId: params.brandUserId,
+          balance: { gte: params.totalAmountToLock },
+          isFrozen: false,
+        },
         data: {
           balance: { decrement: params.totalAmountToLock },
         },
       });
+
+      if (brandWalletUpdate.count === 0) {
+        throw new Error(
+          `Insufficient brand wallet balance or wallet is frozen (Required: ₹${(params.totalAmountToLock / 100).toLocaleString("en-IN")}). The brand must top up their wallet to fund this offer.`
+        );
+      }
 
       const campaign = await tx.campaign.create({
         data: {

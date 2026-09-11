@@ -606,6 +606,31 @@ throw AppError.badRequest("Recipient is not part of this deal");
 await getConversationAccess(userId, { with: data.receiverId });
 }
 
+if (data.messageType === "OFFER" && data.metadata) {
+  const sender = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { userType: true, wallet: { select: { balance: true, isFrozen: true } } },
+  });
+
+  if (sender?.userType === "BRAND") {
+    if (sender.wallet?.isFrozen) {
+      throw AppError.badRequest("Your wallet is frozen. You cannot create offers until restrictions are lifted.");
+    }
+    const offerMeta = data.metadata as Record<string, unknown>;
+    const offerAmountPaise = Number(offerMeta?.amount);
+    if (Number.isInteger(offerAmountPaise) && offerAmountPaise > 0) {
+      const requiredTotal = Math.round(offerAmountPaise * 1.18);
+      if (!sender.wallet || sender.wallet.balance < requiredTotal) {
+        const availableInr = sender.wallet ? (sender.wallet.balance / 100).toLocaleString("en-IN") : "0";
+        const requiredInr = (requiredTotal / 100).toLocaleString("en-IN");
+        throw AppError.badRequest(
+          `Insufficient wallet balance to extend offer (Available: ₹${availableInr}, Estimated Required: ₹${requiredInr}). Please top up your wallet.`
+        );
+      }
+    }
+  }
+}
+
 const sanitizedContent = stripHtml(data.content || "");
 const { isBlocked, hasWarning, findings } = await MessageService.applyContactFilterToContent(
   sanitizedContent,

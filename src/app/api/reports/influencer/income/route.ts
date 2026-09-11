@@ -37,7 +37,7 @@ if (!profile) return ApiResponse.error("Profile not found", 404);
 
 const tax = await prisma.indiaTaxCompliance.findUnique({
 where: { userId: session.user.id },
-select: { panNumber: true },
+select: { panLast4: true },
 });
 
 // Deals in this FY
@@ -104,7 +104,7 @@ csv += csvSep();
 csv += csvTitle("INFLUENCER DETAILS");
 csv += csvRow("Name", profile.displayName || "");
 csv += csvRow("Address", address);
-csv += csvRow("PAN", tax?.panNumber || "Not Provided");
+csv += csvRow("PAN", tax?.panLast4 ? `XXXXX${tax.panLast4}` : "Not Provided");
 csv += csvSep();
 
 // Deal-wise table

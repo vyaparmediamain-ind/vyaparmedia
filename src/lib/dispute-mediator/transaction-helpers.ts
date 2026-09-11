@@ -300,10 +300,13 @@ analysis,
     }
 
     // 1. Release the full escrow pending balance from the brand's wallet (decrement pendingBalance only, do not credit balance)
-    await tx.wallet.updateMany({
+    const escrowUpdate = await tx.wallet.updateMany({
       where: { userId: brandUserId, pendingBalance: { gte: totalAmount } },
       data: { pendingBalance: { decrement: totalAmount } },
     });
+    if (escrowUpdate.count === 0) {
+      throw AppError.badRequest("INSUFFICIENT_BRAND_ESCROW: Brand pending balance is insufficient for dispute settlement.");
+    }
 
     // 2. Refund to card via Razorpay
     await handleRazorpayGatewayRefund(deal, brandRefund, analysis);

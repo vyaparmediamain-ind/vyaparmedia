@@ -54,20 +54,28 @@ async function calculateTdsForPayout(
 
   const is194J = taxCompliance?.tdsSection?.startsWith("194J") ?? false;
 
+  // Fetch current deal's prior gross payouts and withheld TDS (supports milestones/partial settlements)
+  const currentDeal = await tx.deal.findUnique({
+    where: { id: dealId },
+    select: { grossPayout: true, tdsDeducted: true },
+  });
+  const currentDealPriorGross = currentDeal?.grossPayout ?? 0;
+  const currentDealPriorTds = currentDeal?.tdsDeducted ?? 0;
+
   const fyDeals = await tx.deal.findMany({
     where: {
       influencer: { userId },
-      status: "COMPLETED",
+      status: { in: ["COMPLETED", "ACTIVE", "DISPUTED"] },
       completedAt: { gte: currentIndianFinancialYearStart() },
       id: { not: dealId },
     },
     // tdsDeducted required to avoid re-taxing previously withheld amounts
-    select: { influencerPayout: true, amount: true, tdsDeducted: true },
+    select: { grossPayout: true, influencerPayout: true, amount: true, tdsDeducted: true },
   });
 
   const previousFyEarnings = fyDeals.reduce(
-    (sum, deal) => sum + (deal.influencerPayout ?? deal.amount),
-    0,
+    (sum, deal) => sum + (deal.grossPayout > 0 ? deal.grossPayout : (deal.influencerPayout ?? deal.amount)),
+    currentDealPriorGross,
   );
 
   const totalEarnings = previousFyEarnings + grossPayout;
@@ -81,7 +89,7 @@ async function calculateTdsForPayout(
   // This prevents under-withholding when the threshold is crossed mid-year on a large payout.
   const previousFyTdsAlreadyDeducted = fyDeals.reduce(
     (sum, deal) => sum + (deal.tdsDeducted ?? 0),
-    0,
+    currentDealPriorTds,
   );
   
   const tdsRate = calculateApplicableTdsRate(hasPan, is194J);
@@ -269,28 +277,34 @@ influencerPayout: params.deal.influencerPayout ?? params.deal.amount,
 },
 });
 
-// Credit the PLATFORM_TREASURY wallet with the collected fee so that
-// referral GMV-share payouts have a real funding source (double-entry).
-await ensurePlatformTreasury(tx);
-const treasuryWallet = await tx.wallet.update({
-where: { userId: "PLATFORM_TREASURY" },
-data: { balance: { increment: platformFee } },
-});
+    // Credit the PLATFORM_TREASURY wallet with all retained fees (platform + gateway)
+    // so total debits and credits across the platform balance sheet remain equal (double-entry).
+    const totalFeeRevenue = platformFee + gatewayFee;
+    if (totalFeeRevenue > 0) {
+      await ensurePlatformTreasury(tx);
+      const treasuryWallet = await tx.wallet.update({
+        where: { userId: "PLATFORM_TREASURY" },
+        data: { balance: { increment: totalFeeRevenue } },
+      });
 
-await tx.transaction.create({
-data: {
-walletId: treasuryWallet.id,
-dealId: params.deal.id,
-type: "CREDIT",
-amount: platformFee,
-status: "COMPLETED",
-description: `Platform fee income credited to treasury for deal: ${params.deal.id}`,
-metadata: {
-source: params.source,
-feeRatio: ratio,
-brandUserId: params.brandUserId,
-},
-},
-});
-}
+      await tx.transaction.create({
+        data: {
+          walletId: treasuryWallet.id,
+          dealId: params.deal.id,
+          type: "CREDIT",
+          amount: totalFeeRevenue,
+          status: "COMPLETED",
+          description: `Platform and gateway fee income credited to treasury for deal: ${params.deal.id}`,
+          metadata: {
+            source: params.source,
+            platformFee,
+            gatewayFee,
+            totalFeeRevenue,
+            feeRatio: ratio,
+            brandUserId: params.brandUserId,
+          },
+        },
+      });
+    }
+  }
 }

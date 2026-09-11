@@ -159,39 +159,36 @@ async function checkCategoryKing(userId: string, db: DbClient, influencerProfile
 
   const categories = (influencerProfile?.categories || "")
     .split(",")
-    .map((c: string) => c.trim().toLowerCase())
+    .map((c: string) => c.trim())
     .filter(Boolean);
   if (categories.length === 0) return false;
 
-  const allProfiles = await db.influencerProfile.findMany({
-    select: { categories: true, completedDeals: true },
-  });
+  for (const cat of categories) {
+    const topProfile = await db.influencerProfile.findFirst({
+      where: { categories: { contains: cat, mode: "insensitive" } },
+      orderBy: { completedDeals: "desc" },
+      select: { completedDeals: true },
+    });
+    if (topProfile && myCompleted >= topProfile.completedDeals) {
+      return true;
+    }
+  }
 
-  return categories.some((cat: string) => {
-    const catProfiles = allProfiles.filter((p: { categories?: string | null; completedDeals?: number }) => (p.categories || "")
-      .split(",")
-      .map((c: string) => c.trim().toLowerCase())
-      .includes(cat)
-    );
-    if (catProfiles.length === 0) return false;
-    const maxCompleted = Math.max(...catProfiles.map((p: { completedDeals?: number }) => p.completedDeals || 0));
-    return myCompleted >= maxCompleted;
-  });
+  return false;
 }
 
 async function checkCityChampion(userId: string, db: DbClient, influencerProfile: GamificationUser["influencerProfile"]): Promise<boolean> {
-  const myCity = (influencerProfile?.city || "").trim().toLowerCase();
+  const myCity = (influencerProfile?.city || "").trim();
   if (!myCity) return false;
   const myCompletedDeals = influencerProfile?.completedDeals || 0;
   if (myCompletedDeals === 0) return false;
 
-  const sameCityProfiles = await db.influencerProfile.findMany({
+  const topCityProfile = await db.influencerProfile.findFirst({
     where: { city: { mode: "insensitive", equals: myCity } },
+    orderBy: { completedDeals: "desc" },
     select: { completedDeals: true },
   });
-  if (sameCityProfiles.length === 0) return false;
-  const maxCompletedDeals = Math.max(...sameCityProfiles.map((p: { completedDeals?: number }) => p.completedDeals || 0));
-  return myCompletedDeals >= maxCompletedDeals;
+  return topCityProfile ? myCompletedDeals >= topCityProfile.completedDeals : false;
 }
 
 async function checkComebackKid(userId: string, db: DbClient): Promise<boolean> {

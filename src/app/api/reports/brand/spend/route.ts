@@ -92,8 +92,8 @@ csv += csvSep();
 csv += csvTitle("CLIENT DETAILS");
 csv += csvRow("Company Name", profile.companyName || "");
 csv += csvRow("Address", address);
-csv += csvRow("GSTIN", profile.gstNumber || "Not Provided");
-csv += csvRow("PAN", profile.panNumber || "Not Provided");
+csv += csvRow("GSTIN", profile.gstNumber ? `${profile.gstNumber.slice(0, 2)}XXXXXXXXXX${profile.gstNumber.slice(-3)}` : "Not Provided");
+csv += csvRow("PAN", profile.panNumber ? `XXXXX${profile.panNumber.slice(-4)}` : "Not Provided");
 csv += csvSep();
 
 // Deal-wise table

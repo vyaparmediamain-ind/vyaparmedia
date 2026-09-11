@@ -377,42 +377,62 @@ revalidatePath("/admin/users");
 }
 
 export async function approveFlaggedApplication(applicationId: string) {
-const _session = await requireAdmin();
+  const _session = await requireAdmin();
 
-const app = await prisma.application.update({
-where: { id: applicationId },
-data: { status: "PENDING" },
-select: { influencer: { select: { userId: true } } },
-});
+  const existingApp = await prisma.application.findUnique({
+    where: { id: applicationId },
+    select: { status: true, influencer: { select: { userId: true } } },
+  });
 
-if (app?.influencer?.userId) {
-await NotificationService.createNotification({
-userId: app.influencer.userId,
-type: "system",
-title: "Application Approved by Admin",
-message: "Your flagged application was reviewed and approved. It is now pending brand selection.",
-});
-}
+  if (!existingApp) throw AppError.notFound("Application not found");
+  if (existingApp.status !== "FLAGGED") {
+    throw AppError.badRequest(`Cannot approve application with status ${existingApp.status}. Only FLAGGED applications can be approved.`);
+  }
 
-revalidatePath("/admin");
+  const app = await prisma.application.update({
+    where: { id: applicationId },
+    data: { status: "PENDING" },
+    select: { influencer: { select: { userId: true } } },
+  });
 
-await createActivityLog({
-  userId: _session.user.id,
-  action: "FLAGGED_APPLICATION_APPROVED",
-  entityType: "APPLICATION",
-  entityId: applicationId,
-  metadata: { adminEmail: _session.user.email },
-}).catch(() => {});
+  if (app?.influencer?.userId) {
+    await NotificationService.createNotification({
+      userId: app.influencer.userId,
+      type: "system",
+      title: "Application Approved by Admin",
+      message: "Your flagged application was reviewed and approved. It is now pending brand selection.",
+    });
+  }
+
+  revalidatePath("/admin");
+
+  await createActivityLog({
+    userId: _session.user.id,
+    action: "FLAGGED_APPLICATION_APPROVED",
+    entityType: "APPLICATION",
+    entityId: applicationId,
+    metadata: { adminEmail: _session.user.email },
+  }).catch(() => {});
 }
 
 export async function rejectFlaggedApplication(applicationId: string, reason: string) {
-const _session = await requireAdmin();
+  const _session = await requireAdmin();
 
-const app = await prisma.application.update({
-where: { id: applicationId },
-data: { status: "REJECTED" },
-select: { influencer: { select: { userId: true } } },
-});
+  const existingApp = await prisma.application.findUnique({
+    where: { id: applicationId },
+    select: { status: true, influencer: { select: { userId: true } } },
+  });
+
+  if (!existingApp) throw AppError.notFound("Application not found");
+  if (existingApp.status !== "FLAGGED") {
+    throw AppError.badRequest(`Cannot reject application with status ${existingApp.status}. Only FLAGGED applications can be rejected.`);
+  }
+
+  const app = await prisma.application.update({
+    where: { id: applicationId },
+    data: { status: "REJECTED" },
+    select: { influencer: { select: { userId: true } } },
+  });
 
 if (app?.influencer?.userId) {
 await NotificationService.createNotification({

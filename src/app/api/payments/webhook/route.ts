@@ -3,7 +3,7 @@ import { headers } from "next/headers";
 import { apiWrapper } from "@/lib/api-wrapper";
 import { processSecureWebhook } from "@/lib/razorpay";
 import { markWebhookProcessed } from "@/lib/idempotency";
-import prisma from "@/lib/db";
+import prisma, { ensurePlatformTreasury } from "@/lib/db";
 import { Prisma, TransactionType, TransactionStatus } from "@prisma/client";
 import { logger } from "@/lib/logger";
 import { redis } from "@/lib/redis";
@@ -298,6 +298,20 @@ async function handlePayoutWebhook(payload: { event?: string; payload?: { payout
                 metadata: { source: "double_payout_clawback", payoutId, pendingDebt },
               },
             });
+
+            if (pendingDebt > 0) {
+              await ensurePlatformTreasury(tx);
+              await tx.debtClaim.create({
+                data: {
+                  debtorWalletId: currentWallet.id,
+                  creditorUserId: "PLATFORM_TREASURY",
+                  dealId: withdrawal.id,
+                  amount: pendingDebt,
+                  originalAmount: pendingDebt,
+                  status: "PENDING",
+                },
+              });
+            }
           }
 
           // Mark withdrawal as COMPLETED since the bank payout did go through

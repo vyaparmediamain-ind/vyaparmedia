@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { apiWrapper, type AuthenticatedRequest } from "@/lib/api-wrapper";
-import { getOrder, getPayment, verifyPaymentSignature } from "@/lib/razorpay";
+import { capturePayment, getOrder, getPayment, verifyPaymentSignature } from "@/lib/razorpay";
 import prisma from "@/lib/db";
 import { Prisma } from "@prisma/client";
 import { logger } from "@/lib/logger";
@@ -99,36 +99,68 @@ paymentId: razorpay_payment_id,
 return NextResponse.json({ error: "Payment/order mismatch" }, { status: 400 });
 }
 
-if (!["authorized", "captured"].includes(payment?.status)) {
-return NextResponse.json(
-{ error: "Payment is not completed yet" },
-{ status: 400 },
-);
+if (payment?.status === "authorized") {
+  try {
+    await capturePayment(razorpay_payment_id, transaction.amount);
+  } catch (captureErr) {
+    logger.error("Failed to capture authorized payment during verify", {
+      orderId: razorpay_order_id,
+      paymentId: razorpay_payment_id,
+      error: captureErr,
+    });
+    return NextResponse.json(
+      { error: "Payment authorization could not be captured. Please retry." },
+      { status: 400 },
+    );
+  }
+} else if (payment?.status !== "captured") {
+  return NextResponse.json(
+    { error: "Payment is not completed yet" },
+    { status: 400 },
+  );
 }
 
 const orderAmount = Number(order?.amount);
 const paymentAmount = Number(payment?.amount);
 if (orderAmount !== transaction.amount || paymentAmount !== transaction.amount) {
-logger.error("Top-up amount mismatch detected", {
-userId: session.user.id,
-transactionAmount: transaction.amount,
-orderAmount,
-paymentAmount,
-orderId: razorpay_order_id,
-paymentId: razorpay_payment_id,
-});
-return NextResponse.json({ error: "Amount mismatch detected" }, { status: 400 });
+  logger.error("Top-up amount mismatch detected", {
+    userId: session.user.id,
+    transactionAmount: transaction.amount,
+    orderAmount,
+    paymentAmount,
+    orderId: razorpay_order_id,
+    paymentId: razorpay_payment_id,
+  });
+  return NextResponse.json({ error: "Amount mismatch detected" }, { status: 400 });
 }
 
 // 4. Update wallet and transaction atomically.
+try {
   await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
-    await PaymentService.completeWalletTopUp(tx, {
+    const credited = await PaymentService.completeWalletTopUp(tx, {
       transactionId: transaction.id,
       walletId: transaction.walletId,
       amount: transaction.amount,
       razorpayPaymentId: razorpay_payment_id,
     });
+
+    if (!credited) {
+      logger.info("Top-up already completed by webhook", {
+        transactionId: transaction.id,
+        orderId: razorpay_order_id,
+      });
+    }
   });
+} catch (error: unknown) {
+  if ((error as { code?: string })?.code === "P2002") {
+    logger.info("Concurrent top-up completion already recorded payment ID", {
+      orderId: razorpay_order_id,
+      paymentId: razorpay_payment_id,
+    });
+    return NextResponse.json({ success: true, alreadyProcessed: true });
+  }
+  throw error;
+}
 
 const duration = Date.now() - start;
 logger.info("Payment verified and wallet credited", {

@@ -123,10 +123,30 @@ take: limit,
 prisma.application.count({ where }),
 ]);
 
-const applicationsWithScores = await Promise.all(
-applications.map(async (app) => {
-    const [matchResult, deal] = await Promise.all([
-      MatchingService.calculateMatchScore(
+  const selectedApps = applications.filter((app) => app.status === "SELECTED");
+  const deals = selectedApps.length > 0
+    ? await prisma.deal.findMany({
+        where: {
+          OR: selectedApps.map((a) => ({
+            campaignId: a.campaignId,
+            influencerId: a.influencerId,
+          })),
+        },
+        select: {
+          campaignId: true,
+          influencerId: true,
+          amount: true,
+        },
+      })
+    : [];
+
+  const dealMap = new Map<string, number>(
+    deals.map((d) => [`${d.campaignId}_${d.influencerId}`, d.amount])
+  );
+
+  const applicationsWithScores = await Promise.all(
+    applications.map(async (app) => {
+      const matchResult = await MatchingService.calculateMatchScore(
         {
           id: app.campaign.id,
           targetCategories: app.campaign.targetCategories,
@@ -144,26 +164,20 @@ applications.map(async (app) => {
           xp: app.influencer.user.xp,
         },
         app.proposedRate
-      ),
-      app.status === "SELECTED" ? prisma.deal.findFirst({
-        where: {
-          campaignId: app.campaignId,
-          influencerId: app.influencerId,
-        },
-        select: {
-          amount: true,
-        },
-      }) : null,
-    ]);
+      );
 
-    return {
-      ...app,
-      matchScore: matchResult.matchScore,
-      matchBreakdown: matchResult.matchBreakdown,
-      finalRate: deal ? deal.amount : null,
-    };
-})
-);
+      const finalRate = app.status === "SELECTED"
+        ? (dealMap.get(`${app.campaignId}_${app.influencerId}`) ?? null)
+        : null;
+
+      return {
+        ...app,
+        matchScore: matchResult.matchScore,
+        matchBreakdown: matchResult.matchBreakdown,
+        finalRate,
+      };
+    })
+  );
 
 // Sort by match score descending to bubble up highest matching/ROI candidates first
 const sortedApplications = [...applicationsWithScores].sort((a, b) => b.matchScore - a.matchScore);
