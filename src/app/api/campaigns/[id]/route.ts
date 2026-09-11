@@ -41,7 +41,7 @@ return NextResponse.json(
 }
 return NextResponse.json(
 { success: false, message: error.message },
-{ status: error.statusCode },
+{ status: error.statusCode || 400 },
 );
 }
 
@@ -54,14 +54,28 @@ return NextResponse.json(
 );
 }
 
+if (errorMsg.includes("Verification required") || errorMsg.includes("tier")) {
+return NextResponse.json(
+{ success: false, message: errorMsg },
+{ status: 403 },
+);
+}
+
 const badRequestStrings = [
 "Insufficient wallet balance",
 "Cannot cancel",
 "DRAFT",
 "only be updated in DRAFT",
+"not in DRAFT",
+"wallet not found",
+"Verification required",
+"Minimum",
+"Invalid",
+"required",
+"budget",
 ];
 
-if (badRequestStrings.some((s) => errorMsg.includes(s))) {
+if (badRequestStrings.some((s) => errorMsg.toLowerCase().includes(s.toLowerCase()))) {
 return NextResponse.json(
 { success: false, message: errorMsg },
 { status: 400 },
@@ -69,7 +83,7 @@ return NextResponse.json(
 }
 
 return NextResponse.json(
-{ success: false, message: defaultMessage },
+{ success: false, message: errorMsg || defaultMessage },
 { status: 500 },
 );
 }
