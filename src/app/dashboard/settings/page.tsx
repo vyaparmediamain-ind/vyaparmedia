@@ -187,7 +187,11 @@ body: JSON.stringify(profile),
 });
       const data = await res.json();
       if (res.ok) {
-        await update();
+        try {
+          await update();
+        } catch (e) {
+          logger.warn("[settings] Session update error after profile save:", { error: String(e) });
+        }
         showToast("Profile saved successfully!", "success");
       } else {
         const errorMsg = data.message || data.error || (data.details ? "Invalid input details" : "Failed to save profile");

@@ -12,41 +12,102 @@ import { parseNotificationPreferences, notificationPreferencesSchema } from "@/l
 import { isBrand, isInfluencer, hasPermission, hasAnyPermission, getPermissions } from "@/lib/rbac";
 
 const updateProfileSchema = z.object({
-  displayName: z.string().optional().nullish(),
-  bio: z.string().max(2000).optional().nullish(),
-  city: z.string().optional().nullish(),
-  state: z.string().optional().nullish(),
-  address: z.string().optional().nullish(),
-  pinCode: z.string().optional().nullish(),
-  gender: z.string().optional().nullish(),
+  displayName: z.preprocess(
+    (val) => (typeof val === "string" ? val.trim() : val),
+    z.string().max(100, "Display name is too long").optional().nullable().nullish()
+  ),
+  bio: z.preprocess(
+    (val) => (typeof val === "string" ? val.trim() : val),
+    z.string().max(2000, "Bio must be under 2000 characters").optional().nullable().nullish()
+  ),
+  city: z.preprocess(
+    (val) => (typeof val === "string" && val.trim() === "" ? null : typeof val === "string" ? val.trim() : val),
+    z.string().max(100).optional().nullable().nullish()
+  ),
+  state: z.preprocess(
+    (val) => (typeof val === "string" && val.trim() === "" ? null : typeof val === "string" ? val.trim() : val),
+    z.string().max(100).optional().nullable().nullish()
+  ),
+  address: z.preprocess(
+    (val) => (typeof val === "string" && val.trim() === "" ? null : typeof val === "string" ? val.trim() : val),
+    z.string().max(300).optional().nullable().nullish()
+  ),
+  pinCode: z.preprocess(
+    (val) => (typeof val === "string" && val.trim() === "" ? null : typeof val === "string" ? val.trim() : val),
+    z.string().max(20).optional().nullable().nullish()
+  ),
+  gender: z.preprocess(
+    (val) => (typeof val === "string" && val.trim() === "" ? null : typeof val === "string" ? val.trim() : val),
+    z.string().max(20).optional().nullable().nullish()
+  ),
   age: z.preprocess(
-    (val) => (val === "" || val === null || val === undefined || Number(val) === 0 ? null : Number(val)),
+    (val) => (val === "" || val === null || val === undefined || Number(val) === 0 || Number.isNaN(Number(val)) ? null : Number(val)),
     z.number().min(13, "Age must be at least 13").max(100, "Age must be under 100").nullable().optional()
   ),
-  categories: z.array(z.string()).optional().nullish(),
-  languages: z.array(z.string()).optional().nullish(),
-  instagramHandle: z
-    .string()
-    .max(100, "Instagram handle is too long")
-    .regex(/^[a-zA-Z0-9._@-]+$/, "Instagram handle contains invalid characters")
-    .optional()
-    .nullish(),
-  youtubeHandle: z
-    .string()
-    .max(100, "YouTube handle is too long")
-    .regex(/^[a-zA-Z0-9._@-]+$/, "YouTube handle contains invalid characters")
-    .optional()
-    .nullish(),
-  minRate: z.preprocess((val) => (val === "" || val === null || val === undefined ? 0 : Number(val)), z.number().min(0).optional().nullish().catch(0)),
-  maxRate: z.preprocess((val) => (val === "" || val === null || val === undefined ? 0 : Number(val)), z.number().min(0).optional().nullish().catch(0)),
-  minInstagramRate: z.preprocess((val) => (val === "" || val === null || val === undefined ? 0 : Number(val)), z.number().min(0).optional().nullish().catch(0)),
-  maxInstagramRate: z.preprocess((val) => (val === "" || val === null || val === undefined ? 0 : Number(val)), z.number().min(0).optional().nullish().catch(0)),
-  minYoutubeRate: z.preprocess((val) => (val === "" || val === null || val === undefined ? 0 : Number(val)), z.number().min(0).optional().nullish().catch(0)),
-  maxYoutubeRate: z.preprocess((val) => (val === "" || val === null || val === undefined ? 0 : Number(val)), z.number().min(0).optional().nullish().catch(0)),
+  categories: z.preprocess(
+    (val) => {
+      if (typeof val === "string") return val.split(",").map((c) => c.trim()).filter(Boolean);
+      if (Array.isArray(val)) return val.map((c) => String(c).trim()).filter(Boolean);
+      return [];
+    },
+    z.array(z.string()).optional().nullable().nullish()
+  ),
+  languages: z.preprocess(
+    (val) => {
+      if (typeof val === "string") return val.split(",").map((l) => l.trim()).filter(Boolean);
+      if (Array.isArray(val)) return val.map((l) => String(l).trim()).filter(Boolean);
+      return [];
+    },
+    z.array(z.string()).optional().nullable().nullish()
+  ),
+  instagramHandle: z.preprocess(
+    (val) => {
+      if (typeof val !== "string" || val.trim() === "") return null;
+      let handle = val.trim();
+      handle = handle.replace(/^https?:\/\/(?:www\.)?instagram\.com\//i, "");
+      handle = handle.replace(/\/.*$/, "");
+      handle = handle.replace(/^@+/, "");
+      return handle.trim() === "" ? null : handle.trim();
+    },
+    z.string()
+      .max(100, "Instagram handle is too long")
+      .regex(/^[a-zA-Z0-9._-]+$/, "Instagram handle contains invalid characters")
+      .optional()
+      .nullable()
+      .nullish()
+  ),
+  youtubeHandle: z.preprocess(
+    (val) => {
+      if (typeof val !== "string" || val.trim() === "") return null;
+      let handle = val.trim();
+      handle = handle.replace(/^https?:\/\/(?:www\.)?youtube\.com\/(?:@|c\/|user\/|channel\/)?/i, "");
+      handle = handle.replace(/\/.*$/, "");
+      handle = handle.replace(/^@+/, "");
+      return handle.trim() === "" ? null : handle.trim();
+    },
+    z.string()
+      .max(100, "YouTube handle is too long")
+      .regex(/^[a-zA-Z0-9._-]+$/, "YouTube handle contains invalid characters")
+      .optional()
+      .nullable()
+      .nullish()
+  ),
+  minRate: z.preprocess((val) => (val === "" || val === null || val === undefined || Number.isNaN(Number(val)) ? 0 : Math.max(0, Number(val))), z.number().min(0).optional().nullish().catch(0)),
+  maxRate: z.preprocess((val) => (val === "" || val === null || val === undefined || Number.isNaN(Number(val)) ? 0 : Math.max(0, Number(val))), z.number().min(0).optional().nullish().catch(0)),
+  minInstagramRate: z.preprocess((val) => (val === "" || val === null || val === undefined || Number.isNaN(Number(val)) ? 0 : Math.max(0, Number(val))), z.number().min(0).optional().nullish().catch(0)),
+  maxInstagramRate: z.preprocess((val) => (val === "" || val === null || val === undefined || Number.isNaN(Number(val)) ? 0 : Math.max(0, Number(val))), z.number().min(0).optional().nullish().catch(0)),
+  minYoutubeRate: z.preprocess((val) => (val === "" || val === null || val === undefined || Number.isNaN(Number(val)) ? 0 : Math.max(0, Number(val))), z.number().min(0).optional().nullish().catch(0)),
+  maxYoutubeRate: z.preprocess((val) => (val === "" || val === null || val === undefined || Number.isNaN(Number(val)) ? 0 : Math.max(0, Number(val))), z.number().min(0).optional().nullish().catch(0)),
 
   // Brand & Individual
-  companyName: z.string().optional().nullish(),
-  description: z.string().max(2000).optional().nullish(),
+  companyName: z.preprocess(
+    (val) => (typeof val === "string" && val.trim() === "" ? null : typeof val === "string" ? val.trim() : val),
+    z.string().max(100).optional().nullable().nullish()
+  ),
+  description: z.preprocess(
+    (val) => (typeof val === "string" ? val.trim() : val),
+    z.string().max(2000, "Description must be under 2000 characters").optional().nullable().nullish()
+  ),
   website: z.preprocess(
     (val) => {
       if (typeof val !== "string" || val.trim() === "") return null;
@@ -56,11 +117,17 @@ const updateProfileSchema = z.object({
       }
       return trimmed;
     },
-    z.string().url("Website must be a valid URL").optional().nullable().nullish()
+    z.string().url("Website must be a valid URL").optional().nullable().nullish().catch(null)
   ),
-  industry: z.string().optional().nullish(),
-  profileImage: z.string().optional().nullish(),
-});
+  industry: z.preprocess(
+    (val) => (typeof val === "string" && val.trim() === "" ? null : typeof val === "string" ? val.trim() : val),
+    z.string().max(100).optional().nullable().nullish()
+  ),
+  profileImage: z.preprocess(
+    (val) => (typeof val === "string" && val.trim() === "" ? null : val),
+    z.string().optional().nullable().nullish()
+  ),
+}).passthrough();
 
 async function _handler_GET(_req: NextRequest) {
 try {
@@ -239,7 +306,7 @@ async function updateInfluencerProfile(userId: string, email: string, data: Upda
 
   fields.forEach((field) => {
     const val = data[field];
-    if (val !== undefined && val !== null) {
+    if (val !== undefined) {
       (updateData as Record<string, unknown>)[field] = val;
     }
   });
@@ -247,7 +314,6 @@ async function updateInfluencerProfile(userId: string, email: string, data: Upda
   // If social handles changed, invalidate verified metrics until re-verified via OAuth flow
   if (
     data.instagramHandle !== undefined &&
-    data.instagramHandle !== null &&
     existingProfile &&
     data.instagramHandle !== existingProfile.instagramHandle
   ) {
@@ -257,7 +323,6 @@ async function updateInfluencerProfile(userId: string, email: string, data: Upda
 
   if (
     data.youtubeHandle !== undefined &&
-    data.youtubeHandle !== null &&
     existingProfile &&
     data.youtubeHandle !== existingProfile.youtubeHandle
   ) {
@@ -265,85 +330,86 @@ async function updateInfluencerProfile(userId: string, email: string, data: Upda
     updateData.youtubeEngagementRate = 0;
   }
 
-  if (data.categories != null) {
-    updateData.categories = data.categories.join(",");
+  if (data.categories !== undefined && data.categories !== null) {
+    updateData.categories = Array.isArray(data.categories) ? data.categories.join(",") : String(data.categories);
   }
-  if (data.languages != null) {
-    updateData.languages = data.languages.join(",");
+  if (data.languages !== undefined && data.languages !== null) {
+    updateData.languages = Array.isArray(data.languages) ? data.languages.join(",") : String(data.languages);
   }
   if (data.profileImage !== undefined && data.profileImage !== "") {
     updateData.avatar = data.profileImage;
   }
 
-await prisma.influencerProfile.upsert({
-where: { userId },
-create: {
-userId,
-displayName:
-data.displayName ||
-(email ? email.split("@")[0] : "") ||
-"",
-categories: data.categories ? data.categories.join(",") : "General",
-languages: data.languages ? data.languages.join(",") : "English",
-bio: data.bio || null,
-avatar: data.profileImage || null,
-city: data.city || null,
-state: data.state || null,
-address: data.address || null,
-pinCode: data.pinCode || null,
-gender: data.gender || null,
-age: data.age || null,
-instagramHandle: data.instagramHandle || null,
-youtubeHandle: data.youtubeHandle || null,
-minRate: data.minRate || null,
-maxRate: data.maxRate || null,
-minInstagramRate: data.minInstagramRate || null,
-maxInstagramRate: data.maxInstagramRate || null,
-minYoutubeRate: data.minYoutubeRate || null,
-maxYoutubeRate: data.maxYoutubeRate || null,
-},
-update: updateData,
-});
+  await prisma.influencerProfile.upsert({
+    where: { userId },
+    create: {
+      userId,
+      displayName:
+        data.displayName ||
+        (email ? email.split("@")[0] : "") ||
+        "",
+      categories: Array.isArray(data.categories) ? data.categories.join(",") : (data.categories || "General"),
+      languages: Array.isArray(data.languages) ? data.languages.join(",") : (data.languages || "English"),
+      bio: data.bio ?? null,
+      avatar: data.profileImage || null,
+      city: data.city ?? null,
+      state: data.state ?? null,
+      address: data.address ?? null,
+      pinCode: data.pinCode ?? null,
+      gender: data.gender ?? null,
+      age: data.age ?? null,
+      instagramHandle: data.instagramHandle ?? null,
+      youtubeHandle: data.youtubeHandle ?? null,
+      minRate: data.minRate ?? null,
+      maxRate: data.maxRate ?? null,
+      minInstagramRate: data.minInstagramRate ?? null,
+      maxInstagramRate: data.maxInstagramRate ?? null,
+      minYoutubeRate: data.minYoutubeRate ?? null,
+      maxYoutubeRate: data.maxYoutubeRate ?? null,
+    },
+    update: updateData,
+  });
 }
 
 async function updateBrandProfile(userId: string, email: string, data: UpdateProfileInput) {
-const updateData: Prisma.BrandProfileUpdateInput = {};
-if (data.displayName !== undefined && data.displayName !== null) {
-updateData.companyName = data.displayName;
-} else if (data.companyName !== undefined && data.companyName !== null) {
-updateData.companyName = data.companyName;
-}
-if (data.bio !== undefined) updateData.description = data.bio;
-if (data.website !== undefined) updateData.website = data.website;
-if (data.industry !== undefined) updateData.industry = data.industry;
-if (data.city !== undefined) updateData.city = data.city;
-if (data.state !== undefined) updateData.state = data.state;
-if (data.address !== undefined) updateData.address = data.address;
-if (data.pinCode !== undefined) updateData.pinCode = data.pinCode;
-if (data.profileImage !== undefined && data.profileImage !== "") {
-updateData.logo = data.profileImage;
-}
+  const updateData: Prisma.BrandProfileUpdateInput = {};
+  if (data.displayName !== undefined && data.displayName !== null && data.displayName !== "") {
+    updateData.companyName = data.displayName;
+  } else if (data.companyName !== undefined && data.companyName !== null && data.companyName !== "") {
+    updateData.companyName = data.companyName;
+  }
+  if (data.bio !== undefined) updateData.description = data.bio;
+  else if (data.description !== undefined) updateData.description = data.description;
+  if (data.website !== undefined) updateData.website = data.website;
+  if (data.industry !== undefined) updateData.industry = data.industry;
+  if (data.city !== undefined) updateData.city = data.city;
+  if (data.state !== undefined) updateData.state = data.state;
+  if (data.address !== undefined) updateData.address = data.address;
+  if (data.pinCode !== undefined) updateData.pinCode = data.pinCode;
+  if (data.profileImage !== undefined && data.profileImage !== "") {
+    updateData.logo = data.profileImage;
+  }
 
-await prisma.brandProfile.upsert({
-where: { userId },
-create: {
-userId,
-companyName:
-data.displayName ||
-data.companyName ||
-(email ? email.split("@")[0] : "") ||
-"",
-description: data.bio || null,
-website: data.website || null,
-industry: data.industry || null,
-city: data.city || null,
-state: data.state || null,
-address: data.address || null,
-pinCode: data.pinCode || null,
-logo: data.profileImage || null,
-},
-update: updateData,
-});
+  await prisma.brandProfile.upsert({
+    where: { userId },
+    create: {
+      userId,
+      companyName:
+        data.displayName ||
+        data.companyName ||
+        (email ? email.split("@")[0] : "") ||
+        "",
+      description: (typeof data.bio === "string" ? data.bio : (typeof data.description === "string" ? data.description : null)),
+      website: data.website ?? null,
+      industry: data.industry ?? null,
+      city: data.city ?? null,
+      state: data.state ?? null,
+      address: data.address ?? null,
+      pinCode: data.pinCode ?? null,
+      logo: data.profileImage || null,
+    },
+    update: updateData,
+  });
 }
 
 function validateContactFreeText(text: unknown, fieldName: string) {

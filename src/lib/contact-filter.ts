@@ -77,11 +77,8 @@ function checkBasicContacts(content: string, findings: string[], options?: { all
   }
 
   // Detect spaced, dotted, or segmented 10-digit/12-digit Indian mobile numbers (e.g. 9 8 7 6 5 4 3 2 1 0, +91 98765 43210)
-  const allDigits = deobfuscated.replace(/\D/g, "");
-  const isIndianPhone =
-    (allDigits.length === 10 && /^[6-9]\d{9}$/.test(allDigits)) ||
-    (allDigits.length === 12 && /^91[6-9]\d{9}$/.test(allDigits));
-  if (isIndianPhone) {
+  const spacedPhoneRegex = /(?:(?:\+?91[\s.-]*)?[6-9](?:[\s.-]*\d){9})\b/;
+  if (spacedPhoneRegex.test(content) || spacedPhoneRegex.test(deobfuscated)) {
     if (!findings.includes("phone")) findings.push("phone");
   }
 
