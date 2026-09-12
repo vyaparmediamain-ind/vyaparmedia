@@ -112,6 +112,15 @@ aria-label={`View profile of ${application.influencer.displayName}`}
 >
 Profile
 </Button>
+{application.status === "SELECTED" && application.dealId && (
+<Button
+href={`/dashboard/deals/${application.dealId}`}
+variant="primary"
+size="sm"
+>
+✍️ Sign Contract / View Deal
+</Button>
+)}
 {canAct && (
 <>
 <Button

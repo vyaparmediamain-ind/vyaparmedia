@@ -15,6 +15,7 @@ id: string;
 status: string;
 proposedRate: number;
 finalRate?: number | null;
+dealId?: string | null;
 createdAt: string;
 campaign: {
 id: string;
@@ -263,14 +264,25 @@ applicationsList = (
                   </Badge>
                 </td>
                 <td className="p-4 text-right">
-                  <Button
-                    href={`/dashboard/campaigns/${app.campaign.id}`}
-                    variant="ghost"
-                    size="sm"
-                    aria-label={`View campaign: ${app.campaign.title}`}
-                  >
-                    View Campaign
-                  </Button>
+                  <div className="flex items-center justify-end gap-2">
+                    {app.status === "SELECTED" && app.dealId && (
+                      <Button
+                        href={`/dashboard/deals/${app.dealId}`}
+                        variant="primary"
+                        size="sm"
+                      >
+                        ✍️ Sign Contract
+                      </Button>
+                    )}
+                    <Button
+                      href={`/dashboard/campaigns/${app.campaign.id}`}
+                      variant="ghost"
+                      size="sm"
+                      aria-label={`View campaign: ${app.campaign.title}`}
+                    >
+                      View Campaign
+                    </Button>
+                  </div>
                 </td>
               </tr>
             );
@@ -345,7 +357,17 @@ applicationsList = (
         </div>
 
         {/* Action Button */}
-        <div className="flex justify-end pt-1">
+        <div className="flex flex-col gap-2 pt-1">
+          {app.status === "SELECTED" && app.dealId && (
+            <Button
+              href={`/dashboard/deals/${app.dealId}`}
+              variant="primary"
+              size="sm"
+              className="w-full text-center py-1.5"
+            >
+              ✍️ Sign Contract & View Deal
+            </Button>
+          )}
           <Button
             href={`/dashboard/campaigns/${app.campaign.id}`}
             variant="secondary"

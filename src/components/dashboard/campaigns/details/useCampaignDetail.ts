@@ -56,6 +56,7 @@ error = payload?.message || "Campaign not found";
 
 const hasApplied = Boolean(payload?.data?.hasApplied || rawCampaign?.hasApplied || payload?.hasApplied);
 const applicationStatus = payload?.data?.applicationStatus || rawCampaign?.applicationStatus || payload?.applicationStatus || null;
+const dealId = payload?.data?.dealId || rawCampaign?.dealId || payload?.dealId || null;
 
 const recommendedPayout = useMemo(() => {
 if (!influencerProfile || !campaign) return 0;
@@ -221,6 +222,7 @@ notice,
 setNotice,
 hasApplied,
 applicationStatus,
+dealId,
 recommendedPayout,
 isOwner,
 canApply,

@@ -417,6 +417,11 @@ className="badge px-3 py-1 bg-secondary border border-card rounded-md text-xs fo
 </div>
 
 <div className="flex gap-2 flex-wrap">
+{deal.status === "PENDING_SIGNATURE" && (
+<Button href={`/dashboard/deals/${deal.id}`} variant="primary" size="sm">
+✍️ Sign Contract
+</Button>
+)}
 {canSubmitContent && (
 <Button href={`/dashboard/deals/${deal.id}`} variant="primary" size="sm">
 📤 Submit Content

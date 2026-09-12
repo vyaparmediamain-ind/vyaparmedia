@@ -66,6 +66,8 @@ roiScore: number;
 estimatedViews: number;
 estimatedCpvPaise: number;
 };
+dealId?: string | null;
+dealStatus?: string | null;
 }
 
 export interface RawCampaign {
@@ -100,13 +102,15 @@ _count?: { applications?: number; deals?: number };
 applications?: { id: string; proposedRate: number; [key: string]: unknown }[];
 hasApplied?: boolean;
 applicationStatus?: string | null;
+dealId?: string | null;
 }
 
 export interface CampaignDetailResponse {
-data?: { campaign?: RawCampaign; hasApplied?: boolean; applicationStatus?: string };
+data?: { campaign?: RawCampaign; hasApplied?: boolean; applicationStatus?: string; dealId?: string | null };
 campaign?: RawCampaign;
 hasApplied?: boolean;
 applicationStatus?: string;
+dealId?: string | null;
 message?: string;
 }
 

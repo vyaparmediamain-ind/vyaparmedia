@@ -44,6 +44,7 @@ notice,
 setNotice,
 hasApplied,
 applicationStatus,
+dealId,
 recommendedPayout,
 isOwner,
 canApply,
@@ -311,11 +312,18 @@ Apply to Campaign
 )}
 
             {hasApplied && (
-              <div className="mt-6 p-3 bg-secondary rounded-md text-center border border-card">
-                <span className="text-xs text-muted block mb-1">Your Application Status</span>
-                <strong className="text-sm font-bold uppercase text-primary">
-                  {applicationStatus || "SUBMITTED"}
-                </strong>
+              <div className="mt-6 p-4 bg-secondary rounded-xl text-center border border-card flex flex-col items-center gap-3">
+                <div>
+                  <span className="text-xs text-muted block mb-1">Your Application Status</span>
+                  <strong className={`text-sm font-bold uppercase ${applicationStatus === "SELECTED" ? "text-emerald" : "text-primary"}`}>
+                    {applicationStatus === "SELECTED" ? "Accepted / Selected 🎉" : (applicationStatus || "SUBMITTED")}
+                  </strong>
+                </div>
+                {dealId && (
+                  <Button href={`/dashboard/deals/${dealId}`} variant="primary" size="sm" className="w-full">
+                    ✍️ Sign Contract & View Deal
+                  </Button>
+                )}
               </div>
             )}
 

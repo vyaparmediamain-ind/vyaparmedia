@@ -133,6 +133,8 @@ prisma.application.count({ where }),
           })),
         },
         select: {
+          id: true,
+          status: true,
           campaignId: true,
           influencerId: true,
           amount: true,
@@ -140,8 +142,8 @@ prisma.application.count({ where }),
       })
     : [];
 
-  const dealMap = new Map<string, number>(
-    deals.map((d) => [`${d.campaignId}_${d.influencerId}`, d.amount])
+  const dealMap = new Map<string, { id: string; amount: number; status: string }>(
+    deals.map((d) => [`${d.campaignId}_${d.influencerId}`, { id: d.id, amount: d.amount, status: d.status }])
   );
 
   const applicationsWithScores = await Promise.all(
@@ -166,7 +168,7 @@ prisma.application.count({ where }),
         app.proposedRate
       );
 
-      const finalRate = app.status === "SELECTED"
+      const dealInfo = app.status === "SELECTED"
         ? (dealMap.get(`${app.campaignId}_${app.influencerId}`) ?? null)
         : null;
 
@@ -174,7 +176,9 @@ prisma.application.count({ where }),
         ...app,
         matchScore: matchResult.matchScore,
         matchBreakdown: matchResult.matchBreakdown,
-        finalRate,
+        finalRate: dealInfo?.amount ?? null,
+        dealId: dealInfo?.id ?? null,
+        dealStatus: dealInfo?.status ?? null,
       };
     })
   );
