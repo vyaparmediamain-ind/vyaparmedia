@@ -196,6 +196,7 @@ interface DealListItemProps {
 readonly deal: Deal;
 readonly selectedDeal: string | null;
 readonly setSelectedDeal: (id: string | null) => void;
+readonly isInfluencer?: boolean;
 }
 
 interface DealsEmptyStateProps {
@@ -238,13 +239,14 @@ onActionClick={onActionClick}
 );
 }
 
-function DealListItem({ deal, selectedDeal, setSelectedDeal }: DealListItemProps) {
+function DealListItem({ deal, selectedDeal, setSelectedDeal, isInfluencer = false }: DealListItemProps) {
 const status = getStatusInfo(deal.status);
-const canSubmitContent = [
+const canSubmitContent = isInfluencer && [
 "ACTIVE",
 "PAYMENT_HELD",
 "REVISION_REQUESTED",
 ].includes(deal.status);
+const isBrand = !isInfluencer;
 
 return (
 <div
@@ -427,9 +429,19 @@ className="badge px-3 py-1 bg-secondary border border-card rounded-md text-xs fo
 📤 Submit Content
 </Button>
 )}
-{deal.status === "CONTENT_APPROVED" && (
+{isInfluencer && deal.status === "CONTENT_APPROVED" && (
 <Button href={`/dashboard/deals/${deal.id}`} variant="primary" size="sm">
 🔗 Submit Post URL
+</Button>
+)}
+{isBrand && deal.status === "CONTENT_SUBMITTED" && (
+<Button href={`/dashboard/deals/${deal.id}`} variant="primary" size="sm">
+👀 Review Content
+</Button>
+)}
+{isBrand && ["POSTED", "VERIFIED", "VERIFICATION_PENDING"].includes(deal.status) && (
+<Button href={`/dashboard/deals/${deal.id}`} variant="primary" size="sm">
+💰 Release Payment
 </Button>
 )}
 </div>
@@ -583,6 +595,7 @@ key={deal.id}
 deal={deal}
 selectedDeal={selectedDeal}
 setSelectedDeal={setSelectedDeal}
+isInfluencer={isInfluencer}
 />
 ))}
 </div>

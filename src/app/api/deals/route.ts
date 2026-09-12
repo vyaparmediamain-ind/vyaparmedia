@@ -9,7 +9,10 @@ postVerificationSchema,
 import { requireActiveAdmin } from "@/lib/admin-auth";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { parsePagination } from "@/lib/utils";
-import { hasPermission, isAdmin, isInfluencer } from "@/lib/rbac";
+import { hasPermission, isAdmin, isInfluencer, isBrand } from "@/lib/rbac";
+import prisma from "@/lib/db";
+import { PaymentService } from "@/services/payment.service";
+import { invalidateDealCache } from "@/services/deal/helpers";
 
 export const GET = apiWrapper(async (req) => {
 const session = await auth();
@@ -102,6 +105,72 @@ async function handleVerifyPost(userId: string, userType: string, body: unknown)
   return ApiResponse.success(null, "Post verified");
 }
 
+async function handleCompleteDeal(userId: string, userType: string, body: unknown) {
+  if (!isBrand(userType) && !isAdmin(userType)) {
+    return ApiResponse.forbidden("Brand access required");
+  }
+  const { dealId } = (body || {}) as { dealId?: string };
+  if (!dealId || typeof dealId !== "string") {
+    return ApiResponse.error("dealId is required");
+  }
+
+  const deal = await prisma.deal.findUnique({
+    where: { id: dealId },
+    include: { brand: true },
+  });
+
+  if (!deal) {
+    return ApiResponse.notFound("Deal not found");
+  }
+
+  if (!isAdmin(userType) && deal.brand?.userId !== userId) {
+    return ApiResponse.forbidden("You are not the brand on this deal");
+  }
+
+  if (!["POSTED", "VERIFIED", "VERIFICATION_PENDING", "CONTENT_APPROVED"].includes(deal.status)) {
+    return ApiResponse.error(`Deal cannot be completed from status ${deal.status}`);
+  }
+
+  // If deal is in POSTED, VERIFICATION_PENDING, or CONTENT_APPROVED, transition to VERIFIED so processDealCompletion can execute cleanly
+  if (["POSTED", "VERIFICATION_PENDING", "CONTENT_APPROVED"].includes(deal.status)) {
+    await prisma.deal.update({
+      where: { id: dealId },
+      data: {
+        status: "VERIFIED",
+        verifiedAt: new Date(),
+      },
+    });
+  }
+
+  await PaymentService.processDealCompletion(dealId);
+  await invalidateDealCache(dealId);
+
+  return ApiResponse.success(null, "Payment released and deal completed successfully");
+}
+
+async function handleUpdateShipping(userId: string, userType: string, body: unknown) {
+  if (!isInfluencer(userType)) {
+    return ApiResponse.forbidden("Influencer access required");
+  }
+  const { dealId, shippingAddress } = (body || {}) as {
+    dealId?: string;
+    shippingAddress?: Record<string, unknown>;
+  };
+  if (!dealId || typeof dealId !== "string") {
+    return ApiResponse.error("dealId is required");
+  }
+  if (!shippingAddress || typeof shippingAddress !== "object") {
+    return ApiResponse.error("Valid shippingAddress object is required");
+  }
+
+  const result = await DealService.submitShippingAddress(
+    userId,
+    dealId,
+    shippingAddress as Parameters<typeof DealService.submitShippingAddress>[2],
+  );
+  return ApiResponse.success(result, "Shipping address updated");
+}
+
 export const POST = apiWrapper(async (req) => {
   const session = await auth();
   if (!session?.user?.id) {
@@ -126,6 +195,14 @@ export const POST = apiWrapper(async (req) => {
 
   if (action === "verify_post") {
     return handleVerifyPost(session.user.id, session.user.userType, body);
+  }
+
+  if (action === "complete_deal") {
+    return handleCompleteDeal(session.user.id, session.user.userType, body);
+  }
+
+  if (action === "update_shipping") {
+    return handleUpdateShipping(session.user.id, session.user.userType, body);
   }
 
   return ApiResponse.error("Invalid action");

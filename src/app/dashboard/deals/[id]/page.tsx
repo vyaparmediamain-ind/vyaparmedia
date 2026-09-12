@@ -128,7 +128,10 @@ setShowReviewModal={setShowReviewModal}
 
 <div className="grid gap-6 grid-cols-1 lg:grid-cols-3">
 <div className="lg:col-span-2 flex flex-col gap-6">
-<DealContractCard deal={deal} />
+<DealContractCard
+  deal={deal}
+  onOpenAddressModal={() => setShowAddressModal(true)}
+/>
 
 <ContentSubmissionsCard submissions={deal.contentSubmissions} />
 </div>

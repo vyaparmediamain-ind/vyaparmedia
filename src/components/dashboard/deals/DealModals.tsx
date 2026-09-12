@@ -88,7 +88,7 @@ maxWidth="500px"
 ] as const).map(([field, label]) => {
 const isFullWidth = ["line1", "line2", "fullName"].includes(field);
 const addressRecord = (typeof deal.shippingAddress === "object" && deal.shippingAddress !== null && !Array.isArray(deal.shippingAddress)) ? (deal.shippingAddress as Record<string, unknown>) : null;
-const isEditing = deal.status === "PENDING_SIGNATURE";
+const isEditing = ["PENDING_SIGNATURE", "PAYMENT_HELD", "ACTIVE"].includes(deal.status);
 
 return (
 <div
@@ -129,7 +129,7 @@ className="flex-1"
 >
 Close
 </Button>
-{deal.status === "PENDING_SIGNATURE" && (
+{["PENDING_SIGNATURE", "PAYMENT_HELD", "ACTIVE"].includes(deal.status) && (
 <Button
 variant="primary"
 onClick={async () => {

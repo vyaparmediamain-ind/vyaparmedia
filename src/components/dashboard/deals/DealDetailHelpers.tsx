@@ -184,6 +184,9 @@ requirements: string;
 influencer: {
 displayName: string;
 };
+brand?: {
+companyName: string;
+};
 contractTerms: Prisma.JsonValue;
 shippingAddress: Prisma.JsonValue;
 contractSignature: Prisma.JsonValue;

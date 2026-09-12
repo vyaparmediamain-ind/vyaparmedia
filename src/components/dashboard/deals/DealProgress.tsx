@@ -19,14 +19,18 @@ const steps = [
 let lookupStatus = status;
 if (status === "REVISION_REQUESTED") {
   lookupStatus = "CONTENT_SUBMITTED";
-} else if (status === "POSTED" || status === "VERIFICATION_PENDING" || status === "PAYMENT_HELD" || status === "DISPUTED") {
+} else if (status === "PAYMENT_HELD" || status === "PAYMENT_PENDING") {
+  lookupStatus = "ACTIVE";
+} else if (status === "POSTED") {
+  lookupStatus = "CONTENT_APPROVED";
+} else if (status === "VERIFICATION_PENDING" || status === "DISPUTED") {
   lookupStatus = "VERIFIED";
 }
 
 const stepsMap = steps.map((a) => a.s);
 let currentIndex = stepsMap.indexOf(lookupStatus);
 if (currentIndex === -1) {
-  currentIndex = 1; // Default fallback to first step in progress
+  currentIndex = 0; // Default fallback to first step (Contract Signing)
 }
 const isCancelled = status === "CANCELLED";
 
