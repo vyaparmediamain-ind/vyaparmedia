@@ -201,7 +201,7 @@ const brandObligationRows = Array.isArray(terms.brandObligations)
 return [
 { "Section": "CANCELLATION POLICY", "Field": "", "Value": "" },
 ...cancellationFeeRows,
-{ "Section": "", "Field": "Brand Late Approval Fee", "Value": `${terms.brandLateApprovalFee || 10}%` },
+{ "Section": "", "Field": "Brand Late Approval Fee", "Value": `${terms.brandLateApprovalFee ?? 10}%` },
 { "Section": "", "Field": "", "Value": "" },
 { "Section": "CONTENT USAGE RIGHTS", "Field": "", "Value": "" },
 ...usageRows,
@@ -288,7 +288,7 @@ const financialRows = [
 { "Section": "", "Field": "Creator Fee ()", "Value": paiseToRupees(terms.dealAmount || 0) },
 { "Section": "", "Field": "Platform Fee ()", "Value": paiseToRupees(terms.platformFee || 0) },
 { "Section": "", "Field": "Gateway Fee ()", "Value": paiseToRupees(terms.gatewayFee || 0) },
-{ "Section": "", "Field": "Platform Fee %", "Value": `${terms.platformFeePercent || 10}%` },
+{ "Section": "", "Field": "Platform Fee %", "Value": `${terms.platformFeePercent ?? 10}%` },
 { "Section": "", "Field": "Total Payable ()", "Value": paiseToRupees(terms.totalAmount || 0) },
 { "Section": "", "Field": "Influencer Payout ()", "Value": paiseToRupees(terms.influencerPayout || 0) },
 { "Section": "", "Field": "", "Value": "" }
@@ -299,7 +299,7 @@ const optionalRows = buildOptionalContractCsvRows(terms);
 const timelineRows = [
 { "Section": "TIMELINE", "Field": "", "Value": "" },
 { "Section": "", "Field": "Submission Deadline", "Value": terms.submissionDeadline ? format(new Date(terms.submissionDeadline), "dd/MM/yyyy") : "" },
-{ "Section": "", "Field": "Review Period (hours)", "Value": String(terms.reviewPeriodHours || 48) },
+{ "Section": "", "Field": "Review Period (hours)", "Value": String(terms.reviewPeriodHours ?? 48) },
 { "Section": "", "Field": "Posting Deadline", "Value": terms.postingDeadline ? format(new Date(terms.postingDeadline), "dd/MM/yyyy") : "" },
 { "Section": "", "Field": "", "Value": "" }
 ];

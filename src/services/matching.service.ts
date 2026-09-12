@@ -194,7 +194,7 @@ engagementScore = 50;
 const authenticityScore = influencer.followerAuthenticityScore;
 const qualityScore = await this.calculateQualityScore(influencer.id, influencer.averageRating);
 
-const activeCostPaise = proposedRatePaise || campaign.perInfluencerBudget || 200000;
+const activeCostPaise = proposedRatePaise ?? campaign.perInfluencerBudget ?? 200000;
 const igFollowers = influencer.instagramFollowers || 0;
 const ytSubs = influencer.youtubeSubscribers || 0;
 const totalFollowers = igFollowers + ytSubs;

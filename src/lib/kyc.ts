@@ -579,24 +579,82 @@ export function hasMatchingNameTokens(nameA: string, nameB: string): boolean {
     return true;
   }
 
-  const tokensA = tokenizeAndCleanName(nameA);
-  const tokensB = tokenizeAndCleanName(nameB);
+  const commonSurnames = new Set([
+    "kumar", "singh", "devi", "prasad", "sri", "shree", "shri", "smt", "prof", "ca", "adv",
+    "and", "co", "ltd", "pvt", "private", "limited",
+  ]);
 
-  if (tokensA.length === 0 || tokensB.length === 0) {
-    // If all words were common tokens, fall back to exact non-empty word match
-    const rawA = nameA.toLowerCase().replace(/[^a-z0-9\s]/g, "").split(/\s+/).filter(t => t.length >= 2);
-    const rawB = nameB.toLowerCase().replace(/[^a-z0-9\s]/g, "").split(/\s+/).filter(t => t.length >= 2);
-    if (rawA.length === 0 || rawB.length === 0) return false;
-    const commonMatches = rawA.filter(t => rawB.includes(t));
-    return commonMatches.length >= 2 && commonMatches.length === Math.min(rawA.length, rawB.length);
+  const titlesRegex = /^(mr|ms|mrs|dr|prof|ca|adv|shri|smt|m\/s)\.?\s+/i;
+
+  const rawTokensA = nameA
+    .toLowerCase()
+    .replace(titlesRegex, "")
+    .replace(/[^a-z0-9\s]/g, "")
+    .split(/\s+/)
+    .filter((t) => t.length >= 2);
+
+  const rawTokensB = nameB
+    .toLowerCase()
+    .replace(titlesRegex, "")
+    .replace(/[^a-z0-9\s]/g, "")
+    .split(/\s+/)
+    .filter((t) => t.length >= 2);
+
+  if (rawTokensA.length === 0 || rawTokensB.length === 0) return false;
+
+  const setA = new Set(rawTokensA);
+  const setB = new Set(rawTokensB);
+
+  // Distinguishing (non-common) tokens
+  const distA = rawTokensA.filter((t) => !commonSurnames.has(t));
+  const distB = rawTokensB.filter((t) => !commonSurnames.has(t));
+
+  const matchingDist = distA.filter((t) => setB.has(t));
+  const matchingAll = rawTokensA.filter((t) => setB.has(t));
+
+  // Must have at least one distinguishing token match
+  if (matchingDist.length === 0) {
+    // If all words were common tokens in both (e.g. "Kumar Singh" vs "Kumar Singh")
+    if (distA.length === 0 && distB.length === 0) {
+      return (
+        matchingAll.length >= 2 &&
+        matchingAll.length === Math.min(rawTokensA.length, rawTokensB.length)
+      );
+    }
+    return false;
   }
 
-  const matchingTokens = tokensA.filter((ta) => tokensB.includes(ta));
-  const unionSize = new Set([...tokensA, ...tokensB]).size;
-  const jaccard = unionSize > 0 ? matchingTokens.length / unionSize : 0;
+  // Tokens present in one name but not the other
+  const nonMatchingA = rawTokensA.filter((t) => !setB.has(t));
+  const nonMatchingB = rawTokensB.filter((t) => !setA.has(t));
 
-  // Match if at least 2 distinct distinctive tokens match, or Jaccard similarity is >= 0.6
-  return matchingTokens.length >= 2 || (matchingTokens.length >= 1 && jaccard >= 0.6);
+  // If both names have unshared tokens, there is a conflict (e.g. "Rohan Kumar" vs "Rohan Singh", "Amit Kumar Patel" vs "Amit Singh Patel")
+  if (nonMatchingA.length > 0 && nonMatchingB.length > 0) {
+    return false;
+  }
+
+  // If one name is a subset of the other:
+  if (nonMatchingA.length === 0 || nonMatchingB.length === 0) {
+    // If at least 2 tokens matched in total (e.g. "Amit Kumar" in "Amit Kumar Sharma", or "Vikram Rathore" in "Vikram Aditya Rathore")
+    if (matchingAll.length >= 2) return true;
+
+    // If only 1 token matched overall (e.g. "Rohan" vs "Rohan Kumar"):
+    // Dropping a common surname is only allowed when all unshared tokens in the longer name are common surnames/titles
+    const longerNonMatching = nonMatchingA.length > 0 ? nonMatchingA : nonMatchingB;
+    const allDroppedAreCommon = longerNonMatching.every((t) => commonSurnames.has(t));
+    if (allDroppedAreCommon) {
+      return true;
+    }
+  }
+
+  // Fallback for fuzzy multi-token matches where >= 2 distinguishing tokens match
+  if (matchingDist.length >= 2) {
+    const unionSize = new Set([...rawTokensA, ...rawTokensB]).size;
+    const jaccard = matchingAll.length / unionSize;
+    if (jaccard >= 0.5) return true;
+  }
+
+  return false;
 }
 
 function maskDocument(doc: string, visibleDigits: number): string {

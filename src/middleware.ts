@@ -41,21 +41,24 @@ s3Bucket ? `https://${s3Bucket}.s3.${s3Region}.amazonaws.com` : null,
 const storageConnectStr = storageConnectSources.length > 0 ? " " + storageConnectSources.join(" ") : "";
 const storageImageStr = storageImageSources.length > 0 ? " " + storageImageSources.join(" ") : "";
 
-// Unified Content Security Policy supporting Next.js SSR/hydration, inline styles, Google, Razorpay, and Vercel analytics
-const BASE_CSP = [
-  "default-src 'self'",
-  "script-src 'self' 'unsafe-inline' https://*.google.com https://*.googleapis.com https://checkout.razorpay.com https://*.razorpay.com https://va.vercel-scripts.com",
-  "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-  `img-src 'self' data: blob: https://lh3.googleusercontent.com https://avatars.githubusercontent.com https://images.unsplash.com${storageImageStr}`,
-  "font-src 'self' https://fonts.gstatic.com data:",
-  `connect-src 'self' https://*.googleapis.com https://*.razorpay.com https://api.razorpay.com https://graph.instagram.com https://api.instagram.com https://graph.facebook.com https://api.msg91.com https://surepass.io https://*.surepass.io https://*.ingest.sentry.io https://*.sentry.io https://va.vercel-scripts.com https://vitals.vercel-insights.com${storageConnectStr}`,
-  "frame-src 'self' https://checkout.razorpay.com https://*.razorpay.com",
-  "frame-ancestors 'none'",
-  "form-action 'self'",
-  "worker-src 'self' blob:",
-  "object-src 'none'",
-  "base-uri 'self'",
-].join("; ");
+// Unified Content Security Policy supporting Next.js SSR/hydration with nonce-based execution, inline styles, Google, Razorpay, and Vercel analytics
+function generateCspWithNonce(nonce: string): string {
+  const isDev = process.env.NODE_ENV !== "production";
+  return [
+    "default-src 'self'",
+    `script-src 'self' 'nonce-${nonce}' 'strict-dynamic' https://*.google.com https://*.googleapis.com https://checkout.razorpay.com https://*.razorpay.com https://va.vercel-scripts.com${isDev ? " 'unsafe-eval'" : ""}`,
+    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+    `img-src 'self' data: blob: https://lh3.googleusercontent.com https://avatars.githubusercontent.com https://images.unsplash.com${storageImageStr}`,
+    "font-src 'self' https://fonts.gstatic.com data:",
+    `connect-src 'self' https://*.googleapis.com https://*.razorpay.com https://api.razorpay.com https://graph.instagram.com https://api.instagram.com https://graph.facebook.com https://api.msg91.com https://surepass.io https://*.surepass.io https://*.ingest.sentry.io https://*.sentry.io https://va.vercel-scripts.com https://vitals.vercel-insights.com${storageConnectStr}`,
+    "frame-src 'self' https://checkout.razorpay.com https://*.razorpay.com",
+    "frame-ancestors 'none'",
+    "form-action 'self'",
+    "worker-src 'self' blob:",
+    "object-src 'none'",
+    "base-uri 'self'",
+  ].join("; ");
+}
 
 // ---------------------------------------------------------------------------
 // Private guard helpers (not exported)
@@ -272,8 +275,11 @@ const redirectTo = (targetPath: string) => {
 };
 
 // Helper to apply CSP headers to response
+const nonce = Buffer.from(crypto.randomUUID()).toString("base64");
+const cspHeader = generateCspWithNonce(nonce);
+
 const applyCSP = (response: NextResponse) => {
-  response.headers.set('Content-Security-Policy', BASE_CSP);
+  response.headers.set('Content-Security-Policy', cspHeader);
   return response;
 };
 
@@ -330,7 +336,17 @@ return applyCSP(NextResponse.redirect(redirectTo("/dashboard")));
 const cronResult = await handleCronProtection(req, pathname, applyCSP);
 if (cronResult) return cronResult;
 
-return applyCSP(NextResponse.next());
+const requestHeaders = new Headers(req.headers);
+requestHeaders.set("x-nonce", nonce);
+requestHeaders.set("Content-Security-Policy", cspHeader);
+
+const response = NextResponse.next({
+  request: {
+    headers: requestHeaders,
+  },
+});
+response.headers.set("Content-Security-Policy", cspHeader);
+return response;
 });
 
 export const config = {

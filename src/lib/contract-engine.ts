@@ -219,7 +219,7 @@ influencerPayout?: number;
 productHandlingFee?: number;
 },
 ): ContractTerms {
-const dealAmount = proposal?.rate || campaign.perInfluencerBudget || 0;
+const dealAmount = proposal?.rate ?? campaign.perInfluencerBudget ?? 0;
 const platformFeePercent = env.PLATFORM_FEE_PERCENTAGE;
 const effectivePlatformFeePercent =
 proposal?.platformFeePercent ?? platformFeePercent;

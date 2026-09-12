@@ -28,7 +28,7 @@ if (brandUser?.email) {
 await sendDealNotificationEmail(
 brandUser.email,
 deal.campaign.title,
-`Content for "${deal.campaign.title}" was auto-approved because your ${deal.reviewPeriodHours || 48}-hour brand review window expired.`
+`Content for "${deal.campaign.title}" was auto-approved because your ${deal.reviewPeriodHours ?? 48}-hour brand review window expired.`
 );
 }
 } catch (mailErr) {
@@ -129,8 +129,9 @@ async function processBatchOfCandidateDeals(
 
   const expiredDeals = candidateDeals.filter((deal) => {
     if (!deal.submittedAt) return false;
+    const reviewHours = deal.reviewPeriodHours ?? 48;
     const reviewWindowMs =
-      Math.max(deal.reviewPeriodHours || 48, 1) * 60 * 60 * 1000;
+      reviewHours <= 0 ? 0 : Math.max(reviewHours, 1) * 60 * 60 * 1000;
     return now.getTime() - deal.submittedAt.getTime() >= reviewWindowMs;
   });
 

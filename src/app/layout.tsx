@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import { headers } from "next/headers";
 import { Inter, Outfit, Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 import { Providers } from "./providers";
@@ -66,11 +67,14 @@ viewportFit: "cover",
 themeColor: "#070a13",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
 children,
 }: Readonly<{
 children: React.ReactNode;
 }>) {
+const headersList = await headers();
+const nonce = headersList.get("x-nonce") || undefined;
+
 return (
 <html
   lang="en"
@@ -79,6 +83,7 @@ return (
 >
 <head>
 <script
+  nonce={nonce}
   dangerouslySetInnerHTML={{
     __html: `
       window.addEventListener('beforeinstallprompt', (e) => {
