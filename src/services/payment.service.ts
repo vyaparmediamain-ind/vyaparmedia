@@ -283,7 +283,10 @@ sharedReferrerId: influencerReferrer?.referredBy,
 } catch (err) {
 logger.warn("Referral reward failed", { error: err, influencerUserId: deal.influencer.userId, brandUserId });
 }
-});
+}, {
+      maxWait: 10000,
+      timeout: 20000,
+    });
 
 // Invalidate platform fee caches outside transaction after successful commit
 const keysToDel = [];
@@ -541,49 +544,50 @@ throw error;
       throw AppError.badRequest("INVALID_WITHDRAWAL_AMOUNT");
     }
 
-    const withdrawal = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
-      const user = await tx.user.findUnique({
-        where: { id: userId },
-        select: { status: true, trustScore: true },
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { status: true, trustScore: true },
+    });
+
+    if (!user || ["SUSPENDED", "BANNED", "FLAGGED", "DELETED"].includes(user.status || "")) {
+      logger.warn("Withdrawal blocked: user account is suspended, banned, flagged, or deleted", {
+        userId,
+        status: user?.status,
       });
+      throw AppError.badRequest("WITHDRAWAL_BLOCK");
+    }
 
-      if (!user || ["SUSPENDED", "BANNED", "FLAGGED", "DELETED"].includes(user.status || "")) {
-        logger.warn("Withdrawal blocked: user account is suspended, banned, flagged, or deleted", {
-          userId,
-          status: user?.status,
-        });
-        throw AppError.badRequest("WITHDRAWAL_BLOCK");
-      }
+    // Determine withdrawal processing speed based on trust score
+    const withdrawalSpeed = getWithdrawalSpeed(user.trustScore);
+    const trustBasedManualReview = withdrawalSpeed === "MANUAL_REVIEW";
+    if (trustBasedManualReview) {
+      logger.warn("Withdrawal routed to manual review due to low trust score", {
+        userId,
+        trustScore: user.trustScore,
+        withdrawalSpeed,
+      });
+    } else {
+      logger.info("Withdrawal speed tier determined", { userId, withdrawalSpeed, trustScore: user.trustScore });
+    }
 
-      // Determine withdrawal processing speed based on trust score
-      const withdrawalSpeed = getWithdrawalSpeed(user.trustScore);
-      const trustBasedManualReview = withdrawalSpeed === "MANUAL_REVIEW";
-      if (trustBasedManualReview) {
-        logger.warn("Withdrawal routed to manual review due to low trust score", {
-          userId,
-          trustScore: user.trustScore,
-          withdrawalSpeed,
-        });
-      } else {
-        logger.info("Withdrawal speed tier determined", { userId, withdrawalSpeed, trustScore: user.trustScore });
-      }
+    // Perform fraud check outside database transaction to prevent connection starvation and timeouts
+    const fraudCheck = await checkPaymentFraud({
+      userId,
+      amount: data.amount,
+      bankAccount: data.bankAccountNumber,
+      upiId: data.upiId,
+    });
 
-      const fraudCheck = await checkPaymentFraud({
+    if (fraudCheck.action === "BLOCK") {
+      logger.warn("Withdrawal blocked by fraud check", {
         userId,
         amount: data.amount,
-        bankAccount: data.bankAccountNumber,
-        upiId: data.upiId,
+        flags: fraudCheck.flags.map((f) => f.description).join(", "),
       });
+      throw AppError.badRequest("WITHDRAWAL_BLOCK");
+    }
 
-      if (fraudCheck.action === "BLOCK") {
-        logger.warn("Withdrawal blocked by fraud check", {
-          userId,
-          amount: data.amount,
-          flags: fraudCheck.flags.map((f) => f.description).join(", "),
-        });
-        throw AppError.badRequest("WITHDRAWAL_BLOCK");
-      }
-
+    const withdrawal = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
       return await PaymentService.executeWithdrawalDbTransaction(
         tx,
         userId,
@@ -595,6 +599,8 @@ throw error;
       );
     }, {
       isolationLevel: Prisma.TransactionIsolationLevel.Serializable,
+      maxWait: 10000,
+      timeout: 15000,
     });
 
     if ("alreadyProcessed" in withdrawal) {

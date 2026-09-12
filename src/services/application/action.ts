@@ -4,7 +4,7 @@ import { AppError } from "@/lib/errors";
 import { checkMessageForContacts } from "@/lib/contact-filter";
 import { createActivityLog } from "@/lib/audit";
 import { generateContractTerms } from "@/lib/contract-engine";
-import { resolveBrandPlatformFee } from "@/lib/platform-fees";
+import { resolveBrandPlatformFee, PlatformFeeSnapshot } from "@/lib/platform-fees";
 import { calculateTotalAmount } from "@/lib/razorpay";
 import { assertSufficientBalance, assertAccountCanTransact, calculateProductHandlingFee } from "@/lib/utils";
 import { NotificationService } from "@/services/notification.service";
@@ -15,294 +15,301 @@ import { createDealAndReserveFunds } from "@/services/deal/helpers";
 import { checkChallengeProgress } from "@/lib/weekly-challenges";
 import { BlockService } from "@/services/block.service";
 
-async function calculateDealFinancials(
-application: {
-proposedRate: number | null;
-campaign: {
-perInfluencerBudget: number | null;
-requiresProduct: boolean;
-totalBudget: number;
-productValue: number | null;
-reservedAmount: number | null;
-reservedTotalAmount: number | null;
-fundedAmount: number | null;
-};
-},
-customRate: number | undefined,
-userId: string,
-): Promise<{ dealAmount: number; paymentAmounts: ReturnType<typeof calculateTotalAmount>; productHandlingFee: number }> {
-const dealAmount = customRate && customRate > 0
-? customRate
-: resolveApplicationDealAmount(
-application.proposedRate,
-application.campaign.perInfluencerBudget,
-);
-const isProductOnly = application.campaign.requiresProduct && application.campaign.totalBudget === 0;
-if (dealAmount <= 0 && !isProductOnly) {
-throw AppError.badRequest("Cannot accept application without a valid per-influencer budget");
-}
+function calculateDealFinancials(
+  application: {
+    proposedRate: number | null;
+    campaign: {
+      perInfluencerBudget: number | null;
+      requiresProduct: boolean;
+      totalBudget: number;
+      productValue: number | null;
+      reservedAmount: number | null;
+      reservedTotalAmount: number | null;
+      fundedAmount: number | null;
+    };
+  },
+  customRate: number | undefined,
+  brandFee: PlatformFeeSnapshot,
+): { dealAmount: number; paymentAmounts: ReturnType<typeof calculateTotalAmount>; productHandlingFee: number } {
+  const dealAmount = customRate && customRate > 0
+    ? customRate
+    : resolveApplicationDealAmount(
+        application.proposedRate,
+        application.campaign.perInfluencerBudget,
+      );
+  const isProductOnly = application.campaign.requiresProduct && application.campaign.totalBudget === 0;
+  if (dealAmount <= 0 && !isProductOnly) {
+    throw AppError.badRequest("Cannot accept application without a valid per-influencer budget");
+  }
 
-const alreadyCommitted = application.campaign.reservedAmount || 0;
-if (alreadyCommitted + dealAmount > application.campaign.totalBudget) {
-throw AppError.badRequest("Campaign budget exceeded. Increase budget or reject other deals first.");
-}
+  const alreadyCommitted = application.campaign.reservedAmount || 0;
+  if (alreadyCommitted + dealAmount > application.campaign.totalBudget) {
+    throw AppError.badRequest("Campaign budget exceeded. Increase budget or reject other deals first.");
+  }
 
-const brandFee = await resolveBrandPlatformFee(userId);
-const productHandlingFee = calculateProductHandlingFee(
-application.campaign.productValue,
-application.campaign.requiresProduct,
-isProductOnly,
-brandFee.effectivePlatformFee,
-);
+  const productHandlingFee = calculateProductHandlingFee(
+    application.campaign.productValue,
+    application.campaign.requiresProduct,
+    isProductOnly,
+    brandFee.effectivePlatformFee,
+  );
 
-const paymentAmounts = calculateTotalAmount(
-dealAmount,
-brandFee.effectivePlatformFee,
-productHandlingFee,
-);
+  const paymentAmounts = calculateTotalAmount(
+    dealAmount,
+    brandFee.effectivePlatformFee,
+    productHandlingFee,
+  );
 
-const alreadyCommittedTotal =
-  application.campaign.reservedTotalAmount ??
-  application.campaign.reservedAmount ??
-  0;
-const fundedAmount =
-  application.campaign.fundedAmount ?? application.campaign.totalBudget;
-if (alreadyCommittedTotal + paymentAmounts.totalAmount > fundedAmount) {
-throw AppError.badRequest("Campaign funded amount exceeded. Add funds or reduce selected deal value.");
-}
+  const alreadyCommittedTotal =
+    application.campaign.reservedTotalAmount ??
+    application.campaign.reservedAmount ??
+    0;
+  const fundedAmount =
+    application.campaign.fundedAmount ?? application.campaign.totalBudget;
+  if (alreadyCommittedTotal + paymentAmounts.totalAmount > fundedAmount) {
+    throw AppError.badRequest("Campaign funded amount exceeded. Add funds or reduce selected deal value.");
+  }
 
-return { dealAmount, paymentAmounts, productHandlingFee };
+  return { dealAmount, paymentAmounts, productHandlingFee };
 }
 export async function acceptApplication(userId: string, applicationId: string, customRate?: number) {
-// Retry loop to handle Postgres P2034 serialization-conflict errors that can
-// occur when two parallel requests attempt to accept applications for the same
-// campaign budget simultaneously. Serializable isolation guarantees the budget
-// aggregate read and the deal create are atomic; on conflict one transaction
-// wins cleanly and the other is retried (or surfaces a user-visible error).
-const MAX_RETRIES = 3;
-for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
-try {
-const result = await prisma.$transaction(
-async (tx: Prisma.TransactionClient) => {
-const actingUser = await tx.user.findUnique({
-where: { id: userId },
-select: { status: true },
-});
-assertAccountCanTransact(actingUser?.status);
+  // Pre-checks outside serializable transaction:
+  // 1. Verify acting user status
+  const actingUser = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { status: true },
+  });
+  assertAccountCanTransact(actingUser?.status);
 
-const brandProfile = await tx.brandProfile.findUnique({
-where: { userId },
-select: { id: true, companyName: true },
-});
-if (!brandProfile) {
-throw AppError.notFound("Brand profile not found");
-}
+  // 2. Verify brand profile
+  const brandProfile = await prisma.brandProfile.findUnique({
+    where: { userId },
+    select: { id: true, companyName: true },
+  });
+  if (!brandProfile) {
+    throw AppError.notFound("Brand profile not found");
+  }
 
-const application = await tx.application.findUnique({
-where: { id: applicationId },
-include: {
-campaign: {
-select: {
-id: true,
-title: true,
-status: true,
-brandId: true,
-totalBudget: true,
-perInfluencerBudget: true,
-deliverables: true,
-requirements: true,
-contentDeadline: true,
-postingDeadline: true,
-requiresProduct: true,
-productName: true,
-productValue: true,
-productDescription: true,
-maxInfluencers: true,
-selectedInfluencers: true,
-reservedAmount: true,
-reservedTotalAmount: true,
-fundedAmount: true,
-},
-},
-influencer: {
-select: {
-id: true,
-userId: true,
-displayName: true,
-followerAuthenticityScore: true,
-},
-},
-},
-});
+  // 3. Resolve brand platform fee outside the serializable transaction
+  const brandFee = await resolveBrandPlatformFee(userId);
 
-if (!application) {
-throw AppError.notFound("Application not found");
-}
+  let acceptedInfluencerUserId: string | null = null;
+  // Retry loop to handle Postgres P2034 serialization-conflict errors that can
+  // occur when two parallel requests attempt to accept applications for the same
+  // campaign budget simultaneously. Serializable isolation guarantees the budget
+  // aggregate read and the deal create are atomic; on conflict one transaction
+  // wins cleanly and the other is retried (or surfaces a user-visible error).
+  const MAX_RETRIES = 3;
+  for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+    try {
+      const result = await prisma.$transaction(
+        async (tx: Prisma.TransactionClient) => {
+          const application = await tx.application.findUnique({
+            where: { id: applicationId },
+            include: {
+              campaign: {
+                select: {
+                  id: true,
+                  title: true,
+                  status: true,
+                  brandId: true,
+                  totalBudget: true,
+                  perInfluencerBudget: true,
+                  deliverables: true,
+                  requirements: true,
+                  contentDeadline: true,
+                  postingDeadline: true,
+                  requiresProduct: true,
+                  productName: true,
+                  productValue: true,
+                  productDescription: true,
+                  maxInfluencers: true,
+                  selectedInfluencers: true,
+                  reservedAmount: true,
+                  reservedTotalAmount: true,
+                  fundedAmount: true,
+                },
+              },
+              influencer: {
+                select: {
+                  id: true,
+                  userId: true,
+                  displayName: true,
+                  followerAuthenticityScore: true,
+                },
+              },
+            },
+          });
 
-// Direct authenticity score check at acceptance time
-if (application.influencer.followerAuthenticityScore < 40) {
-throw AppError.badRequest(
-`This application cannot be accepted because the influencer's follower authenticity score (${application.influencer.followerAuthenticityScore}/100) is below the minimum required threshold of 40.`
-);
-}
+          if (!application) {
+            throw AppError.notFound("Application not found");
+          }
 
-const isBlocked = await BlockService.isBlocked(userId, application.influencer.userId);
-if (isBlocked) {
-  throw AppError.badRequest("Cannot accept application from a blocked user");
-}
+          // Direct authenticity score check at acceptance time
+          if (application.influencer.followerAuthenticityScore < 40) {
+            throw AppError.badRequest(
+              `This application cannot be accepted because the influencer's follower authenticity score (${application.influencer.followerAuthenticityScore}/100) is below the minimum required threshold of 40.`
+            );
+          }
 
-validateApplicationCanBeAccepted(application, brandProfile.id);
+          const isBlocked = await BlockService.isBlocked(userId, application.influencer.userId, tx);
+          if (isBlocked) {
+            throw AppError.badRequest("Cannot accept application from a blocked user");
+          }
 
-const applicationLock = await tx.application.updateMany({
-where: {
-id: application.id,
-status: { in: ["PENDING", "SHORTLISTED"] },
-},
-data: { updatedAt: new Date() },
-});
+          validateApplicationCanBeAccepted(application, brandProfile.id);
 
-if (applicationLock.count === 0) {
-throw AppError.badRequest("Application has already been processed");
-}
+          const applicationLock = await tx.application.updateMany({
+            where: {
+              id: application.id,
+              status: { in: ["PENDING", "SHORTLISTED"] },
+            },
+            data: { updatedAt: new Date() },
+          });
 
-await tx.campaign.update({
-where: { id: application.campaignId },
-data: { updatedAt: new Date() },
-});
+          if (applicationLock.count === 0) {
+            throw AppError.badRequest("Application has already been processed");
+          }
 
-const existingDeal = await tx.deal.findFirst({
-where: {
-campaignId: application.campaignId,
-influencerId: application.influencerId,
-deletedAt: null,
-status: { not: "CANCELLED" },
-},
-select: { id: true },
-});
-if (existingDeal) {
-throw AppError.badRequest("A deal already exists for this influencer");
-}
+          await tx.campaign.update({
+            where: { id: application.campaignId },
+            data: { updatedAt: new Date() },
+          });
 
-const { dealAmount, paymentAmounts, productHandlingFee } =
-await calculateDealFinancials(application, customRate, userId);
+          const existingDeal = await tx.deal.findFirst({
+            where: {
+              campaignId: application.campaignId,
+              influencerId: application.influencerId,
+              deletedAt: null,
+              status: { not: "CANCELLED" },
+            },
+            select: { id: true },
+          });
+          if (existingDeal) {
+            throw AppError.badRequest("A deal already exists for this influencer");
+          }
 
-const wallet = await tx.wallet.findUnique({
-where: { userId },
-select: { id: true, pendingBalance: true },
-});
-assertSufficientBalance(wallet, paymentAmounts.totalAmount, "pendingBalance");
+          const { dealAmount, paymentAmounts, productHandlingFee } =
+            calculateDealFinancials(application, customRate, brandFee);
 
-const draftContractTerms = generateContractTerms(
-"pending",
-{
-totalBudget: application.campaign.totalBudget,
-perInfluencerBudget: dealAmount,
-deliverables: application.campaign.deliverables,
-requirements: application.campaign.requirements,
-contentDeadline: application.campaign.contentDeadline,
-postingDeadline: application.campaign.postingDeadline,
-requiresProduct: application.campaign.requiresProduct,
-productName: application.campaign.productName,
-productValue: application.campaign.productValue,
-productDescription: application.campaign.productDescription,
-},
-{
-rate: dealAmount,
-message: application.proposal,
-platformFee: paymentAmounts.platformFee,
-gatewayFee: paymentAmounts.gatewayFee,
-totalAmount: paymentAmounts.totalAmount,
-platformFeePercent: paymentAmounts.platformFeePercent,
-influencerPayout: paymentAmounts.influencerReceives,
-productHandlingFee,
-},
-);
+          const wallet = await tx.wallet.findUnique({
+            where: { userId },
+            select: { id: true, pendingBalance: true },
+          });
+          assertSufficientBalance(wallet, paymentAmounts.totalAmount, "pendingBalance");
 
-const deal = await createDealAndReserveFunds(tx, {
-brandUserId: userId,
-campaignId: application.campaignId,
-influencerId: application.influencerId,
-brandProfileId: brandProfile.id,
-dealAmount,
-paymentAmounts: {
-totalAmount: paymentAmounts.totalAmount,
-platformFee: paymentAmounts.platformFee,
-gatewayFee: paymentAmounts.gatewayFee,
-influencerReceives: paymentAmounts.influencerReceives,
-},
-requiresProduct: application.campaign.requiresProduct,
-productName: application.campaign.productName,
-productValue: application.campaign.productValue,
-productHandlingFee,
-submissionDeadline: application.campaign.contentDeadline,
-postingDeadline: application.campaign.postingDeadline,
-draftContractTerms,
-});
+          const draftContractTerms = generateContractTerms(
+            "pending",
+            {
+              totalBudget: application.campaign.totalBudget,
+              perInfluencerBudget: dealAmount,
+              deliverables: application.campaign.deliverables,
+              requirements: application.campaign.requirements,
+              contentDeadline: application.campaign.contentDeadline,
+              postingDeadline: application.campaign.postingDeadline,
+              requiresProduct: application.campaign.requiresProduct,
+              productName: application.campaign.productName,
+              productValue: application.campaign.productValue,
+              productDescription: application.campaign.productDescription,
+            },
+            {
+              rate: dealAmount,
+              message: application.proposal,
+              platformFee: paymentAmounts.platformFee,
+              gatewayFee: paymentAmounts.gatewayFee,
+              totalAmount: paymentAmounts.totalAmount,
+              platformFeePercent: paymentAmounts.platformFeePercent,
+              influencerPayout: paymentAmounts.influencerReceives,
+              productHandlingFee,
+            },
+          );
 
-await tx.application.update({
-where: { id: application.id },
-data: { status: "SELECTED" },
-});
+          const deal = await createDealAndReserveFunds(tx, {
+            brandUserId: userId,
+            campaignId: application.campaignId,
+            influencerId: application.influencerId,
+            brandProfileId: brandProfile.id,
+            dealAmount,
+            paymentAmounts: {
+              totalAmount: paymentAmounts.totalAmount,
+              platformFee: paymentAmounts.platformFee,
+              gatewayFee: paymentAmounts.gatewayFee,
+              influencerReceives: paymentAmounts.influencerReceives,
+            },
+            requiresProduct: application.campaign.requiresProduct,
+            productName: application.campaign.productName,
+            productValue: application.campaign.productValue,
+            productHandlingFee,
+            submissionDeadline: application.campaign.contentDeadline,
+            postingDeadline: application.campaign.postingDeadline,
+            draftContractTerms,
+          });
 
-await tx.campaign.update({
-where: { id: application.campaignId },
-data: {
-selectedInfluencers: { increment: 1 },
-reservedAmount: { increment: dealAmount },
-reservedTotalAmount: { increment: paymentAmounts.totalAmount },
-},
-});
+          await tx.application.update({
+            where: { id: application.id },
+            data: { status: "SELECTED" },
+          });
 
-await NotificationService.createNotification({
-userId: application.influencer.userId,
-type: "deal_update",
-title: "Your application was accepted",
-message: `${brandProfile.companyName} accepted your application for ${application.campaign.title}. Please sign the contract.`,
-data: {
-campaignId: application.campaignId,
-applicationId: application.id,
-dealId: deal.id,
-},
-}, tx);
+          await tx.campaign.update({
+            where: { id: application.campaignId },
+            data: {
+              selectedInfluencers: { increment: 1 },
+              reservedAmount: { increment: dealAmount },
+              reservedTotalAmount: { increment: paymentAmounts.totalAmount },
+            },
+          });
 
-      // Track brand weekly challenge (select_5_influencers)
-      await checkChallengeProgress(userId, "DEALS", 1, tx).catch((err) => {
-        logger.error("Failed to track brand challenge progress for select_5_influencers", { userId, error: err });
-      });
+          await NotificationService.createNotification({
+            userId: application.influencer.userId,
+            type: "deal_update",
+            title: "Your application was accepted",
+            message: `${brandProfile.companyName} accepted your application for ${application.campaign.title}. Please sign the contract.`,
+            data: {
+              campaignId: application.campaignId,
+              applicationId: application.id,
+              dealId: deal.id,
+            },
+          }, tx);
 
-      // Track influencer weekly challenge (accept_3_deals)
-      await checkChallengeProgress(application.influencer.userId, "DEALS", 1, tx).catch((err) => {
-        logger.error("Failed to track influencer challenge progress for accept_3_deals", { userId: application.influencer.userId, error: err });
-      });
+          await createActivityLog({
+            userId,
+            action: "ACCEPT_APPLICATION",
+            entityType: "Application",
+            entityId: application.id,
+            metadata: {
+              campaignId: application.campaignId,
+              dealId: deal.id,
+            },
+          }, tx);
 
-      await createActivityLog({
-        userId,
-        action: "ACCEPT_APPLICATION",
-        entityType: "Application",
-        entityId: application.id,
-        metadata: {
-          campaignId: application.campaignId,
-          dealId: deal.id,
+          acceptedInfluencerUserId = application.influencer.userId;
+          return deal;
         },
-      }, tx);
+        {
+          // Serializable isolation prevents the budget-aggregate TOCTOU race:
+          // two concurrent accept calls read the same committed-budget sum and
+          // both pass the budget check under Read Committed, creating two deals
+          // that together exceed totalBudget. Under Serializable, Postgres
+          // detects the dependency cycle and aborts one transaction with P2034,
+          // which the retry loop below handles gracefully.
+          isolationLevel: Prisma.TransactionIsolationLevel.Serializable,
+          maxWait: 10000,
+          timeout: 15000,
+        },
+      );
 
-      return deal;
-},
-{
-// Serializable isolation prevents the budget-aggregate TOCTOU race:
-// two concurrent accept calls read the same committed-budget sum and
-// both pass the budget check under Read Committed, creating two deals
-// that together exceed totalBudget. Under Serializable, Postgres
-// detects the dependency cycle and aborts one transaction with P2034,
-// which the retry loop below handles gracefully.
-isolationLevel: Prisma.TransactionIsolationLevel.Serializable,
-},
-);
+      // Track weekly challenges asynchronously after transaction commit
+      if (acceptedInfluencerUserId) {
+        checkChallengeProgress(userId, "DEALS", 1).catch((err) => {
+          logger.error("Failed to track brand challenge progress for select_5_influencers", { userId, error: err });
+        });
+        checkChallengeProgress(acceptedInfluencerUserId, "DEALS", 1).catch((err) => {
+          logger.error("Failed to track influencer challenge progress for accept_3_deals", { userId: acceptedInfluencerUserId, error: err });
+        });
+      }
 
-logger.info("Application accepted successfully", {
-userId,
-applicationId,
-dealId: result.id,
+      logger.info("Application accepted successfully", {
+        userId,
 });
 
 return result;
@@ -418,6 +425,10 @@ campaignId: application.campaignId,
 }, tx);
 
 return updatedApplication;
+},
+{
+maxWait: 10000,
+timeout: 15000,
 },
 );
 

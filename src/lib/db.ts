@@ -302,7 +302,7 @@ logger.warn("[DB Connection] Failed to pre-connect to database", err);
 });
 }
 
-return baseClient.$extends({
+  const extendedClient = baseClient.$extends({
 query: {
 $allModels: {
 async $allOperations({ model, operation, args, query }) {
@@ -339,6 +339,23 @@ return result;
 },
 },
 });
+
+// Default interactive transaction options: extend default timeout from 5s to 15s
+// and maxWait from 2s to 10s to prevent cloud database WAN latency timeouts.
+const originalTx = extendedClient.$transaction.bind(extendedClient);
+(extendedClient as any).$transaction = function (arg1: any, arg2?: any) {
+  if (typeof arg1 === "function") {
+    const options = {
+      maxWait: 10000,
+      timeout: 15000,
+      ...(arg2 || {}),
+    };
+    return originalTx(arg1, options);
+  }
+  return originalTx(arg1, arg2);
+};
+
+return extendedClient;
 }
 
 export const prisma =

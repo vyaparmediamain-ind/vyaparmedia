@@ -97,6 +97,8 @@ for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
       }, tx);
     }, {
       isolationLevel: Prisma.TransactionIsolationLevel.Serializable,
+      maxWait: 10000,
+      timeout: 15000,
     });
 
     return NextResponse.json({ success: true, message: `Deal cancelled successfully.` });

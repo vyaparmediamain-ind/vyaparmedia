@@ -608,6 +608,8 @@ export async function createCampaign(userId: string, userType: UserType, data: R
       // Serializable isolation prevents TOCTOU races on the budget/deal checks
       // when two parallel invites are sent at campaign creation time.
       isolationLevel: Prisma.TransactionIsolationLevel.Serializable,
+      maxWait: 10000,
+      timeout: 15000,
     });
 
     logger.info("Campaign created successfully", {

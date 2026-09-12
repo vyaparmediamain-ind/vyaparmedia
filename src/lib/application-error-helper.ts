@@ -14,23 +14,35 @@ return NextResponse.json(
 
 const errorMsg = error instanceof Error ? error.message : String(error);
 
-if (errorMsg.includes("not found") || errorMsg.includes("Not authorized")) {
-return NextResponse.json(
-{ success: false, message: errorMsg },
-{ status: 404 },
-);
-}
+  if (errorMsg.includes("not found") || errorMsg.includes("Not authorized")) {
+    return NextResponse.json(
+      { success: false, message: errorMsg },
+      { status: 404 },
+    );
+  }
 
-const badRequestStrings = ["Insufficient", "budget", "pending", "authenticity", "Authenticity", "score"];
-if (badRequestStrings.some((s) => errorMsg.includes(s))) {
-return NextResponse.json(
-{ success: false, message: errorMsg },
-{ status: 400 },
-);
-}
+  const badRequestStrings = ["Insufficient", "budget", "pending", "authenticity", "Authenticity", "score"];
+  if (badRequestStrings.some((s) => errorMsg.includes(s))) {
+    return NextResponse.json(
+      { success: false, message: errorMsg },
+      { status: 400 },
+    );
+  }
 
-return NextResponse.json(
-{ success: false, message: defaultMessage },
-{ status: 500 },
-);
+  if (
+    errorMsg.includes("expired transaction") ||
+    errorMsg.includes("Transaction already closed") ||
+    errorMsg.includes("timed out") ||
+    errorMsg.includes("P2028")
+  ) {
+    return NextResponse.json(
+      { success: false, message: "Request timed out due to network latency. Please try again." },
+      { status: 504 },
+    );
+  }
+
+  return NextResponse.json(
+    { success: false, message: defaultMessage },
+    { status: 500 },
+  );
 }

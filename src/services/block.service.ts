@@ -1,5 +1,6 @@
 import { AppError } from "@/lib/errors";
 import prisma from "@/lib/db";
+import { Prisma } from "@prisma/client";
 
 export class BlockService {
 /**
@@ -70,8 +71,9 @@ return { success: true };
 /**
 * Check if there's any block relationship between two users
 */
-static async isBlocked(userA: string, userB: string): Promise<boolean> {
-const blockCount = await prisma.userBlock.count({
+static async isBlocked(userA: string, userB: string, tx?: Prisma.TransactionClient): Promise<boolean> {
+const client = tx ?? prisma;
+const blockCount = await client.userBlock.count({
 where: {
 OR: [
 { blockingUserId: userA, blockedUserId: userB },

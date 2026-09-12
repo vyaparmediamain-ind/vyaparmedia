@@ -385,6 +385,8 @@ feeRatio: params.feeRatio,
 });
 }, {
 isolationLevel: Prisma.TransactionIsolationLevel.Serializable,
+maxWait: 10000,
+timeout: 15000,
 });
 
 return txResult;

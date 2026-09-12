@@ -133,7 +133,24 @@ async function getAndValidateCampaign(
     throw AppError.badRequest("This campaign has reached its maximum number of influencer slots.");
   }
   if (campaign.applicationDeadline) {
-    if (new Date() > campaign.applicationDeadline) {
+    // Treat deadline as inclusive of the full deadline day (until 23:59:59.999 IST / +05:30)
+    const deadline = new Date(campaign.applicationDeadline);
+    const IST_OFFSET_MS = 5.5 * 60 * 60 * 1000;
+    const deadlineIST = new Date(deadline.getTime() + IST_OFFSET_MS);
+
+    let effectiveDeadline = deadline;
+    if (deadlineIST.getUTCHours() === 0 && deadlineIST.getUTCMinutes() === 0) {
+      deadlineIST.setUTCHours(23, 59, 59, 999);
+      effectiveDeadline = new Date(deadlineIST.getTime() - IST_OFFSET_MS);
+    } else if (deadline.getUTCHours() === 0 && deadline.getUTCMinutes() === 0) {
+      // If stored at UTC midnight (standard date input serialization e.g. 2026-08-12T00:00:00.000Z)
+      // 23:59:59.999 IST corresponds to 18:29:59.999 UTC of that same day
+      const deadlineUTC = new Date(deadline);
+      deadlineUTC.setUTCHours(18, 29, 59, 999);
+      effectiveDeadline = deadlineUTC;
+    }
+
+    if (new Date() > effectiveDeadline) {
       throw AppError.badRequest("Application deadline has passed");
     }
   }
