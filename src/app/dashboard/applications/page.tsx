@@ -16,6 +16,7 @@ status: string;
 proposedRate: number;
 finalRate?: number | null;
 dealId?: string | null;
+rejectionReason?: string | null;
 createdAt: string;
 campaign: {
 id: string;
@@ -42,7 +43,9 @@ function getStatusVariant(status: string): "success" | "danger" | "warning" {
     case "ACCEPTED":
       return "success";
     case "REJECTED":
+    case "WITHDRAWN":
       return "danger";
+    case "SHORTLISTED":
     case "PENDING":
     default:
       return "warning";
@@ -50,9 +53,12 @@ function getStatusVariant(status: string): "success" | "danger" | "warning" {
 }
 
 function getApplicationStatusLabel(status: string): string {
-  if (status === "SELECTED" || status === "ACCEPTED") return "Approved";
-  if (status === "REJECTED") return "Rejected";
-  if (status === "PENDING") return "Pending";
+  const s = status.toUpperCase();
+  if (s === "SELECTED" || s === "ACCEPTED") return "Approved";
+  if (s === "REJECTED") return "Rejected";
+  if (s === "WITHDRAWN") return "Expired / Withdrawn";
+  if (s === "SHORTLISTED") return "Shortlisted";
+  if (s === "PENDING") return "Pending";
   return status;
 }
 
@@ -262,6 +268,11 @@ applicationsList = (
                   <Badge variant={getStatusVariant(app.status)} className="text-xs font-extrabold">
                     {getApplicationStatusLabel(app.status)}
                   </Badge>
+                  {app.rejectionReason && (
+                    <span className="text-2xs text-rose-400 block mt-1 max-w-xs truncate" title={app.rejectionReason}>
+                      {app.rejectionReason}
+                    </span>
+                  )}
                 </td>
                 <td className="p-4 text-right">
                   <div className="flex items-center justify-end gap-2">
@@ -329,9 +340,16 @@ applicationsList = (
               </div>
             </div>
           </div>
-          <Badge variant={getStatusVariant(app.status)} className="text-2xs font-extrabold px-2.5 py-0.5 flex-shrink-0">
-            {getApplicationStatusLabel(app.status)}
-          </Badge>
+          <div className="flex flex-col items-end gap-1 flex-shrink-0">
+            <Badge variant={getStatusVariant(app.status)} className="text-2xs font-extrabold px-2.5 py-0.5">
+              {getApplicationStatusLabel(app.status)}
+            </Badge>
+            {app.rejectionReason && (
+              <span className="text-2xs text-rose-400 max-w-140 truncate" title={app.rejectionReason}>
+                {app.rejectionReason}
+              </span>
+            )}
+          </div>
         </div>
 
         {/* Rates and Dates grid */}

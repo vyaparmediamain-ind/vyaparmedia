@@ -303,6 +303,9 @@ type="button"
 variant="primary"
 onClick={() => {
 setNotice(null);
+if (proposedRate <= 0 && campaign.perInfluencerBudget) {
+  setProposedRate(campaign.perInfluencerBudget);
+}
 setShowApplyModal(true);
 }}
 className="w-full mt-6"

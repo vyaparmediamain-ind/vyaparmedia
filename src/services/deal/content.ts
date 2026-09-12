@@ -25,9 +25,8 @@ function validateSubmissionEligibility(
   }
 
   // PAYMENT GUARD: Only allow submission when brand's payment is secured
-  // in escrow (PAYMENT_HELD) or when a revision was requested.
-  // ACTIVE alone is NOT sufficient it means contract signed but no payment yet.
-  if (!["PAYMENT_HELD", "REVISION_REQUESTED"].includes(deal.status)) {
+  // in escrow (PAYMENT_HELD), when a revision was requested, or when deal is ACTIVE with reservedFromWallet.
+  if (!["PAYMENT_HELD", "REVISION_REQUESTED"].includes(deal.status) && !(deal.status === "ACTIVE" && deal.reservedFromWallet)) {
     throw AppError.badRequest("Payment must be secured before content submission");
   }
 

@@ -165,7 +165,7 @@ throw new Error(payload?.message || "Failed to submit application");
 setShowApplyModal(false);
 setNotice({ type: "success", message: "Application submitted successfully." });
 refreshCampaign();
-router.push("/dashboard/deals");
+router.push("/dashboard/applications");
 } catch (applyError: unknown) {
 setNotice({ type: "error", message: (applyError instanceof Error ? applyError.message : String(applyError)) || "Failed to submit application" });
 } finally {
