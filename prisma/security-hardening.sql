@@ -44,7 +44,7 @@ GRANT CONNECT ON DATABASE postgres TO public;
 REVOKE ALL ON SCHEMA public FROM public;
 GRANT USAGE ON SCHEMA public TO public;
 
--- Note: In Production, create a 'decisional_app' user with limited permissions,
+-- Note: In Production, create a 'vyaparmedia_app' user with limited permissions,
 -- granting select/insert/update/delete and revoking truncate on all tables.
 
 -- 5. DB-LEVEL CHECK CONSTRAINTS (Money Rules)
