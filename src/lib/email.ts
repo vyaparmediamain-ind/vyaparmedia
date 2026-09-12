@@ -22,7 +22,7 @@
 import { logger } from "./logger";
 import { escapeHtml, sleep } from "./utils";
 
-import DOMPurify from "isomorphic-dompurify";
+import { stripHtml, sanitizeHtml } from "./sanitize";
 import { randomUUID } from "node:crypto";
 import { env } from "@/env";
 
@@ -617,17 +617,11 @@ const appUrl = getAppUrl();
 const unsubscribeUrl = `${appUrl}/api/blog/unsubscribe?token=${encodeURIComponent(unsubscribeToken)}`;
 
 // Sanitize admin input to prevent HTML injection attacks
-// Use DOMPurify to allow safe HTML (formatting) but strip dangerous tags/scripts
-const sanitizedSubject = DOMPurify.sanitize(subject, {
-ALLOWED_TAGS: [],
-ALLOWED_ATTR: [],
-KEEP_CONTENT: true,
-});
+// Use stripHtml for subject and sanitizeHtml for content
+const sanitizedSubject = stripHtml(subject);
 
-const sanitizedContent = DOMPurify.sanitize(content, {
-ALLOWED_TAGS: ['p', 'br', 'strong', 'em', 'u', 'ol', 'ul', 'li', 'a', 'h1', 'h2', 'h3'],
-ALLOWED_ATTR: ['href', 'target'],
-KEEP_CONTENT: true,
+const sanitizedContent = sanitizeHtml(content, {
+allowedTags: ['p', 'br', 'strong', 'em', 'u', 'ol', 'ul', 'li', 'a', 'h1', 'h2', 'h3'],
 });
 
 const result = await sendEmail({

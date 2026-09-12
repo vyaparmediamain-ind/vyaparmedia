@@ -19,121 +19,146 @@ reportUserSchema,
 } from "./MessagesHelpers";
 
 export function useMessages() {
-const { data: session, status } = useSession();
-const searchParams = useSearchParams();
-const dealIdParam = searchParams?.get("deal");
-const processedDealRef = useRef<string | null>(null);
-const [conversations, setConversations] = useState<Conversation[]>([]);
-const [selectedConversation, setSelectedConversation] = useState<string | null>(null);
-const [messages, setMessages] = useState<Message[]>([]);
-const [newMessage, setNewMessage] = useState("");
-const [isPeerTyping, setIsPeerTyping] = useState(false);
-const [loadingMessages, setLoadingMessages] = useState(false);
-const messagesEndRef = useRef<HTMLDivElement>(null);
-const typingRefreshRef = useRef<number>(0);
-const typingStopTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-const [isChatUserBlocked, setIsChatUserBlocked] = useState(false);
-const [isReportModalOpen, setIsReportModalOpen] = useState(false);
-const [reportReason, setReportReason] = useState("");
-const [reportDescription, setReportDescription] = useState("");
-const [submittingReport, setSubmittingReport] = useState(false);
-const [hasActiveDeal, setHasActiveDeal] = useState(true);
+  const { data: session, status } = useSession();
+  const searchParams = useSearchParams();
+  const dealIdParam = searchParams?.get("deal");
+  const withParam = searchParams?.get("with");
+  const processedDealRef = useRef<string | null>(null);
+  const [conversations, setConversations] = useState<Conversation[]>([]);
+  const [selectedConversation, setSelectedConversation] = useState<string | null>(withParam || null);
+  const [currentDealId, setCurrentDealId] = useState<string | null>(dealIdParam || null);
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [newMessage, setNewMessage] = useState("");
+  const [isPeerTyping, setIsPeerTyping] = useState(false);
+  const [loadingMessages, setLoadingMessages] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const typingRefreshRef = useRef<number>(0);
+  const typingStopTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [isChatUserBlocked, setIsChatUserBlocked] = useState(false);
+  const [isReportModalOpen, setIsReportModalOpen] = useState(false);
+  const [reportReason, setReportReason] = useState("");
+  const [reportDescription, setReportDescription] = useState("");
+  const [submittingReport, setSubmittingReport] = useState(false);
+  const [hasActiveDeal, setHasActiveDeal] = useState(true);
 
-const [toasts, setToasts] = useState<ToastItem[]>([]);
-const removeToast = (toastId: string) => {
-setToasts((prev) => prev.filter((t) => t.id !== toastId));
-};
-const showToast = (type: ToastType, message: string) => {
-const toastId = String(Date.now());
-setToasts((prev) => [...prev, { id: toastId, type, message }]);
-setTimeout(() => removeToast(toastId), 5000);
-};
+  const [toasts, setToasts] = useState<ToastItem[]>([]);
+  const removeToast = (toastId: string) => {
+    setToasts((prev) => prev.filter((t) => t.id !== toastId));
+  };
+  const showToast = (type: ToastType, message: string) => {
+    const toastId = String(Date.now());
+    setToasts((prev) => [...prev, { id: toastId, type, message }]);
+    setTimeout(() => removeToast(toastId), 5000);
+  };
 
-const getKeepIfStillExists = useCallback((convs: Conversation[]) => {
-return (prev: string | null) => {
-if (!prev) return null;
-return convs.some((c) => c.userId === prev) ? prev : null;
-};
-}, []);
+  const { data: messagesData, isLoading: loadingConversations } = useSWR<RawConversation[] | { conversations?: RawConversation[] }>(
+    session ? "/api/messages" : null,
+    fetcher
+  );
 
-const { data: messagesData, isLoading: loadingConversations } = useSWR<RawConversation[] | { conversations?: RawConversation[] }>(
-session ? "/api/messages" : null,
-fetcher
-);
+  useEffect(() => {
+    if (!messagesData) return;
+    const convsRaw = Array.isArray(messagesData) ? messagesData : messagesData.conversations || [];
+    const convs: Conversation[] = convsRaw
+      .map((raw: RawConversation) => normalizeConversation(raw))
+      .filter((conv: Conversation | null): conv is Conversation => Boolean(conv));
 
-useEffect(() => {
-if (!messagesData) return;
-const convsRaw = Array.isArray(messagesData) ? messagesData : messagesData.conversations || [];
-const convs: Conversation[] = convsRaw
-.map((raw: RawConversation) => normalizeConversation(raw))
-.filter((conv: Conversation | null): conv is Conversation => Boolean(conv));
-setConversations(convs);
-setSelectedConversation(getKeepIfStillExists(convs));
-}, [messagesData, getKeepIfStillExists]);
+    setConversations((prev) => {
+      const mergedMap = new Map<string, Conversation>();
+      for (const c of convs) {
+        mergedMap.set(c.userId, c);
+      }
+      // Preserve any local stubs (e.g. newly initiated chats) not yet returned by API
+      for (const p of prev) {
+        if (!mergedMap.has(p.userId)) {
+          mergedMap.set(p.userId, p);
+        }
+      }
+      return Array.from(mergedMap.values());
+    });
 
-const addConversationStub = useCallback((partner: { userId: string; name: string; avatar?: string; userType: string }) => {
-setConversations((prev) => {
-const exists = prev.some((c) => c.userId === partner.userId);
-if (exists) return prev;
+    setSelectedConversation((prev) => {
+      if (prev) return prev;
+      if (withParam) return withParam;
+      return convs[0]?.userId || null;
+    });
+  }, [messagesData, withParam]);
 
-const stubConv: Conversation = {
-id: partner.userId,
-userId: partner.userId,
-name: partner.name,
-avatar: partner.avatar || null,
-userType: partner.userType,
-lastMessage: "",
-lastMessageTime: "",
-unread: 0,
-};
-return [stubConv, ...prev];
-});
-}, []);
+  const addConversationStub = useCallback((partner: { userId: string; name: string; avatar?: string; userType: string }) => {
+    setConversations((prev) => {
+      const exists = prev.some((c) => c.userId === partner.userId);
+      if (exists) return prev;
 
-useEffect(() => {
-if (!dealIdParam || !session || loadingConversations) return;
-if (processedDealRef.current === dealIdParam) return;
+      const stubConv: Conversation = {
+        id: partner.userId,
+        userId: partner.userId,
+        name: partner.name,
+        avatar: partner.avatar || null,
+        userType: partner.userType,
+        lastMessage: "",
+        lastMessageTime: "",
+        unread: 0,
+      };
+      return [stubConv, ...prev];
+    });
+  }, []);
 
-const currentUserId = session?.user?.id;
-if (!currentUserId) return;
+  useEffect(() => {
+    if (withParam && withParam !== selectedConversation) {
+      setSelectedConversation(withParam);
+    }
+  }, [withParam, selectedConversation]);
 
-processedDealRef.current = dealIdParam;
+  useEffect(() => {
+    if (dealIdParam) {
+      setCurrentDealId(dealIdParam);
+    }
+  }, [dealIdParam]);
 
-fetch(`/api/deals/${encodeURIComponent(dealIdParam)}`)
-.then(async (res) => {
-if (!res.ok) throw new Error("Failed to fetch deal details");
-return res.json();
-})
-.then((data) => {
-const deal = data.deal;
-if (!deal) return;
+  useEffect(() => {
+    if (!dealIdParam || !session || loadingConversations) return;
+    if (processedDealRef.current === dealIdParam) return;
 
-const isInfluencer = deal.influencer?.userId === currentUserId;
-const partner = isInfluencer
-? {
-userId: deal.brand?.userId,
-name: deal.brand?.companyName || "Brand",
-avatar: deal.brand?.logo,
-userType: "BRAND",
-}
-: {
-userId: deal.influencer?.userId,
-name: deal.influencer?.displayName || "Influencer",
-avatar: deal.influencer?.avatar,
-userType: "INFLUENCER",
-};
+    const currentUserId = session?.user?.id;
+    if (!currentUserId) return;
 
-if (!partner.userId) return;
+    processedDealRef.current = dealIdParam;
 
-setSelectedConversation(partner.userId);
-addConversationStub(partner);
-})
-.catch((err) => {
-if (err?.name !== "AbortError") {
-logger.error("[messages] Error loading deal for messaging:", err);
-}
-});
-}, [dealIdParam, session, loadingConversations, addConversationStub]);
+    fetch(`/api/deals/${encodeURIComponent(dealIdParam)}`)
+      .then(async (res) => {
+        if (!res.ok) throw new Error("Failed to fetch deal details");
+        return res.json();
+      })
+      .then((data) => {
+        const deal = data.deal;
+        if (!deal) return;
+
+        const isInfluencer = deal.influencer?.userId === currentUserId;
+        const partner = isInfluencer
+          ? {
+              userId: deal.brand?.userId,
+              name: deal.brand?.companyName || "Brand",
+              avatar: deal.brand?.logo,
+              userType: "BRAND",
+            }
+          : {
+              userId: deal.influencer?.userId,
+              name: deal.influencer?.displayName || "Influencer",
+              avatar: deal.influencer?.avatar,
+              userType: "INFLUENCER",
+            };
+
+        if (!partner.userId) return;
+
+        setSelectedConversation(partner.userId);
+        addConversationStub(partner);
+      })
+      .catch((err) => {
+        if (err?.name !== "AbortError") {
+          logger.error("[messages] Error loading deal for messaging:", err);
+        }
+      });
+  }, [dealIdParam, session, loadingConversations, addConversationStub]);
 
 const fetchMessages = useCallback(
 async (showLoading = false) => {
@@ -177,10 +202,13 @@ logger.error("[messages] Failed to fetch block status:", blockErr);
       fileUrl: m.fileUrl || null,
       metadata: m.metadata || null,
     }));
-    setMessages(mappedMessages);
-setIsPeerTyping(Boolean(data.presence?.isTyping));
-setHasActiveDeal(data.hasActiveDeal ?? true);
-} catch (err) {
+      setMessages(mappedMessages);
+      setIsPeerTyping(Boolean(data.presence?.isTyping));
+      setHasActiveDeal(data.hasActiveDeal ?? true);
+      if (data.dealId) {
+        setCurrentDealId(data.dealId);
+      }
+    } catch (err) {
 logger.error("[messages] Failed to fetch messages:", err);
 setMessages([]);
 setIsPeerTyping(false);
@@ -308,6 +336,7 @@ const tempId = `temp-${Date.now()}`;
         body: JSON.stringify({
           receiverId: selectedConversation,
           content: messageCopy,
+          ...(currentDealId ? { dealId: currentDealId } : {}),
         }),
       });
 
@@ -372,31 +401,32 @@ const tempId = `temp-${Date.now()}`;
       },
     ]);
 
-try {
-const response = await fetch("/api/messages", {
-method: "POST",
-headers: { "Content-Type": "application/json" },
-body: JSON.stringify({
-receiverId: selectedConversation,
-content: displayContent,
-messageType: "FILE",
-fileUrl,
-metadata: { fileName, fileType },
-}),
-});
+    try {
+      const response = await fetch("/api/messages", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          receiverId: selectedConversation,
+          content: displayContent,
+          messageType: "FILE",
+          fileUrl,
+          metadata: { fileName, fileType },
+          ...(currentDealId ? { dealId: currentDealId } : {}),
+        }),
+      });
 
-const payload = await response.json();
-if (!response.ok || !payload?.success) {
-throw new Error(payload?.error || payload?.message || "Failed to send file");
-}
+      const payload = await response.json();
+      if (!response.ok || !payload?.success) {
+        throw new Error(payload?.error || payload?.message || "Failed to send file");
+      }
 
-fetchMessages(false);
-} catch (err) {
-logger.error("[messages] Failed to send file message:", err);
-setMessages((prev) => prev.filter((m) => m.id !== tempId));
-showToast("error", "File sharing failed. Please try again.");
-}
-};
+      fetchMessages(false);
+    } catch (err) {
+      logger.error("[messages] Failed to send file message:", err);
+      setMessages((prev) => prev.filter((m) => m.id !== tempId));
+      showToast("error", "File sharing failed. Please try again.");
+    }
+  };
 
   const handleSendOffer = async (offerDetails: {
     title: string;
@@ -436,6 +466,7 @@ showToast("error", "File sharing failed. Please try again.");
           content: displayContent,
           messageType: "OFFER",
           metadata: { ...offerDetails, status: "PENDING" },
+          ...(currentDealId ? { dealId: currentDealId } : {}),
         }),
       });
 
