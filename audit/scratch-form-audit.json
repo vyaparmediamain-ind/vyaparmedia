@@ -1,0 +1,85 @@
+{
+  "formFindings": [],
+  "amountInputs": [
+    {
+      "file": "src/app/admin/benchmarks/CategoryBenchmarksClient.tsx",
+      "matches": [
+        "parseFloat(e.target.value || \"0\")"
+      ]
+    },
+    {
+      "file": "src/app/dashboard/campaigns/create/CreateCampaignClient.tsx",
+      "matches": [
+        "parseInt(e.target.value, 10)",
+        "parseInt(e.target.value, 10)",
+        "parseInt(e.target.value, 10)",
+        "parseInt(e.target.value, 10)",
+        "parseInt(e.target.value, 10)"
+      ]
+    },
+    {
+      "file": "src/app/dashboard/campaigns/[id]/CampaignDetailClient.tsx",
+      "matches": [
+        "Number(e.target.value)"
+      ]
+    },
+    {
+      "file": "src/app/onboarding/page.tsx",
+      "matches": [
+        "Number(e.target.value)"
+      ]
+    },
+    {
+      "file": "src/components/dashboard/campaigns/create/DeliverablesList.tsx",
+      "matches": [
+        "parseInt(e.target.value, 10)",
+        "parseInt(e.target.value, 10)"
+      ]
+    },
+    {
+      "file": "src/components/dashboard/campaigns/create/MatchingPrioritySliders.tsx",
+      "matches": [
+        "parseInt(e.target.value, 10)"
+      ]
+    },
+    {
+      "file": "src/components/dashboard/campaigns/create/ProductSeedingCard.tsx",
+      "matches": [
+        "parseInt(e.target.value, 10)"
+      ]
+    },
+    {
+      "file": "src/components/dashboard/deals/DealModals.tsx",
+      "matches": [
+        "parseFloat(e.target.value)",
+        "parseInt(e.target.value, 10)",
+        "parseInt(e.target.value, 10)",
+        "parseInt(e.target.value, 10)"
+      ]
+    },
+    {
+      "file": "src/components/dashboard/settings/ProfileTab.tsx",
+      "matches": [
+        "parseInt(e.target.value, 10)"
+      ]
+    },
+    {
+      "file": "src/components/dashboard/settings/RatesTab.tsx",
+      "matches": [
+        "parseInt(e.target.value, 10)",
+        "parseInt(e.target.value, 10)",
+        "parseInt(e.target.value, 10)",
+        "parseInt(e.target.value, 10)",
+        "parseInt(e.target.value, 10)",
+        "parseInt(e.target.value, 10)"
+      ]
+    },
+    {
+      "file": "src/components/landing/EscrowSimulator.tsx",
+      "matches": [
+        "Number(e.target.value)"
+      ]
+    }
+  ],
+  "ungatedButtons": []
+}

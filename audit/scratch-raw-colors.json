@@ -1,0 +1,572 @@
+[
+  {
+    "type": "tailwind-raw-utility",
+    "file": "src/app/dashboard/campaigns/create/CreateCampaignClient.tsx",
+    "line": 536,
+    "snippet": "? \"bg-verified text-white\""
+  },
+  {
+    "type": "tailwind-raw-utility",
+    "file": "src/app/dashboard/disputes/page.tsx",
+    "line": 86,
+    "snippet": "? \"bg-verified text-white\""
+  },
+  {
+    "type": "tailwind-raw-utility",
+    "file": "src/app/dashboard/disputes/page.tsx",
+    "line": 88,
+    "snippet": "? \"bg-pending text-white animate-pulse\""
+  },
+  {
+    "type": "tailwind-raw-utility",
+    "file": "src/app/dashboard/disputes/page.tsx",
+    "line": 305,
+    "snippet": "className=\"inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold bg-primary hover:bg-primary/90 text-white shadow-xs transition-colors\""
+  },
+  {
+    "type": "tailwind-raw-utility",
+    "file": "src/app/dashboard/disputes/page.tsx",
+    "line": 401,
+    "snippet": "<span className=\"px-1.5 py-0.5 rounded-full bg-pending text-white text-[10px] font-bold leading-none\">"
+  },
+  {
+    "type": "tailwind-raw-utility",
+    "file": "src/app/dashboard/disputes/page.tsx",
+    "line": 680,
+    "snippet": "className=\"inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold bg-primary text-white hover:bg-primary/90 shadow-sm hover:translate-x-0.5 transition-all\""
+  },
+  {
+    "type": "tailwind-raw-utility",
+    "file": "src/app/dashboard/disputes/[id]/page.tsx",
+    "line": 330,
+    "snippet": "className=\"inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold bg-primary text-white\""
+  },
+  {
+    "type": "tailwind-raw-utility",
+    "file": "src/app/dashboard/referrals/page.tsx",
+    "line": 477,
+    "snippet": "className=\"inline-flex items-center justify-center gap-1.5 px-3.5 py-2.5 min-h-[44px] rounded-xl text-xs font-bold bg-verified text-white hover:bg-verified/90 transition-colors shrink-0 shadow-xs\""
+  },
+  {
+    "type": "tailwind-raw-utility",
+    "file": "src/app/pricing/page.tsx",
+    "line": 153,
+    "snippet": "<span className=\"text-[10px] bg-verified text-white px-1.5 py-0.2 rounded-full font-black uppercase tracking-wider shrink-0 whitespace-nowrap\">"
+  },
+  {
+    "type": "tailwind-raw-utility",
+    "file": "src/components/analytics/AdminAnalyticsView.tsx",
+    "line": 139,
+    "snippet": "textColor=\"text-blue-400\""
+  },
+  {
+    "type": "tailwind-raw-utility",
+    "file": "src/components/analytics/AdminAnalyticsView.tsx",
+    "line": 153,
+    "snippet": "textColor=\"text-blue-400\""
+  },
+  {
+    "type": "chart-hardcoded-color",
+    "file": "src/components/analytics/AdminAnalyticsView.tsx",
+    "line": 240,
+    "snippet": "<Line type=\"monotone\" dataKey=\"total\" stroke=\"#3b82f6\" strokeWidth={3} dot={false} activeDot={{ r: 6, fill: '#3b82f6', stroke: '#fff', strokeWidth: 2 }} name=\"New Users\" />"
+  },
+  {
+    "type": "chart-hardcoded-color",
+    "file": "src/components/analytics/AdminAnalyticsView.tsx",
+    "line": 241,
+    "snippet": "<Line type=\"monotone\" dataKey=\"brand\" stroke=\"#8b5cf6\" strokeWidth={3} dot={false} name=\"Brands\" />"
+  },
+  {
+    "type": "chart-hardcoded-color",
+    "file": "src/components/analytics/AdminAnalyticsView.tsx",
+    "line": 242,
+    "snippet": "<Line type=\"monotone\" dataKey=\"influencer\" stroke=\"#10b981\" strokeWidth={3} dot={false} name=\"Influencers\" />"
+  },
+  {
+    "type": "tailwind-raw-utility",
+    "file": "src/components/dashboard/campaigns/CampaignRoiReport.tsx",
+    "line": 402,
+    "snippet": "<Share2 className=\"w-3 h-3 text-blue-500\" />"
+  },
+  {
+    "type": "tailwind-raw-utility",
+    "file": "src/components/dashboard/campaigns/create/CampaignSummarySidebar.tsx",
+    "line": 381,
+    "snippet": "className=\"lg:hidden fixed bottom-[calc(5rem+env(safe-area-inset-bottom,0px))] right-[max(1rem,calc(env(safe-area-inset-right,0px)+1rem))] z-40 flex items-center gap-2 pl-3 pr-4 py-3 rounded-2xl bg-escrow text-white shadow-xl shadow-escrow/30 text-xs font-bold transition-transform active:scale-95\""
+  },
+  {
+    "type": "tailwind-raw-utility",
+    "file": "src/components/dashboard/challenges/WeeklyChallenges.tsx",
+    "line": 259,
+    "snippet": "className={`inline-block px-2 py-1 rounded text-xs font-medium text-white mt-2 ${getDifficultyColor("
+  },
+  {
+    "type": "tailwind-raw-utility",
+    "file": "src/components/dashboard/deals/ContentSubmissionModal.tsx",
+    "line": 904,
+    "snippet": "<div className=\"text-center p-6 text-white/50 text-xs\">"
+  },
+  {
+    "type": "tailwind-raw-utility",
+    "file": "src/components/dashboard/deals/ContentSubmissionsCard.tsx",
+    "line": 191,
+    "snippet": "<div className=\"flex items-center justify-between gap-1 text-[11px] text-white\">"
+  },
+  {
+    "type": "tailwind-raw-utility",
+    "file": "src/components/dashboard/disputes/DisputeTimeline.tsx",
+    "line": 50,
+    "snippet": "<div className=\"absolute -left-6 top-0.5 w-5 h-5 rounded-full bg-verified text-white flex items-center justify-center\">"
+  },
+  {
+    "type": "tailwind-raw-utility",
+    "file": "src/components/dashboard/disputes/DisputeTimeline.tsx",
+    "line": 66,
+    "snippet": "? \"bg-verified text-white\""
+  },
+  {
+    "type": "tailwind-raw-utility",
+    "file": "src/components/dashboard/disputes/DisputeTimeline.tsx",
+    "line": 67,
+    "snippet": ": \"bg-pending text-white animate-pulse\""
+  },
+  {
+    "type": "tailwind-raw-utility",
+    "file": "src/components/dashboard/disputes/DisputeTimeline.tsx",
+    "line": 92,
+    "snippet": "? \"bg-verified text-white\""
+  },
+  {
+    "type": "tailwind-raw-utility",
+    "file": "src/components/dashboard/disputes/DisputeTimeline.tsx",
+    "line": 93,
+    "snippet": ": \"bg-disputed text-white animate-pulse\""
+  },
+  {
+    "type": "tailwind-raw-utility",
+    "file": "src/components/dashboard/disputes/DisputeTimeline.tsx",
+    "line": 121,
+    "snippet": "? \"bg-verified text-white\""
+  },
+  {
+    "type": "tailwind-raw-utility",
+    "file": "src/components/dashboard/disputes/DisputeTimeline.tsx",
+    "line": 122,
+    "snippet": ": \"bg-disputed text-white animate-pulse\""
+  },
+  {
+    "type": "tailwind-raw-utility",
+    "file": "src/components/dashboard/disputes/DisputeTimeline.tsx",
+    "line": 139,
+    "snippet": "<div className=\"absolute -left-6 top-0.5 w-5 h-5 rounded-full bg-verified text-white flex items-center justify-center\">"
+  },
+  {
+    "type": "tailwind-raw-utility",
+    "file": "src/components/dashboard/disputes/ThreePartyArbitrationFeed.tsx",
+    "line": 181,
+    "snippet": "<span className=\"inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20\">"
+  },
+  {
+    "type": "tailwind-raw-utility",
+    "file": "src/components/dashboard/disputes/ThreePartyArbitrationFeed.tsx",
+    "line": 254,
+    "snippet": "? \"bg-blue-500/5 border-blue-500/20 ml-0 mr-4\""
+  },
+  {
+    "type": "tailwind-raw-utility",
+    "file": "src/components/dashboard/disputes/ThreePartyArbitrationFeed.tsx",
+    "line": 261,
+    "snippet": "<Building2 className=\"w-3.5 h-3.5 text-blue-500\" />"
+  },
+  {
+    "type": "tailwind-raw-utility",
+    "file": "src/components/dashboard/referrals/ReferralList.tsx",
+    "line": 44,
+    "snippet": "<h3 className=\"text-xl font-bold mb-2 text-white\">No Partners Referred Yet</h3>"
+  },
+  {
+    "type": "tailwind-raw-utility",
+    "file": "src/components/dashboard/referrals/ReferralList.tsx",
+    "line": 63,
+    "snippet": "<h3 className=\"text-base font-bold text-white m-0\">"
+  },
+  {
+    "type": "tailwind-raw-utility",
+    "file": "src/components/dashboard/referrals/ReferralList.tsx",
+    "line": 105,
+    "snippet": "<div className=\"flex items-center justify-center font-extrabold text-sm rounded-full text-white w-9 h-9 flex-shrink-0 referral-avatar\">"
+  },
+  {
+    "type": "tailwind-raw-utility",
+    "file": "src/components/dashboard/referrals/ReferralList.tsx",
+    "line": 109,
+    "snippet": "<div className=\"font-semibold text-white truncate\">"
+  },
+  {
+    "type": "tailwind-raw-utility",
+    "file": "src/components/dashboard/referrals/ReferralList.tsx",
+    "line": 149,
+    "snippet": "No records matching the <strong className=\"text-white\">{filter}</strong> filter."
+  },
+  {
+    "type": "tailwind-raw-utility",
+    "file": "src/components/dashboard/settings/RatesTab.tsx",
+    "line": 129,
+    "snippet": "className=\"w-4 h-4 text-blue-500 mt-0.5 flex-shrink-0\""
+  },
+  {
+    "type": "tailwind-raw-utility",
+    "file": "src/components/dashboard/settings/SocialPlatformCard.tsx",
+    "line": 52,
+    "snippet": "className=\"w-6 h-6 text-white\""
+  },
+  {
+    "type": "tailwind-raw-utility",
+    "file": "src/components/dashboard/settings/SocialPlatformCard.tsx",
+    "line": 68,
+    "snippet": "className=\"w-6 h-6 text-white\""
+  },
+  {
+    "type": "tailwind-raw-utility",
+    "file": "src/components/navigation/EscrowStoriesBar.tsx",
+    "line": 181,
+    "snippet": "className={`absolute bottom-0.5 right-0.5 w-4 h-4 rounded-full border border-card flex items-center justify-center shadow text-white ${"
+  },
+  {
+    "type": "tailwind-raw-utility",
+    "file": "src/components/profile/InfluencerProfileClient.tsx",
+    "line": 656,
+    "snippet": "<div className=\"flex items-center justify-between gap-1 text-white font-bold text-xs\">"
+  },
+  {
+    "type": "tailwind-raw-utility",
+    "file": "src/components/profile/InfluencerProfileClient.tsx",
+    "line": 658,
+    "snippet": "<span className=\"tabular-nums text-[11px] text-white/90 shrink-0\">"
+  },
+  {
+    "type": "tailwind-raw-utility",
+    "file": "src/components/profile/InfluencerProfileClient.tsx",
+    "line": 663,
+    "snippet": "<p className=\"text-[10px] text-white/80 font-medium truncate\">"
+  },
+  {
+    "type": "tailwind-raw-utility",
+    "file": "src/components/pwa/CustomInstallBanner.tsx",
+    "line": 131,
+    "snippet": "<WifiOff className=\"w-3 h-3 text-blue-500\" />"
+  },
+  {
+    "type": "tailwind-raw-utility",
+    "file": "src/components/pwa/OfflineIndicator.tsx",
+    "line": 57,
+    "snippet": "<div className=\"w-full max-w-xl mx-auto flex items-center justify-between gap-3 px-4 py-2 rounded-xl bg-amber-600 text-white shadow-lg\">"
+  },
+  {
+    "type": "tailwind-raw-utility",
+    "file": "src/components/pwa/OfflineIndicator.tsx",
+    "line": 65,
+    "snippet": "className=\"flex items-center gap-1 px-2.5 py-1 rounded-lg bg-foreground/15 hover:bg-foreground/25 text-white text-[11px] transition-colors shrink-0\""
+  },
+  {
+    "type": "tailwind-raw-utility",
+    "file": "src/components/pwa/OfflineIndicator.tsx",
+    "line": 72,
+    "snippet": "<div className=\"w-full max-w-xl mx-auto flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-emerald-600 text-white shadow-lg\">"
+  },
+  {
+    "type": "tailwind-raw-utility",
+    "file": "src/components/share/StoryShareModal.tsx",
+    "line": 545,
+    "snippet": "{ label: \"Facebook\", href: facebookUrl, emoji: \"ðŸ‘¥\", color: \"text-blue-400\", bg: \"bg-blue-500/10 border-blue-500/20 hover:bg-blue-500/20\" },"
+  },
+  {
+    "type": "tailwind-raw-utility",
+    "file": "src/components/share/StoryShareModal.tsx",
+    "line": 549,
+    "snippet": "{ label: \"LinkedIn\", href: linkedinUrl, emoji: \"in\", color: \"text-blue-300\", bg: \"bg-blue-500/10 border-blue-500/20 hover:bg-blue-500/20\" },"
+  },
+  {
+    "type": "inline-style",
+    "file": "src/components/share/StoryShareModal.tsx",
+    "line": 628,
+    "snippet": "<div className=\"absolute -right-[4px] top-24 w-[4px] h-10 rounded-r-full\" style={{ background: \"#2a2f42\" }} />"
+  },
+  {
+    "type": "inline-style",
+    "file": "src/components/share/StoryShareModal.tsx",
+    "line": 629,
+    "snippet": "<div className=\"absolute -right-[4px] top-36 w-[4px] h-7 rounded-r-full\" style={{ background: \"#2a2f42\" }} />"
+  },
+  {
+    "type": "inline-style",
+    "file": "src/components/share/StoryShareModal.tsx",
+    "line": 630,
+    "snippet": "<div className=\"absolute -left-[4px] top-28 w-[4px] h-12 rounded-l-full\" style={{ background: \"#2a2f42\" }} />"
+  },
+  {
+    "type": "inline-style",
+    "file": "src/components/share/StoryShareModal.tsx",
+    "line": 643,
+    "snippet": "style={{ width: 80, height: 18, background: \"#0a0d16\", borderRadius: \"0 0 14px 14px\" }}"
+  },
+  {
+    "type": "inline-style",
+    "file": "src/components/share/StoryShareModal.tsx",
+    "line": 645,
+    "snippet": "<div className=\"w-8 h-1 rounded-full\" style={{ background: \"#1a2030\" }} />"
+  },
+  {
+    "type": "inline-style",
+    "file": "src/components/share/StoryShareModal.tsx",
+    "line": 649,
+    "snippet": "<div className=\"absolute -top-10 -left-10 w-48 h-48 rounded-full pointer-events-none\" style={{ background: \"radial-gradient(circle, rgba(59,130,246,0.28) 0%, transparent 70%)\" }} />"
+  },
+  {
+    "type": "inline-style",
+    "file": "src/components/share/StoryShareModal.tsx",
+    "line": 662,
+    "snippet": "<div key={i} className=\"flex-1 h-[2.5px] rounded-full overflow-hidden\" style={{ background: \"rgba(255,255,255,0.22)\" }}>"
+  },
+  {
+    "type": "inline-style",
+    "file": "src/components/share/StoryShareModal.tsx",
+    "line": 679,
+    "snippet": "<div className=\"w-7 h-7 rounded-full p-[2px] flex-shrink-0\" style={{ background: \"linear-gradient(135deg, #3B82F6 0%, #8B5CF6 50%, #10B981 100%)\" }}>"
+  },
+  {
+    "type": "tailwind-raw-utility",
+    "file": "src/components/share/StoryShareModal.tsx",
+    "line": 680,
+    "snippet": "<div className=\"w-full h-full rounded-full bg-[#0E1322] flex items-center justify-center text-white text-[9px] font-black\">"
+  },
+  {
+    "type": "tailwind-raw-utility",
+    "file": "src/components/share/StoryShareModal.tsx",
+    "line": 685,
+    "snippet": "<div className=\"text-white text-[8.5px] font-bold truncate leading-tight\">"
+  },
+  {
+    "type": "tailwind-raw-utility",
+    "file": "src/components/share/StoryShareModal.tsx",
+    "line": 688,
+    "snippet": "<div className=\"text-white/45 text-[7px] leading-tight\">Just now</div>"
+  },
+  {
+    "type": "tailwind-raw-utility",
+    "file": "src/components/share/StoryShareModal.tsx",
+    "line": 690,
+    "snippet": "<div className=\"text-white/55 text-xs font-light\">&bull;&bull;&bull;</div>"
+  },
+  {
+    "type": "inline-style",
+    "file": "src/components/share/StoryShareModal.tsx",
+    "line": 698,
+    "snippet": "<div className=\"w-[58px] h-[58px] rounded-full p-[2.5px]\" style={{ background: \"linear-gradient(135deg, #3B82F6, #8B5CF6, #10B981)\", boxShadow: \"0 0 18px rgba(59,130,246,0.45)\" }}>"
+  },
+  {
+    "type": "tailwind-raw-utility",
+    "file": "src/components/share/StoryShareModal.tsx",
+    "line": 699,
+    "snippet": "<div className=\"w-full h-full rounded-full bg-[#1E293B] flex items-center justify-center text-white text-base font-black\">"
+  },
+  {
+    "type": "inline-style",
+    "file": "src/components/share/StoryShareModal.tsx",
+    "line": 706,
+    "snippet": "<div className=\"text-white text-[12px] font-extrabold leading-tight truncate max-w-[155px]\" style={{ textShadow: \"0 2px 10px rgba(0,0,0,0.7)\" }}>"
+  },
+  {
+    "type": "tailwind-raw-utility",
+    "file": "src/components/share/StoryShareModal.tsx",
+    "line": 706,
+    "snippet": "<div className=\"text-white text-[12px] font-extrabold leading-tight truncate max-w-[155px]\" style={{ textShadow: \"0 2px 10px rgba(0,0,0,0.7)\" }}>"
+  },
+  {
+    "type": "tailwind-raw-utility",
+    "file": "src/components/share/StoryShareModal.tsx",
+    "line": 709,
+    "snippet": "<div className=\"text-white/45 text-[8px] font-medium mt-0.5\">@{profileUsername}</div>"
+  },
+  {
+    "type": "inline-style",
+    "file": "src/components/share/StoryShareModal.tsx",
+    "line": 713,
+    "snippet": "<div className=\"flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[8px] font-bold\" style={{ background: \"rgba(34,197,94,0.15)\", border: \"1px solid rgba(34,197,94,0.35)\", color: \"#4ADE80\" }}>"
+  },
+  {
+    "type": "tailwind-raw-utility",
+    "file": "src/components/share/StoryShareModal.tsx",
+    "line": 720,
+    "snippet": "<div className=\"text-white/40 text-[7.5px] font-medium\">{profile.categories.slice(0, 3).join(\" Â· \")}</div>"
+  },
+  {
+    "type": "inline-style",
+    "file": "src/components/share/StoryShareModal.tsx",
+    "line": 723,
+    "snippet": "<div className=\"w-3/4 h-px\" style={{ background: \"rgba(255,255,255,0.1)\" }} />"
+  },
+  {
+    "type": "inline-style",
+    "file": "src/components/share/StoryShareModal.tsx",
+    "line": 727,
+    "snippet": "<div className=\"w-[66px] h-[66px] p-1.5 rounded-xl\" style={{ background: \"#fff\", boxShadow: \"0 4px 20px rgba(0,0,0,0.5)\" }}>"
+  },
+  {
+    "type": "inline-style",
+    "file": "src/components/share/StoryShareModal.tsx",
+    "line": 732,
+    "snippet": "<div className=\"w-[66px] h-[66px] rounded-xl animate-pulse\" style={{ background: \"rgba(255,255,255,0.1)\" }} />"
+  },
+  {
+    "type": "tailwind-raw-utility",
+    "file": "src/components/share/StoryShareModal.tsx",
+    "line": 735,
+    "snippet": "<div className=\"text-white/45 text-[7.5px] font-medium\">Scan for rate card</div>"
+  },
+  {
+    "type": "inline-style",
+    "file": "src/components/share/StoryShareModal.tsx",
+    "line": 738,
+    "snippet": "<div className=\"flex items-center gap-1 px-2 py-0.5 rounded-full text-[7.5px] font-bold\" style={{ background: \"rgba(56,189,248,0.12)\", border: \"1px solid rgba(56,189,248,0.25)\", color: \"#38BDF8\" }}>"
+  },
+  {
+    "type": "inline-style",
+    "file": "src/components/share/StoryShareModal.tsx",
+    "line": 746,
+    "snippet": "<div className=\"w-11 h-11 rounded-2xl flex items-center justify-center\" style={{ background: \"linear-gradient(135deg, rgba(168,85,247,0.3), rgba(59,130,246,0.3))\", border: \"1px solid rgba(168,85,247,0.4)\", boxShadow: \"0 0 20px rgba(168,85,247,0.3)\" }}>"
+  },
+  {
+    "type": "inline-style",
+    "file": "src/components/share/StoryShareModal.tsx",
+    "line": 751,
+    "snippet": "<div className=\"text-white text-[11px] font-extrabold leading-tight\" style={{ textShadow: \"0 2px 10px rgba(0,0,0,0.7)\" }}>Join My Creator Network</div>"
+  },
+  {
+    "type": "tailwind-raw-utility",
+    "file": "src/components/share/StoryShareModal.tsx",
+    "line": 751,
+    "snippet": "<div className=\"text-white text-[11px] font-extrabold leading-tight\" style={{ textShadow: \"0 2px 10px rgba(0,0,0,0.7)\" }}>Join My Creator Network</div>"
+  },
+  {
+    "type": "tailwind-raw-utility",
+    "file": "src/components/share/StoryShareModal.tsx",
+    "line": 752,
+    "snippet": "<div className=\"text-white/45 text-[8px] mt-0.5\">100% Escrow Guaranteed</div>"
+  },
+  {
+    "type": "inline-style",
+    "file": "src/components/share/StoryShareModal.tsx",
+    "line": 756,
+    "snippet": "<div className=\"w-full max-w-[155px] py-2 px-3 rounded-2xl\" style={{ background: \"linear-gradient(135deg, rgba(37,99,235,0.25), rgba(168,85,247,0.25))\", border: \"1.5px solid rgba(168,85,247,0.45)\", boxShadow: \"0 0 16px rgba(168,85,247,0.2)\" }}>"
+  },
+  {
+    "type": "tailwind-raw-utility",
+    "file": "src/components/share/StoryShareModal.tsx",
+    "line": 758,
+    "snippet": "<div className=\"text-white font-mono text-sm font-black tracking-widest\">{referralCode || \"VYAPAR\"}</div>"
+  },
+  {
+    "type": "tailwind-raw-utility",
+    "file": "src/components/share/StoryShareModal.tsx",
+    "line": 766,
+    "snippet": "<span className=\"text-white/60 text-[7.5px] font-medium\">{perk}</span>"
+  },
+  {
+    "type": "inline-style",
+    "file": "src/components/share/StoryShareModal.tsx",
+    "line": 771,
+    "snippet": "<div className=\"w-3/4 h-px\" style={{ background: \"rgba(255,255,255,0.1)\" }} />"
+  },
+  {
+    "type": "inline-style",
+    "file": "src/components/share/StoryShareModal.tsx",
+    "line": 775,
+    "snippet": "<div className=\"w-[66px] h-[66px] p-1.5 rounded-xl\" style={{ background: \"#fff\", boxShadow: \"0 4px 20px rgba(0,0,0,0.5)\" }}>"
+  },
+  {
+    "type": "inline-style",
+    "file": "src/components/share/StoryShareModal.tsx",
+    "line": 780,
+    "snippet": "<div className=\"w-[66px] h-[66px] rounded-xl animate-pulse\" style={{ background: \"rgba(255,255,255,0.1)\" }} />"
+  },
+  {
+    "type": "tailwind-raw-utility",
+    "file": "src/components/share/StoryShareModal.tsx",
+    "line": 782,
+    "snippet": "<div className=\"text-white/45 text-[7.5px] font-medium\">Scan to claim bonus</div>"
+  },
+  {
+    "type": "inline-style",
+    "file": "src/components/share/StoryShareModal.tsx",
+    "line": 788,
+    "snippet": "<div className=\"absolute bottom-0 left-0 right-0 z-20 pb-3 pt-10 px-4\" style={{ background: \"linear-gradient(to top, rgba(0,0,0,0.88) 0%, transparent 100%)\" }}>"
+  },
+  {
+    "type": "inline-style",
+    "file": "src/components/share/StoryShareModal.tsx",
+    "line": 791,
+    "snippet": "style={{ background: \"rgba(255,255,255,0.96)\", boxShadow: \"0 4px 16px rgba(0,0,0,0.5)\", maxWidth: 190 }}"
+  },
+  {
+    "type": "tailwind-raw-utility",
+    "file": "src/components/share/StoryShareModal.tsx",
+    "line": 799,
+    "snippet": "<div className=\"text-center text-white/30 text-[6.5px] mt-1 font-medium\">See more</div>"
+  },
+  {
+    "type": "inline-style",
+    "file": "src/components/share/StoryShareModal.tsx",
+    "line": 806,
+    "snippet": "<div className=\"w-14 h-[3.5px] rounded-full\" style={{ background: \"rgba(255,255,255,0.15)\" }} />"
+  },
+  {
+    "type": "inline-style",
+    "file": "src/components/share/StoryShareModal.tsx",
+    "line": 852,
+    "snippet": "style={{ boxShadow: \"0 4px 20px rgba(var(--color-primary) / 0.25)\" }}"
+  },
+  {
+    "type": "inline-style",
+    "file": "src/components/share/StoryShareModal.tsx",
+    "line": 916,
+    "snippet": "style={{ background: \"linear-gradient(135deg, rgba(59,130,246,0.25), rgba(168,85,247,0.25))\", border: \"1px solid rgba(59,130,246,0.3)\", color: \"#93C5FD\" }}"
+  },
+  {
+    "type": "tailwind-raw-utility",
+    "file": "src/components/ui/ConfirmationBadge.tsx",
+    "line": 56,
+    "snippet": "className=\"w-3.5 h-3.5 rounded-full bg-emerald-500 text-white flex items-center justify-center shrink-0\""
+  },
+  {
+    "type": "tailwind-raw-utility",
+    "file": "src/components/ui/Select.tsx",
+    "line": 218,
+    "snippet": "optionClass = \"bg-[var(--color-primary)] text-white font-medium\";"
+  },
+  {
+    "type": "tailwind-raw-utility",
+    "file": "src/lib/matching-priority.ts",
+    "line": 80,
+    "snippet": "accentClass: \"border-blue-500/40 bg-blue-500/5 text-blue-500\","
+  },
+  {
+    "type": "tailwind-raw-utility",
+    "file": "src/lib/notification-utils.ts",
+    "line": 106,
+    "snippet": "badgeBg: \"bg-blue-500/10 dark:bg-blue-500/20\","
+  },
+  {
+    "type": "tailwind-raw-utility",
+    "file": "src/lib/notification-utils.ts",
+    "line": 107,
+    "snippet": "textColor: \"text-blue-600 dark:text-blue-400\","
+  },
+  {
+    "type": "tailwind-raw-utility",
+    "file": "src/lib/notification-utils.ts",
+    "line": 108,
+    "snippet": "borderColor: \"border-blue-500/30\","
+  }
+]

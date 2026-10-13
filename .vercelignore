@@ -1,0 +1,12 @@
+.env
+.env.*
+!.env.example
+.next
+node_modules
+coverage
+infra
+local-db
+public/uploads
+*.log
+*.rdb
+*.tsbuildinfo

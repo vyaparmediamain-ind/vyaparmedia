@@ -1,0 +1,71 @@
+{
+  "divWithOnClickNoKey": [],
+  "modalsWithoutFocusTrap": [
+    {
+      "file": "src/app/admin/payouts/page.tsx",
+      "hasFocusTrap": false,
+      "hasAriaModal": false
+    },
+    {
+      "file": "src/app/dashboard/referrals/page.tsx",
+      "hasFocusTrap": false,
+      "hasAriaModal": false
+    },
+    {
+      "file": "src/app/dashboard/wallet/page.tsx",
+      "hasFocusTrap": true,
+      "hasAriaModal": false
+    },
+    {
+      "file": "src/components/dashboard/campaigns/create/CampaignSummarySidebar.tsx",
+      "hasFocusTrap": false,
+      "hasAriaModal": true
+    },
+    {
+      "file": "src/components/dashboard/campaigns/MatchScoreBadge.tsx",
+      "hasFocusTrap": false,
+      "hasAriaModal": false
+    },
+    {
+      "file": "src/components/dashboard/deals/ContentSubmissionModal.tsx",
+      "hasFocusTrap": false,
+      "hasAriaModal": false
+    },
+    {
+      "file": "src/components/dashboard/settings/AppearanceTab.tsx",
+      "hasFocusTrap": false,
+      "hasAriaModal": false
+    },
+    {
+      "file": "src/components/dashboard/wallet/FullScreenWithdrawFlow.tsx",
+      "hasFocusTrap": true,
+      "hasAriaModal": false
+    },
+    {
+      "file": "src/components/dashboard/wallet/StatementExportModal.tsx",
+      "hasFocusTrap": false,
+      "hasAriaModal": false
+    },
+    {
+      "file": "src/components/navigation/MobileSidebar.tsx",
+      "hasFocusTrap": false,
+      "hasAriaModal": true
+    },
+    {
+      "file": "src/components/ui/BottomSheet.tsx",
+      "hasFocusTrap": false,
+      "hasAriaModal": true
+    },
+    {
+      "file": "src/components/ui/Drawer.tsx",
+      "hasFocusTrap": false,
+      "hasAriaModal": true
+    },
+    {
+      "file": "src/components/ui/Modal.tsx",
+      "hasFocusTrap": false,
+      "hasAriaModal": true
+    }
+  ],
+  "framerWithoutReducedMotion": []
+}

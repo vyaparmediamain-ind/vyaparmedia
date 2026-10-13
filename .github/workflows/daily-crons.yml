@@ -1,0 +1,52 @@
+name: Scheduled Daily & Weekly Maintenance Crons
+
+on:
+  schedule:
+    # Runs daily at 04:00 UTC (09:30 AM IST)
+    - cron: "0 4 * * *"
+  workflow_dispatch: # Allows manual trigger from GitHub Actions UI anytime
+
+jobs:
+  run-daily-crons:
+    name: Execute Maintenance Crons
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verify CRON_SECRET is configured
+        run: |
+          if [ -z "${{ secrets.CRON_SECRET }}" ]; then
+            echo "::error::CRON_SECRET secret is not configured in GitHub repository secrets!"
+            exit 1
+          fi
+
+      - name: Trigger Daily Post Monitor
+        run: |
+          echo "Running post-monitor cron..."
+          curl -s -S -f -X GET "https://vyaparmedia-nine.vercel.app/api/cron/post-monitor" \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}"
+
+      - name: Trigger Stale Fulfillment Scanner
+        run: |
+          echo "Running stale-fulfillment cron..."
+          curl -s -S -f -X GET "https://vyaparmedia-nine.vercel.app/api/cron/stale-fulfillment" \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}"
+
+      - name: Trigger Creator Tenure & Milestone Badges
+        run: |
+          echo "Running tenure-badges cron..."
+          curl -s -S -f -X GET "https://vyaparmedia-nine.vercel.app/api/cron/tenure-badges" \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}"
+
+      - name: Trigger Weekly Challenges Generator
+        run: |
+          echo "Running weekly-challenges cron..."
+          curl -s -S -f -X GET "https://vyaparmedia-nine.vercel.app/api/cron/weekly-challenges" \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}"
+
+      - name: Trigger Social Proof & Authenticity Recalculation
+        run: |
+          echo "Running social-proof cron..."
+          curl -s -S -f -X GET "https://vyaparmedia-nine.vercel.app/api/cron/social-proof" \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}"
+
+      - name: Log Cron Completion
+        run: echo "✅ All scheduled maintenance crons triggered successfully!"

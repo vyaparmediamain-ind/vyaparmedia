@@ -1,0 +1,11 @@
+export type ViolationCategory =
+  | "FAKE_ENGAGEMENT"
+  | "POST_DELETION"
+  | "CONTENT_PLAGIARISM"
+  | "MISSED_DEADLINE"
+  | "FAKE_METRICS"
+  | "PAYMENT_FRAUD"
+  | "HARASSMENT"
+  | "SPAM"
+  | "LATE_RESPONSE"
+  | "OTHER";

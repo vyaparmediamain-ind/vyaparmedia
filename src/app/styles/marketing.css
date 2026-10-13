@@ -1,0 +1,281 @@
+/* =====================================================================
+   MARKETING PAGES — Pricing, About, Blog, Contact + Legal Pages
+   All colors via design tokens, zero hardcodes.
+   ===================================================================== */
+
+/* ── Pricing Page ───────────────────────────────────────────────────── */
+
+.pricing-hero {
+  position: relative;
+  overflow: hidden;
+}
+
+.pricing-hero-glow {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 60% 50% at 50% 0%, color-mix(in srgb, var(--color-primary) 8%, transparent), transparent),
+    radial-gradient(ellipse 40% 40% at 85% 60%, color-mix(in srgb, var(--color-accent-cyan) 5%, transparent), transparent);
+  pointer-events: none;
+}
+
+.pricing-cards-grid {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr));
+}
+
+.pricing-card--creator {
+  border: 1px solid color-mix(in srgb, var(--color-primary) 20%, var(--color-border));
+}
+
+.pricing-card--brand {
+  border: 1px solid color-mix(in srgb, var(--color-primary) 35%, transparent);
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--color-primary) 10%, transparent),
+    0 20px 40px -10px color-mix(in srgb, var(--color-primary) 12%, transparent);
+}
+
+.pricing-popular-badge {
+  position: absolute;
+  top: 0;
+  right: 0;
+  font-size: 0.65rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: 5px 14px;
+  border-radius: 0 16px 0 12px;
+  background: var(--gradient-primary);
+  color: #fff;
+}
+
+.pricing-card-icon--creator {
+  background: color-mix(in srgb, var(--color-primary) 12%, transparent);
+  color: var(--color-primary);
+}
+
+.pricing-card-icon--brand {
+  background: var(--gradient-primary);
+  color: #fff;
+}
+
+.pricing-price-block {
+  background: color-mix(in srgb, var(--color-bg-secondary) 80%, transparent);
+  border: 1px solid var(--color-border);
+}
+
+.pricing-price-block--brand {
+  background: color-mix(in srgb, var(--color-primary) 5%, var(--color-bg-secondary));
+  border-color: color-mix(in srgb, var(--color-primary) 20%, var(--color-border));
+}
+
+.pricing-table {
+  border-collapse: collapse;
+}
+
+.pricing-table-head {
+  background: color-mix(in srgb, var(--color-primary) 4%, transparent);
+}
+
+.pricing-cta-card {
+  border: 1px solid color-mix(in srgb, var(--color-primary) 20%, var(--color-border));
+}
+
+/* ── About Page ─────────────────────────────────────────────────────── */
+
+.about-hero {
+  position: relative;
+  overflow: hidden;
+}
+
+.about-hero-glow {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 60% 50% at 50% 0%, color-mix(in srgb, var(--color-primary) 8%, transparent), transparent),
+    radial-gradient(ellipse 40% 40% at 80% 60%, color-mix(in srgb, var(--color-secondary) 5%, transparent), transparent);
+  pointer-events: none;
+}
+
+.about-stats-strip {
+  background: color-mix(in srgb, var(--color-bg-card) 60%, transparent);
+  backdrop-filter: blur(8px);
+}
+
+.about-stat-cell {
+  transition: background var(--transition-fast);
+}
+
+.about-stat-cell:hover {
+  background: color-mix(in srgb, var(--color-primary) 4%, transparent);
+}
+
+.about-standard-panel {
+  border: 1px solid color-mix(in srgb, var(--color-primary) 20%, transparent);
+  background: color-mix(in srgb, var(--color-primary) 3%, var(--color-bg-card));
+}
+
+.about-step-num {
+  border: 1.5px solid color-mix(in srgb, var(--color-primary) 25%, transparent);
+}
+
+.about-value-card {
+  border: 1px solid var(--color-border);
+  transition: border-color var(--transition-fast), transform var(--transition-fast);
+}
+
+.about-value-card:hover {
+  border-color: color-mix(in srgb, var(--color-primary) 30%, transparent);
+}
+
+.about-value-icon {
+  transition: transform var(--transition-fast);
+}
+
+.about-value-card:hover .about-value-icon {
+  transform: scale(1.08);
+}
+
+.about-timeline {
+  padding-left: 0;
+}
+
+.about-timeline-line {
+  left: 23px;
+  background: linear-gradient(to bottom, var(--color-primary), var(--color-border));
+}
+
+.about-timeline-dot {
+  background: var(--gradient-primary);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-primary) 15%, transparent);
+}
+
+.about-cta {
+  border: 1px solid color-mix(in srgb, var(--color-primary) 20%, transparent);
+}
+
+/* ── Blog Page ──────────────────────────────────────────────────────── */
+
+.blog-glow {
+  background:
+    radial-gradient(ellipse 50% 60% at 30% 0%, color-mix(in srgb, var(--color-primary) 6%, transparent), transparent),
+    radial-gradient(ellipse 40% 40% at 70% 80%, color-mix(in srgb, var(--color-secondary) 4%, transparent), transparent);
+}
+
+.blog-post-card {
+  border: 1px solid var(--color-border);
+  cursor: pointer;
+  transition: border-color var(--transition-fast), transform var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.blog-post-card:hover {
+  border-color: color-mix(in srgb, var(--color-primary) 25%, transparent);
+  box-shadow: var(--shadow-md);
+}
+
+.blog-subscribe-card {
+  border: 1px solid color-mix(in srgb, var(--color-primary) 20%, transparent);
+  background: color-mix(in srgb, var(--color-primary) 2%, var(--color-bg-card));
+}
+
+.blog-article-body {
+  font-size: 0.9375rem;
+  line-height: 1.8;
+}
+
+/* ── Contact Page ───────────────────────────────────────────────────── */
+
+.contact-channel-card {
+  border: 1px solid var(--color-border);
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast), transform var(--transition-fast);
+}
+
+.contact-channel-card:hover {
+  box-shadow: var(--shadow-md);
+}
+
+.contact-icon {
+  transition: transform var(--transition-fast);
+}
+
+.contact-channel-card:hover .contact-icon {
+  transform: scale(1.08);
+}
+
+/* ── Legal Pages ────────────────────────────────────────────────────── */
+
+.legal-hero {
+  padding-bottom: 40px;
+}
+
+.legal-layout {
+  grid-template-columns: 1fr 260px;
+}
+
+@media (max-width: 900px) {
+  .legal-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .legal-toc {
+    display: none !important;
+  }
+}
+
+.legal-heading {
+  font-size: 1.0625rem;
+  font-weight: 800;
+  color: var(--color-text-primary);
+  margin-bottom: 0.875rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.legal-section {
+  scroll-margin-top: 90px;
+}
+
+.legal-section p {
+  margin-bottom: 0.75rem;
+  color: var(--color-text-secondary);
+  font-size: 0.875rem;
+  line-height: 1.75;
+}
+
+.legal-section ul,
+.legal-section ol {
+  color: var(--color-text-secondary);
+  font-size: 0.875rem;
+  line-height: 1.75;
+}
+
+.legal-toc a:hover {
+  color: var(--color-primary);
+}
+
+/* ── Responsive ─────────────────────────────────────────────────────── */
+
+@media (max-width: 768px) {
+  .pricing-cards-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .about-timeline-dot {
+    width: 40px;
+    height: 40px;
+    font-size: 0.65rem;
+  }
+
+  .about-timeline-line {
+    left: 19px;
+  }
+
+  .legal-hero {
+    padding-top: 48px;
+  }
+}
+
+@media (max-width: 640px) {
+  .contact-channel-card {
+    padding: 1.25rem;
+  }
+}

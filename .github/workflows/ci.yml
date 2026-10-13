@@ -1,0 +1,168 @@
+name: Production CI Pipeline & Merge Gate
+
+on:
+  push:
+    branches: [main, master, staging]
+  pull_request:
+    branches: [main, master, staging]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint:
+    name: ESLint Validation
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 24.x
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci --legacy-peer-deps
+
+      - name: Run linter
+        run: npm run lint
+
+      - name: Run Theme Token Regression Guard
+        run: npm run lint:theme
+
+  typecheck:
+    name: TypeScript Strict Typecheck
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 24.x
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci --legacy-peer-deps
+
+      - name: Generate Prisma Client
+        run: npx prisma generate
+
+      - name: Run typecheck
+        run: npm run typecheck
+
+  prisma-validate:
+    name: Prisma Schema Validation
+    runs-on: ubuntu-latest
+    env:
+      DATABASE_URL: "postgresql://test_user:test_password@localhost:5432/vyapar_test_db?schema=public"
+      DIRECT_URL: "postgresql://test_user:test_password@localhost:5432/vyapar_test_db?schema=public"
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 24.x
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci --legacy-peer-deps
+
+      - name: Validate Prisma Schema
+        run: npx prisma validate
+
+  tests:
+    name: Vitest Unit & Integration Test Suite
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: test_user
+          POSTGRES_PASSWORD: test_password
+          POSTGRES_DB: vyapar_test_db
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      NODE_ENV: test
+      DATABASE_URL: "postgresql://test_user:test_password@localhost:5432/vyapar_test_db?schema=public"
+      DIRECT_URL: "postgresql://test_user:test_password@localhost:5432/vyapar_test_db?schema=public"
+      REDIS_URL: "redis://localhost:6379"
+      UPSTASH_REDIS_REST_URL: "http://localhost:8079"
+      UPSTASH_REDIS_REST_TOKEN: "mock_upstash_token_for_ci_testing_123"
+      QSTASH_TOKEN: "mock_qstash_token_for_ci_testing_123"
+      ENCRYPTION_KEYS: "k1:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+      HMAC_KEY: "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+      NEXTAUTH_SECRET: "mock_ci_nextauth_secret_for_tests_32_characters_minimum"
+      RAZORPAY_KEY_ID: "rzp_test_mockKey12345"
+      RAZORPAY_KEY_SECRET: "rzp_mockSecretKey12345678"
+      RAZORPAY_WEBHOOK_SECRET: "rzp_webhook_secret_mock_12345"
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 24.x
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci --legacy-peer-deps
+
+      - name: Generate Prisma Client
+        run: npx prisma generate
+
+      - name: Apply DB schema
+        run: npx prisma db push --skip-generate
+
+      - name: Run Vitest Suite (Unit + Integration)
+        run: npm run test
+
+  merge-gate:
+    name: CI Merge Gate (Required Status Check)
+    runs-on: ubuntu-latest
+    needs: [lint, typecheck, prisma-validate, tests]
+    if: always()
+    steps:
+      - name: Evaluate upstream pipeline status
+        run: |
+          if [ "${{ needs.lint.result }}" != "success" ]; then
+            echo "❌ Lint check failed!"
+            exit 1
+          fi
+          if [ "${{ needs.typecheck.result }}" != "success" ]; then
+            echo "❌ TypeScript typecheck failed!"
+            exit 1
+          fi
+          if [ "${{ needs.prisma-validate.result }}" != "success" ]; then
+            echo "❌ Prisma schema validation failed!"
+            exit 1
+          fi
+          if [ "${{ needs.tests.result }}" != "success" ]; then
+            echo "❌ Unit or Integration tests failed!"
+            exit 1
+          fi
+          echo "✅ All CI checks passed successfully! PR is eligible to merge."
