@@ -19,18 +19,8 @@ describe("P3 Architecture, State Machine & Error Hardening", () => {
       "VERIFIED",
     ] as const;
 
-    it("permits BRAND, INFLUENCER, ADMIN, and SYSTEM to restore deal status from DISPUTED", () => {
+    it("permits ADMIN and SYSTEM to restore deal status from DISPUTED across all pre-dispute states", () => {
       for (const targetStatus of validPreDisputeStatuses) {
-        expect(
-          canTransition("DISPUTED", targetStatus, "BRAND"),
-          `BRAND should be allowed to restore DISPUTED -> ${targetStatus}`
-        ).toBe(true);
-
-        expect(
-          canTransition("DISPUTED", targetStatus, "INFLUENCER"),
-          `INFLUENCER should be allowed to restore DISPUTED -> ${targetStatus}`
-        ).toBe(true);
-
         expect(
           canTransition("DISPUTED", targetStatus, "ADMIN"),
           `ADMIN should be allowed to restore DISPUTED -> ${targetStatus}`
@@ -40,6 +30,17 @@ describe("P3 Architecture, State Machine & Error Hardening", () => {
           canTransition("DISPUTED", targetStatus, "SYSTEM"),
           `SYSTEM should be allowed to restore DISPUTED -> ${targetStatus}`
         ).toBe(true);
+
+        // Invariant: Neither party can unilaterally transition out of DISPUTED directly
+        expect(
+          canTransition("DISPUTED", targetStatus, "BRAND"),
+          `BRAND cannot unilaterally transition DISPUTED -> ${targetStatus}`
+        ).toBe(false);
+
+        expect(
+          canTransition("DISPUTED", targetStatus, "INFLUENCER"),
+          `INFLUENCER cannot unilaterally transition DISPUTED -> ${targetStatus}`
+        ).toBe(false);
       }
     });
 

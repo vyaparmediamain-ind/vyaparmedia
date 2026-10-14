@@ -85,15 +85,15 @@ export const DEAL_TRANSITION_MATRIX: Record<DealStatus, StateTransitionRule[]> =
   DISPUTED: [
     { to: "COMPLETED", allowedRoles: ["ADMIN"], financialEffect: "RELEASE_ESCROW" },
     { to: "CANCELLED", allowedRoles: ["ADMIN"], financialEffect: "REFUND_ESCROW" },
-    // Dispute restore transitions (dismissed by mediator or withdrawn by raising party)
-    { to: "ACTIVE", allowedRoles: ["ADMIN", "SYSTEM", "BRAND", "INFLUENCER"], financialEffect: "NONE" },
-    { to: "PAYMENT_HELD", allowedRoles: ["ADMIN", "SYSTEM", "BRAND", "INFLUENCER"], financialEffect: "NONE" },
-    { to: "CONTENT_SUBMITTED", allowedRoles: ["ADMIN", "SYSTEM", "BRAND", "INFLUENCER"], financialEffect: "NONE" },
-    { to: "REVISION_REQUESTED", allowedRoles: ["ADMIN", "SYSTEM", "BRAND", "INFLUENCER"], financialEffect: "NONE" },
-    { to: "CONTENT_APPROVED", allowedRoles: ["ADMIN", "SYSTEM", "BRAND", "INFLUENCER"], financialEffect: "NONE" },
-    { to: "POSTED", allowedRoles: ["ADMIN", "SYSTEM", "BRAND", "INFLUENCER"], financialEffect: "NONE" },
-    { to: "VERIFICATION_PENDING", allowedRoles: ["ADMIN", "SYSTEM", "BRAND", "INFLUENCER"], financialEffect: "NONE" },
-    { to: "VERIFIED", allowedRoles: ["ADMIN", "SYSTEM", "BRAND", "INFLUENCER"], financialEffect: "NONE" },
+    // Dispute restore transitions (dismissed by mediator or withdrawn by raising party via system arbitration)
+    { to: "ACTIVE", allowedRoles: ["ADMIN", "SYSTEM"], financialEffect: "NONE" },
+    { to: "PAYMENT_HELD", allowedRoles: ["ADMIN", "SYSTEM"], financialEffect: "NONE" },
+    { to: "CONTENT_SUBMITTED", allowedRoles: ["ADMIN", "SYSTEM"], financialEffect: "NONE" },
+    { to: "REVISION_REQUESTED", allowedRoles: ["ADMIN", "SYSTEM"], financialEffect: "NONE" },
+    { to: "CONTENT_APPROVED", allowedRoles: ["ADMIN", "SYSTEM"], financialEffect: "NONE" },
+    { to: "POSTED", allowedRoles: ["ADMIN", "SYSTEM"], financialEffect: "NONE" },
+    { to: "VERIFICATION_PENDING", allowedRoles: ["ADMIN", "SYSTEM"], financialEffect: "NONE" },
+    { to: "VERIFIED", allowedRoles: ["ADMIN", "SYSTEM"], financialEffect: "NONE" },
   ],
   // Terminal States — No transitions permitted out of COMPLETED or CANCELLED
   COMPLETED: [],
