@@ -1,7 +1,11 @@
 import prisma from "../db";
 import { logger } from "../logger";
 import { decrypt } from "../encryption";
-import { checkIsInstagramPostPublic, findPostByUrlDetailed } from "../instagram";
+import {
+  checkIsInstagramPostPublic,
+  findPostByUrlDetailed,
+  getFreshInstagramAccessToken,
+} from "../instagram";
 import { extractVideoId, getFreshYouTubeAccessToken, getYouTubeVideoDetailed } from "../youtube";
 import { VerifiedPostData } from "./types";
 
@@ -22,11 +26,7 @@ export async function fetchInstagramPostDataDetailed(
   }
 
   try {
-    const oauth = await prisma.oAuthAccount.findFirst({
-      where: { userId, provider: "instagram" },
-      select: { accessToken: true },
-    });
-    const decryptedAccessToken = oauth?.accessToken ? decrypt(oauth.accessToken) : null;
+    const decryptedAccessToken = await getFreshInstagramAccessToken(userId);
     if (!decryptedAccessToken) {
       return {
         status: "CHECK_FAILED",

@@ -4,7 +4,7 @@ import { decrypt } from "../encryption";
 import { Prisma } from "@prisma/client";
 import { FraudCheckResult, FraudFlag, PostVerificationParams, GrowthCheckParams, FakePostTimingParams, EngagementAnomalyParams, VerifiedPostData } from "./types";
 import { fetchInstagramPostDataDetailed, fetchYouTubePostDataDetailed } from "./post-fetcher";
-import { findPostByUrl } from "../instagram";
+import { findPostByUrl, getFreshInstagramAccessToken } from "../instagram";
 import { extractVideoId, getYouTubeVideo } from "../youtube";
 import { resolveFraudAction } from "./utils";
 import { formatNumber } from "../utils-client";
@@ -424,17 +424,11 @@ let riskScore = 0;
 let verifiedLive: boolean | null = null;
 
 if (postUrl.includes("instagram.com")) {
-const oauth = await prisma.oAuthAccount.findFirst({
-where: { userId, provider: "instagram" },
-select: { accessToken: true },
-});
-
-const decryptedAccessToken = oauth?.accessToken ? decrypt(oauth.accessToken) : null;
-
-if (decryptedAccessToken) {
-const post = await findPostByUrl(decryptedAccessToken, postUrl);
-verifiedLive = Boolean(post);
-}
+  const decryptedAccessToken = await getFreshInstagramAccessToken(userId);
+  if (decryptedAccessToken) {
+    const post = await findPostByUrl(decryptedAccessToken, postUrl);
+    verifiedLive = Boolean(post);
+  }
 }
 
   const youtubeId = extractVideoId(postUrl);

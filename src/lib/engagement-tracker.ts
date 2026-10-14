@@ -10,9 +10,8 @@
 
 import prisma from "./db";
 import { logger } from "./logger";
-import { findPostByUrl } from "./instagram";
+import { findPostByUrl, getFreshInstagramAccessToken } from "./instagram";
 import { verifyYouTubeVideoIsLive } from "./youtube";
-import { decrypt } from "./encryption";
 
 interface EngagementMetrics {
 views: number;
@@ -97,12 +96,8 @@ if (!postUrl.includes("instagram.com")) {
 return null;
 }
 try {
-const oauth = await prisma.oAuthAccount.findFirst({
-where: { userId, provider: "instagram" },
-select: { accessToken: true },
-});
-const decryptedAccessToken = oauth?.accessToken ? decrypt(oauth.accessToken) : null;
-if (decryptedAccessToken) {
+  const decryptedAccessToken = await getFreshInstagramAccessToken(userId);
+  if (decryptedAccessToken) {
 const post = await findPostByUrl(decryptedAccessToken, postUrl);
 if (post) {
 const likes = post.likeCount;

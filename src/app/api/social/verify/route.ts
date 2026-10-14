@@ -8,7 +8,11 @@ import {
   getYouTubeChannelByToken,
   getFreshYouTubeAccessToken,
 } from "@/lib/youtube";
-import { calculateEngagement, getInstagramProfile } from "@/lib/instagram";
+import {
+  calculateEngagement,
+  getInstagramProfile,
+  getFreshInstagramAccessToken,
+} from "@/lib/instagram";
 import { logger } from "@/lib/logger";
 import { z } from "zod";
 import { decrypt } from "@/lib/encryption";
@@ -81,17 +85,12 @@ return { followers, engagementRate };
 }
 
 async function verifyInstagramChannel(userId: string, handle: string, userProfile: InfluencerProfile) {
-const oauth = await prisma.oAuthAccount.findFirst({
-where: { userId, provider: "instagram" },
-select: { accessToken: true },
-});
+  const decryptedAccessToken = await getFreshInstagramAccessToken(userId);
+  const normalizedHandle = handle.replace(/^@/, "").toLowerCase();
 
-const decryptedAccessToken = oauth?.accessToken ? decrypt(oauth.accessToken) : null;
-const normalizedHandle = handle.replace(/^@/, "").toLowerCase();
-
-if (!decryptedAccessToken) {
-throw AppError.badRequest("Connect Instagram through OAuth before verifying profile metrics.");
-}
+  if (!decryptedAccessToken) {
+    throw AppError.badRequest("Connect Instagram through OAuth before verifying profile metrics.");
+  }
 
 const profile = await getInstagramProfile(decryptedAccessToken);
 if (!profile || profile.username?.toLowerCase() !== normalizedHandle) {

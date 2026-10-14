@@ -10,6 +10,8 @@ import { AppError } from "@/lib/errors";
 import { logger } from "./logger";
 import { env } from "@/env";
 import redis from "./redis";
+import { withCircuitBreaker } from "@/lib/circuit-breaker";
+import { SOCIAL_API_TIMEOUT_MS } from "@/constants";
 
 const API_BASE = "https://www.googleapis.com/youtube/v3";
 
@@ -137,7 +139,12 @@ async function fetchYouTube(
     headers["Authorization"] = `Bearer ${accessToken}`;
   }
 
-  const res = await fetch(url.toString(), { headers });
+  const res = await withCircuitBreaker("youtube:fetch", async () => {
+    return await fetch(url.toString(), {
+      headers,
+      signal: AbortSignal.timeout(SOCIAL_API_TIMEOUT_MS),
+    });
+  });
   return res.json();
 }
 
@@ -219,16 +226,19 @@ return null;
 }
 
 try {
-const res = await fetch("https://oauth2.googleapis.com/token", {
-method: "POST",
-headers: { "Content-Type": "application/x-www-form-urlencoded" },
-body: new URLSearchParams({
-client_id: clientId,
-client_secret: clientSecret,
-code,
-grant_type: "authorization_code",
-redirect_uri: redirectUri,
-}),
+const res = await withCircuitBreaker("youtube:token_exchange", async () => {
+  return await fetch("https://oauth2.googleapis.com/token", {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams({
+      client_id: clientId,
+      client_secret: clientSecret,
+      code,
+      grant_type: "authorization_code",
+      redirect_uri: redirectUri,
+    }),
+    signal: AbortSignal.timeout(SOCIAL_API_TIMEOUT_MS),
+  });
 });
 
 const data = await res.json();
@@ -279,15 +289,18 @@ export async function refreshYouTubeToken(
   }
 
   try {
-    const res = await fetch("https://oauth2.googleapis.com/token", {
-      method: "POST",
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body: new URLSearchParams({
-        client_id: clientId,
-        client_secret: clientSecret,
-        refresh_token: refreshToken,
-        grant_type: "refresh_token",
-      }),
+    const res = await withCircuitBreaker("youtube:token_refresh", async () => {
+      return await fetch("https://oauth2.googleapis.com/token", {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: new URLSearchParams({
+          client_id: clientId,
+          client_secret: clientSecret,
+          refresh_token: refreshToken,
+          grant_type: "refresh_token",
+        }),
+        signal: AbortSignal.timeout(SOCIAL_API_TIMEOUT_MS),
+      });
     });
 
     const data = await res.json();
@@ -404,10 +417,13 @@ export async function getFreshYouTubeAccessToken(userId: string): Promise<string
 export async function revokeYouTubeToken(token: string): Promise<boolean> {
   if (!token) return false;
   try {
-    const res = await fetch("https://oauth2.googleapis.com/revoke", {
-      method: "POST",
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body: new URLSearchParams({ token }),
+    const res = await withCircuitBreaker("youtube:token_revoke", async () => {
+      return await fetch("https://oauth2.googleapis.com/revoke", {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: new URLSearchParams({ token }),
+        signal: AbortSignal.timeout(SOCIAL_API_TIMEOUT_MS),
+      });
     });
 
     if (res.ok) {

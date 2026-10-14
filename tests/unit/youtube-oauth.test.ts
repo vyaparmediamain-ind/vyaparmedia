@@ -79,7 +79,9 @@ describe("O2-T1 (OA-08): YouTube getRecentVideos PlaylistItems Optimization", ()
     const channelId = "UC_active_creator";
     const uploadsPlaylistId = "UU_active_creator";
 
-    vi.spyOn(redis, "get").mockResolvedValue(uploadsPlaylistId);
+    vi.spyOn(redis, "get").mockImplementation((async (key: unknown) => {
+      return String(key).startsWith("yt:uploads:") ? uploadsPlaylistId : null;
+    }) as never);
 
     const fetchSpy = vi.spyOn(globalThis, "fetch").mockImplementation(async (url) => {
       const urlStr = url.toString();

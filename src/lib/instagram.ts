@@ -24,6 +24,9 @@ import { env } from "@/env";
 import { logger } from "./logger";
 import { cleanUrl } from "./utils";
 import { SOCIAL_API_TIMEOUT_MS } from "@/constants";
+import prisma from "@/lib/db";
+import { encrypt, decrypt } from "@/lib/encryption";
+import { withCircuitBreaker } from "@/lib/circuit-breaker";
 
 // ─── API Constants ─────────────────────────────────────────────────────────────
 const IG_OAUTH_AUTHORIZE_URL = "https://www.instagram.com/oauth/authorize";
@@ -139,16 +142,19 @@ export async function exchangeInstagramCode(
 
   try {
     // Step 1: Exchange auth code for short-lived access token
-    const shortTokenRes = await fetch(IG_OAUTH_TOKEN_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body: new URLSearchParams({
-        client_id:     appId,
-        client_secret: appSecret,
-        grant_type:    "authorization_code",
-        redirect_uri:  redirectUri,
-        code,
-      }),
+    const shortTokenRes = await withCircuitBreaker("instagram:exchange_short", async () => {
+      return await fetch(IG_OAUTH_TOKEN_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: new URLSearchParams({
+          client_id:     appId,
+          client_secret: appSecret,
+          grant_type:    "authorization_code",
+          redirect_uri:  redirectUri,
+          code,
+        }),
+        signal: AbortSignal.timeout(SOCIAL_API_TIMEOUT_MS),
+      });
     });
 
     if (!shortTokenRes.ok) {
@@ -182,7 +188,11 @@ export async function exchangeInstagramCode(
       access_token:  shortToken,
     });
 
-    const longTokenRes = await fetch(`${IG_GRAPH_BASE_URL}/access_token?${longTokenParams.toString()}`);
+    const longTokenRes = await withCircuitBreaker("instagram:exchange_long", async () => {
+      return await fetch(`${IG_GRAPH_BASE_URL}/access_token?${longTokenParams.toString()}`, {
+        signal: AbortSignal.timeout(SOCIAL_API_TIMEOUT_MS),
+      });
+    });
 
     if (!longTokenRes.ok) {
       logger.error("Instagram long-lived token exchange HTTP error", { status: longTokenRes.status });
@@ -246,7 +256,11 @@ export async function refreshInstagramToken(
       access_token: accessToken,
     });
 
-    const res = await fetch(`${IG_GRAPH_BASE_URL}/refresh_access_token?${params.toString()}`);
+    const res = await withCircuitBreaker("instagram:refresh", async () => {
+      return await fetch(`${IG_GRAPH_BASE_URL}/refresh_access_token?${params.toString()}`, {
+        signal: AbortSignal.timeout(SOCIAL_API_TIMEOUT_MS),
+      });
+    });
     if (!res.ok) {
       logger.error("Instagram token refresh HTTP error", { status: res.status });
       return null;
@@ -279,6 +293,69 @@ export async function refreshInstagramToken(
   }
 }
 
+/**
+ * Enforce token expiry on every read and automatically refresh expired tokens.
+ * Matches getFreshYouTubeAccessToken pattern.
+ */
+export async function getFreshInstagramAccessToken(userId: string): Promise<string | null> {
+  if (!userId) return null;
+
+  try {
+    const oauth = await prisma.oAuthAccount.findFirst({
+      where: {
+        userId,
+        provider: "instagram",
+      },
+      select: {
+        id: true,
+        accessToken: true,
+        expiresAt: true,
+      },
+    });
+
+    if (!oauth?.accessToken) return null;
+
+    const fiveMinutesFromNow = new Date(Date.now() + 5 * 60 * 1000);
+    const isExpiredOrExpiring = !oauth.expiresAt || oauth.expiresAt <= fiveMinutesFromNow;
+
+    if (!isExpiredOrExpiring) {
+      // Token is still fresh; return decrypted access token
+      return decrypt(oauth.accessToken);
+    }
+
+    // Token is expired or expiring soon; refresh it
+    const decryptedCurrentToken = decrypt(oauth.accessToken);
+    const refreshed = await refreshInstagramToken(decryptedCurrentToken);
+
+    if (!refreshed?.accessToken) {
+      // Refresh failed — mark as needing reconnect
+      await prisma.oAuthAccount.update({
+        where: { id: oauth.id },
+        data: {
+          scope: "NEEDS_RECONNECT",
+        },
+      }).catch((updateErr) => {
+        logger.warn("Failed to mark Instagram account as NEEDS_RECONNECT", { userId, updateErr });
+      });
+      return null;
+    }
+
+    const newExpiresAt = new Date(Date.now() + refreshed.expiresIn * 1000);
+    await prisma.oAuthAccount.update({
+      where: { id: oauth.id },
+      data: {
+        accessToken: encrypt(refreshed.accessToken),
+        expiresAt: newExpiresAt,
+      },
+    });
+
+    return refreshed.accessToken;
+  } catch (error) {
+    logger.error("getFreshInstagramAccessToken error", { error, userId });
+    return null;
+  }
+}
+
 // ─── Profile Fetch ─────────────────────────────────────────────────────────────
 
 /**
@@ -286,6 +363,7 @@ export async function refreshInstagramToken(
  *
  * Docs: https://developers.facebook.com/docs/instagram-platform/instagram-api-with-instagram-login/business-login/get-user-profile-and-media
  * Endpoint: GET https://graph.instagram.com/me?fields=user_id,username,name,biography,followers_count,follows_count,media_count,profile_picture_url,account_type
+ * Header: Authorization: Bearer <accessToken>
  *
  * Only BUSINESS or CREATOR account types are supported; PERSONAL accounts fail.
  */
@@ -299,7 +377,14 @@ export async function getInstagramProfile(
 
   try {
     const fields = "user_id,username,name,biography,followers_count,follows_count,media_count,profile_picture_url,account_type";
-    const res = await fetch(`${IG_GRAPH_BASE_URL}/me?fields=${fields}&access_token=${accessToken}`);
+    const res = await withCircuitBreaker("instagram:profile", async () => {
+      return await fetch(`${IG_GRAPH_BASE_URL}/me?fields=${fields}`, {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+        signal: AbortSignal.timeout(SOCIAL_API_TIMEOUT_MS),
+      });
+    });
 
     const data = await res.json() as {
       user_id?: string;
@@ -358,6 +443,7 @@ export async function getInstagramProfile(
  * Fetch recent media posts using Instagram Login token.
  * Docs: https://developers.facebook.com/docs/instagram-platform/instagram-api-with-instagram-login/business-login/get-user-profile-and-media
  * Endpoint: GET https://graph.instagram.com/me/media?fields=id,media_type,permalink,caption,timestamp,like_count,comments_count,is_paid_partnership
+ * Header: Authorization: Bearer <accessToken>
  */
 async function getRecentPosts(
   accessToken: string,
@@ -366,11 +452,19 @@ async function getRecentPosts(
   const allPosts: InstagramPost[] = [];
   const fields = "id,media_type,media_url,permalink,caption,timestamp,like_count,comments_count,is_paid_partnership";
   let nextUrl: string | null =
-    `${IG_GRAPH_BASE_URL}/me/media?fields=${fields}&limit=${Math.min(limit, 50)}&access_token=${accessToken}`;
+    `${IG_GRAPH_BASE_URL}/me/media?fields=${fields}&limit=${Math.min(limit, 50)}`;
 
   try {
     while (nextUrl && allPosts.length < limit) {
-      const res = await fetch(nextUrl);
+      const currentUrl = nextUrl;
+      const res = await withCircuitBreaker("instagram:media", async () => {
+        return await fetch(currentUrl, {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+          signal: AbortSignal.timeout(SOCIAL_API_TIMEOUT_MS),
+        });
+      });
       if (!res.ok) {
         logger.error("Instagram API HTTP error during getRecentPosts", { status: res.status });
         break;
