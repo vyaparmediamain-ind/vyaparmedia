@@ -1,4 +1,15 @@
 import { z } from "zod";
+import { randomBytes } from "crypto";
+
+// Ephemeral per-process secrets for dev and test ONLY — never a constant in source
+const devFallbackAuthSecret =
+  typeof process !== "undefined" && process.env.NODE_ENV !== "production"
+    ? randomBytes(32).toString("hex")
+    : undefined;
+const devFallbackHmacKey =
+  typeof process !== "undefined" && process.env.NODE_ENV !== "production"
+    ? randomBytes(32).toString("hex")
+    : undefined;
 
 // Standard platform fee defaults (aligned with @/constants/deals.ts)
 const DEFAULT_BRAND_PLATFORM_FEE_PERCENT = 10;
@@ -48,10 +59,7 @@ export const envSchema = z.object({
   NEXTAUTH_URL: z.string().url().default(detectedAppUrl),
   NEXT_PUBLIC_APP_URL: z.string().url().default(detectedAppUrl),
   APP_BASE_URL: z.string().url().default(detectedAppUrl),
-  NEXTAUTH_SECRET: z.preprocess(
-    (val) => (typeof val === "string" && val.trim() !== "" ? val : (process.env.AUTH_SECRET || "default_fallback_secret_min_32_chars_vyaparmedia")),
-    z.string().min(32)
-  ),
+  NEXTAUTH_SECRET: emptyAsUndefined(z.string().min(32).optional()),
 
   // Redis: required in production for rate limiting, idempotency, and queues.
   REDIS_URL: z.string().min(1).optional(),
@@ -157,18 +165,10 @@ export const envSchema = z.object({
     .default(0),
 
   // Security
-  AUTH_SECRET: emptyAsUndefined(
-    z.preprocess(
-      (val) => (typeof val === "string" && val.trim() !== "" ? val : (process.env.NEXTAUTH_SECRET || "default_fallback_secret_min_32_chars_vyaparmedia")),
-      z.string().min(32).optional()
-    )
-  ),
+  AUTH_SECRET: emptyAsUndefined(z.string().min(32).optional()),
   CRON_SECRET: z.string().min(32).optional(),
   CONTRACT_SIGNING_SECRET: z.string().min(32).optional(),
-  HMAC_KEY: z.preprocess(
-    (val) => (typeof val === "string" && val.trim() !== "" ? val : (process.env.NEXTAUTH_SECRET || process.env.AUTH_SECRET || "default_hmac_key_min_32_chars_vyaparmedia")),
-    z.string().min(32)
-  ),
+  HMAC_KEY: emptyAsUndefined(z.string().min(32).optional()),
   ENCRYPTION_KEYS: z.preprocess(
     (val) => (typeof val === "string" && val.trim() !== "" ? val : "v1:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"),
     z.string().min(67)
@@ -262,6 +262,46 @@ function validatePlatformCompliance(env: Record<string, unknown>, ctx: z.Refinem
 }
 
 function validateGeneralAndApi(env: Record<string, unknown>, ctx: z.RefinementCtx) {
+  // Enforce critical auth and HMAC secrets in production
+  const authSecret = (env.AUTH_SECRET || env.NEXTAUTH_SECRET) as string | undefined;
+  const KNOWN_AUTH_PLACEHOLDERS = [
+    "default_fallback_secret",
+    "default_hmac_key",
+    "generate-with:",
+    "your_",
+    "change_in_production",
+    "xxx",
+  ];
+
+  if (!authSecret || authSecret.trim().length < 32) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["AUTH_SECRET"],
+      message: "AUTH_SECRET (or NEXTAUTH_SECRET) must be configured with at least 32 characters in production.",
+    });
+  } else if (KNOWN_AUTH_PLACEHOLDERS.some((p) => authSecret.toLowerCase().includes(p.toLowerCase()))) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["AUTH_SECRET"],
+      message: "AUTH_SECRET must not use a known fallback or placeholder in production.",
+    });
+  }
+
+  const hmacKey = env.HMAC_KEY as string | undefined;
+  if (!hmacKey || hmacKey.trim().length < 32) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["HMAC_KEY"],
+      message: "HMAC_KEY must be configured with at least 32 characters in production.",
+    });
+  } else if (KNOWN_AUTH_PLACEHOLDERS.some((p) => hmacKey.toLowerCase().includes(p.toLowerCase()))) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["HMAC_KEY"],
+      message: "HMAC_KEY must not use a known fallback or placeholder in production.",
+    });
+  }
+
   // P1-REL-12: Enforce critical payment and cron secrets in production
   const rzpKeyId = env.RAZORPAY_KEY_ID as string | undefined;
   if (!rzpKeyId || rzpKeyId === "rzp_test_placeholder" || rzpKeyId.trim() === "") {
@@ -377,15 +417,55 @@ const isServer = typeof window === "undefined";
 
 const _env = envSchema.safeParse(process.env);
 
+export function validateCriticalSecrets(envVars: Record<string, string | undefined> = process.env) {
+  const isProd = envVars.NODE_ENV === "production";
+  const authSecret = envVars.AUTH_SECRET || envVars.NEXTAUTH_SECRET;
+
+  if (isProd && (!authSecret || authSecret.trim().length < 32)) {
+    throw new Error("[SECURITY CRITICAL] AUTH_SECRET (or NEXTAUTH_SECRET) >= 32 characters is required in production.");
+  }
+
+  const PLACEHOLDER_PREFIXES = [
+    "generate-with:",
+    "your_",
+    "change_in_production",
+    "xxx",
+    "default_fallback_secret",
+    "default_hmac_key",
+  ];
+  const CRITICAL_SECRETS = [
+    "AUTH_SECRET",
+    "NEXTAUTH_SECRET",
+    "CRON_SECRET",
+    "CONTRACT_SIGNING_SECRET",
+    "HMAC_KEY",
+    "ENCRYPTION_KEY",
+    "ENCRYPTION_KEYS",
+  ] as const;
+
+  for (const key of CRITICAL_SECRETS) {
+    const val = envVars[key];
+    if (val && PLACEHOLDER_PREFIXES.some((prefix) => val.toLowerCase().includes(prefix.toLowerCase()))) {
+      const msg = `[SECURITY NOTICE] ${key} contains an ungenerated placeholder value. Run: openssl rand -hex 32`;
+      if (isProd) {
+        throw new Error(msg);
+      }
+      console.warn("\x1b[33m%s\x1b[0m", msg);
+    }
+  }
+}
+
 if (!_env.success && !shouldSkipValidation) {
   const formatted = _env.error.format();
-  const errorMessage = `Environment variables advisory:\n${JSON.stringify(
+  const errorMessage = `Environment variables validation failed:\n${JSON.stringify(
     formatted,
     null,
     2,
   )}`;
 
-  if (isServer) {
+  if (process.env.NODE_ENV === "production") {
+    throw new Error(errorMessage);
+  } else if (isServer) {
     console.warn("[ENVIRONMENT NOTICE]", errorMessage);
   }
 }
@@ -393,6 +473,22 @@ if (!_env.success && !shouldSkipValidation) {
 export const env = (_env.success
   ? _env.data
   : (process.env as unknown as z.infer<typeof envSchema>)) as z.infer<typeof envSchema>;
+
+if (env.NODE_ENV !== "production") {
+  if (!env.AUTH_SECRET && !env.NEXTAUTH_SECRET) {
+    env.AUTH_SECRET = devFallbackAuthSecret;
+    env.NEXTAUTH_SECRET = devFallbackAuthSecret;
+    if (typeof process !== "undefined" && !process.env.AUTH_SECRET && !process.env.NEXTAUTH_SECRET && devFallbackAuthSecret) {
+      process.env.AUTH_SECRET = devFallbackAuthSecret;
+    }
+  }
+  if (!env.HMAC_KEY) {
+    env.HMAC_KEY = devFallbackHmacKey;
+    if (typeof process !== "undefined" && !process.env.HMAC_KEY && devFallbackHmacKey) {
+      process.env.HMAC_KEY = devFallbackHmacKey;
+    }
+  }
+}
 
 if (isServer) {
   if (_env.success && env.NODE_ENV !== "production" && !env.CONTRACT_SIGNING_SECRET) {
@@ -402,19 +498,7 @@ if (isServer) {
     );
   }
 
-  const PLACEHOLDER_PREFIXES = ["generate-with:", "your_", "change_in_production", "xxx"];
-  const CRITICAL_SECRETS = [
-    "CRON_SECRET",
-    "CONTRACT_SIGNING_SECRET",
-    "HMAC_KEY",
-    "NEXTAUTH_SECRET",
-  ] as const;
-
-  for (const key of CRITICAL_SECRETS) {
-    const val = process.env[key];
-    if (val && PLACEHOLDER_PREFIXES.some((prefix) => val.toLowerCase().startsWith(prefix))) {
-      const msg = `[SECURITY NOTICE] ${key} contains an ungenerated placeholder value. Run: openssl rand -hex 32`;
-      console.warn("\x1b[33m%s\x1b[0m", msg);
-    }
+  if (!shouldSkipValidation) {
+    validateCriticalSecrets(process.env);
   }
 }

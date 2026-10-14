@@ -3,7 +3,7 @@ import type { NextAuthConfig } from "next-auth";
 export const authConfig = {
   basePath: "/api/auth",
   trustHost: true,
-  secret: process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET || "default_fallback_secret_min_32_chars_vyaparmedia",
+  secret: (process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET) as string,
   pages: {
     signIn: "/login",
     error: "/login",

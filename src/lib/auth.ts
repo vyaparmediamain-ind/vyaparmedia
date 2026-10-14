@@ -44,7 +44,7 @@ const googleClientSecret = env.GOOGLE_CLIENT_SECRET;
 export const { handlers, signIn, signOut, auth } = NextAuth({
 basePath: "/api/auth",
 trustHost: true,
-secret: env.AUTH_SECRET || env.NEXTAUTH_SECRET || process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET || "default_fallback_secret_min_32_chars_vyaparmedia",
+secret: (env.AUTH_SECRET || env.NEXTAUTH_SECRET || process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET) as string,
 providers: [
 ...(googleClientId && googleClientSecret
 ? [
