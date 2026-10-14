@@ -87,6 +87,7 @@
 | **Video Missing or Private** | `VIDEO_NOT_FOUND_OR_PRIVATE` | 404 | "Video nahi mila ya private hai. Video public karke dobara try karein." | Check Video | — |
 | **YouTube Channel Not Found** | `CHANNEL_NOT_FOUND` | 404 | "YouTube channel nahi mila. Please handle ya channel ID verify karein." | Check Handle | — |
 | **YouTube Relink Rate Limit** | `YOUTUBE_RELINK_RATE_LIMITED` | 429 | "Yeh YouTube channel aaj ke liye maximum times link ho chuka hai (limit: 3/day). Kal dobara try karein." | Try Tomorrow | — |
+| **OAuth Already Linked (Double-Click Replay)** | `notice=already_linked` | 200 | "Your social account is already connected and up to date." | Done | `/dashboard/settings?tab=social` |
 
 ---
 

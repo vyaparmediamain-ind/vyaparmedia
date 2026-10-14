@@ -135,8 +135,15 @@ export default function SettingsPage() {
     const tabParam = urlParams.get("tab");
     if (tabParam) setActiveTab(tabParam);
     const success = urlParams.get("success");
-    if (success === "instagram_connected") {
+    const notice = urlParams.get("notice");
+    if (notice === "already_linked" || success === "already_linked") {
+      showToast("Your social account is already connected and up to date.", "info");
+      window.history.replaceState({}, document.title, window.location.pathname);
+    } else if (success === "instagram_connected") {
       showToast("Instagram connected successfully!", "success");
+      window.history.replaceState({}, document.title, window.location.pathname);
+    } else if (success === "youtube_connected") {
+      showToast("YouTube connected successfully!", "success");
       window.history.replaceState({}, document.title, window.location.pathname);
     } else if (success === "digilocker_connected") {
       showToast("DigiLocker connected successfully! Verification documents loaded.", "success");

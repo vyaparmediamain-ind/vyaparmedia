@@ -178,7 +178,7 @@ return errorRedirect || oauthRedirect(req, `${ERROR_BASE}invalid_state`);
 }
 const userId = storedState.userId;
 
-const redirectUri = appUrl("/api/auth/youtube/callback", req.nextUrl.origin);
+const redirectUri = appUrl("/api/auth/youtube/callback");
 const tokens = await exchangeYouTubeCode(code, redirectUri);
 if (!tokens) {
 return oauthRedirect(req, `${ERROR_BASE}youtube_token_exchange_failed`);

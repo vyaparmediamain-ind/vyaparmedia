@@ -41,7 +41,7 @@ expiresAt: new Date(Date.now() + 10 * 60 * 1000), // 10 minutes
 },
 });
 
-const redirectUri = appUrl(`/api/auth/${provider}/callback`, req.nextUrl.origin);
+const redirectUri = appUrl(`/api/auth/${provider}/callback`);
 const oauthUrl = getRedirectUriAndUrl(state, redirectUri);
 
 return NextResponse.json({ url: oauthUrl });

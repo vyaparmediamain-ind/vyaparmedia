@@ -26,7 +26,7 @@ try {
   }
   const userId = storedState.userId;
 
-  const redirectUri = appUrl("/api/auth/instagram/callback", req.nextUrl.origin);
+  const redirectUri = appUrl("/api/auth/instagram/callback");
   const tokens = await exchangeInstagramCode(code, redirectUri);
 
   if (!tokens) {
