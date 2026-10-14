@@ -61,6 +61,9 @@
     },
     "src/app/api/admin/financial/route.ts": {
       "maxDuration": 60
+    },
+    "src/app/api/cron/refresh-social-tokens/route.ts": {
+      "maxDuration": 60
     }
   },
   "crons": [
@@ -123,6 +126,10 @@
     {
       "path": "/api/cron/social-proof",
       "schedule": "0 1 * * 0"
+    },
+    {
+      "path": "/api/cron/refresh-social-tokens",
+      "schedule": "0 5 * * *"
     }
   ]
 }

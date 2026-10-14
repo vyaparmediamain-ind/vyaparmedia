@@ -109,16 +109,16 @@ describe("Cron Guard & Authorization Architecture", () => {
 });
 
 describe("Upstash QStash Cron Job Schedule Definitions", () => {
-  it("defines exactly 15 scheduled cron jobs", () => {
-    expect(CRON_JOBS).toHaveLength(15);
+  it("defines exactly 16 scheduled cron jobs", () => {
+    expect(CRON_JOBS).toHaveLength(16);
   });
 
   it("ensures all jobs have unique IDs and unique route paths", () => {
     const ids = new Set(CRON_JOBS.map((j) => j.id));
     const paths = new Set(CRON_JOBS.map((j) => j.path));
 
-    expect(ids.size).toBe(15);
-    expect(paths.size).toBe(15);
+    expect(ids.size).toBe(16);
+    expect(paths.size).toBe(16);
   });
 
   it("ensures all cron expressions are valid 5-part cron syntax", () => {

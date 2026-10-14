@@ -145,6 +145,14 @@ export const CRON_JOBS: CronJobDefinition[] = [
     description: "Weekly re-evaluation of creator authenticity score and quality percentiles",
     timeoutSeconds: 60,
   },
+  {
+    id: "cron-refresh-social-tokens",
+    name: "Refresh Social OAuth Tokens",
+    path: "/api/cron/refresh-social-tokens",
+    cron: "0 5 * * *",
+    description: "Refreshes Instagram and social OAuth tokens expiring within 10 days",
+    timeoutSeconds: 60,
+  },
 ];
 
 async function main() {
