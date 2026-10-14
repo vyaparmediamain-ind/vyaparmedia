@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import { envSchema } from "@/env";
 
 describe("R1-ENV: Environment Variable Validation & Drift Guard", () => {
-  it("exposes all 30 production and integration variables in envSchema", () => {
+  it("exposes all 31 production and integration variables in envSchema", () => {
     // 30 variables identified in Phase 1 Recon (audit/P1-recon.md §4.1)
     const requiredEnvKeys = [
       "SHIPROCKET_EMAIL",
@@ -14,6 +14,7 @@ describe("R1-ENV: Environment Variable Validation & Drift Guard", () => {
       "UPSTASH_REDIS_REST_TOKEN",
       "INSTAGRAM_APP_ID",
       "INSTAGRAM_APP_SECRET",
+      "INSTAGRAM_REDIRECT_URI",
       "YOUTUBE_API_KEY",
       "TWILIO_ACCOUNT_SID",
       "TWILIO_AUTH_TOKEN",

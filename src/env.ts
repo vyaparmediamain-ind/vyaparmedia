@@ -100,6 +100,7 @@ export const envSchema = z.object({
   // Social Media OAuth & APIs
   INSTAGRAM_APP_ID: emptyAsUndefined(z.string().min(1).optional()),
   INSTAGRAM_APP_SECRET: emptyAsUndefined(z.string().min(1).optional()),
+  INSTAGRAM_REDIRECT_URI: emptyAsUndefined(z.string().url().optional()),
   YOUTUBE_API_KEY: emptyAsUndefined(z.string().min(1).optional()),
 
   // SMS & WhatsApp Communications
@@ -298,6 +299,31 @@ function validateGeneralAndApi(env: Record<string, unknown>, ctx: z.RefinementCt
 
   if (!env.CONTRACT_SIGNING_SECRET) {
     console.warn("[PRODUCTION WARNING] CONTRACT_SIGNING_SECRET is not configured in production.");
+  }
+
+  const isInstagramEnabled =
+    env.FEATURE_INSTAGRAM === "true" ||
+    process.env.FEATURE_INSTAGRAM === "true" ||
+    process.env.NEXT_PUBLIC_ENABLE_INSTAGRAM === "true";
+
+  if (isInstagramEnabled) {
+    const igAppId = env.INSTAGRAM_APP_ID as string | undefined;
+    if (!igAppId || igAppId.trim() === "") {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["INSTAGRAM_APP_ID"],
+        message: "INSTAGRAM_APP_ID must be configured in production when Instagram integration is enabled.",
+      });
+    }
+
+    const igAppSecret = env.INSTAGRAM_APP_SECRET as string | undefined;
+    if (!igAppSecret || igAppSecret.trim() === "") {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["INSTAGRAM_APP_SECRET"],
+        message: "INSTAGRAM_APP_SECRET must be configured in production when Instagram integration is enabled.",
+      });
+    }
   }
 }
 
