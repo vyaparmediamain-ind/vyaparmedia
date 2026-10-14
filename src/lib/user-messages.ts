@@ -373,6 +373,61 @@ const ERROR_MAPPING_RULES: ErrorMappingRule[] = [
       actionType: "RETRY",
     },
   },
+  {
+    match: (code, text) =>
+      code === "YOUTUBE_SCOPE_REQUIRED" ||
+      code === "youtube_scope_required" ||
+      /\b(?:youtube_scope_required|youtube access dena zaroori)\b/i.test(text),
+    result: {
+      message: "YouTube access dena zaroori hai. Please reconnect karke YouTube permission grant karein.",
+      actionText: "Reconnect",
+      actionType: "LOGIN",
+    },
+  },
+  {
+    match: (code, text) =>
+      code === "YOUTUBE_QUOTA_EXCEEDED" ||
+      code === "youtube_quota_exceeded" ||
+      /\b(?:youtube_quota_exceeded|quotaexceeded|dailylimitexceeded)\b/i.test(text),
+    result: {
+      message: "YouTube data abhi update nahi ho paya, thodi der baad dobara koshish karein.",
+      actionText: "Try Again",
+      actionType: "RETRY",
+    },
+  },
+  {
+    match: (code, text) =>
+      code === "YOUTUBE_RECONNECT_REQUIRED" ||
+      code === "invalid_grant" ||
+      /\b(?:invalid_grant|youtube token refresh failed)\b/i.test(text),
+    result: {
+      message: "Aapka YouTube connection expire ya revoke ho gaya hai. Dobara connect karein.",
+      actionText: "Reconnect",
+      actionType: "LOGIN",
+    },
+  },
+  {
+    match: (code, text) =>
+      code === "VIDEO_NOT_FOUND_OR_PRIVATE" ||
+      code === "video_not_found_or_private" ||
+      /\b(?:video not found or private|video_not_found_or_private)\b/i.test(text),
+    result: {
+      message: "Video nahi mila ya private hai. Video public karke dobara try karein.",
+      actionText: "Check Video",
+      actionType: "SUPPORT",
+    },
+  },
+  {
+    match: (code, text) =>
+      code === "CHANNEL_NOT_FOUND" ||
+      code === "channel_not_found" ||
+      /\b(?:channel_not_found|youtube channel not found)\b/i.test(text),
+    result: {
+      message: "YouTube channel nahi mila. Please handle ya channel ID verify karein.",
+      actionText: "Check Handle",
+      actionType: "SUPPORT",
+    },
+  },
 
   // 15. Server & Generic Database Fallback
   {

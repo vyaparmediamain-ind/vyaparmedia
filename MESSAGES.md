@@ -75,6 +75,11 @@
 | **Instagram Token Expired** | `INSTAGRAM_RECONNECT_REQUIRED` | 401 | "Your Instagram authorization has expired. Please reconnect your account to continue tracking posts." | Reconnect | `/dashboard/settings?tab=social` |
 | **Insufficient Permissions** | `INSTAGRAM_PERMISSION_DENIED` | 403 | "Instagram permissions insufficient. Please grant access to your Instagram Business or Creator account." | Reconnect | `/dashboard/settings?tab=social` |
 | **Meta Graph Rate Limit** | `INSTAGRAM_RATE_LIMITED` | 429 | "Instagram API rate limit reached. Please wait a moment before trying again." | Wait & Retry | — |
+| **YouTube Scope Required** | `YOUTUBE_SCOPE_REQUIRED` | 400 | "YouTube access dena zaroori hai. Please reconnect karke YouTube permission grant karein." | Reconnect | `/dashboard/settings?tab=social` |
+| **YouTube Quota Throttled** | `YOUTUBE_QUOTA_EXCEEDED` | 429 | "YouTube data abhi update nahi ho paya, thodi der baad dobara koshish karein." | Try Again | — |
+| **YouTube Refresh Expired** | `YOUTUBE_RECONNECT_REQUIRED` | 401 | "Aapka YouTube connection expire ya revoke ho gaya hai. Dobara connect karein." | Reconnect | `/dashboard/settings?tab=social` |
+| **Video Missing or Private** | `VIDEO_NOT_FOUND_OR_PRIVATE` | 404 | "Video nahi mila ya private hai. Video public karke dobara try karein." | Check Video | — |
+| **YouTube Channel Not Found** | `CHANNEL_NOT_FOUND` | 404 | "YouTube channel nahi mila. Please handle ya channel ID verify karein." | Check Handle | — |
 
 ---
 

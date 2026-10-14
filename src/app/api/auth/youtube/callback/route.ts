@@ -137,6 +137,12 @@ if (!tokens) {
 return oauthRedirect(req, `${ERROR_BASE}youtube_token_exchange_failed`);
 }
 
+// O2-T8: Scope verification (Google lets users untick individual scopes on consent screen)
+if (tokens.scope && !tokens.scope.toLowerCase().includes("youtube.readonly")) {
+  logger.warn("User did not grant required youtube.readonly scope", { userId, scope: tokens.scope });
+  return oauthRedirect(req, `${ERROR_BASE}youtube_scope_required`);
+}
+
 const channel = await getYouTubeChannelByToken(tokens.accessToken);
 if (!channel) {
 return oauthRedirect(req, `${ERROR_BASE}youtube_channel_fetch_failed`);

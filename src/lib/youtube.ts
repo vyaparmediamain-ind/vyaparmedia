@@ -257,112 +257,144 @@ return null;
 /**
 * Refresh a YouTube OAuth access token using the stored refresh token.
 */
-async function refreshYouTubeToken(refreshToken: string): Promise<{
-accessToken: string;
-expiresAt: Date;
-} | null> {
-const clientId = env.GOOGLE_CLIENT_ID;
-const clientSecret = env.GOOGLE_CLIENT_SECRET;
-
-if (!clientId || !clientSecret) {
-logger.warn("Google OAuth credentials not configured token refresh skipped");
-return null;
-}
-
-try {
-const res = await fetch("https://oauth2.googleapis.com/token", {
-method: "POST",
-headers: { "Content-Type": "application/x-www-form-urlencoded" },
-body: new URLSearchParams({
-client_id: clientId,
-client_secret: clientSecret,
-refresh_token: refreshToken,
-grant_type: "refresh_token",
-}),
-});
-
-const data = await res.json();
-if (!res.ok || !data.access_token) {
-logger.error("YouTube token refresh failed", {
-error: data.error,
-errorDescription: data.error_description,
-});
-return null;
-}
-
-return {
-accessToken: data.access_token,
-expiresAt: new Date(Date.now() + Number(data.expires_in || 3600) * 1000),
-};
-} catch (error) {
-logger.error("YouTube token refresh error", error);
-return null;
-}
+export interface YouTubeTokenRefreshResult {
+  accessToken: string;
+  expiresAt: Date;
+  isInvalidGrant?: boolean;
 }
 
 /**
-* Get a fresh (non-expired) YouTube access token for a user.
-* Automatically refreshes if the stored token is expired or expiring within 5 minutes.
-* Returns the plaintext access token ready for use in API calls.
-*/
+ * Refresh a YouTube OAuth access token using the stored refresh token.
+ * Docs: https://developers.google.com/identity/protocols/oauth2/web-server#offline
+ */
+export async function refreshYouTubeToken(
+  refreshToken: string,
+): Promise<YouTubeTokenRefreshResult | null> {
+  const clientId = env.GOOGLE_CLIENT_ID;
+  const clientSecret = env.GOOGLE_CLIENT_SECRET;
+
+  if (!clientId || !clientSecret) {
+    logger.warn("Google OAuth credentials not configured token refresh skipped");
+    return null;
+  }
+
+  try {
+    const res = await fetch("https://oauth2.googleapis.com/token", {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams({
+        client_id: clientId,
+        client_secret: clientSecret,
+        refresh_token: refreshToken,
+        grant_type: "refresh_token",
+      }),
+    });
+
+    const data = await res.json();
+    if (!res.ok || !data.access_token) {
+      const isInvalidGrant = data.error === "invalid_grant";
+      logger.error("YouTube token refresh failed", {
+        error: data.error,
+        errorDescription: data.error_description,
+        isInvalidGrant,
+      });
+      return isInvalidGrant ? { accessToken: "", expiresAt: new Date(0), isInvalidGrant: true } : null;
+    }
+
+    return {
+      accessToken: data.access_token,
+      expiresAt: new Date(Date.now() + Number(data.expires_in || 3600) * 1000),
+      isInvalidGrant: false,
+    };
+  } catch (error) {
+    logger.error("YouTube token refresh error", { error });
+    return null;
+  }
+}
+
+/**
+ * Get a fresh (non-expired) YouTube access token for a user.
+ * Automatically refreshes if the stored token is expired or expiring within 5 minutes.
+ * Returns the plaintext access token ready for use in API calls.
+ */
 export async function getFreshYouTubeAccessToken(userId: string): Promise<string | null> {
-// Lazy import to avoid circular deps and keep youtube.ts edge-compatible if needed
-const { default: prisma } = await import("./db");
-const { encrypt, decrypt } = await import("./encryption");
+  // Lazy import to avoid circular deps and keep youtube.ts edge-compatible if needed
+  const { default: prisma } = await import("./db");
+  const { encrypt, decrypt } = await import("./encryption");
 
-try {
-const oauth = await prisma.oAuthAccount.findFirst({
-where: {
-userId,
-provider: { in: ["youtube", "google"] },
-refreshToken: { not: null },
-},
-select: {
-id: true,
-accessToken: true,
-refreshToken: true,
-expiresAt: true,
-},
-});
+  try {
+    const oauth = await prisma.oAuthAccount.findFirst({
+      where: {
+        userId,
+        provider: { in: ["youtube", "google"] },
+        refreshToken: { not: null },
+      },
+      select: {
+        id: true,
+        accessToken: true,
+        refreshToken: true,
+        expiresAt: true,
+      },
+    });
 
-if (!oauth) return null;
+    if (!oauth) return null;
 
-const fiveMinutesFromNow = new Date(Date.now() + 5 * 60 * 1000);
-const isExpiredOrExpiring = !oauth.expiresAt || oauth.expiresAt <= fiveMinutesFromNow;
+    const fiveMinutesFromNow = new Date(Date.now() + 5 * 60 * 1000);
+    const isExpiredOrExpiring = !oauth.expiresAt || oauth.expiresAt <= fiveMinutesFromNow;
 
-if (!isExpiredOrExpiring && oauth.accessToken) {
-// Token still valid return decrypted access token
-return decrypt(oauth.accessToken);
-}
+    if (!isExpiredOrExpiring && oauth.accessToken) {
+      // Token still valid return decrypted access token
+      return decrypt(oauth.accessToken);
+    }
 
-// Token expired or expiring soon refresh it
-if (!oauth.refreshToken) {
-// No refresh token stored return existing access token as best-effort
-return oauth.accessToken ? decrypt(oauth.accessToken) : null;
-}
+    // Token expired or expiring soon refresh it
+    if (!oauth.refreshToken) {
+      // No refresh token stored return existing access token as best-effort
+      return oauth.accessToken ? decrypt(oauth.accessToken) : null;
+    }
 
-const decryptedRefreshToken = decrypt(oauth.refreshToken);
-const refreshed = await refreshYouTubeToken(decryptedRefreshToken);
-if (!refreshed) {
-// Refresh failed fall back to the existing (possibly stale) token
-return oauth.accessToken ? decrypt(oauth.accessToken) : null;
-}
+    const decryptedRefreshToken = decrypt(oauth.refreshToken);
+    const refreshed = await refreshYouTubeToken(decryptedRefreshToken);
+    if (!refreshed || refreshed.isInvalidGrant || !refreshed.accessToken) {
+      if (refreshed?.isInvalidGrant) {
+        await prisma.oAuthAccount.update({
+          where: { id: oauth.id },
+          data: {
+            accessToken: null,
+            scope: "NEEDS_RECONNECT",
+          },
+        });
+        try {
+          const { NotificationService } = await import("@/services/notification.service");
+          await NotificationService.createNotification({
+            userId,
+            type: "security_alert",
+            title: "YouTube Reconnect Required",
+            message: "Aapka YouTube connection expire ya revoke ho gaya hai. Settings me dobara connect karein.",
+            data: { provider: "youtube", action: "reconnect" },
+          });
+        } catch (notifErr) {
+          logger.warn("Failed to notify user of YouTube invalid_grant", { userId, notifErr });
+        }
+      }
+      return null;
+    }
 
-// Persist refreshed token back to DB
-await prisma.oAuthAccount.update({
-where: { id: oauth.id },
-data: {
-accessToken: encrypt(refreshed.accessToken),
-expiresAt: refreshed.expiresAt,
-},
-});
+    // Persist refreshed token back to DB
+    await prisma.oAuthAccount.update({
+      where: { id: oauth.id },
+      data: {
+        accessToken: encrypt(refreshed.accessToken),
+        expiresAt: refreshed.expiresAt,
+      },
+    });
 
-logger.info("YouTube OAuth token refreshed", { userId });
-return refreshed.accessToken;
-} catch (error) {
-logger.error("getFreshYouTubeAccessToken error", error, { userId });
-return null;
-}
+    logger.info("YouTube OAuth token refreshed", { userId });
+    return refreshed.accessToken;
+  } catch (error) {
+    logger.error("getFreshYouTubeAccessToken error", { error, userId });
+    return null;
+  }
 }
 
 

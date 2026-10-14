@@ -252,6 +252,41 @@ describe("User-Facing Message Architecture & Error Sanitization", () => {
         expectedAction: "Wait & Retry",
         failureReason: "Missing mapping for Graph code 17 rate limit",
       },
+      {
+        scenario: "O2-T3/T8: YouTube scope unticked maps to scope required message",
+        input: "youtube_scope_required",
+        expectedMessage: "YouTube access dena zaroori hai. Please reconnect karke YouTube permission grant karein.",
+        expectedAction: "Reconnect",
+        failureReason: "Missing mapping for youtube_scope_required",
+      },
+      {
+        scenario: "O2-T3: YouTube quota exceeded maps to polite retry message",
+        input: "youtube_quota_exceeded",
+        expectedMessage: "YouTube data abhi update nahi ho paya, thodi der baad dobara koshish karein.",
+        expectedAction: "Try Again",
+        failureReason: "Missing mapping for youtube_quota_exceeded",
+      },
+      {
+        scenario: "O2-T3: YouTube invalid_grant maps to reconnect message",
+        input: "invalid_grant",
+        expectedMessage: "Aapka YouTube connection expire ya revoke ho gaya hai. Dobara connect karein.",
+        expectedAction: "Reconnect",
+        failureReason: "Missing mapping for invalid_grant",
+      },
+      {
+        scenario: "O2-T3: YouTube video not found or private maps to actionable instruction",
+        input: "VIDEO_NOT_FOUND_OR_PRIVATE",
+        expectedMessage: "Video nahi mila ya private hai. Video public karke dobara try karein.",
+        expectedAction: "Check Video",
+        failureReason: "Missing mapping for VIDEO_NOT_FOUND_OR_PRIVATE",
+      },
+      {
+        scenario: "O2-T3: YouTube channel not found maps to handle verification message",
+        input: "CHANNEL_NOT_FOUND",
+        expectedMessage: "YouTube channel nahi mila. Please handle ya channel ID verify karein.",
+        expectedAction: "Check Handle",
+        failureReason: "Missing mapping for CHANNEL_NOT_FOUND",
+      },
     ];
 
     it.each(wrongMappingCases)("$scenario", ({ input, expectedMessage, expectedAction, failureReason }) => {
