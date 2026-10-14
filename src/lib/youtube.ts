@@ -397,6 +397,36 @@ export async function getFreshYouTubeAccessToken(userId: string): Promise<string
   }
 }
 
+/**
+ * Revoke a YouTube/Google OAuth token using Google's revoke endpoint.
+ * Docs: https://developers.google.com/identity/protocols/oauth2/web-server#tokenrevoke
+ */
+export async function revokeYouTubeToken(token: string): Promise<boolean> {
+  if (!token) return false;
+  try {
+    const res = await fetch("https://oauth2.googleapis.com/revoke", {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams({ token }),
+    });
+
+    if (res.ok) {
+      logger.info("Successfully revoked Google OAuth token with provider");
+      return true;
+    }
+
+    const errText = await res.text().catch(() => "");
+    logger.warn("Google OAuth token revoke endpoint returned error status", {
+      status: res.status,
+      errorText: errText,
+    });
+    return false;
+  } catch (error) {
+    logger.error("Network error revoking Google OAuth token", { error });
+    return false;
+  }
+}
+
 
 
 /**
