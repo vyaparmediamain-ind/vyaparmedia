@@ -102,6 +102,7 @@ export const envSchema = z.object({
   INSTAGRAM_APP_SECRET: emptyAsUndefined(z.string().min(1).optional()),
   INSTAGRAM_REDIRECT_URI: emptyAsUndefined(z.string().url().optional()),
   YOUTUBE_API_KEY: emptyAsUndefined(z.string().min(1).optional()),
+  YOUTUBE_DAILY_QUOTA: z.coerce.number().optional().default(10000),
 
   // SMS & WhatsApp Communications
   TWILIO_ACCOUNT_SID: emptyAsUndefined(z.string().min(1).optional()),

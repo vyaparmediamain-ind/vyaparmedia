@@ -13,28 +13,132 @@ import redis from "./redis";
 
 const API_BASE = "https://www.googleapis.com/youtube/v3";
 
+/**
+ * Calculate Pacific Date string (YYYY-MM-DD) for quota accounting.
+ * YouTube Data API v3 daily quota resets at midnight Pacific Time (00:00 PST/PDT).
+ * Docs: https://developers.google.com/youtube/v3/guides/quota_and_compliance_audits
+ */
+export function getPacificDateString(date: Date = new Date()): string {
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: "America/Los_Angeles",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(date);
+}
+
+export type YouTubeCallPriority = "critical" | "standard";
+
+export interface QuotaCheckResult {
+  allowed: boolean;
+  currentUsage: number;
+  dailyQuota: number;
+  reason?: string;
+}
+
+/**
+ * Checks and increments the daily YouTube quota counter in Redis.
+ * Non-critical ("standard") calls are throttled when quota usage crosses 80%.
+ * Deal-critical calls ("critical") proceed until 100% exhaustion.
+ */
+export async function checkAndConsumeYouTubeQuota(
+  cost: number = 1,
+  priority: YouTubeCallPriority = "standard",
+): Promise<QuotaCheckResult> {
+  const dailyQuota = env.YOUTUBE_DAILY_QUOTA || 10000;
+  const pacificDay = getPacificDateString();
+  const quotaKey = `yt:quota:${pacificDay}`;
+
+  try {
+    const rawVal = await redis.get(quotaKey);
+    const currentUsage = rawVal ? Number.parseInt(rawVal, 10) : 0;
+    const threshold = Math.floor(dailyQuota * 0.8);
+
+    if (priority === "standard" && currentUsage + cost > threshold) {
+      logger.warn("YouTube API quota >80% threshold reached, skipping non-critical sync", {
+        currentUsage,
+        threshold,
+        dailyQuota,
+        cost,
+        pacificDay,
+      });
+      return {
+        allowed: false,
+        currentUsage,
+        dailyQuota,
+        reason: "YOUTUBE_QUOTA_EXCEEDED",
+      };
+    }
+
+    if (currentUsage + cost > dailyQuota) {
+      logger.error("YouTube API quota 100% exhausted", {
+        currentUsage,
+        dailyQuota,
+        cost,
+        pacificDay,
+      });
+      return {
+        allowed: false,
+        currentUsage,
+        dailyQuota,
+        reason: "YOUTUBE_DAILY_LIMIT_EXHAUSTED",
+      };
+    }
+
+    const newUsage = await redis.incrby(quotaKey, cost);
+    if (newUsage === cost) {
+      // First call of the day - set 48h expiration
+      await redis.expire(quotaKey, 48 * 3600);
+    }
+
+    return { allowed: true, currentUsage: newUsage, dailyQuota };
+  } catch (error) {
+    logger.warn("Redis quota tracking failed, allowing call in fallback mode", { error });
+    return { allowed: true, currentUsage: 0, dailyQuota };
+  }
+}
+
 async function fetchYouTube(
-endpoint: string,
-searchParams: Record<string, string>,
-accessToken?: string
+  endpoint: string,
+  searchParams: Record<string, string>,
+  accessToken?: string,
+  priority: YouTubeCallPriority = "standard",
 ) {
-const url = new URL(`${API_BASE}${endpoint}`);
-for (const [key, value] of Object.entries(searchParams)) {
-url.searchParams.set(key, value);
-}
+  // Quota check before making API call
+  const quotaCheck = await checkAndConsumeYouTubeQuota(1, priority);
+  if (!quotaCheck.allowed) {
+    logger.warn("YouTube API call blocked by quota guard", {
+      endpoint,
+      priority,
+      reason: quotaCheck.reason,
+      currentUsage: quotaCheck.currentUsage,
+    });
+    return {
+      error: {
+        code: 403,
+        message: "YouTube API quota exceeded or threshold reached",
+        errors: [{ reason: "quotaExceeded" }],
+      },
+    };
+  }
 
-const apiKey = env.YOUTUBE_API_KEY || "";
-if (apiKey) {
-url.searchParams.set("key", apiKey);
-}
+  const url = new URL(`${API_BASE}${endpoint}`);
+  for (const [key, value] of Object.entries(searchParams)) {
+    url.searchParams.set(key, value);
+  }
 
-const headers: Record<string, string> = {};
-if (accessToken) {
-headers["Authorization"] = `Bearer ${accessToken}`;
-}
+  const apiKey = env.YOUTUBE_API_KEY || "";
+  if (apiKey) {
+    url.searchParams.set("key", apiKey);
+  }
 
-const res = await fetch(url.toString(), { headers });
-return res.json();
+  const headers: Record<string, string> = {};
+  if (accessToken) {
+    headers["Authorization"] = `Bearer ${accessToken}`;
+  }
+
+  const res = await fetch(url.toString(), { headers });
+  return res.json();
 }
 
 
@@ -426,7 +530,7 @@ export async function getYouTubeVideoDetailed(
     const data = await fetchYouTube("/videos", {
       part: "snippet,statistics,contentDetails,status",
       id: videoId,
-    }, accessToken);
+    }, accessToken, "critical");
 
     if (data.error) {
       logger.error("YouTube API error", {
