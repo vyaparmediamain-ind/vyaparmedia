@@ -194,9 +194,9 @@ refreshToken: refreshTokenNode.token,
 }),
 ],
 callbacks: {
-async signIn({ user, account }) {
+async signIn({ user, account, profile }) {
 if (account?.provider === "google") {
-return handleGoogleOAuthSignIn(user, account);
+return handleGoogleOAuthSignIn(user, account, profile as { email_verified?: boolean } | null | undefined);
 }
 return true;
 },

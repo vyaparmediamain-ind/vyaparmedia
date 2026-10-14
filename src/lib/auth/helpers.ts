@@ -313,67 +313,125 @@ logger.warn("Device fingerprint tracking failed", { error: err, userId });
 });
 }
 
-export async function handleGoogleOAuthSignIn(user: { email?: string | null; id?: string; userType?: string; status?: string; verificationLevel?: string; trustScore?: number; xp?: number; level?: number }, account: { provider?: string; providerAccountId: string; access_token?: string | null }): Promise<boolean | string> {
+export async function handleGoogleOAuthSignIn(
+  user: {
+    email?: string | null;
+    id?: string;
+    userType?: string;
+    status?: string;
+    verificationLevel?: string;
+    trustScore?: number;
+    xp?: number;
+    level?: number;
+    isTwoFactorEnabled?: boolean;
+  },
+  account: { provider?: string; providerAccountId: string; access_token?: string | null },
+  profile?: { email_verified?: boolean } | null,
+): Promise<boolean | string> {
   const email = user.email?.trim().toLowerCase();
   if (!email) {
     logger.warn("Google OAuth login rejected: no email provided");
     return false;
   }
 
-const dbUser = await prisma.user.findUnique({ where: { email } });
+  // O3-T2 (OA-05): In signIn callback for provider google: require profile.email_verified === true
+  if (profile?.email_verified !== true) {
+    logger.warn("Google OAuth login rejected: Google email is not verified", { email });
+    return "/login?error=EmailNotVerified";
+  }
 
-if (dbUser) {
-if (dbUser.status === "BANNED") {
-logger.warn("Google OAuth login rejected for banned account", { email });
-return false;
-}
-if (dbUser.status === "SUSPENDED") {
-logger.warn("Google OAuth login rejected for suspended account", { email });
-return false;
-}
-if (dbUser.status === "DELETED") {
-logger.warn("Google OAuth login rejected for deleted account", { email });
-return false;
-}
-}
+  const dbUser = await prisma.user.findUnique({
+    where: { email },
+    select: {
+      id: true,
+      email: true,
+      status: true,
+      emailVerified: true,
+      isTwoFactorEnabled: true,
+      userType: true,
+      verificationLevel: true,
+      trustScore: true,
+      xp: true,
+      level: true,
+    },
+  });
 
-if (!dbUser) {
-logger.warn("Google OAuth login rejected: user not registered", { email });
-return "/register?error=OAuthAccountNotRegistered";
-}
+  if (!dbUser) {
+    logger.warn("Google OAuth login rejected: user not registered", { email });
+    return "/register?error=OAuthAccountNotRegistered";
+  }
 
-try {
-await prisma.oAuthAccount.upsert({
-where: {
-provider_providerAccountId: {
-provider: "google",
-providerAccountId: account.providerAccountId,
-},
-},
-update: { accessToken: account.access_token ? encrypt(account.access_token) : null },
-create: {
-userId: dbUser.id,
-provider: "google",
-providerAccountId: account.providerAccountId,
-accessToken: account.access_token ? encrypt(account.access_token) : null,
-},
-});
-} catch (oauthLinkError) {
-logger.warn("Failed to upsert OAuthAccount during Google sign-in", {
-error: oauthLinkError,
-email,
-});
-}
+  // O3-T2 (OA-05): Also require local dbUser.emailVerified === true
+  if (!dbUser.emailVerified) {
+    logger.warn("Google OAuth login rejected: local user account email is not verified", { email });
+    return "/login?error=EmailNotVerified";
+  }
 
-user.id = dbUser.id;
-user.userType = dbUser.userType;
-user.status = dbUser.status;
-user.verificationLevel = dbUser.verificationLevel;
-user.trustScore = dbUser.trustScore;
-user.xp = dbUser.xp;
-user.level = dbUser.level;
+  if (dbUser.status === "BANNED" || dbUser.status === "SUSPENDED" || dbUser.status === "DELETED") {
+    logger.warn(`Google OAuth login rejected for ${dbUser.status.toLowerCase()} account`, { email });
+    return false;
+  }
 
-await generateRefreshToken(user.id);
-return true;
+  // O3-T3 (OA-06): If 2FA enabled, require TOTP step after Google OAuth
+  if (dbUser.isTwoFactorEnabled) {
+    logger.info("Google OAuth login requires TOTP verification step", { email, userId: dbUser.id });
+    return `/login?step=2fa&email=${encodeURIComponent(dbUser.email)}`;
+  }
+
+  // O3-T5: If providerAccountId is already linked to another user, reject
+  const existingOAuth = await prisma.oAuthAccount.findUnique({
+    where: {
+      provider_providerAccountId: {
+        provider: "google",
+        providerAccountId: account.providerAccountId,
+      },
+    },
+    select: { userId: true },
+  });
+
+  if (existingOAuth && existingOAuth.userId !== dbUser.id) {
+    logger.warn("Google OAuth login rejected: providerAccountId already linked to another user", {
+      email,
+      providerAccountId: account.providerAccountId,
+      existingUserId: existingOAuth.userId,
+      targetUserId: dbUser.id,
+    });
+    return "/login?error=OAuthAccountNotLinked";
+  }
+
+  // O3-T4 (OA-07): Stop persisting Google access_token (store only provider + providerAccountId)
+  try {
+    await prisma.oAuthAccount.upsert({
+      where: {
+        provider_providerAccountId: {
+          provider: "google",
+          providerAccountId: account.providerAccountId,
+        },
+      },
+      update: { accessToken: null },
+      create: {
+        userId: dbUser.id,
+        provider: "google",
+        providerAccountId: account.providerAccountId,
+        accessToken: null,
+      },
+    });
+  } catch (oauthLinkError) {
+    logger.warn("Failed to upsert OAuthAccount during Google sign-in", {
+      error: oauthLinkError,
+      email,
+    });
+  }
+
+  user.id = dbUser.id;
+  user.userType = dbUser.userType;
+  user.status = dbUser.status;
+  user.verificationLevel = dbUser.verificationLevel;
+  user.trustScore = dbUser.trustScore;
+  user.xp = dbUser.xp;
+  user.level = dbUser.level;
+
+  await generateRefreshToken(user.id);
+  return true;
 }
 
