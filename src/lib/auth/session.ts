@@ -185,6 +185,16 @@ return { valid: true };
 
 async function rotateSessionToken(token: Record<string, unknown>): Promise<Record<string, unknown>> {
 try {
+if (typeof token.id === "string") {
+const statusCheck = await verifyUserAccountStatus(token.id, token, Date.now());
+if (!statusCheck.valid) {
+return {
+...token,
+...(statusCheck.status ? { status: statusCheck.status } : {}),
+error: "AccountBlocked",
+};
+}
+}
 if (!token.refreshToken) throw AppError.badRequest("No refresh token");
 
 const newRefreshToken = await rotateRefreshToken(
