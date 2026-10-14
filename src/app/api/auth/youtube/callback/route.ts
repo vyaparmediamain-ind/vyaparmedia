@@ -11,6 +11,10 @@ getYouTubeChannelByToken,
 } from "@/lib/youtube";
 import { isInfluencer } from "@/lib/rbac";
 import { oauthRedirect, validateAndConsumeOAuthState } from "@/lib/oauth-callback-helper";
+import redis from "@/lib/redis";
+import { NotificationService } from "@/services/notification.service";
+import { createActivityLog } from "@/lib/audit";
+import { AppError } from "@/lib/errors";
 
 const ERROR_BASE = "/dashboard/settings?tab=social&error=";
 
@@ -40,28 +44,71 @@ previousOwnerId,
 newOwnerId: userId,
 });
 
-await prisma.$transaction([
-prisma.oAuthAccount.delete({
-where: {
-provider_providerAccountId: {
-provider: "youtube",
-providerAccountId: channelId,
-},
-},
-}),
-prisma.influencerProfile.updateMany({
-where: { userId: previousOwnerId, youtubeHandle: handle },
-data: { youtubeHandle: null },
-}),
-prisma.oAuthAccount.create({
-data: {
-userId,
-provider: "youtube",
-providerAccountId: channelId,
-...tokenData,
-},
-}),
-]);
+// O2-T5: Rate-limit relinks per channel (max 3/day)
+const relinkKey = `yt:relink:${channelId}`;
+const relinkCount = await redis.incr(relinkKey);
+if (relinkCount === 1) {
+  await redis.expire(relinkKey, 86400); // 24-hour window
+}
+
+if (relinkCount > 3) {
+  logger.warn("YouTube channel relink rate limit exceeded (max 3/day)", {
+    channelId,
+    relinkCount,
+    previousOwnerId,
+    newOwnerId: userId,
+  });
+  throw new AppError("youtube_relink_rate_limited", 429);
+}
+
+await prisma.$transaction(async (tx) => {
+  await tx.oAuthAccount.deleteMany({
+    where: {
+      provider: "youtube",
+      providerAccountId: channelId,
+    },
+  });
+
+  await tx.influencerProfile.updateMany({
+    where: { userId: previousOwnerId, youtubeHandle: handle },
+    data: { youtubeHandle: null },
+  });
+
+  await tx.oAuthAccount.create({
+    data: {
+      userId,
+      provider: "youtube",
+      providerAccountId: channelId,
+      ...tokenData,
+    },
+  });
+
+  await createActivityLog({
+    userId,
+    action: "OAUTH_RELINK",
+    entityType: "OAuthAccount",
+    entityId: channelId,
+    metadata: {
+      channelId,
+      previousOwnerId,
+      newOwnerId: userId,
+      timestamp: new Date().toISOString(),
+    },
+  }, tx);
+});
+
+// Notify previous owner of unlinking
+try {
+  await NotificationService.createNotification({
+    userId: previousOwnerId,
+    type: "security_alert",
+    title: "YouTube Channel Unlinked",
+    message: "Aapka YouTube channel ek dusre account se link hua hai. Agar yeh aapne nahi kiya to support se contact karein.",
+    data: { channelId, newOwnerId: userId },
+  });
+} catch (notifErr) {
+  logger.warn("Failed to notify previous YouTube owner of unlinking", { previousOwnerId, notifErr });
+}
 } else {
 await prisma.oAuthAccount.upsert({
 where: {
@@ -171,8 +218,11 @@ await syncYouTubeInfluencerProfile(userId, channel, handle);
 
 return oauthRedirect(req, "/dashboard/settings?tab=social&success=youtube_connected");
 } catch (err: unknown) {
-logger.error("YouTube callback error", err);
-return oauthRedirect(req, `${ERROR_BASE}youtube_connect_failed`);
+  if (err instanceof AppError && err.message === "youtube_relink_rate_limited") {
+    return oauthRedirect(req, `${ERROR_BASE}youtube_relink_rate_limited`);
+  }
+  logger.error("YouTube callback error", err);
+  return oauthRedirect(req, `${ERROR_BASE}youtube_connect_failed`);
 }
 }
 

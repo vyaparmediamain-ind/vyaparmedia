@@ -428,6 +428,17 @@ const ERROR_MAPPING_RULES: ErrorMappingRule[] = [
       actionType: "SUPPORT",
     },
   },
+  {
+    match: (code, text) =>
+      code === "YOUTUBE_RELINK_RATE_LIMITED" ||
+      code === "youtube_relink_rate_limited" ||
+      /\b(?:youtube_relink_rate_limited|re-linking limit)\b/i.test(text),
+    result: {
+      message: "Yeh YouTube channel aaj ke liye maximum times link ho chuka hai (limit: 3/day). Kal dobara try karein.",
+      actionText: "Try Tomorrow",
+      actionType: "DISMISS",
+    },
+  },
 
   // 15. Server & Generic Database Fallback
   {
