@@ -9,6 +9,7 @@ import { AppError } from "@/lib/errors";
 
 import { logger } from "./logger";
 import { env } from "@/env";
+import redis from "./redis";
 
 const API_BASE = "https://www.googleapis.com/youtube/v3";
 
@@ -539,66 +540,146 @@ return { isLive: video.isLive, video };
 
 
 /**
-* Fetch recent videos from a channel.
-*/
-async function getRecentVideos(
-channelId: string,
-maxResults: number = 10,
-): Promise<YouTubeVideo[]> {
-const apiKey = env.YOUTUBE_API_KEY || "";
-if (!apiKey) return [];
+ * Resolve the uploads playlist ID for a channel.
+ * Cost: 1 quota unit on channels.list, then cached in Redis for 30 days (0 quota units on cache hit).
+ * Standard YouTube channels with ID "UC..." map to uploads playlist "UU...", confirmed via channels.list.
+ * Docs: https://developers.google.com/youtube/v3/docs/channels/list
+ */
+export async function getUploadsPlaylistId(
+  channelId: string,
+  accessToken?: string,
+): Promise<string | null> {
+  const cacheKey = `yt:uploads:${channelId}`;
+  try {
+    const cached = await redis.get(cacheKey);
+    if (cached) return cached;
+  } catch (err) {
+    logger.warn("Redis error fetching cached uploads playlist id", { channelId, err });
+  }
 
-try {
-// Step 1: Search for recent uploads
-const searchRes = await fetch(
-`${API_BASE}/search?part=id&channelId=${channelId}&order=date&type=video&maxResults=${maxResults}&key=${apiKey}`,
-);
+  try {
+    const data = await fetchYouTube(
+      "/channels",
+      {
+        part: "contentDetails",
+        id: channelId,
+      },
+      accessToken,
+    );
 
-const searchData = await searchRes.json();
+    const uploadsId = data?.items?.[0]?.contentDetails?.relatedPlaylists?.uploads;
+    if (uploadsId) {
+      try {
+        await redis.set(cacheKey, uploadsId, "EX", 30 * 86400); // 30 days TTL
+      } catch (err) {
+        logger.warn("Redis error caching uploads playlist id", { channelId, err });
+      }
+      return uploadsId;
+    }
 
-if (searchData.error || !searchData.items) return [];
+    // Deterministic fallback for standard UC-prefixed channels if API returns no items
+    if (channelId.startsWith("UC")) {
+      const fallbackId = "UU" + channelId.slice(2);
+      return fallbackId;
+    }
 
-// Step 2: Get full video details
-const videoIds = searchData.items
-.map((item: { id: { videoId: string } }) => item.id.videoId)
-.join(",");
-
-const videosRes = await fetch(
-`${API_BASE}/videos?part=snippet,statistics,contentDetails,status&id=${videoIds}&key=${apiKey}`,
-);
-
-const videosData = await videosRes.json();
-
-if (!videosData.items) return [];
-
-return videosData.items.map((video: Record<string, unknown>) => ({
-id: video.id,
-title: (video.snippet as Record<string, unknown>)?.title,
-description: (video.snippet as Record<string, unknown>)?.description || "",
-thumbnail: ((video.snippet as Record<string, Record<string, Record<string, string>>>)?.thumbnails?.high?.url) || "",
-publishedAt: (video.snippet as Record<string, unknown>)?.publishedAt,
-viewCount: Number.parseInt(((video.statistics as Record<string, string>)?.viewCount) || "0", 10),
-likeCount: Number.parseInt(((video.statistics as Record<string, string>)?.likeCount) || "0", 10),
-commentCount: Number.parseInt(((video.statistics as Record<string, string>)?.commentCount) || "0", 10),
-duration: (video.contentDetails as Record<string, unknown>)?.duration,
-isLive: (video.status as Record<string, unknown>)?.privacyStatus === "public",
-}));
-} catch (error) {
-logger.error("YouTube recent videos fetch error", error, { channelId });
-return [];
+    return null;
+  } catch (err) {
+    logger.error("Failed to resolve uploads playlist ID for channel", err, { channelId });
+    if (channelId.startsWith("UC")) {
+      return "UU" + channelId.slice(2);
+    }
+    return null;
+  }
 }
-}
-
-
 
 /**
-* Calculate channel engagement from recent videos.
-*/
+ * Fetch recent videos from a channel using official uploads playlist.
+ * Cost breakdown:
+ * - channels.list(part=contentDetails): 1 quota unit (cached in Redis with 30d TTL)
+ * - playlistItems.list(part=contentDetails): 1 quota unit
+ * - videos.list(part=snippet,statistics,contentDetails,status): 1 quota unit
+ * Total: 2-3 quota units (vs search.list which cost 100 units).
+ * Docs: https://developers.google.com/youtube/v3/docs/playlistItems/list
+ */
+export async function getRecentVideos(
+  channelId: string,
+  maxResults: number = 10,
+  accessToken?: string,
+): Promise<YouTubeVideo[]> {
+  const apiKey = env.YOUTUBE_API_KEY || "";
+  if (!apiKey && !accessToken) return [];
+
+  try {
+    // Step 1: Resolve uploads playlist ID (1 unit or 0 from cache)
+    const uploadsPlaylistId = await getUploadsPlaylistId(channelId, accessToken);
+    if (!uploadsPlaylistId) return [];
+
+    // Step 2: Fetch playlist items from uploads playlist (1 quota unit)
+    const playlistData = await fetchYouTube(
+      "/playlistItems",
+      {
+        part: "contentDetails",
+        playlistId: uploadsPlaylistId,
+        maxResults: String(Math.min(maxResults, 50)),
+      },
+      accessToken,
+    );
+
+    if (playlistData.error || !playlistData.items || playlistData.items.length === 0) {
+      return [];
+    }
+
+    const videoIds = playlistData.items
+      .map((item: { contentDetails?: { videoId?: string } }) => item.contentDetails?.videoId)
+      .filter((id: unknown): id is string => Boolean(id))
+      .join(",");
+
+    if (!videoIds) return [];
+
+    // Step 3: Fetch video statistics & details (1 quota unit)
+    const videosData = await fetchYouTube(
+      "/videos",
+      {
+        part: "snippet,statistics,contentDetails,status",
+        id: videoIds,
+      },
+      accessToken,
+    );
+
+    if (!videosData.items) return [];
+
+    return videosData.items.map((video: Record<string, unknown>) => ({
+      id: video.id as string,
+      title: ((video.snippet as Record<string, unknown>)?.title as string) || "",
+      description: ((video.snippet as Record<string, unknown>)?.description as string) || "",
+      thumbnail:
+        ((video.snippet as Record<string, Record<string, Record<string, string>>>)?.thumbnails?.high?.url) ||
+        ((video.snippet as Record<string, Record<string, Record<string, string>>>)?.thumbnails?.default?.url) ||
+        "",
+      publishedAt: ((video.snippet as Record<string, unknown>)?.publishedAt as string) || "",
+      viewCount: Number.parseInt(((video.statistics as Record<string, string>)?.viewCount) || "0", 10),
+      likeCount: Number.parseInt(((video.statistics as Record<string, string>)?.likeCount) || "0", 10),
+      commentCount: Number.parseInt(((video.statistics as Record<string, string>)?.commentCount) || "0", 10),
+      duration: ((video.contentDetails as Record<string, unknown>)?.duration as string) || "",
+      isLive: (video.status as Record<string, unknown>)?.privacyStatus === "public",
+      privacyStatus: (video.status as Record<string, unknown>)?.privacyStatus as string | undefined,
+    }));
+  } catch (error) {
+    logger.error("YouTube recent videos fetch error", error, { channelId });
+    return [];
+  }
+}
+
+/**
+ * Calculate channel engagement from recent videos.
+ */
 export async function calculateYouTubeEngagement(
-channelId: string,
+  channelId: string,
+  accessToken?: string,
 ): Promise<YouTubeInsights | null> {
-const channel = await getYouTubeChannel(channelId);
-const videos = await getRecentVideos(channelId, 20);
+  const channel = await getYouTubeChannel(channelId, accessToken);
+  const videos = await getRecentVideos(channelId, 20, accessToken);
 
 if (!channel || videos.length === 0) return null;
 
