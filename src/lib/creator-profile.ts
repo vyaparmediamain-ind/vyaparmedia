@@ -57,7 +57,7 @@ export function formatCreatorProfileData(influencer: {
   const hasOauthSocial = influencer.user.oauthAccounts?.some(
     (acc) => acc.provider === "instagram" || acc.provider === "youtube"
   ) ?? false;
-  const isSocialVerified = hasOauthSocial || Boolean(influencer.instagramHandle || influencer.youtubeHandle);
+  const isSocialVerified = hasOauthSocial;
 
   const campaignProofs: CampaignProofItem[] = (influencer.deals || []).map((deal) => ({
     id: deal.id,

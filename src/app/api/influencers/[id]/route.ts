@@ -88,7 +88,7 @@ export const GET = apiWrapper(async (req, { params }) => {
   const hasOauthSocial = influencer.user.oauthAccounts?.some(
     (acc) => acc.provider === "instagram" || acc.provider === "youtube"
   ) ?? false;
-  const isSocialVerified = hasOauthSocial || Boolean(influencer.instagramHandle || influencer.youtubeHandle);
+  const isSocialVerified = hasOauthSocial;
 
   // Format verified campaign proofs
   const campaignProofs = (influencer.deals || []).map((deal) => ({

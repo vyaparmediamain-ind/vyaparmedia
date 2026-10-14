@@ -86,7 +86,7 @@ export default async function InfluencerProfilePage({
   const hasOauthSocial = influencer.user.oauthAccounts?.some(
     (acc) => acc.provider === "instagram" || acc.provider === "youtube"
   ) ?? false;
-  const isSocialVerified = hasOauthSocial || Boolean(influencer.instagramHandle || influencer.youtubeHandle);
+  const isSocialVerified = hasOauthSocial;
 
   // Completed campaign proofs
   const campaignProofs = (influencer.deals || []).map((deal) => ({

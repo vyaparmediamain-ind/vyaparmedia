@@ -5,6 +5,11 @@ import prisma from "@/lib/db";
 import { logger } from "@/lib/logger";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { appUrl } from "@/lib/app-url";
+import {
+  isKillSwitchActive,
+  KILL_SWITCH_MESSAGES,
+  type KillSwitchFeature,
+} from "@/lib/kill-switch";
 
 /**
 * Standard utility to initiate the OAuth flow:
@@ -20,15 +25,22 @@ provider: string,
 getRedirectUriAndUrl: (state: string, redirectUri: string) => string,
 ): Promise<Response> {
 try {
-const session = await auth();
-if (!session?.user?.id) {
-return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-}
+  const killSwitchKey = `killswitch:social:${provider}` as KillSwitchFeature;
+  if (await isKillSwitchActive(killSwitchKey)) {
+    const message = KILL_SWITCH_MESSAGES[killSwitchKey] || `${provider} connect is temporarily unavailable`;
+    logger.warn(`OAuth initiate blocked by kill switch: ${killSwitchKey}`);
+    return NextResponse.json({ error: message }, { status: 503 });
+  }
 
-const limit = await checkRateLimit(session.user.id, "AUTH");
-if (!limit.success) {
-return NextResponse.json({ error: "Too many OAuth requests" }, { status: 429 });
-}
+  const session = await auth();
+  if (!session?.user?.id) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const limit = await checkRateLimit(session.user.id, "AUTH");
+  if (!limit.success) {
+    return NextResponse.json({ error: "Too many OAuth requests" }, { status: 429 });
+  }
 
 const state = randomBytes(32).toString("hex");
 

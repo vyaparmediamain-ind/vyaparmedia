@@ -196,7 +196,12 @@ refreshToken: refreshTokenNode.token,
 callbacks: {
 async signIn({ user, account, profile }) {
 if (account?.provider === "google") {
-return handleGoogleOAuthSignIn(user, account, profile as { email_verified?: boolean } | null | undefined);
+  const { isKillSwitchActive } = await import("@/lib/kill-switch");
+  if (await isKillSwitchActive("killswitch:auth:google")) {
+    logger.warn("Google OAuth sign-in blocked by kill switch: killswitch:auth:google");
+    return "/login?error=GoogleAuthUnavailable";
+  }
+  return handleGoogleOAuthSignIn(user, account, profile as { email_verified?: boolean } | null | undefined);
 }
 return true;
 },

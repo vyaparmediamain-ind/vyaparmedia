@@ -8,6 +8,9 @@ export const KILL_SWITCH_FEATURES = {
   CAMPAIGNS: "killswitch:campaigns",
   SIGNUPS: "killswitch:signups",
   MESSAGING: "killswitch:messaging",
+  SOCIAL_INSTAGRAM: "killswitch:social:instagram",
+  SOCIAL_YOUTUBE: "killswitch:social:youtube",
+  AUTH_GOOGLE: "killswitch:auth:google",
 } as const;
 
 export type KillSwitchFeature =
@@ -15,7 +18,10 @@ export type KillSwitchFeature =
   | "killswitch:add_funds"
   | "killswitch:campaigns"
   | "killswitch:signups"
-  | "killswitch:messaging";
+  | "killswitch:messaging"
+  | "killswitch:social:instagram"
+  | "killswitch:social:youtube"
+  | "killswitch:auth:google";
 
 export const KILL_SWITCH_MESSAGES: Record<KillSwitchFeature, string> = {
   "killswitch:withdrawals":
@@ -28,6 +34,12 @@ export const KILL_SWITCH_MESSAGES: Record<KillSwitchFeature, string> = {
     "User registrations are temporarily paused. Existing users can log in normally.",
   "killswitch:messaging":
     "Direct messaging is temporarily unavailable while we perform system upgrades.",
+  "killswitch:social:instagram":
+    "Instagram connection is temporarily unavailable. Please try again later.",
+  "killswitch:social:youtube":
+    "YouTube connection is temporarily unavailable. Please try again later.",
+  "killswitch:auth:google":
+    "Google sign-in is temporarily paused. Please use email and password to log in.",
 };
 
 // In-memory overrides for testing or emergency runtime bypasses
@@ -82,6 +94,13 @@ export async function setKillSwitch(feature: KillSwitchFeature, active: boolean)
       error: err instanceof Error ? err.message : String(err),
     });
   }
+}
+
+/**
+ * Sets an in-memory override for testing or emergency runtime bypass.
+ */
+export function setKillSwitchOverride(feature: KillSwitchFeature, active: boolean): void {
+  localOverrides.set(feature, active);
 }
 
 /**

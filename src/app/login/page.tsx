@@ -101,6 +101,8 @@ export function getSessionMessage(registered: boolean, reason: string | null, er
       return "Invalid email or password. Please verify your credentials.";
     case "AuthError":
       return "Authentication service is ready. Please sign in with your email and password.";
+    case "GoogleAuthUnavailable":
+      return "Google sign-in is temporarily paused. Please sign in with your email and password.";
     default:
       return "Unable to sign in. Please check your credentials or try again.";
   }

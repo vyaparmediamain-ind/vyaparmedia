@@ -235,14 +235,22 @@ badges: user.badges.map((ub) => ({
 earnedAt: ub.earnedAt,
 })),
 socialConnections: {
-instagram: {
-connected: !!instagramOAuth,
-accessTokenPresent: !!instagramOAuth?.accessToken,
-},
-youtube: {
-connected: !!youtubeOAuth,
-accessTokenPresent: !!youtubeOAuth?.accessToken,
-},
+  instagram: {
+    connected: !!instagramOAuth && instagramOAuth.scope !== "NEEDS_RECONNECT",
+    accessTokenPresent: !!instagramOAuth?.accessToken,
+    needsReconnect: instagramOAuth?.scope === "NEEDS_RECONNECT",
+    pendingApproval: instagramOAuth?.scope === "PENDING_APPROVAL",
+    lastSynced: instagramOAuth?.updatedAt?.toISOString() || null,
+    handle: profileData.instagramHandle || null,
+  },
+  youtube: {
+    connected: !!youtubeOAuth && youtubeOAuth.scope !== "NEEDS_RECONNECT",
+    accessTokenPresent: !!youtubeOAuth?.accessToken,
+    needsReconnect: youtubeOAuth?.scope === "NEEDS_RECONNECT",
+    pendingApproval: youtubeOAuth?.scope === "PENDING_APPROVAL",
+    lastSynced: youtubeOAuth?.updatedAt?.toISOString() || null,
+    handle: profileData.youtubeHandle || null,
+  },
 },
 });
 } catch (error: unknown) {

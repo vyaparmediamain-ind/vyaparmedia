@@ -42,6 +42,7 @@
 | **Auth Configuration Issue** | `Configuration` | 500 | "Unable to connect to the login service right now. Please try again or use your password to sign in." | Retry | `/login` |
 | **Email Not Verified** | `EmailNotVerified` | 403 | "Your email address has not been verified yet. Please verify your email before signing in." | Verify Email | `/verify-email` |
 | **Verification Token Expired** | `Verification` | 400 | "The verification link or code is invalid or has expired. Please request a new verification link." | Request Link | `/resend-verification` |
+| **Google Sign-In Paused** | `GoogleAuthUnavailable` | 302 / 503 | "Google sign-in is temporarily paused. Please sign in with your email and password." | Sign In | `/login` |
 
 ### B. Wallet, Payments & Escrow
 | Scenario | Error Code | HTTP Status | User-Facing Message | Suggested Action | Target CTA |
