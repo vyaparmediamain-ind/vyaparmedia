@@ -50,6 +50,8 @@
 | **Insufficient Balance** | `INSUFFICIENT_BALANCE` | 400 | "Your available balance is insufficient for this request. Please deposit funds or adjust the amount." | Add Funds | `/dashboard/wallet` |
 | **Withdrawal Limits** | `WITHDRAWAL_LIMIT_EXCEEDED` | 400 | "Withdrawal must be between ₹500 and ₹5,00,000 per transaction." | Adjust Amount | — |
 | **Gateway Timeout / Ambiguous** | `GATEWAY_AMBIGUOUS` | 400 | "The payment gateway is taking longer than expected to confirm. Please check your transaction history before initiating a new request." | Check History | `/dashboard/wallet?tab=ledger` |
+| **Escrow Release Failed** | `ESCROW_RELEASE_FAILED` | 500 | "The payment gateway could not process this disbursement. Any deducted funds have been returned to your wallet." | View Wallet | `/dashboard/wallet` |
+| **Payout Rejected by Gateway** | `PAYOUT_REJECTED` | 400 | "The payment gateway could not process this disbursement. Any deducted funds have been returned to your wallet." | View Wallet | `/dashboard/wallet` |
 | **Penny-Drop Verification Failed** | `BANK_VERIFY_FAILED` | 400 | "We couldn't verify this bank account with your bank. Please ensure the account number and IFSC code are correct." | Verify Details | `/dashboard/wallet?tab=accounts` |
 | **Max Bank Accounts Reached** | `BANK_LIMIT_REACHED` | 400 | "You have reached the maximum limit of 5 linked bank accounts. Please remove an unused account to add a new one." | Manage Accounts | `/dashboard/wallet?tab=accounts` |
 | **Account Delete Pending Payout** | `BANK_LOCKED_PENDING_PAYOUT` | 400 | "This bank account cannot be removed while a withdrawal is currently processing." | View Payouts | `/dashboard/wallet?tab=ledger` |

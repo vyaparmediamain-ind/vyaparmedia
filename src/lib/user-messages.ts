@@ -270,6 +270,19 @@ const ERROR_MAPPING_RULES: ErrorMappingRule[] = [
     },
   },
 
+  // 11b. Escrow Release / Gateway Payout Rejection
+  {
+    match: (code, text) =>
+      code === "ESCROW_RELEASE_FAILED" ||
+      code === "PAYOUT_REJECTED" ||
+      /\b(?:escrow[_\s]+release[_\s]+failed|payout[_\s]+rejected)\b/i.test(text),
+    result: {
+      message: "The payment gateway could not process this disbursement. Any deducted funds have been returned to your wallet.",
+      actionText: "View Wallet",
+      actionType: "REFRESH",
+    },
+  },
+
   // 12. Bank Account & Penny-Drop Verification
   {
     match: (code, text) =>

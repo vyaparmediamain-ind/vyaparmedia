@@ -3,6 +3,7 @@ import { redis } from "../redis";
 import { logger } from "../logger";
 import { updateTrustAndLevel } from "../trust-engine";
 import type { ViolationCategory } from "../penalty/types";
+import { getProgressivePenaltyHandler } from "../penalty/hooks";
 import { createActivityLog } from "../audit";
 import { randomInt } from "node:crypto";
 import { FullDeal, FullDispute, MediatorAnalysis } from "./types";
@@ -280,13 +281,17 @@ disputeId?: string
 ) {
 const category = resolveDisputeCategory(disputeType);
 try {
-const { applyProgressivePenalty } = await import("../penalty-system");
-await applyProgressivePenalty(
-influencerUserId,
-category,
-`Dispute resolution verdict brand favored: ${explanation || "Terms violation"}`,
-submittedContentUrl
-);
+const handler = getProgressivePenaltyHandler();
+if (handler) {
+  await handler(
+    influencerUserId,
+    category,
+    `Dispute resolution verdict brand favored: ${explanation || "Terms violation"}`,
+    submittedContentUrl
+  );
+} else {
+  logger.warn("Progressive penalty handler not registered, skipping penalty invocation");
+}
 } catch (penaltyError) {
 logger.error(
 "Failed to apply progressive penalty in dispute resolution",

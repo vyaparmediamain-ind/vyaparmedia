@@ -15,7 +15,8 @@ import { Prisma, DealStatus } from "@prisma/client";
 import prisma from "./db";
 import { updateTrustAndLevel } from "./trust-engine";
 import { logger } from "./logger";
-import { applyResolution } from "./dispute-mediator";
+import { applyResolution } from "./dispute-mediator/actions";
+import { registerProgressivePenaltyHandler } from "./penalty/hooks";
 import { NotificationService } from "@/services/notification.service";
 import { createActivityLog } from "./audit";
 import { revokeAllUserSessions } from "./blacklist";
@@ -207,6 +208,10 @@ expiresAt,
 requiresManualReview: strikeNumber >= 4,
 };
 }
+
+// Register penalty handler for Inversion of Control (breaks circular import with dispute-mediator)
+registerProgressivePenaltyHandler(applyProgressivePenalty);
+
 
 async function holdActivePayouts(userId: string) {
   try {

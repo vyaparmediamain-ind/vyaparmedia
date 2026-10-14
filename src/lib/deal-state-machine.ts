@@ -85,13 +85,15 @@ export const DEAL_TRANSITION_MATRIX: Record<DealStatus, StateTransitionRule[]> =
   DISPUTED: [
     { to: "COMPLETED", allowedRoles: ["ADMIN"], financialEffect: "RELEASE_ESCROW" },
     { to: "CANCELLED", allowedRoles: ["ADMIN"], financialEffect: "REFUND_ESCROW" },
-    { to: "ACTIVE", allowedRoles: ["ADMIN", "SYSTEM"], financialEffect: "NONE" },
-    { to: "PAYMENT_HELD", allowedRoles: ["ADMIN", "SYSTEM"], financialEffect: "NONE" },
-    { to: "CONTENT_SUBMITTED", allowedRoles: ["ADMIN", "SYSTEM"], financialEffect: "NONE" },
-    { to: "REVISION_REQUESTED", allowedRoles: ["ADMIN", "SYSTEM"], financialEffect: "NONE" },
-    { to: "CONTENT_APPROVED", allowedRoles: ["ADMIN", "SYSTEM"], financialEffect: "NONE" },
-    { to: "POSTED", allowedRoles: ["ADMIN", "SYSTEM"], financialEffect: "NONE" },
-    { to: "VERIFIED", allowedRoles: ["ADMIN", "SYSTEM"], financialEffect: "NONE" },
+    // Dispute restore transitions (dismissed by mediator or withdrawn by raising party)
+    { to: "ACTIVE", allowedRoles: ["ADMIN", "SYSTEM", "BRAND", "INFLUENCER"], financialEffect: "NONE" },
+    { to: "PAYMENT_HELD", allowedRoles: ["ADMIN", "SYSTEM", "BRAND", "INFLUENCER"], financialEffect: "NONE" },
+    { to: "CONTENT_SUBMITTED", allowedRoles: ["ADMIN", "SYSTEM", "BRAND", "INFLUENCER"], financialEffect: "NONE" },
+    { to: "REVISION_REQUESTED", allowedRoles: ["ADMIN", "SYSTEM", "BRAND", "INFLUENCER"], financialEffect: "NONE" },
+    { to: "CONTENT_APPROVED", allowedRoles: ["ADMIN", "SYSTEM", "BRAND", "INFLUENCER"], financialEffect: "NONE" },
+    { to: "POSTED", allowedRoles: ["ADMIN", "SYSTEM", "BRAND", "INFLUENCER"], financialEffect: "NONE" },
+    { to: "VERIFICATION_PENDING", allowedRoles: ["ADMIN", "SYSTEM", "BRAND", "INFLUENCER"], financialEffect: "NONE" },
+    { to: "VERIFIED", allowedRoles: ["ADMIN", "SYSTEM", "BRAND", "INFLUENCER"], financialEffect: "NONE" },
   ],
   // Terminal States — No transitions permitted out of COMPLETED or CANCELLED
   COMPLETED: [],
@@ -133,6 +135,28 @@ export function canRoleTransition(
   const transitions = DEAL_TRANSITION_MATRIX[fromState] || [];
   const rule = transitions.find((t) => t.to === toState);
   return !!rule && rule.allowedRoles.includes(role);
+}
+
+/**
+ * Returns all configured transition rules available from the given state.
+ */
+export function getAllowedTransitions(fromState: DealStatus): StateTransitionRule[] {
+  return DEAL_TRANSITION_MATRIX[fromState] || [];
+}
+
+/**
+ * Checks whether a state transition is possible (optionally verifying role authorization).
+ */
+export function canTransition(
+  fromState: DealStatus,
+  toState: DealStatus,
+  role?: DealActorRole,
+): boolean {
+  if (role) {
+    return canRoleTransition(fromState, toState, role);
+  }
+  const transitions = DEAL_TRANSITION_MATRIX[fromState] || [];
+  return transitions.some((t) => t.to === toState);
 }
 
 

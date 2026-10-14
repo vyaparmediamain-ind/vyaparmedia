@@ -305,7 +305,7 @@ throw AppError.badRequest("NO_RESERVED_CAMPAIGN_FUNDS");
         });
 
         throw AppError.internal(
-          "Cannot complete deal: Razorpay Route transfer ID could not be identified to release funds to creator. Marked as FAILED for admin review."
+          "ESCROW_RELEASE_FAILED: Unable to identify escrow transfer hold"
         );
       }
 
@@ -351,7 +351,7 @@ throw AppError.badRequest("NO_RESERVED_CAMPAIGN_FUNDS");
         // DO NOT silently swallow! Rethrow so database transaction rolls back,
         // preventing deal from being falsely marked as COMPLETED.
         throw AppError.internal(
-          `Escrow payout release failed on payment gateway: ${err instanceof Error ? err.message : "Gateway error"}. Deal completion stopped to protect creator funds.`
+          "ESCROW_RELEASE_FAILED: Gateway failed to release escrow hold"
         );
       }
 
@@ -707,7 +707,7 @@ throw error;
         );
       });
       await releaseIdempotencyKey(idempotencyKey, userId);
-      throw AppError.badRequest(`Payout rejected by gateway: ${errorMsg}. Funds returned to wallet.`);
+      throw AppError.badRequest("PAYOUT_REJECTED: Withdrawal request could not be processed by payout gateway. Funds have been returned to your wallet.");
     }
 
     // Non-connection, non-timeout, non-deterministic error from Razorpay.

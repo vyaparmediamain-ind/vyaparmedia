@@ -456,4 +456,20 @@ When writing new code, reviewing PRs, or developing features with Antigravity, v
 15. [ ] **Type Integrity**: Does `npm run typecheck` pass with 0 diagnostics?
 16. [ ] **Test Coverage**: Does `npm test` execute and pass across the entire test suite (50 test files, 546 tests)?
 
+---
+
+## 9. Zero-Downtime Migration Mandate (Additive-Only DDL Rule)
+
+Because `.github/workflows/deploy.yml` applies migrations via `npx prisma migrate deploy` **prior** to the Vercel production serverless deployment activating, all migrations must adhere to the **Expand-and-Contract (Additive-Only)** pattern:
+
+1. **Strict Prohibition of Destructive DDL in Deployment Releases**:
+   - Never execute `DROP COLUMN`, `RENAME COLUMN`, `DROP TABLE`, or add `NOT NULL` columns without a default value in the same release as code changes that depend on them.
+   - Doing so causes currently running Vercel serverless lambda instances to crash with fatal SQL errors before the new deployment completes its rollout.
+
+2. **The 3-Phase Safe Migration Protocol**:
+   - **Phase 1 (Expand - Additive Only)**: Add new columns (nullable or with safe defaults) or new tables. Apply migration + deploy code that reads/writes both old and new formats.
+   - **Phase 2 (Backfill & Dual-Write)**: Backfill data asynchronously via script/cron. Verify telemetry.
+   - **Phase 3 (Contract - Deprecate & Prune)**: Deploy code that ceases referencing the old column. In a subsequent release, apply the pruning migration (`DROP COLUMN`).
+
+
 

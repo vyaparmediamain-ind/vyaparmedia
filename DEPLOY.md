@@ -552,6 +552,18 @@ npm run seed:treasury
 npm run seed:badges
 ```
 
+### 6.1 Zero-Downtime Migration Mandate (Additive-Only DDL Rule)
+
+Because `.github/workflows/deploy.yml` applies migrations via `npx prisma migrate deploy` **prior** to activating Vercel production serverless builds, all migrations must strictly adhere to the **Expand-and-Contract (Additive-Only)** pattern:
+
+- 🚫 **Destructive DDL is strictly prohibited in the same release as code changes**:
+  - Never execute `DROP COLUMN`, `RENAME COLUMN`, `DROP TABLE`, or add `NOT NULL` without a default value in an active deployment.
+  - Active Vercel lambdas running previous code will crash immediately upon accessing altered or dropped columns before the new deployment activates.
+- ✅ **3-Phase Expand & Contract Lifecycle**:
+  - **Phase 1 (Expand)**: Additive migrations only (new nullable columns or columns with defaults). Deploy code supporting both.
+  - **Phase 2 (Dual-Write & Backfill)**: Backfill data and verify production telemetry.
+  - **Phase 3 (Contract)**: Remove references in code first; drop deprecated columns in a separate subsequent release.
+
 ---
 
 ## 7. Deployment Options
