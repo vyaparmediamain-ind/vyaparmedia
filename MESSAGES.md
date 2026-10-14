@@ -67,6 +67,15 @@
 | **Internal Server Error** | `INTERNAL` | 500 | "We encountered a temporary processing issue. Our team has been notified. Please try again shortly." | Try Again | — |
 | **File Upload Too Large** | `FILE_TOO_LARGE` | 413 | "File upload failed. Please ensure your file is under the allowed size limit and in a supported format." | Select File | — |
 
+### E. Social OAuth & Platform Verifications
+| Scenario | Error Code | HTTP Status | User-Facing Message | Suggested Action | Target CTA |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **Personal Account Rejected** | `INSTAGRAM_NOT_PROFESSIONAL_ACCOUNT` | 400 | "Instagram Business ya Creator account chahiye. Instagram app > Settings > Account type me switch karo." | Switch Account | — |
+| **Instagram Connect Cancelled** | `INSTAGRAM_CONNECT_CANCELLED` | 400 | "Instagram authorization was cancelled. You can try connecting again whenever you're ready." | Try Again | `/dashboard/settings?tab=social` |
+| **Instagram Token Expired** | `INSTAGRAM_RECONNECT_REQUIRED` | 401 | "Your Instagram authorization has expired. Please reconnect your account to continue tracking posts." | Reconnect | `/dashboard/settings?tab=social` |
+| **Insufficient Permissions** | `INSTAGRAM_PERMISSION_DENIED` | 403 | "Instagram permissions insufficient. Please grant access to your Instagram Business or Creator account." | Reconnect | `/dashboard/settings?tab=social` |
+| **Meta Graph Rate Limit** | `INSTAGRAM_RATE_LIMITED` | 429 | "Instagram API rate limit reached. Please wait a moment before trying again." | Wait & Retry | — |
+
 ---
 
 ## 3. Developer Implementation Standards

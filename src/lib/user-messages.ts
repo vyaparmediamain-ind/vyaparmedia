@@ -319,6 +319,61 @@ const ERROR_MAPPING_RULES: ErrorMappingRule[] = [
   },
 
 
+  // 14. Social OAuth & Platform Verifications
+  {
+    match: (code, text) =>
+      code === "INSTAGRAM_NOT_PROFESSIONAL_ACCOUNT" ||
+      code === "instagram_not_professional_account" ||
+      /\b(?:not a professional account|business or creator account required|instagram_not_professional_account)\b/i.test(text),
+    result: {
+      message: "Instagram Business ya Creator account chahiye. Instagram app > Settings > Account type me switch karo.",
+      actionText: "Switch Account",
+      actionType: "SUPPORT",
+    },
+  },
+  {
+    match: (code, text) =>
+      code === "INSTAGRAM_CONNECT_CANCELLED" ||
+      code === "instagram_connect_cancelled" ||
+      /\b(?:instagram_connect_cancelled|authorization was cancelled)\b/i.test(text),
+    result: {
+      message: "Instagram authorization was cancelled. You can try connecting again whenever you're ready.",
+      actionText: "Try Again",
+      actionType: "RETRY",
+    },
+  },
+  {
+    match: (code, text) =>
+      code === "INSTAGRAM_RECONNECT_REQUIRED" ||
+      code === "NEEDS_RECONNECT" ||
+      /\b(?:190|error validating access token|session has expired|reconnect required)\b/i.test(text),
+    result: {
+      message: "Your Instagram authorization has expired. Please reconnect your account to continue tracking posts.",
+      actionText: "Reconnect",
+      actionType: "LOGIN",
+    },
+  },
+  {
+    match: (code, text) =>
+      code === "INSTAGRAM_PERMISSION_DENIED" ||
+      /\b(?:code:?\s*(?:10|200)\b|permission denied|insufficient permissions)/i.test(text),
+    result: {
+      message: "Instagram permissions insufficient. Please grant access to your Instagram Business or Creator account.",
+      actionText: "Reconnect",
+      actionType: "SUPPORT",
+    },
+  },
+  {
+    match: (code, text) =>
+      code === "INSTAGRAM_RATE_LIMITED" ||
+      /\b(?:code:?\s*(?:4|17|32|613)\b|too many calls to this api|user request limit reached)/i.test(text),
+    result: {
+      message: "Instagram API rate limit reached. Please wait a moment before trying again.",
+      actionText: "Wait & Retry",
+      actionType: "RETRY",
+    },
+  },
+
   // 15. Server & Generic Database Fallback
   {
     match: (_, _text, status) => status !== undefined && status >= 500,

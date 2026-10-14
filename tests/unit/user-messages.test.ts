@@ -231,6 +231,27 @@ describe("User-Facing Message Architecture & Error Sanitization", () => {
         expectedMessage: "LocalStorage quota exceeded",
         failureReason: "Greedy keyword 'storage' in Rule 13 rewrites browser storage into file upload error",
       },
+      {
+        scenario: "O1-T2/T5: Instagram personal account error maps to professional account switch message",
+        input: "instagram_not_professional_account",
+        expectedMessage: "Instagram Business ya Creator account chahiye. Instagram app > Settings > Account type me switch karo.",
+        expectedAction: "Switch Account",
+        failureReason: "Missing mapping for instagram_not_professional_account",
+      },
+      {
+        scenario: "O1-T5: Instagram 190 token expired error maps to reconnect message",
+        input: "OAuthException: Error validating access token (code 190)",
+        expectedMessage: "Your Instagram authorization has expired. Please reconnect your account to continue tracking posts.",
+        expectedAction: "Reconnect",
+        failureReason: "Missing mapping for Graph code 190 token expiry",
+      },
+      {
+        scenario: "O1-T5: Instagram rate limit error maps to rate limited message",
+        input: "OAuthException: User request limit reached (code 17)",
+        expectedMessage: "Instagram API rate limit reached. Please wait a moment before trying again.",
+        expectedAction: "Wait & Retry",
+        failureReason: "Missing mapping for Graph code 17 rate limit",
+      },
     ];
 
     it.each(wrongMappingCases)("$scenario", ({ input, expectedMessage, expectedAction, failureReason }) => {
@@ -247,3 +268,4 @@ describe("User-Facing Message Architecture & Error Sanitization", () => {
     });
   });
 });
+

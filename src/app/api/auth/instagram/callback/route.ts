@@ -14,113 +14,131 @@ async function _handler_GET(req: NextRequest) {
 const { searchParams } = new URL(req.url);
 const code = searchParams.get("code");
 const state = searchParams.get("state");
-const error = searchParams.get("error");
+const error = searchParams.get("error") || searchParams.get("error_reason");
 
 try {
-const { storedState, errorRedirect } = await validateAndConsumeOAuthState(
-req, code, state, error,
-"instagram", ERROR_BASE, "instagram_connect_cancelled",
-);
-if (errorRedirect || !storedState || !code) {
-return errorRedirect || oauthRedirect(req, `${ERROR_BASE}invalid_state`);
-}
-const userId = storedState.userId;
+  const { storedState, errorRedirect } = await validateAndConsumeOAuthState(
+    req, code, state, error,
+    "instagram", ERROR_BASE, "instagram_connect_cancelled",
+  );
+  if (errorRedirect || !storedState || !code) {
+    return errorRedirect || oauthRedirect(req, `${ERROR_BASE}invalid_state`);
+  }
+  const userId = storedState.userId;
 
-const redirectUri = appUrl("/api/auth/instagram/callback", req.nextUrl.origin);
-const tokens = await exchangeInstagramCode(code, redirectUri);
+  const redirectUri = appUrl("/api/auth/instagram/callback", req.nextUrl.origin);
+  const tokens = await exchangeInstagramCode(code, redirectUri);
 
-if (!tokens) {
-return oauthRedirect(req, `${ERROR_BASE}token_exchange_failed`);
-}
+  if (!tokens) {
+    return oauthRedirect(req, `${ERROR_BASE}token_exchange_failed`);
+  }
 
-const profile = await getInstagramProfile(tokens.accessToken);
-if (!profile) {
-return oauthRedirect(req, `${ERROR_BASE}profile_fetch_failed`);
-}
+  const profile = await getInstagramProfile(tokens.accessToken);
+  if (!profile) {
+    // Rejected non-business/creator account or profile fetch failed
+    return oauthRedirect(req, `${ERROR_BASE}instagram_not_professional_account`);
+  }
 
-// Ownership-safe link
-// Check whether this Instagram account is already linked to *any* VyaparMedia
-// user before touching anything.
-const existingLink = await prisma.oAuthAccount.findUnique({
-where: {
-provider_providerAccountId: {
-provider: "instagram",
-providerAccountId: tokens.userId,
-},
-},
-select: { userId: true },
-});
+  const expiresAt = tokens.expiresIn
+    ? new Date(Date.now() + tokens.expiresIn * 1000)
+    : new Date(Date.now() + 60 * 86400 * 1000);
 
-if (existingLink && existingLink.userId !== userId) {
-// Ownership conflict
-// The Instagram account is currently linked to a *different* VyaparMedia
-// user (previousOwner). Silently overwriting the access token would leave
-// the DB row owned by previousOwner while holding the new user's token
-// causing cross-account data leakage in social-verify and post-monitoring.
-//
-// Safe resolution: atomically remove the previous link and clear the
-// previous owner's instagramHandle (they no longer control this account),
-// then create a fresh link for the current user.
-const previousOwnerId = existingLink.userId;
+  // Clean up any legacy Facebook-user-id rows for this user now that we have the canonical Instagram ID
+  await prisma.oAuthAccount.deleteMany({
+    where: {
+      userId,
+      provider: "instagram",
+      providerAccountId: { not: tokens.userId },
+    },
+  }).catch((pruneErr) => {
+    logger.warn("Non-blocking cleanup of legacy Instagram OAuth rows failed", { error: pruneErr });
+  });
 
-logger.warn("Instagram account ownership conflict re-linking to new owner", {
-instagramUserId: tokens.userId,
-instagramHandle: profile.username,
-previousOwnerId,
-newOwnerId: userId,
-});
+  // Ownership-safe link
+  // Check whether this Instagram account is already linked to *any* VyaparMedia
+  // user before touching anything.
+  const existingLink = await prisma.oAuthAccount.findUnique({
+    where: {
+      provider_providerAccountId: {
+        provider: "instagram",
+        providerAccountId: tokens.userId,
+      },
+    },
+    select: { userId: true },
+  });
 
-await prisma.$transaction([
-// 1. Remove old link
-prisma.oAuthAccount.delete({
-where: {
-provider_providerAccountId: {
-provider: "instagram",
-providerAccountId: tokens.userId,
-},
-},
-}),
-// 2. Clear the previous owner's handle so they are not left showing a
-// handle they no longer have authorised access to.
-prisma.influencerProfile.updateMany({
-where: {
-userId: previousOwnerId,
-instagramHandle: profile.username,
-},
-data: { instagramHandle: null },
-}),
-// 3. Create a fresh link for the new owner
-prisma.oAuthAccount.create({
-data: {
-userId,
-provider: "instagram",
-providerAccountId: tokens.userId,
-accessToken: encrypt(tokens.accessToken),
-},
-}),
-]);
-} else if (existingLink) {
-// Same user re-linking (token refresh)
-await prisma.oAuthAccount.update({
-where: {
-provider_providerAccountId: {
-provider: "instagram",
-providerAccountId: tokens.userId,
-},
-},
-data: { accessToken: encrypt(tokens.accessToken) },
-});
-} else {
-// Fresh link no prior row
-await prisma.oAuthAccount.create({
-data: {
-userId,
-provider: "instagram",
-providerAccountId: tokens.userId,
-accessToken: encrypt(tokens.accessToken),
-},
-});
-}
+  if (existingLink && existingLink.userId !== userId) {
+    // Ownership conflict
+    // The Instagram account is currently linked to a *different* VyaparMedia
+    // user (previousOwner). Atomically remove previous link and create fresh link.
+    const previousOwnerId = existingLink.userId;
+
+    logger.warn("Instagram account ownership conflict re-linking to new owner", {
+      instagramUserId: tokens.userId,
+      instagramHandle: profile.username,
+      previousOwnerId,
+      newOwnerId: userId,
+    });
+
+    await prisma.$transaction([
+      // 1. Remove old link
+      prisma.oAuthAccount.delete({
+        where: {
+          provider_providerAccountId: {
+            provider: "instagram",
+            providerAccountId: tokens.userId,
+          },
+        },
+      }),
+      // 2. Clear the previous owner's handle so they are not left showing a
+      // handle they no longer have authorised access to.
+      prisma.influencerProfile.updateMany({
+        where: {
+          userId: previousOwnerId,
+          instagramHandle: profile.username,
+        },
+        data: { instagramHandle: null },
+      }),
+      // 3. Create a fresh link for the new owner
+      prisma.oAuthAccount.create({
+        data: {
+          userId,
+          provider: "instagram",
+          providerAccountId: tokens.userId,
+          accessToken: encrypt(tokens.accessToken),
+          expiresAt,
+          scope: "instagram_business_basic",
+        },
+      }),
+    ]);
+  } else if (existingLink) {
+    // Same user re-linking (token refresh)
+    await prisma.oAuthAccount.update({
+      where: {
+        provider_providerAccountId: {
+          provider: "instagram",
+          providerAccountId: tokens.userId,
+        },
+      },
+      data: {
+        accessToken: encrypt(tokens.accessToken),
+        expiresAt,
+        scope: "instagram_business_basic",
+      },
+    });
+  } else {
+    // Fresh link no prior row
+    await prisma.oAuthAccount.create({
+      data: {
+        userId,
+        provider: "instagram",
+        providerAccountId: tokens.userId,
+        accessToken: encrypt(tokens.accessToken),
+        expiresAt,
+        scope: "instagram_business_basic",
+      },
+    });
+  }
 //
 
 // If the connecting user is an influencer, sync their handle + follower count.

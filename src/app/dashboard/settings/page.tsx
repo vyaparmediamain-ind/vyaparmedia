@@ -142,7 +142,8 @@ export default function SettingsPage() {
       showToast("DigiLocker connected successfully! Verification documents loaded.", "success");
       window.history.replaceState({}, document.title, window.location.pathname);
     } else if (urlParams.get("error")) {
-      showToast(`Error: ${urlParams.get("error")}`, "error");
+      const rawError = urlParams.get("error") || "";
+      showToast(formatUserError(rawError), "error");
       window.history.replaceState({}, document.title, window.location.pathname);
     }
   }, [showToast]);
