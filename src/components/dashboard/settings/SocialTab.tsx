@@ -61,13 +61,20 @@ export default function SocialTab({
   const disconnectPlatform = async (platform: "instagram" | "youtube") => {
     const platformLabel = platform === "instagram" ? "Instagram" : "YouTube";
     try {
-      await apiClient.users.disconnectSocial(platform);
+      const res = await apiClient.users.disconnectSocial(platform) as { message?: string };
       // Refresh settings to reflect disconnected status
       const data = await apiClient.settings.get_() as { socialConnections?: SocialConnections };
       if (data.socialConnections) {
         setSocialConnections(data.socialConnections);
       }
-      showToast(`${platformLabel} disconnected successfully.`, "info");
+      if (platform === "instagram") {
+        showToast(
+          res.message || "Instagram disconnected. Note: To completely revoke permissions, open Instagram > Settings > Apps & Websites > Active > Remove.",
+          "info",
+        );
+      } else {
+        showToast(`${platformLabel} disconnected successfully.`, "info");
+      }
     } catch (error) {
       logger.error(`[social-tab] Failed to disconnect ${platformLabel}:`, error);
       showToast(
