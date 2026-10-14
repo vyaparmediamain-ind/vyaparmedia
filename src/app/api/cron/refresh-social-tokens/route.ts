@@ -8,6 +8,7 @@ import { refreshInstagramToken } from "@/lib/instagram";
 import { encrypt, decrypt } from "@/lib/encryption";
 import { NotificationService } from "@/services/notification.service";
 import { createActivityLog } from "@/lib/audit";
+import { purgeOrRefreshStaleYouTubeData } from "@/lib/youtube-retention";
 
 /**
  * Social OAuth Token Lifecycle Refresh Cron
@@ -111,16 +112,22 @@ async function _handler(_req: NextRequest) {
       }
     }
 
+    // O2-T6: Enforce YouTube 30-day API data retention compliance
+    const retentionResult = await purgeOrRefreshStaleYouTubeData(now);
+
     logger.info("Social OAuth token refresh cron completed", {
       totalEvaluated: expiringAccounts.length,
       refreshed: refreshedCount,
       failed: failedCount,
+      youtubeRetentionPurged: retentionResult.purged,
+      youtubeRetentionRefreshed: retentionResult.refreshed,
     });
 
     return NextResponse.json({
       success: true,
       refreshed: refreshedCount,
       failed: failedCount,
+      youtubeRetention: retentionResult,
     });
   } finally {
     await releaseDistributedLock(lockKey, lock);

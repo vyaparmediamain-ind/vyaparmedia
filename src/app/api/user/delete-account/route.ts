@@ -131,6 +131,10 @@ async function anonymizeUserData(tx: Prisma.TransactionClient, userId: string, a
       avatar: null,
       instagramHandle: null,
       youtubeHandle: null,
+      youtubeSubscribers: 0,
+      youtubeEngagementRate: 0,
+      minYoutubeRate: null,
+      maxYoutubeRate: null,
       city: null,
       state: null,
     },
@@ -226,6 +230,24 @@ export const POST = apiWrapper(async (req) => {
   }
 
   try {
+    // Revoke third-party YouTube token if active before deletion per API Services policy
+    const ytAccount = await prisma.oAuthAccount.findFirst({
+      where: { userId, provider: "youtube" },
+      select: { refreshToken: true, accessToken: true },
+    });
+    if (ytAccount) {
+      const encrypted = ytAccount.refreshToken || ytAccount.accessToken;
+      if (encrypted) {
+        try {
+          const { decrypt } = await import("@/lib/encryption");
+          const { revokeYouTubeToken } = await import("@/lib/youtube");
+          await revokeYouTubeToken(decrypt(encrypted));
+        } catch (revErr) {
+          logger.warn("Failed to revoke YouTube token during account deletion", { userId, revErr });
+        }
+      }
+    }
+
     const anonymizedEmail = `deleted_${userId}@anonymized.local`;
     let fileUrlsToDelete: string[] = [];
 
