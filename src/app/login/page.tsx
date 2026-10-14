@@ -17,13 +17,42 @@ export const loginSchema = z.object({
   twoFactorCode: z.string().length(6, "2FA code must be 6 digits").optional().or(z.literal("")),
 });
 
-function resolveSafeCallbackUrl(rawCallbackUrl: string | null | undefined): string {
+export function resolveSafeCallbackUrl(rawCallbackUrl: string | null | undefined): string {
   if (!rawCallbackUrl || typeof rawCallbackUrl !== "string") return "/dashboard";
-  if (rawCallbackUrl.includes("\\") || rawCallbackUrl.startsWith("//")) return "/dashboard";
-  if (rawCallbackUrl.startsWith("/")) {
+  let decoded = rawCallbackUrl;
+  try {
+    decoded = decodeURIComponent(rawCallbackUrl);
+  } catch {
+    return "/dashboard";
+  }
+  // Repeatedly decode in case of multi-layer encoding (%255c -> %5c -> \)
+  try {
+    const doubleDecoded = decodeURIComponent(decoded);
+    if (doubleDecoded !== decoded) {
+      decoded = doubleDecoded;
+    }
+  } catch {
+    // ignore
+  }
+
+  // Reject backslashes (literal or %5c), protocol-relative slashes (// or %2f%2f), and control characters
+  if (
+    rawCallbackUrl.includes("\\") ||
+    rawCallbackUrl.startsWith("//") ||
+    decoded.includes("\\") ||
+    decoded.startsWith("//") ||
+    decoded.includes("/\\") ||
+    decoded.includes("\\/") ||
+    decoded.includes("/\t") ||
+    decoded.includes("/ ")
+  ) {
+    return "/dashboard";
+  }
+
+  if (decoded.startsWith("/")) {
     try {
       const origin = typeof window !== "undefined" ? window.location.origin : "https://safe.local";
-      const parsed = new URL(rawCallbackUrl, origin);
+      const parsed = new URL(decoded, origin);
       if (parsed.origin !== origin) return "/dashboard";
       return `${parsed.pathname}${parsed.search}${parsed.hash}`;
     } catch {
@@ -47,15 +76,34 @@ export default function LoginPage() {
   );
 }
 
-function getSessionMessage(registered: boolean, reason: string | null, error?: string | null): string | null {
+export function getSessionMessage(registered: boolean, reason: string | null, error?: string | null): string | null {
   if (registered) return "Account created successfully. Please sign in to continue.";
   if (reason === "inactivity") return "You were signed out due to inactivity.";
   if (reason === "session_revoked") return "Your session was terminated because you signed in on another device.";
   if (reason === "token_expired" || reason === "session_expired") return "Your session expired. Please sign in again.";
-  if (error === "CredentialsSignin") return "Invalid email or password. Please verify your credentials.";
-  if (error === "Configuration" || error === "AuthError") return "Authentication service is ready. Please sign in with your email and password.";
-  if (error) return "Please sign in to continue.";
-  return null;
+
+  if (!error) return null;
+
+  switch (error) {
+    case "OAuthAccountNotLinked":
+      return "This email is already associated with another login method. Please sign in using your existing credentials.";
+    case "OAuthAccountNotRegistered":
+      return "No account found matching this Google profile. Please create an account first.";
+    case "AccessDenied":
+      return "Access was denied. You do not have permission to sign in or your account cannot be accessed.";
+    case "Configuration":
+      return "Unable to connect to the login service right now. Please try again or use your password to sign in.";
+    case "EmailNotVerified":
+      return "Your email address has not been verified yet. Please verify your email before signing in.";
+    case "Verification":
+      return "The verification link or code is invalid or has expired. Please request a new verification link.";
+    case "CredentialsSignin":
+      return "Invalid email or password. Please verify your credentials.";
+    case "AuthError":
+      return "Authentication service is ready. Please sign in with your email and password.";
+    default:
+      return "Unable to sign in. Please check your credentials or try again.";
+  }
 }
 
 function handleSignInResult(
@@ -131,6 +179,16 @@ function LoginContent() {
       active = false;
     };
   }, []);
+
+  useEffect(() => {
+    if (searchParams?.get("step") === "2fa") {
+      setShow2FA(true);
+      const emailParam = searchParams.get("email");
+      if (emailParam) {
+        setFormData((prev) => ({ ...prev, email: emailParam }));
+      }
+    }
+  }, [searchParams]);
 
   // Show contextual messages from session events
   const reason = searchParams?.get("reason");

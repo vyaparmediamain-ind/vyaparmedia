@@ -36,6 +36,12 @@
 | **Invalid / Expired OTP** | `INVALID_OTP` | 400 | "The OTP entered is incorrect or has expired. Please request a new code and try again." | Resend Code | — |
 | **Expired Reset Link** | `RESET_LINK_EXPIRED` | 400 | "This password reset link has expired or has already been used. Please request a fresh link." | Request Link | `/forgot-password` |
 | **Password Changed** | — | 200 | "Password updated successfully. For your security, other active sessions have been signed out." | None | — |
+| **OAuth Account Not Linked** | `OAuthAccountNotLinked` | 400 | "This email is already associated with another login method. Please sign in using your existing credentials." | Sign In | `/login` |
+| **OAuth Not Registered** | `OAuthAccountNotRegistered` | 400 | "No account found matching this Google profile. Please create an account first." | Register | `/register` |
+| **OAuth Access Denied** | `AccessDenied` | 403 | "Access was denied. You do not have permission to sign in or your account cannot be accessed." | Contact Support | `/dashboard/support` |
+| **Auth Configuration Issue** | `Configuration` | 500 | "Unable to connect to the login service right now. Please try again or use your password to sign in." | Retry | `/login` |
+| **Email Not Verified** | `EmailNotVerified` | 403 | "Your email address has not been verified yet. Please verify your email before signing in." | Verify Email | `/verify-email` |
+| **Verification Token Expired** | `Verification` | 400 | "The verification link or code is invalid or has expired. Please request a new verification link." | Request Link | `/resend-verification` |
 
 ### B. Wallet, Payments & Escrow
 | Scenario | Error Code | HTTP Status | User-Facing Message | Suggested Action | Target CTA |
