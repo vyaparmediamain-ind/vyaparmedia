@@ -428,9 +428,22 @@ function validateStorage(env: Record<string, unknown>, _ctx: z.RefinementCtx) {
   }
 }
 
-function validateLogistics(env: Record<string, unknown>, _ctx: z.RefinementCtx) {
-  if (env.SHIPROCKET_EMAIL && !env.SHIPROCKET_PASSWORD) {
-    console.warn("[PRODUCTION WARNING] SHIPROCKET_PASSWORD is missing.");
+function validateLogistics(env: Record<string, unknown>, ctx: z.RefinementCtx) {
+  if (env.SHIPROCKET_EMAIL) {
+    if (!env.SHIPROCKET_PASSWORD || (env.SHIPROCKET_PASSWORD as string).trim() === "") {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["SHIPROCKET_PASSWORD"],
+        message: "SHIPROCKET_PASSWORD must be configured in production when SHIPROCKET_EMAIL is set.",
+      });
+    }
+    if (!env.SHIPROCKET_WEBHOOK_SECRET || (env.SHIPROCKET_WEBHOOK_SECRET as string).trim() === "") {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["SHIPROCKET_WEBHOOK_SECRET"],
+        message: "SHIPROCKET_WEBHOOK_SECRET must be configured in production when SHIPROCKET_EMAIL is set.",
+      });
+    }
   }
 }
 

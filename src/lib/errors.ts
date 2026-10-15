@@ -27,6 +27,8 @@ export enum ApiErrorCode {
   GATEWAY_ERROR = "GATEWAY_ERROR",
   CRON_FORBIDDEN = "CRON_FORBIDDEN",
   SERVICE_UNAVAILABLE = "SERVICE_UNAVAILABLE",
+  SHIPPING_NON_SERVICEABLE = "SHIPPING_NON_SERVICEABLE",
+  SHIPPING_ADDRESS_REQUIRED = "SHIPPING_ADDRESS_REQUIRED",
   INTERNAL = "INTERNAL",
 }
 
@@ -101,5 +103,13 @@ return new AppError(message, 403, ApiErrorCode.CRON_FORBIDDEN);
 
   static serviceUnavailable(message = "Security verification service temporarily unavailable. Please try again shortly."): AppError {
     return new AppError(message, 503, ApiErrorCode.SERVICE_UNAVAILABLE);
+  }
+
+  static shippingNonServiceable(message = "The selected courier cannot service this destination pincode. Please update the delivery address."): AppError {
+    return new AppError(message, 400, ApiErrorCode.SHIPPING_NON_SERVICEABLE);
+  }
+
+  static shippingAddressRequired(message = "Creator shipping address must be submitted before product sample dispatch."): AppError {
+    return new AppError(message, 400, ApiErrorCode.SHIPPING_ADDRESS_REQUIRED);
   }
 }
