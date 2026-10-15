@@ -98,6 +98,7 @@ export const envSchema = z.object({
   DIGILOCKER_CLIENT_SECRET: emptyAsUndefined(z.string().min(1).optional()),
   REPLY_TO_EMAIL: z.string().email().default("support@VyaparMedia.in"),
   FROM_EMAIL: emptyAsUndefined(z.string().email().optional().default("noreply@vyaparmedia.in")),
+  MARKETING_FROM_EMAIL: emptyAsUndefined(z.string().email().optional().default("newsletter@mail.vyaparmedia.in")),
 
   // Shiprocket Logistics
   SHIPROCKET_EMAIL: emptyAsUndefined(z.string().min(1).optional()),

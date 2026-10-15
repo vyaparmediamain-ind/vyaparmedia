@@ -41,6 +41,14 @@ function getFromEmail(): string {
   return process.env.FROM_EMAIL || env.FROM_EMAIL || "noreply@vyaparmedia.in";
 }
 
+function getMarketingFromEmail(): string {
+  return (
+    process.env.MARKETING_FROM_EMAIL ||
+    (env as Record<string, unknown>).MARKETING_FROM_EMAIL as string ||
+    "newsletter@mail.vyaparmedia.in"
+  );
+}
+
 function getReplyToEmail(): string {
   return process.env.REPLY_TO_EMAIL || env.REPLY_TO_EMAIL;
 }
@@ -55,6 +63,7 @@ interface EmailParams {
   html: string;
   text?: string;
   replyTo?: string;
+  category?: "transactional" | "marketing" | "blog";
   tags?: Array<{ name: string; value: string }>;
   headers?: Record<string, string>;
 }
@@ -72,7 +81,11 @@ correlationId: string;
 * footer with unsubscribe hint, and dark-mode friendly styles.
 */
 function wrapInBrandedTemplate(bodyHtml: string, preheaderText?: string): string {
-return `
+  const cleanPreheader = preheaderText
+    ? escapeHtml(preheaderText.replace(/[\r\n]/g, " ").trim())
+    : undefined;
+
+  return `
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -89,7 +102,7 @@ table { border-collapse: collapse; }
 <![endif]-->
 </head>
 <body style="margin: 0; padding: 0; background-color: #f4f4f7; font-family: 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; -webkit-font-smoothing: antialiased;">
-${preheaderText ? `<div style="display:none;font-size:1px;color:#f4f4f7;line-height:1px;max-height:0px;max-width:0px;opacity:0;overflow:hidden;">${escapeHtml(preheaderText)}</div>` : ""}
+${cleanPreheader ? `<div style="display:none;font-size:1px;color:#f4f4f7;line-height:1px;max-height:0px;max-width:0px;opacity:0;overflow:hidden;">${cleanPreheader}</div>` : ""}
 
 <!-- Email Container -->
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color: #f4f4f7;">
@@ -147,36 +160,24 @@ This is an automated message. Please do not reply directly.
 *
 * Resend API Docs: https://resend.com/docs/api-reference/emails/send-email
 */
-function stripHtmlTags(html: string): string {
-let result = "";
-let inTag = false;
-for (const char of html) {
-if (char === "<") {
-inTag = true;
-} else if (char === ">") {
-inTag = false;
-} else if (!inTag) {
-result += char;
-}
-}
-return result;
-}
-
 function buildEmailPayload(params: EmailParams): Record<string, unknown> {
-const payload: Record<string, unknown> = {
-from: `${APP_NAME} <${getFromEmail()}>`,
-to: [params.to],
-subject: params.subject,
-html: params.html,
-reply_to: params.replyTo || getReplyToEmail(),
-};
+  const isMarketing = params.category === "marketing" || params.category === "blog";
+  const fromEmail = isMarketing ? getMarketingFromEmail() : getFromEmail();
 
-// Always include plain-text (improves deliverability + spam score)
-if (params.text) {
-payload.text = params.text;
-} else {
-payload.text = stripHtmlTags(params.html).replace(/\s+/g, " ").trim();
-}
+  const payload: Record<string, unknown> = {
+    from: `${APP_NAME} <${fromEmail}>`,
+    to: [params.to],
+    subject: params.subject.replace(/[\r\n]/g, " ").trim(),
+    html: params.html,
+    reply_to: params.replyTo || getReplyToEmail(),
+  };
+
+  // Always include plain-text (improves deliverability + spam score)
+  if (params.text) {
+    payload.text = params.text.replace(/[\r\n]{3,}/g, "\n\n").trim();
+  } else {
+    payload.text = stripHtml(params.html).replace(/\s+/g, " ").trim();
+  }
 
   // Resend supports tags for analytics
   if (params.tags?.length) {
@@ -406,7 +407,7 @@ export async function sendPasswordResetEmail(
 to: string,
 resetToken: string,
 ): Promise<boolean> {
-const resetUrl = `${getAppUrl()}/reset-password?token=${resetToken}`;
+const resetUrl = `${getAppUrl()}/reset-password?token=${encodeURIComponent(resetToken)}`;
 const result = await sendEmail({
 to,
 subject: `${APP_NAME} Reset Your Password`,
@@ -662,7 +663,8 @@ You're receiving this because you subscribed to the ${APP_NAME} Blog. <a href="$
 `,
       `${sanitizedSubject.replace(/\s+/g, " ").trim()}`,
     ),
-    text: `${sanitizedSubject}\n\n${stripHtmlTags(sanitizedContent)}\n\nUnsubscribe: ${unsubscribeUrl}`,
+    text: `${sanitizedSubject}\n\n${stripHtml(sanitizedContent).replace(/\s+/g, " ").trim()}\n\nUnsubscribe: ${unsubscribeUrl}`,
+    category: "marketing",
     headers: {
       "List-Unsubscribe": `<${unsubscribeUrl}>`,
       "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
