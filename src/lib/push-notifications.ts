@@ -8,10 +8,15 @@ import {
   type NotificationChannel,
   type ChannelPreferences,
   type GranularNotificationPreferences,
+  type QuietHours,
   DEFAULT_NOTIFICATION_PREFERENCES,
+  DEFAULT_QUIET_HOURS,
   mapNotificationTypeToCategory,
   isCriticalNotification,
+  isMarketingNotification,
   normalizeNotificationPreferences,
+  normalizeQuietHours,
+  isQuietHoursActive,
   shouldSendNotification,
 } from "@/lib/notification-preferences-types";
 
@@ -20,10 +25,15 @@ export {
   type NotificationChannel,
   type ChannelPreferences,
   type GranularNotificationPreferences,
+  type QuietHours,
   DEFAULT_NOTIFICATION_PREFERENCES,
+  DEFAULT_QUIET_HOURS,
   mapNotificationTypeToCategory,
   isCriticalNotification,
+  isMarketingNotification,
   normalizeNotificationPreferences,
+  normalizeQuietHours,
+  isQuietHoursActive,
   shouldSendNotification,
 };
 

@@ -12,6 +12,7 @@ import {
   ShieldCheck,
   CheckCircle2,
   Send,
+  Sparkles,
 } from "lucide-react";
 
 import { Button, ConfirmationBadge } from "@/components/ui";
@@ -82,6 +83,12 @@ const CATEGORIES: CategoryConfig[] = [
     description: "New device logins, KYC verification results, password alerts, and tax compliance",
     icon: ShieldCheck,
     isCritical: true,
+  },
+  {
+    id: "marketing",
+    label: "Platform & Marketing Updates",
+    description: "New feature announcements, creator growth digests, and promotional opportunities",
+    icon: Sparkles,
   },
 ];
 

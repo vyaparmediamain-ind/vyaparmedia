@@ -5,6 +5,7 @@ import prisma from "@/lib/db";
 import { Prisma } from "@prisma/client";
 import {
   normalizeNotificationPreferences,
+  normalizeQuietHours,
 } from "@/lib/push-notifications";
 
 export const GET = apiWrapper(async () => {
@@ -18,11 +19,11 @@ export const GET = apiWrapper(async () => {
     select: { notificationPreferences: true },
   });
 
-  const preferences = normalizeNotificationPreferences(
-    user?.notificationPreferences
-  );
+  const rawPrefs = (user?.notificationPreferences || {}) as Record<string, unknown>;
+  const preferences = normalizeNotificationPreferences(rawPrefs);
+  const quietHours = normalizeQuietHours(rawPrefs.quietHours);
 
-  return NextResponse.json({ preferences });
+  return NextResponse.json({ preferences, quietHours });
 });
 
 export const PATCH = apiWrapper(async (req) => {
@@ -33,6 +34,7 @@ export const PATCH = apiWrapper(async (req) => {
 
   const body = await req.json();
   const normalized = normalizeNotificationPreferences(body?.preferences || body);
+  const quietHours = body?.quietHours !== undefined ? normalizeQuietHours(body.quietHours) : undefined;
 
   // Read existing to preserve non-preference keys like pushSubscriptions if any
   const user = await prisma.user.findUnique({
@@ -42,10 +44,14 @@ export const PATCH = apiWrapper(async (req) => {
 
   const existing = (user?.notificationPreferences || {}) as Record<string, unknown>;
 
-  const updatedPrefs = {
+  const updatedPrefs: Record<string, unknown> = {
     ...existing,
     ...normalized,
   };
+
+  if (quietHours) {
+    updatedPrefs.quietHours = quietHours;
+  }
 
   await prisma.user.update({
     where: { id: session.user.id },
@@ -57,6 +63,7 @@ export const PATCH = apiWrapper(async (req) => {
   return NextResponse.json({
     success: true,
     preferences: normalized,
+    quietHours: quietHours || normalizeQuietHours(existing.quietHours),
     message: "Notification preferences updated successfully",
   });
 });
