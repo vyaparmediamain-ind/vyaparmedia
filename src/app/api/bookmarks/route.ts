@@ -41,9 +41,12 @@ export const GET = apiWrapper(
       if (dbSaved.length > 0) {
         // Asynchronously populate Redis cache if Redis came back online
         if (redis) {
-          redis.sadd(redisKey, ...dbSaved).catch((err) => {
-            logger.warn("Failed to repopulate bookmarks in Redis", { userId, error: err });
-          });
+          redis
+            .sadd(redisKey, ...dbSaved)
+            .then(() => redis.expire(redisKey, 86400 * 30))
+            .catch((err) => {
+              logger.warn("Failed to repopulate bookmarks in Redis", { userId, error: err });
+            });
         }
         return NextResponse.json({ success: true, savedIds: dbSaved });
       }
@@ -83,6 +86,7 @@ export const POST = apiWrapper(
       if (redis) {
         if (isSaved) {
           await redis.sadd(redisKey, targetId);
+          await redis.expire(redisKey, 86400 * 30);
         } else {
           await redis.srem(redisKey, targetId);
         }

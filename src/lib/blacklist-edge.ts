@@ -42,11 +42,7 @@ export async function isIpBannedEdge(ip: string): Promise<boolean> {
     });
 
     if (!response.ok) {
-      if (process.env.NODE_ENV === "production") {
-        logger.warn(`Edge blacklist lookup HTTP status ${response.status}; failing closed in production`, { ip });
-        return true;
-      }
-      logger.warn(`Edge blacklist lookup HTTP status ${response.status}; falling back to local edge ban cache`, { ip });
+      logger.warn(`Edge blacklist lookup HTTP status ${response.status}; failing open with local edge ban cache`, { ip });
       return edgeKnownBannedIps.has(ip);
     }
 
@@ -64,21 +60,14 @@ export async function isIpBannedEdge(ip: string): Promise<boolean> {
     }
     return isBanned;
   } catch (err) {
-    if (process.env.NODE_ENV === "production") {
-      logger.warn("Edge blacklist lookup transiently failed; failing closed in production", {
-        ip,
-        error: err instanceof Error ? err.message : String(err),
-      });
-      return true;
-    }
     // Fail-safe resilience:
-    // If Redis encounters a transient timeout or network error, check if the IP was previously cached as banned.
-    // Never fail-closed globally across all clean IPs in dev/test, which would cause an instant 100% platform-wide outage.
+    // If Upstash encounters a transient timeout or network error, check if the IP was previously cached as banned.
+    // Fail-open for normal users to preserve site availability and prevent platform-wide lockouts during Upstash outages.
     const isCachedBanned = edgeKnownBannedIps.has(ip);
     if (isCachedBanned) {
       return true;
     }
-    logger.warn("Edge blacklist lookup transiently failed; allowing legitimate request to preserve site availability", {
+    logger.warn("Edge blacklist lookup transiently failed; failing open to preserve legitimate user site availability", {
       ip,
       error: err instanceof Error ? err.message : String(err),
     });

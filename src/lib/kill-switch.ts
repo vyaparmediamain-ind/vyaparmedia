@@ -89,7 +89,8 @@ export async function setKillSwitch(feature: KillSwitchFeature, active: boolean)
   localOverrides.set(feature, active);
   try {
     if (active) {
-      await redis.set(feature, "true");
+      // Set 7-day TTL (86400 * 7) to prevent indefinite retention if operational killswitch is never manually reset
+      await redis.set(feature, "true", "EX", 86400 * 7);
     } else {
       await redis.del(feature);
     }
