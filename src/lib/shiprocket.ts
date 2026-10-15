@@ -231,15 +231,43 @@ export async function shiprocketAuthenticatedFetch(
   return res;
 }
 
+const PINCODE_REGEX = /^[1-9][0-9]{5}$/;
+const PHONE_CLEAN_REGEX = /\D/g;
+
+/**
+ * Validates shipping address requirements for logistics partners.
+ * Ensures complete recipient name, street address, 10-digit mobile number,
+ * and valid 6-digit Indian postal code.
+ */
+export function validateShippingAddress(address: ShiprocketAddress): void {
+  if (!address || !address.line1?.trim()) {
+    throw AppError.shippingAddressRequired("Creator shipping address line 1 is required before product dispatch.");
+  }
+  if (!address.fullName?.trim()) {
+    throw AppError.shippingAddressRequired("Recipient full name is required for shipping.");
+  }
+  const cleanPin = address.pinCode ? address.pinCode.trim() : "";
+  if (!cleanPin || !PINCODE_REGEX.test(cleanPin)) {
+    throw AppError.shippingAddressRequired("A valid 6-digit delivery pincode is required for shipping.");
+  }
+  const digitsOnlyPhone = address.phone ? address.phone.replace(PHONE_CLEAN_REGEX, "") : "";
+  if (!digitsOnlyPhone || digitsOnlyPhone.length < 10) {
+    throw AppError.shippingAddressRequired("A valid 10-digit recipient phone number is required for delivery.");
+  }
+}
+
 /**
  * Creates an adhoc order in Shiprocket.
+ * Uses deterministic order_id (VM-DEAL-<dealId>) to guarantee idempotency across retries.
+ * If order was already created, detects duplicate and reuses existing order/shipment.
  */
 async function createAdhocOrder(
   token: string,
   params: CreateShiprocketOrderParams,
 ): Promise<{ orderId: string; shipmentId: string; status: string }> {
   const productPriceRupees = Math.max(1, Math.round((params.productValuePaise || 10000) / 100));
-  const orderRef = `RO-${params.dealId.slice(-8).toUpperCase()}-${Date.now().toString().slice(-4)}`;
+  // Deterministic order_id prevents duplicate orders on network or worker retries
+  const orderRef = `VM-DEAL-${params.dealId}`;
 
   const body = {
     order_id: orderRef,
@@ -258,12 +286,13 @@ async function createAdhocOrder(
     shipping_is_billing: true,
     order_items: [
       {
-        name: params.productName || "Campaign Product Sample",
+        name: (params.productName || "Campaign Product Sample").slice(0, 100),
         sku: `SKU-${params.dealId.slice(-6).toUpperCase()}`,
         units: 1,
         selling_price: productPriceRupees,
         discount: 0,
         tax: 0,
+        country_of_origin: "India",
       },
     ],
     payment_method: "Prepaid",
@@ -284,20 +313,47 @@ async function createAdhocOrder(
   });
 
   if (!response.ok) {
-    const errorText = await response.text();
-    let message = "Courier shipment could not be initiated with the logistics partner.";
-    try {
-      const parsed = JSON.parse(errorText) as { message?: string };
-      if (parsed.message) {
-        message = parsed.message;
+    const errorText = await response.text().catch(() => "");
+
+    // Idempotency: If Shiprocket returns 422 indicating duplicate order, inspect and reuse
+    const isDuplicate =
+      response.status === 422 &&
+      /already (been )?taken|already exists|duplicate/i.test(errorText);
+
+    if (isDuplicate) {
+      try {
+        const queryUrl = `${SHIPROCKET_API_BASE}/orders/show?order_id=${encodeURIComponent(orderRef)}`;
+        const showRes = await shiprocketAuthenticatedFetch(queryUrl);
+        if (showRes.ok) {
+          const showData = await showRes.json();
+          const existingOrder = showData.data || showData;
+          const shipments = existingOrder.shipments || [];
+          const existingShipmentId =
+            shipments[0]?.id ||
+            existingOrder.shipment_id ||
+            existingOrder.id ||
+            orderRef;
+
+          return {
+            orderId: orderRef,
+            shipmentId: String(existingShipmentId),
+            status: existingOrder.status || "EXISTING",
+          };
+        }
+      } catch (lookupErr) {
+        logger.warn("[Shiprocket] Failed to lookup existing duplicate order", { error: lookupErr });
       }
-    } catch {
-      // not json
     }
-    if (/not serviceable|serviceable/i.test(message) || /not serviceable|serviceable/i.test(errorText)) {
-      throw AppError.badRequest("The selected courier cannot service this destination pincode. Please update the shipping address.");
+
+    if (/not serviceable|serviceable/i.test(errorText)) {
+      throw AppError.shippingNonServiceable();
     }
-    throw AppError.badRequest(`Shiprocket order creation failed: ${message}`);
+    if (/address|pincode|postcode|phone/i.test(errorText)) {
+      throw AppError.shippingAddressRequired();
+    }
+
+    // Mask raw provider details/stack traces; never expose vendor JSON to users
+    throw AppError.badRequest("Courier shipment could not be initiated with the logistics partner. Please verify shipping details.");
   }
 
   const data = await response.json();
@@ -330,20 +386,11 @@ async function assignAwb(
   });
 
   if (!response.ok) {
-    const errorText = await response.text();
-    let message = "Failed to assign courier partner";
-    try {
-      const parsed = JSON.parse(errorText) as { message?: string };
-      if (parsed.message) {
-        message = parsed.message;
-      }
-    } catch {
-      // not json
+    const errorText = await response.text().catch(() => "");
+    if (/not serviceable|serviceable/i.test(errorText)) {
+      throw AppError.shippingNonServiceable();
     }
-    if (/not serviceable|serviceable/i.test(message) || /not serviceable|serviceable/i.test(errorText)) {
-      throw AppError.badRequest("The selected courier cannot service this destination pincode. Please update the shipping address.");
-    }
-    throw AppError.badRequest(`Shiprocket AWB assignment failed: ${message}`);
+    throw AppError.badRequest("Failed to assign courier partner for this shipment. Please try again.");
   }
 
   const data = await response.json();
@@ -352,7 +399,7 @@ async function assignAwb(
   const courierName = responseData.courier_name || "Shiprocket Partner Courier";
 
   if (!awbCode) {
-    throw AppError.badRequest(responseData.message || "Failed to generate AWB code from courier partner");
+    throw AppError.badRequest("Failed to generate AWB code from courier partner");
   }
 
   return {
@@ -413,7 +460,7 @@ async function generateManifest(token: string, shipmentId: string): Promise<stri
 /**
  * Fetches the recommended courier rate for a shipment from Shiprocket.
  * Returns estimated courier charge in paise (rounded to nearest rupee * 100).
- * Falls back to 0 on error (charge will be skipped gracefully).
+ * Throws AppError.shippingNonServiceable if destination pincode is not serviceable by any courier partner.
  */
 export async function getShippingRate(
   token: string,
@@ -424,29 +471,31 @@ export async function getShippingRate(
     cod: boolean;
   },
 ): Promise<number> {
-  try {
-    const url = new URL(`${SHIPROCKET_API_BASE}/courier/serviceability/`);
-    url.searchParams.set("pickup_postcode", params.pickupPincode);
-    url.searchParams.set("delivery_postcode", params.deliveryPincode);
-    url.searchParams.set("weight", String(Math.max(0.1, params.weight)));
-    url.searchParams.set("cod", params.cod ? "1" : "0");
+  const url = new URL(`${SHIPROCKET_API_BASE}/courier/serviceability/`);
+  url.searchParams.set("pickup_postcode", params.pickupPincode);
+  url.searchParams.set("delivery_postcode", params.deliveryPincode);
+  url.searchParams.set("weight", String(Math.max(0.1, params.weight)));
+  url.searchParams.set("cod", params.cod ? "1" : "0");
 
-    const response = await shiprocketFetch(url.toString(), {
-      headers: { Authorization: `Bearer ${token}` },
-    });
+  const response = await shiprocketAuthenticatedFetch(url.toString());
 
-    if (!response.ok) return 0;
-
-    const data = await response.json();
-    // Shiprocket returns recommended_courier_data array sorted by rank
-    const recommended = data.data?.available_courier_companies?.[0];
-    if (!recommended) return 0;
-
-    const chargeRupees = Number(recommended.rate || recommended.freight_charge || 0);
-    return Math.round(chargeRupees * 100); // convert to paise
-  } catch {
-    return 0; // Non-fatal — shipment still created, charge skipped
+  if (!response.ok) {
+    const errorText = await response.text().catch(() => "");
+    if (/serviceable/i.test(errorText)) {
+      throw AppError.shippingNonServiceable();
+    }
+    throw AppError.shippingNonServiceable("Unable to confirm courier serviceability for this destination pincode.");
   }
+
+  const data = await response.json();
+  const couriers = data.data?.available_courier_companies;
+  if (!Array.isArray(couriers) || couriers.length === 0) {
+    throw AppError.shippingNonServiceable();
+  }
+
+  const recommended = couriers[0];
+  const chargeRupees = Number(recommended.rate || recommended.freight_charge || 0);
+  return Math.round(chargeRupees * 100); // convert to paise
 }
 
 /**
@@ -459,6 +508,9 @@ export async function getShippingRate(
 export async function createCompleteShipment(
   params: CreateShiprocketOrderParams,
 ): Promise<CompleteShipmentResult> {
+  // Validate address and 6-digit Indian pincode upfront
+  validateShippingAddress(params.shippingAddress);
+
   // Mock mode for local dev / testing
   if (!isShiprocketConfigured()) {
     if (process.env.NODE_ENV === "production") {
@@ -498,7 +550,7 @@ export async function createCompleteShipment(
 
   const token = await getShiprocketToken();
 
-  // Fetch courier rate before creating shipment (non-blocking on failure)
+  // Validate courier serviceability and fetch rate before booking shipment
   const courierChargePaise = await getShippingRate(token, {
     pickupPincode: params.pickupPincode || env.SHIPROCKET_PICKUP_PINCODE || "110001",
     deliveryPincode: params.shippingAddress.pinCode,
