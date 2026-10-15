@@ -87,6 +87,7 @@ export const envSchema = z.object({
     .string()
     .optional()
     .default("rzp_test_placeholder"),
+  ALLOW_RZP_TEST: z.enum(["true", "false"]).optional().default("false"),
   RAZORPAY_KEY_SECRET: z.string().optional().default("placeholder_secret"),
   RAZORPAY_WEBHOOK_SECRET: z.string().optional().default("placeholder_webhook_secret"),
   RAZORPAY_ACCOUNT_NUMBER: emptyAsUndefined(z.string().min(1).optional()),
@@ -302,14 +303,34 @@ function validateGeneralAndApi(env: Record<string, unknown>, ctx: z.RefinementCt
     });
   }
 
-  // P1-REL-12: Enforce critical payment and cron secrets in production
+  // P1-REL-12 / RZP-KEY-01: Enforce critical payment and cron secrets in production
   const rzpKeyId = env.RAZORPAY_KEY_ID as string | undefined;
+  const allowRzpTest = env.ALLOW_RZP_TEST === "true" || process.env.ALLOW_RZP_TEST === "true";
   if (!rzpKeyId || rzpKeyId === "rzp_test_placeholder" || rzpKeyId.trim() === "") {
     ctx.addIssue({
       code: z.ZodIssueCode.custom,
       path: ["RAZORPAY_KEY_ID"],
       message: "RAZORPAY_KEY_ID must be configured with a valid Razorpay key in production.",
     });
+  } else if (rzpKeyId.startsWith("rzp_test_") && !allowRzpTest) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["RAZORPAY_KEY_ID"],
+      message: "RAZORPAY_KEY_ID must not use test key (rzp_test_*) in production environment unless ALLOW_RZP_TEST=true is explicitly configured.",
+    });
+  }
+
+  const nextPublicRzpKeyId = env.NEXT_PUBLIC_RAZORPAY_KEY_ID as string | undefined;
+  if (rzpKeyId && nextPublicRzpKeyId) {
+    const serverIsTest = rzpKeyId.startsWith("rzp_test_");
+    const clientIsTest = nextPublicRzpKeyId.startsWith("rzp_test_");
+    if (serverIsTest !== clientIsTest) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["NEXT_PUBLIC_RAZORPAY_KEY_ID"],
+        message: `NEXT_PUBLIC_RAZORPAY_KEY_ID mode (${clientIsTest ? "test" : "live"}) must match server RAZORPAY_KEY_ID mode (${serverIsTest ? "test" : "live"}).`,
+      });
+    }
   }
 
   const rzpKeySecret = env.RAZORPAY_KEY_SECRET as string | undefined;
