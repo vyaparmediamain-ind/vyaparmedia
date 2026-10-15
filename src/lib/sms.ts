@@ -117,128 +117,171 @@ function otpMessage(otp: string) {
 return `${otp} is your VyaparMedia verification code. It expires in 10 minutes. Do not share it with anyone.`;
 }
 
+import { withCircuitBreaker } from "./circuit-breaker";
+
 async function sendViaTwilioWhatsApp(phone: string, message: string) {
-const accountSid = env.TWILIO_ACCOUNT_SID;
-const authToken = env.TWILIO_AUTH_TOKEN;
-const from = env.TWILIO_WHATSAPP_FROM;
-const to = e164IndianPhone(phone);
+  const accountSid = process.env.TWILIO_ACCOUNT_SID || env.TWILIO_ACCOUNT_SID;
+  const authToken = process.env.TWILIO_AUTH_TOKEN || env.TWILIO_AUTH_TOKEN;
+  const from = process.env.TWILIO_WHATSAPP_FROM || env.TWILIO_WHATSAPP_FROM;
+  const to = e164IndianPhone(phone);
 
-if (!accountSid || !authToken || !from || !to) return false;
+  if (!accountSid || !authToken || !from || !to) return false;
 
-const body = new URLSearchParams({
-From: from.startsWith("whatsapp:") ? from : `whatsapp:${from}`,
-To: `whatsapp:${to}`,
-Body: message,
-});
+  const body = new URLSearchParams({
+    From: from.startsWith("whatsapp:") ? from : `whatsapp:${from}`,
+    To: `whatsapp:${to}`,
+    Body: message,
+  });
 
-    const credentials = `${accountSid}:${authToken}`;
-    const authHeader = `Basic ${Buffer.from(credentials).toString("base64")}`;
+  const credentials = `${accountSid}:${authToken}`;
+  const authHeader = `Basic ${Buffer.from(credentials).toString("base64")}`;
 
-    try {
+  try {
+    return await withCircuitBreaker("twilio:whatsapp", async () => {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), SMS_GATEWAY_TIMEOUT_MS);
 
-      const response = await fetch(
-      `https://api.twilio.com/2010-04-01/Accounts/${accountSid}/Messages.json`,
-      {
-        method: "POST",
-        headers: {
-          Authorization: authHeader,
-          "Content-Type": "application/x-www-form-urlencoded",
-        },
-        body,
-        signal: controller.signal,
-      },
-    );
-    clearTimeout(timeoutId);
+      try {
+        const response = await fetch(
+          `https://api.twilio.com/2010-04-01/Accounts/${accountSid}/Messages.json`,
+          {
+            method: "POST",
+            headers: {
+              Authorization: authHeader,
+              "Content-Type": "application/x-www-form-urlencoded",
+            },
+            body,
+            signal: controller.signal,
+          },
+        );
+        clearTimeout(timeoutId);
 
-    if (!response.ok) {
-      logger.warn("Twilio WhatsApp OTP delivery failed", {
-        status: response.status,
-        response: await response.text().catch(() => ""),
-      });
+        if (!response.ok) {
+          const errText = await response.text().catch(() => "");
+          logger.warn("Twilio WhatsApp OTP delivery failed", {
+            status: response.status,
+            response: errText,
+          });
+          if (response.status >= 500) {
+            throw new Error(`Twilio server error (${response.status}): ${errText}`);
+          }
+          return false;
+        }
+
+        return true;
+      } catch (fetchErr) {
+        clearTimeout(timeoutId);
+        throw fetchErr;
+      }
+    });
+  } catch (err: unknown) {
+    if (err instanceof AppError && err.message.includes("Circuit is OPEN")) {
+      logger.warn("[CircuitBreaker] Twilio WhatsApp circuit is OPEN. Fast failing.");
+      return false;
     }
-
-    return response.ok;
-  } catch (err) {
-    logger.warn("Twilio WhatsApp OTP request failed or timed out", { error: err instanceof Error ? err.message : String(err) });
+    logger.warn("Twilio WhatsApp OTP request failed or timed out", {
+      error: err instanceof Error ? err.message : String(err),
+    });
     return false;
   }
 }
 
 async function sendViaMetaWhatsApp(phone: string, otp: string) {
+  const phoneNumberId = process.env.WHATSAPP_PHONE_NUMBER_ID || env.WHATSAPP_PHONE_NUMBER_ID;
+  const accessToken = process.env.WHATSAPP_ACCESS_TOKEN || env.WHATSAPP_ACCESS_TOKEN;
+  const templateName = process.env.WHATSAPP_OTP_TEMPLATE_NAME || env.WHATSAPP_OTP_TEMPLATE_NAME;
+  const languageCode = process.env.WHATSAPP_TEMPLATE_LANGUAGE || env.WHATSAPP_TEMPLATE_LANGUAGE || "en_US";
+  const to = e164IndianPhone(phone)?.replace("+", "");
+
+  if (!phoneNumberId || !accessToken || !templateName || !to) return false;
+
   try {
-    const phoneNumberId = env.WHATSAPP_PHONE_NUMBER_ID;
-    const accessToken = env.WHATSAPP_ACCESS_TOKEN;
-    const templateName = env.WHATSAPP_OTP_TEMPLATE_NAME;
-    const languageCode = env.WHATSAPP_TEMPLATE_LANGUAGE || "en_US";
-    const to = e164IndianPhone(phone)?.replace("+", "");
+    return await withCircuitBreaker("meta:whatsapp", async () => {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), SMS_GATEWAY_TIMEOUT_MS);
 
-    if (!phoneNumberId || !accessToken || !templateName || !to) return false;
-
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), SMS_GATEWAY_TIMEOUT_MS);
-
-    const response = await fetch(
-      `https://graph.facebook.com/v20.0/${phoneNumberId}/messages`,
-      {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          messaging_product: "whatsapp",
-          to,
-          type: "template",
-          template: {
-            name: templateName,
-            language: { code: languageCode },
-            components: [
-              {
-                type: "body",
-                parameters: [{ type: "text", text: otp }],
+      try {
+        const response = await fetch(
+          `https://graph.facebook.com/v20.0/${phoneNumberId}/messages`,
+          {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${accessToken}`,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              messaging_product: "whatsapp",
+              to,
+              type: "template",
+              template: {
+                name: templateName,
+                language: { code: languageCode },
+                components: [
+                  {
+                    type: "body",
+                    parameters: [{ type: "text", text: otp }],
+                  },
+                ],
               },
-            ],
+            }),
+            signal: controller.signal,
           },
-        }),
-        signal: controller.signal,
-      },
-    );
-    clearTimeout(timeoutId);
+        );
+        clearTimeout(timeoutId);
 
-    if (!response.ok) {
-      logger.warn("Meta WhatsApp OTP delivery failed", {
-        status: response.status,
-        response: await response.text().catch(() => ""),
-      });
+        if (!response.ok) {
+          const errText = await response.text().catch(() => "");
+          logger.warn("Meta WhatsApp OTP delivery failed", {
+            status: response.status,
+            response: errText,
+          });
+          if (response.status >= 500) {
+            throw new Error(`Meta WhatsApp server error (${response.status}): ${errText}`);
+          }
+          return false;
+        }
+
+        return true;
+      } catch (fetchErr) {
+        clearTimeout(timeoutId);
+        throw fetchErr;
+      }
+    });
+  } catch (err: unknown) {
+    if (err instanceof AppError && err.message.includes("Circuit is OPEN")) {
+      logger.warn("[CircuitBreaker] Meta WhatsApp circuit is OPEN. Fast failing.");
+      return false;
     }
-
-    return response.ok;
-  } catch (err) {
-    logger.warn("Meta WhatsApp OTP request failed or timed out", { error: err instanceof Error ? err.message : String(err) });
+    logger.warn("Meta WhatsApp OTP request failed or timed out", {
+      error: err instanceof Error ? err.message : String(err),
+    });
     return false;
   }
 }
 
 async function sendWhatsAppOtp(phone: string, otp: string) {
-const message = otpMessage(otp);
-const provider = (env.WHATSAPP_PROVIDER || "auto").toLowerCase();
+  const message = otpMessage(otp);
+  const provider = (process.env.WHATSAPP_PROVIDER || env.WHATSAPP_PROVIDER || "auto").toLowerCase();
 
-if (provider === "twilio" || provider === "auto") {
-if (await sendViaTwilioWhatsApp(phone, message)) return true;
-}
+  // Primary: Meta Cloud API
+  if (provider === "meta" || provider === "auto") {
+    if (await sendViaMetaWhatsApp(phone, otp)) return true;
+  }
 
-if (provider === "meta" || provider === "auto") {
-if (await sendViaMetaWhatsApp(phone, otp)) return true;
-}
+  // Secondary Fallback: Twilio WhatsApp
+  if (provider === "twilio" || provider === "auto") {
+    if (await sendViaTwilioWhatsApp(phone, message)) return true;
+  }
 
-if (isDevLike()) {
-logger.info("DEV WhatsApp OTP", { phone, otp });
-return true;
-}
+  // Dev fallback only when no live provider configured
+  const hasMetaConfig = Boolean(process.env.WHATSAPP_PHONE_NUMBER_ID || env.WHATSAPP_PHONE_NUMBER_ID);
+  const hasTwilioConfig = Boolean(process.env.TWILIO_ACCOUNT_SID || env.TWILIO_ACCOUNT_SID);
+  if (!hasMetaConfig && !hasTwilioConfig && isDevLike()) {
+    logger.info("DEV WhatsApp OTP", { phone, otp });
+    return true;
+  }
 
-return false;
+  return false;
 }
 
 async function sendSmsOtp(phone: string, otp: string) {

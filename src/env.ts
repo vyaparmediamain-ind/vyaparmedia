@@ -400,6 +400,31 @@ function validateSmsAndKyc(env: Record<string, unknown>, ctx: z.RefinementCtx) {
   if (env.KYC_PROVIDER !== "manual" && env.KYC_PROVIDER !== "mock" && !env.KYC_API_KEY) {
     console.warn("[PRODUCTION WARNING] KYC_API_KEY is missing for non-manual KYC provider.");
   }
+
+  // Enforce Meta WhatsApp Cloud API credentials when provider is meta in production
+  if (env.WHATSAPP_PROVIDER === "meta") {
+    if (!env.WHATSAPP_PHONE_NUMBER_ID || (env.WHATSAPP_PHONE_NUMBER_ID as string).trim() === "") {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["WHATSAPP_PHONE_NUMBER_ID"],
+        message: "WHATSAPP_PHONE_NUMBER_ID must be configured in production when WHATSAPP_PROVIDER is 'meta'.",
+      });
+    }
+    if (!env.WHATSAPP_ACCESS_TOKEN || (env.WHATSAPP_ACCESS_TOKEN as string).trim() === "") {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["WHATSAPP_ACCESS_TOKEN"],
+        message: "WHATSAPP_ACCESS_TOKEN must be configured in production when WHATSAPP_PROVIDER is 'meta'.",
+      });
+    }
+    if (!env.WHATSAPP_OTP_TEMPLATE_NAME || (env.WHATSAPP_OTP_TEMPLATE_NAME as string).trim() === "") {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["WHATSAPP_OTP_TEMPLATE_NAME"],
+        message: "WHATSAPP_OTP_TEMPLATE_NAME must be configured in production when WHATSAPP_PROVIDER is 'meta'.",
+      });
+    }
+  }
 }
 
 function validateDatabaseAndRedis(env: Record<string, unknown>, ctx: z.RefinementCtx, isVercel: boolean) {
