@@ -25,6 +25,7 @@ import { escapeHtml, sleep, formatCurrency } from "./utils";
 import { stripHtml, sanitizeHtml } from "./sanitize";
 import { randomUUID } from "node:crypto";
 import { env } from "@/env";
+import redis from "./redis";
 
 const APP_NAME = "VyaparMedia";
 const RESEND_API_URL = "https://api.resend.com/emails";
@@ -33,15 +34,15 @@ const BASE_RETRY_DELAY_MS = 1000; // 1s, 2s, 4s
 const REQUEST_TIMEOUT_MS = 15_000; // 15 seconds
 
 function getResendApiKey(): string {
-return env.RESEND_API_KEY || "";
+  return process.env.RESEND_API_KEY || env.RESEND_API_KEY || "";
 }
 
 function getFromEmail(): string {
-return env.FROM_EMAIL || "noreply@vyaparmedia.in";
+  return process.env.FROM_EMAIL || env.FROM_EMAIL || "noreply@vyaparmedia.in";
 }
 
 function getReplyToEmail(): string {
-return env.REPLY_TO_EMAIL;
+  return process.env.REPLY_TO_EMAIL || env.REPLY_TO_EMAIL;
 }
 
 function getAppUrl(): string {
@@ -49,12 +50,13 @@ function getAppUrl(): string {
 }
 
 interface EmailParams {
-to: string;
-subject: string;
-html: string;
-text?: string;
-replyTo?: string;
-tags?: Array<{ name: string; value: string }>;
+  to: string;
+  subject: string;
+  html: string;
+  text?: string;
+  replyTo?: string;
+  tags?: Array<{ name: string; value: string }>;
+  headers?: Record<string, string>;
 }
 
 interface EmailResult {
@@ -176,118 +178,146 @@ payload.text = params.text;
 payload.text = stripHtmlTags(params.html).replace(/\s+/g, " ").trim();
 }
 
-// Resend supports tags for analytics
-if (params.tags?.length) {
-payload.tags = params.tags;
-}
+  // Resend supports tags for analytics
+  if (params.tags?.length) {
+    payload.tags = params.tags;
+  }
 
-return payload;
+  // Custom headers (e.g. List-Unsubscribe for RFC 8058 compliance)
+  if (params.headers) {
+    payload.headers = params.headers;
+  }
+
+  return payload;
 }
 
 async function performSendAttempt(
-payload: Record<string, unknown>,
-attempt: number,
-log: ReturnType<typeof logger.withContext>,
+  payload: Record<string, unknown>,
+  attempt: number,
+  correlationId: string,
+  log: ReturnType<typeof logger.withContext>,
 ): Promise<{ success: boolean; retry?: boolean; retryAfter?: number; error?: string; messageId?: string | undefined }> {
-try {
-const controller = new AbortController();
-const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+  try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
 
-const res = await fetch(RESEND_API_URL, {
-method: "POST",
-headers: {
-Authorization: `Bearer ${getResendApiKey()}`,
-"Content-Type": "application/json",
-},
-body: JSON.stringify(payload),
-signal: controller.signal,
-});
+    const res = await fetch(RESEND_API_URL, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${getResendApiKey()}`,
+        "Content-Type": "application/json",
+        "Idempotency-Key": `resend_${correlationId}`,
+      },
+      body: JSON.stringify(payload),
+      signal: controller.signal,
+    });
 
-clearTimeout(timeoutId);
+    clearTimeout(timeoutId);
 
-// Resend returns 200 with { id: "..." } on success
-if (res.ok) {
-const data = (await res.json()) as { id?: string };
-log.info("Email sent successfully via Resend", {
-attempt,
-messageId: data.id,
-});
-return { success: true, messageId: data.id };
+    // Resend returns 200 with { id: "..." } on success
+    if (res.ok) {
+      const data = (await res.json()) as { id?: string };
+      log.info("Email sent successfully via Resend", {
+        attempt,
+        messageId: data.id,
+      });
+      return { success: true, messageId: data.id };
+    }
+
+    // 429 = Rate limited by Resend
+    if (res.status === 429) {
+      const retryAfter = Number.parseInt(res.headers.get("retry-after") || "5", 10);
+      log.warn(`Resend rate limit hit (429). Waiting ${retryAfter}s before retry.`, {
+        attempt,
+      });
+      return { success: false, retry: true, retryAfter };
+    }
+
+    // 4xx (except 429) = client error, don't retry
+    if (res.status >= 400 && res.status < 500) {
+      const errorBody = await res.json().catch(() => ({})) as { message?: string };
+      log.error("Resend rejected email (4xx not retryable)", {
+        status: res.status,
+        error: errorBody.message || "Unknown error",
+        attempt,
+      });
+      return {
+        success: false,
+        retry: false,
+        error: `Resend error ${res.status}: ${errorBody.message || "Unknown"}`,
+      };
+    }
+
+    // 5xx = server error, retry
+    const errorBody = await res.text();
+    log.warn(`Resend server error (${res.status}). Attempt ${attempt}/${MAX_RETRIES}`, {
+      error: errorBody,
+    });
+    return { success: false, retry: true };
+  } catch (err: unknown) {
+    const errName = err instanceof Error ? err.name : "Error";
+    if (errName === "AbortError") {
+      log.warn(`Email send timed out after ${REQUEST_TIMEOUT_MS}ms. Attempt ${attempt}/${MAX_RETRIES}`);
+    } else {
+      log.error(`Network error sending email. Attempt ${attempt}/${MAX_RETRIES}`, err);
+    }
+    return { success: false, retry: true };
+  }
 }
 
-// 429 = Rate limited by Resend
-if (res.status === 429) {
-const retryAfter = Number.parseInt(res.headers.get("retry-after") || "5", 10);
-log.warn(`Resend rate limit hit (429). Waiting ${retryAfter}s before retry.`, {
-attempt,
-});
-return { success: false, retry: true, retryAfter };
-}
+export async function sendEmail(params: EmailParams): Promise<EmailResult> {
+  const correlationId = randomUUID().slice(0, 8);
+  const log = logger.withContext({ correlationId, emailTo: params.to });
 
-// 4xx (except 429) = client error, don't retry
-if (res.status >= 400 && res.status < 500) {
-const errorBody = await res.json().catch(() => ({})) as { message?: string };
-log.error("Resend rejected email (4xx not retryable)", {
-status: res.status,
-error: errorBody.message || "Unknown error",
-attempt,
-});
-return {
-success: false,
-retry: false,
-error: `Resend error ${res.status}: ${errorBody.message || "Unknown"}`,
-};
-}
+  // Check recipient suppression list (bounces and complaints)
+  const normalizedTo = params.to.toLowerCase().trim();
+  try {
+    const isSuppressed = await redis.get(`email:suppressed:${normalizedTo}`);
+    if (isSuppressed) {
+      log.warn("Recipient is on email suppression list. Dropping send.", {
+        email: params.to,
+        reason: isSuppressed,
+      });
+      return {
+        success: false,
+        error: "Recipient email is suppressed due to previous bounce or complaint",
+        correlationId,
+      };
+    }
+  } catch (redisErr) {
+    log.warn("Failed to check email suppression list from Redis. Failing open.", {
+      error: redisErr instanceof Error ? redisErr.message : String(redisErr),
+    });
+  }
 
-// 5xx = server error, retry
-const errorBody = await res.text();
-log.warn(`Resend server error (${res.status}). Attempt ${attempt}/${MAX_RETRIES}`, {
-error: errorBody,
-});
-return { success: false, retry: true };
-} catch (err: unknown) {
-const errName = err instanceof Error ? err.name : "Error";
-if (errName === "AbortError") {
-log.warn(`Email send timed out after ${REQUEST_TIMEOUT_MS}ms. Attempt ${attempt}/${MAX_RETRIES}`);
-} else {
-log.error(`Network error sending email. Attempt ${attempt}/${MAX_RETRIES}`, err);
-}
-return { success: false, retry: true };
-}
-}
+  // Dev fallback
+  if (!getResendApiKey()) {
+    if (env.NODE_ENV === "development" || env.NODE_ENV === "test") {
+      log.info("DEV EMAIL Resend key not set, logging instead", {
+        subject: params.subject,
+        to: params.to,
+      });
+      log.debug("Email text body (for Dev Mock review)", {
+        textBody: params.text || "No text body provided",
+      });
+      return { success: true, correlationId };
+    }
+    log.error(
+      "CRITICAL: RESEND_API_KEY is not configured. Transactional emails CANNOT be delivered in production.",
+    );
+    return {
+      success: false,
+      error: "Email service not configured",
+      correlationId,
+    };
+  }
 
-async function sendEmail(params: EmailParams): Promise<EmailResult> {
-const correlationId = randomUUID().slice(0, 8);
-const log = logger.withContext({ correlationId, emailTo: params.to });
+  // Build Resend payload
+  const payload = buildEmailPayload(params);
 
-// Dev fallback
-if (!getResendApiKey()) {
-if (env.NODE_ENV === "development" || env.NODE_ENV === "test") {
-log.info("DEV EMAIL Resend key not set, logging instead", {
-subject: params.subject,
-to: params.to,
-});
-log.debug("Email text body (for Dev Mock review)", {
-textBody: params.text || "No text body provided",
-});
-return { success: true, correlationId };
-}
-log.error(
-"CRITICAL: RESEND_API_KEY is not configured. Transactional emails CANNOT be delivered in production.",
-);
-return {
-success: false,
-error: "Email service not configured",
-correlationId,
-};
-}
-
-// Build Resend payload
-const payload = buildEmailPayload(params);
-
-// Retry loop with exponential backoff
-for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
-const attemptResult = await performSendAttempt(payload, attempt, log);
+  // Retry loop with exponential backoff
+  for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+    const attemptResult = await performSendAttempt(payload, attempt, correlationId, log);
 
 if (attemptResult.success) {
 return {
@@ -614,11 +644,11 @@ const sanitizedContent = sanitizeHtml(content, {
 allowedTags: ['p', 'br', 'strong', 'em', 'u', 'ol', 'ul', 'li', 'a', 'h1', 'h2', 'h3'],
 });
 
-const result = await sendEmail({
-to,
-subject: `${APP_NAME} Blog: ${sanitizedSubject}`,
-html: wrapInBrandedTemplate(
-`
+  const result = await sendEmail({
+    to,
+    subject: `${APP_NAME} Blog: ${sanitizedSubject}`,
+    html: wrapInBrandedTemplate(
+      `
 <h2 style="margin: 0 0 16px; font-size: 24px; font-weight: 700; color: #1f2937;">${sanitizedSubject}</h2>
 <div style="color: #666; margin: 0 0 24px; line-height: 1.6;">
 ${sanitizedContent}
@@ -633,10 +663,14 @@ You're receiving this because you subscribed to the ${APP_NAME} Blog. <a href="$
       `${sanitizedSubject.replace(/\s+/g, " ").trim()}`,
     ),
     text: `${sanitizedSubject}\n\n${stripHtmlTags(sanitizedContent)}\n\nUnsubscribe: ${unsubscribeUrl}`,
-tags: [
-{ name: "category", value: "blog" },
-{ name: "type", value: "newsletter" },
-],
-});
-return result.success;
+    headers: {
+      "List-Unsubscribe": `<${unsubscribeUrl}>`,
+      "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
+    },
+    tags: [
+      { name: "category", value: "blog" },
+      { name: "type", value: "newsletter" },
+    ],
+  });
+  return result.success;
 }
