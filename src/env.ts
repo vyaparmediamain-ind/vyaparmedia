@@ -175,7 +175,7 @@ export const envSchema = z.object({
     z.string().min(67)
   ), // Format: v1:<64hex> = minimum 67 chars
   ENCRYPTION_KEY: z.string().min(32).optional(),
-  KYC_PROVIDER: z.enum(["manual", "surepass"]).default("manual"),
+  KYC_PROVIDER: z.enum(["manual", "surepass", "mock"]).default("manual"),
   KYC_API_KEY: z.string().min(1).optional(),
   MSG91_TEMPLATE_ID: z.string().min(1).optional(),
   OTP_HASH_SECRET: emptyAsUndefined(z.string().min(16).optional()),
@@ -389,8 +389,15 @@ function validateGeneralAndApi(env: Record<string, unknown>, ctx: z.RefinementCt
   }
 }
 
-function validateSmsAndKyc(env: Record<string, unknown>, _ctx: z.RefinementCtx) {
-  if (env.KYC_PROVIDER !== "manual" && !env.KYC_API_KEY) {
+function validateSmsAndKyc(env: Record<string, unknown>, ctx: z.RefinementCtx) {
+  if (env.KYC_PROVIDER === "mock") {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["KYC_PROVIDER"],
+      message: "CRITICAL_SECURITY_VIOLATION: KYC_PROVIDER cannot be 'mock' in production environment.",
+    });
+  }
+  if (env.KYC_PROVIDER !== "manual" && env.KYC_PROVIDER !== "mock" && !env.KYC_API_KEY) {
     console.warn("[PRODUCTION WARNING] KYC_API_KEY is missing for non-manual KYC provider.");
   }
 }

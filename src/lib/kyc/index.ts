@@ -22,6 +22,13 @@ let _activeProvider: KYCProvider | null = null;
  * Returns configured provider without coupling calling code to any specific vendor.
  */
 export function getKYCProvider(customProvider?: string): KYCProvider {
+  const isProd = process.env.NODE_ENV === "production";
+  const requested = (customProvider || process.env.KYC_PROVIDER || "manual").toLowerCase();
+
+  if (isProd && requested === "mock") {
+    throw AppError.internal("CRITICAL_SECURITY_ERROR: Mock KYC provider is forbidden in production environment.");
+  }
+
   if (customProvider) {
     if (_activeProvider && _activeProvider.name === customProvider) {
       return _activeProvider;
@@ -63,6 +70,9 @@ export function getKYCProvider(customProvider?: string): KYCProvider {
  * Override provider for tests or specific runtime branches
  */
 export function setKYCProvider(provider: KYCProvider) {
+  if (process.env.NODE_ENV === "production" && provider.name === "mock") {
+    throw AppError.internal("CRITICAL_SECURITY_ERROR: Mock KYC provider cannot be set in production.");
+  }
   _activeProvider = provider;
 }
 

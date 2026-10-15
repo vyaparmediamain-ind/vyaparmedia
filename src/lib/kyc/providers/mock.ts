@@ -9,6 +9,12 @@ function maskDoc(val: string, showLast = 4): string {
 export class MockKYCProvider implements KYCProvider {
   readonly name = "mock";
 
+  constructor() {
+    if (process.env.NODE_ENV === "production") {
+      throw new Error("CRITICAL_SECURITY_ERROR: MockKYCProvider is forbidden in production environment");
+    }
+  }
+
   async verifyAadhaar(aadhaarNumber: string): Promise<KYCVerifyResult> {
     const clean = aadhaarNumber.replace(/\s+/g, "");
     if (clean.length !== 12) {
