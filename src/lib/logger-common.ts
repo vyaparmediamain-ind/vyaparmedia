@@ -62,6 +62,8 @@ export function maskPIIPrimitive(data: string): string {
   masked = masked.replace(/\b[A-Z]{5}[0-9]{4}[A-Z]\b/gi, "[REDACTED_PAN]");
   // Mask 12-digit Indian Aadhaar (continuous, space-separated, or hyphenated)
   masked = masked.replace(/\b\d{4}[\s-]?\d{4}[\s-]?\d{4}\b/g, "[REDACTED_AADHAAR]");
+  // Mask Indian IFSC code (4 alphabetic + 0 + 6 alphanumeric)
+  masked = masked.replace(/\b[A-Z]{4}0[A-Z0-9]{6}\b/gi, "[REDACTED_IFSC]");
   // Mask Email (unanchored, anywhere in string)
   masked = masked.replace(/([a-zA-Z0-9._%+-]{2})[a-zA-Z0-9._%+-]*(@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/g, "$1***$2");
   // Mask Phone numbers (10-digit Indian numbers with optional country code)
@@ -97,6 +99,8 @@ export function maskPII(data: unknown): unknown {
     "bankaccount",
     "upi",
     "gstin",
+    "ifsc",
+    "account",
   ];
 
   for (const key in data) {

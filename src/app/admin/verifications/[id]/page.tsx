@@ -79,13 +79,32 @@ export default async function VerificationDetailPage({
       }
       try {
         const { getSignedUrl } = await import("@/lib/storage");
-        const freshUrl = await getSignedUrl(key, 3600);
+        const freshUrl = await getSignedUrl(key, 900); // 15 mins short TTL
         return { ...doc, documentUrl: freshUrl };
       } catch {
         return doc;
       }
     })
   );
+
+  // Audit log admin access to sensitive KYC documentation
+  if (session?.user?.id && user.verificationDocs.length > 0) {
+    try {
+      const { createActivityLog } = await import("@/lib/audit");
+      await createActivityLog({
+        userId: session.user.id,
+        action: "ADMIN_VIEW_KYC_DOCUMENTS",
+        entityType: "User",
+        entityId: user.id,
+        metadata: {
+          targetUserId: user.id,
+          documentsCount: user.verificationDocs.length,
+        },
+      });
+    } catch {
+      // Non-fatal audit log failure
+    }
+  }
 
   const activeSince = formatDate(user.createdAt);
   const displayName =

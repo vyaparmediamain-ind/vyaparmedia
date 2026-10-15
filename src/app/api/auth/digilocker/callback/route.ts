@@ -199,7 +199,7 @@ await prisma.oAuthState.delete({ where: { state } });
 
 const tokenData = await exchangeDigiLockerToken(code, codeVerifier, baseUrl);
 if (!tokenData.access_token) {
-logger.error("DigiLocker token exchange failed", tokenData);
+logger.error("DigiLocker token exchange failed", { error: tokenData.error || "missing_token" });
 return NextResponse.redirect(
 appUrl("/dashboard/settings?tab=verification&error=token_exchange_failed", req.nextUrl.origin)
 );
@@ -217,7 +217,7 @@ appUrl("/dashboard/settings?tab=verification&error=token_exchange_failed", req.n
 const profileData = await profileResponse.json();
 
 if (!profileData.id) {
-logger.error("DigiLocker profile missing required id field", { userId: storedState.userId, profileData });
+logger.error("DigiLocker profile missing required id field", { userId: storedState.userId, hasProfile: !!profileData });
 return NextResponse.redirect(
 appUrl("/dashboard/settings?tab=verification&error=invalid_digilocker_profile", req.nextUrl.origin)
 );
