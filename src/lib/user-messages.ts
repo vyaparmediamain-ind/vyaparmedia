@@ -85,6 +85,19 @@ const ERROR_MAPPING_RULES: ErrorMappingRule[] = [
     },
   },
 
+  // 1c. OTP Delivery & Communication Gateway Failures
+  {
+    match: (code, text) =>
+      code === "OTP_SEND_FAILED" ||
+      code === "OTP_DELIVERY_FAILED" ||
+      /\b(?:failed to send otp|otp delivery service unavailable|otp bhejne me dikkat)\b/i.test(text),
+    result: {
+      message: "OTP bhejne me dikkat aayi. 60 second baad dobara try karein",
+      actionText: "Try Alternative Channel",
+      actionType: "RETRY",
+    },
+  },
+
   // 2. Authentication & Session Expiry
   {
     match: (code, text, status) => {

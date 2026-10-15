@@ -18,6 +18,8 @@ import {
   SMS_GATEWAY_TIMEOUT_MS,
 } from "@/constants";
 
+import { isKillSwitchActive } from "./kill-switch";
+
 const OTP_TTL_SECONDS = AUTH_OTP_EXPIRY_SECONDS;
 const OTP_MAX_ATTEMPTS = MAX_OTP_VERIFICATION_ATTEMPTS;
 
@@ -75,13 +77,20 @@ return env.NODE_ENV === "development" || env.NODE_ENV === "test";
 }
 
 export function normalizeIndianPhone(phone: string): string | null {
-const digits = phone.replace(/\D/g, "");
-const withoutCountryCode = digits.startsWith("91") && digits.length === 12
-? digits.slice(2)
-: digits;
+  if (!phone || typeof phone !== "string") return null;
+  const trimmed = phone.trim();
+  // Strictly reject non-Indian country codes (e.g. +1, +44, +86, etc.) to prevent toll fraud
+  if (trimmed.startsWith("+") && !trimmed.startsWith("+91")) {
+    return null;
+  }
+  const digits = trimmed.replace(/\D/g, "");
+  const withoutCountryCode =
+    digits.startsWith("91") && digits.length === 12
+      ? digits.slice(2)
+      : digits;
 
-if (!/^[6-9]\d{9}$/.test(withoutCountryCode)) return null;
-return withoutCountryCode;
+  if (!/^[6-9]\d{9}$/.test(withoutCountryCode)) return null;
+  return withoutCountryCode;
 }
 
 function e164IndianPhone(phone: string) {
@@ -284,16 +293,65 @@ async function sendWhatsAppOtp(phone: string, otp: string) {
   return false;
 }
 
-async function sendSmsOtp(phone: string, otp: string) {
-const sent = await sendSMS(phone, otpMessage(otp));
-if (sent) return true;
+const DEFAULT_DAILY_SMS_CAP = 1000;
 
-if (isDevLike()) {
-logger.info("DEV SMS OTP", { phone, otp });
-return true;
+export async function checkAndIncrementDailySmsCap(maxLimit = DEFAULT_DAILY_SMS_CAP): Promise<boolean> {
+  const dateStr = new Date().toISOString().slice(0, 10);
+  const key = `sms:daily_cap:${dateStr}`;
+
+  try {
+    const current = await redis.incr(key);
+    if (current === 1) {
+      await redis.expire(key, 86400 * 2);
+    }
+
+    if (current > maxLimit) {
+      logger.error("[SMS ABUSE GUARD] Daily SMS limit exceeded! Potential toll-fraud pumping attack blocked.", {
+        current,
+        maxLimit,
+        date: dateStr,
+      });
+      return false;
+    }
+
+    if (current >= Math.floor(maxLimit * 0.8)) {
+      logger.warn("[SMS USAGE WARNING] Daily SMS volume reached 80% threshold.", {
+        current,
+        maxLimit,
+        date: dateStr,
+      });
+    }
+
+    return true;
+  } catch (err) {
+    logger.warn("[SMS ABUSE GUARD] Failed to check daily SMS cap in Redis, failing open.", {
+      error: err instanceof Error ? err.message : String(err),
+    });
+    return true;
+  }
 }
 
-return false;
+async function sendSmsOtp(phone: string, otp: string) {
+  const withinCap = await checkAndIncrementDailySmsCap();
+  if (!withinCap) {
+    logger.warn("Daily SMS cap reached. Rejecting SMS OTP delivery to prevent toll fraud.");
+    return false;
+  }
+
+  const hasSmsConfig = Boolean(process.env.MSG91_AUTH_KEY || env.MSG91_AUTH_KEY || env.SMS_API_KEY);
+  if (hasSmsConfig) {
+    return await sendSMS(phone, otpMessage(otp));
+  }
+
+  const sent = await sendSMS(phone, otpMessage(otp));
+  if (sent) return true;
+
+  if (isDevLike() && !hasSmsConfig) {
+    logger.info("DEV SMS OTP", { phone, otp });
+    return true;
+  }
+
+  return false;
 }
 
 async function storeOtp(
@@ -361,6 +419,15 @@ if (!normalized) {
 return { success: false, error: "Invalid Indian phone number" };
 }
 
+// Operational Kill Switch check for emergency toll fraud / spam shutdown
+if (await isKillSwitchActive("killswitch:otp")) {
+  logger.warn("OTP delivery blocked by operational kill switch: killswitch:otp");
+  return {
+    success: false,
+    error: "OTP bhejne me dikkat aayi. 60 second baad dobara try karein",
+  };
+}
+
 const key = otpKey(normalized, purpose);
 const ttl = await redis.ttl(key);
 if (ttl > OTP_TTL_SECONDS - OTP_RESEND_COOLDOWN_SECONDS) {
@@ -386,7 +453,7 @@ allowSmsFallback
 if (!channel) {
 return {
 success: false,
-error: "OTP delivery service unavailable",
+error: "OTP bhejne me dikkat aayi. 60 second baad dobara try karein",
 };
 }
 
@@ -400,7 +467,7 @@ fallbackUsed,
 };
 } catch (error) {
 logger.error("Phone OTP delivery failed", error, { phone: normalized, purpose });
-return { success: false, error: "OTP delivery service unavailable" };
+return { success: false, error: "OTP bhejne me dikkat aayi. 60 second baad dobara try karein" };
 }
 }
 

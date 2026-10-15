@@ -8,6 +8,7 @@ export const KILL_SWITCH_FEATURES = {
   CAMPAIGNS: "killswitch:campaigns",
   SIGNUPS: "killswitch:signups",
   MESSAGING: "killswitch:messaging",
+  OTP: "killswitch:otp",
   SOCIAL_INSTAGRAM: "killswitch:social:instagram",
   SOCIAL_YOUTUBE: "killswitch:social:youtube",
   AUTH_GOOGLE: "killswitch:auth:google",
@@ -19,6 +20,7 @@ export type KillSwitchFeature =
   | "killswitch:campaigns"
   | "killswitch:signups"
   | "killswitch:messaging"
+  | "killswitch:otp"
   | "killswitch:social:instagram"
   | "killswitch:social:youtube"
   | "killswitch:auth:google";
@@ -34,6 +36,8 @@ export const KILL_SWITCH_MESSAGES: Record<KillSwitchFeature, string> = {
     "User registrations are temporarily paused. Existing users can log in normally.",
   "killswitch:messaging":
     "Direct messaging is temporarily unavailable while we perform system upgrades.",
+  "killswitch:otp":
+    "OTP sending is temporarily paused for routine system maintenance. Please try again shortly.",
   "killswitch:social:instagram":
     "Instagram connection is temporarily unavailable. Please try again later.",
   "killswitch:social:youtube":
