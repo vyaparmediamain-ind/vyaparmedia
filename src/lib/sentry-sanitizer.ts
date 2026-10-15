@@ -6,7 +6,7 @@
 
 const PAN_REGEX = /\b[A-Z]{5}[0-9]{4}[A-Z]\b/gi;
 const IFSC_REGEX = /\b[A-Z]{4}0[A-Z0-9]{6}\b/gi;
-const INDIAN_PHONE_REGEX = /(?:\b\+?91[\s-]?)?\b[6-9]\d{9}\b/g;
+const INDIAN_PHONE_REGEX = /(?:\+91[\s-]?|\b)[6-9]\d{9}\b/g;
 const AADHAAR_REGEX = /\b\d{4}[\s-]\d{4}[\s-]\d{4}\b/g;
 const UPI_ID_REGEX = /\b[a-zA-Z0-9.\-_]{2,256}@[a-zA-Z]{2,64}\b/g;
 const BANK_ACCOUNT_REGEX = /\b\d{9,18}\b/g;
