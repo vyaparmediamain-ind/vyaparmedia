@@ -9,6 +9,7 @@ import { WebhookJobPayload } from "@/lib/qstash";
 import { recordWebhookAnomaly, recordPaymentFailure } from "@/lib/observability";
 import { transitionDealState } from "@/lib/deal-state-machine";
 import { redis } from "@/lib/redis";
+import { razorpayWebhookLagSeconds, razorpayPayoutsTotal } from "@/lib/metrics";
 
 export const dynamic = "force-dynamic";
 
@@ -61,6 +62,13 @@ export async function processWebhookEventInternal(
   };
 
   const event = payload?.event || job.eventType;
+
+  // Observe webhook delivery lag (time difference between Razorpay event created_at and ingestion)
+  const eventCreatedAt = (payload as any)?.created_at;
+  if (typeof eventCreatedAt === "number") {
+    const lagSeconds = Math.max(0, Math.floor(Date.now() / 1000 - eventCreatedAt));
+    razorpayWebhookLagSeconds.observe({ event_type: event }, lagSeconds);
+  }
 
   // payment.captured: Top-Up / Deal Escrow Payment
   if (event === "payment.captured") {
@@ -326,6 +334,7 @@ export async function processWebhookEventInternal(
 
     await prisma.$transaction(async (tx) => {
       if (event === "payout.processed") {
+        razorpayPayoutsTotal.inc({ status: "processed" });
         const updateCount = await tx.withdrawal.updateMany({
           where: {
             id: withdrawal.id,
@@ -354,6 +363,7 @@ export async function processWebhookEventInternal(
           });
         }
       } else if (event === "payout.failed" || event === "payout.rejected") {
+        razorpayPayoutsTotal.inc({ status: "failed" });
         const failureReason = payout?.failure_reason || `Payout failed via webhook (${event})`;
         recordPaymentFailure("PAYOUT_FAILED_WEBHOOK", new Error(failureReason), {
           withdrawalId: withdrawal.id,
@@ -370,6 +380,7 @@ export async function processWebhookEventInternal(
           false,
         );
       } else if (event === "payout.reversed") {
+        razorpayPayoutsTotal.inc({ status: "reversed" });
         const reversalReason = payout?.failure_reason || "Bank payout reversed after settlement";
         recordPaymentFailure("PAYOUT_REVERSED_WEBHOOK", new Error(reversalReason), {
           withdrawalId: withdrawal.id,

@@ -1,6 +1,7 @@
 import { AppError } from "@/lib/errors";
 import { redis } from "./redis";
 import { logger } from "./logger";
+import { circuitBreakerOpenTotal } from "./metrics";
 
 interface CircuitBreakerOptions {
   failureThreshold?: number; // Number of failed attempts before opening the circuit
@@ -63,6 +64,7 @@ async function recordCircuitFailure(
       logger.error(
         `[CircuitBreaker] TRIPPED! Action '${actionName}' crossed failure threshold (${threshold}). Circuit is now OPEN for ${timeoutSeconds}s.`,
       );
+      circuitBreakerOpenTotal.inc({ action_name: actionName });
       await redis.set(openKey, "OPEN", "EX", timeoutSeconds);
       await redis.del(failureKey);
     }

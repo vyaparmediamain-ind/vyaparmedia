@@ -52,6 +52,48 @@ labelNames: ["error_type", "route"],
 },
 );
 
+export const razorpayApiDurationMs = getOrCreateHistogram(
+  "VyaparMedia_razorpay_api_duration_ms",
+  {
+    help: "Duration of outbound Razorpay API requests in ms",
+    labelNames: ["operation", "status"],
+    buckets: [50, 100, 250, 500, 1000, 2500, 5000, 10000],
+  },
+);
+
+export const razorpayApiErrorsTotal = getOrCreateCounter(
+  "VyaparMedia_razorpay_api_errors_total",
+  {
+    help: "Total number of outbound Razorpay API errors",
+    labelNames: ["operation", "error_type"],
+  },
+);
+
+export const razorpayWebhookLagSeconds = getOrCreateHistogram(
+  "VyaparMedia_razorpay_webhook_lag_seconds",
+  {
+    help: "Lag in seconds between Razorpay event created_at and webhook ingestion",
+    labelNames: ["event_type"],
+    buckets: [1, 5, 10, 30, 60, 120, 300, 600],
+  },
+);
+
+export const razorpayPayoutsTotal = getOrCreateCounter(
+  "VyaparMedia_razorpay_payouts_total",
+  {
+    help: "Total count of Razorpay payouts processed by outcome status",
+    labelNames: ["status"],
+  },
+);
+
+export const circuitBreakerOpenTotal = getOrCreateCounter(
+  "VyaparMedia_circuit_breaker_open_total",
+  {
+    help: "Total number of times a circuit breaker entered OPEN state",
+    labelNames: ["action_name"],
+  },
+);
+
 // Provide access to the metrics string
 export const getMetrics = async () => {
 return await client.register.metrics();

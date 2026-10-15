@@ -13,6 +13,29 @@ import {
   DEFAULT_BRAND_PLATFORM_FEE_PERCENT,
   DEFAULT_GATEWAY_FEE_PERCENT,
 } from "@/constants/deals";
+import { razorpayApiDurationMs, razorpayApiErrorsTotal } from "./metrics";
+
+/**
+ * Instrument external Razorpay gateway calls with Prometheus latency histograms and error counters.
+ */
+export async function instrumentRazorpayCall<T>(
+  operation: string,
+  fn: () => Promise<T>,
+): Promise<T> {
+  const start = performance.now();
+  try {
+    const result = await fn();
+    const duration = performance.now() - start;
+    razorpayApiDurationMs.observe({ operation, status: "success" }, duration);
+    return result;
+  } catch (error) {
+    const duration = performance.now() - start;
+    razorpayApiDurationMs.observe({ operation, status: "error" }, duration);
+    const errorType = error instanceof AppError ? error.errorCode : "UNKNOWN_ERROR";
+    razorpayApiErrorsTotal.inc({ operation, error_type: String(errorType) });
+    throw error;
+  }
+}
 
 // Lazy-initialize Razorpay instance (fails at call-time, not import-time)
 let _razorpay: Razorpay | null = null;
