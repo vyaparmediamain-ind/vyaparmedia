@@ -30,6 +30,7 @@ checkAadhaarOtpVerifyLimit,
 } from "@/lib/kyc";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { bytesToAscii } from "@/lib/utils";
+import { createActivityLog, ActivityAction } from "@/lib/audit";
 import { z } from "zod";
 
 const aadhaarSchema = z.object({
@@ -226,12 +227,18 @@ async function handleVerifyAadhaar(userId: string, aadhaarNumber: string) {
     // P7-SEC-03 FIX: Aadhaar Act 2016 Section 29 compliance - store masked Aadhaar only
     const maskedAadhaar = `XXXXXXXX${cleanAadhaar.slice(-4)}`;
     await prisma.$transaction(async (tx) => {
+      const currentUser = await tx.user.findUnique({
+        where: { id: userId },
+        select: { verificationLevel: true },
+      });
+      const newLevel = currentUser?.verificationLevel === "FULL" ? "FULL" : "IDENTITY";
+
       await tx.user.update({
         where: { id: userId },
-        data: { verificationLevel: "IDENTITY" },
+        data: { verificationLevel: newLevel },
       });
 
-      await tx.verificationDocument.upsert({
+      const doc = await tx.verificationDocument.upsert({
         where: {
           userId_type: { userId, type: "AADHAAR" },
         },
@@ -253,6 +260,14 @@ async function handleVerifyAadhaar(userId: string, aadhaarNumber: string) {
           metadata: (result.data as Prisma.InputJsonValue) || {},
         },
       });
+
+      await createActivityLog({
+        userId,
+        action: ActivityAction.KYC_APPROVED,
+        entityType: "VerificationDocument",
+        entityId: doc.id,
+        metadata: { type: "AADHAAR", newLevel },
+      }, tx);
     });
     await invalidateUserKYCCache(userId);
   }
@@ -314,9 +329,47 @@ async function handleVerifyAadhaarOtp(userId: string, clientId: string, otp: str
         data: result.data,
       };
     }
-    await prisma.user.update({
-      where: { id: userId },
-      data: { verificationLevel: "IDENTITY" },
+    const maskedAadhaar = result.data?.documentNumber || "XXXXXXXX0000";
+    await prisma.$transaction(async (tx) => {
+      const currentUser = await tx.user.findUnique({
+        where: { id: userId },
+        select: { verificationLevel: true },
+      });
+      const newLevel = currentUser?.verificationLevel === "FULL" ? "FULL" : "IDENTITY";
+
+      await tx.user.update({
+        where: { id: userId },
+        data: { verificationLevel: newLevel },
+      });
+
+      const doc = await tx.verificationDocument.upsert({
+        where: { userId_type: { userId, type: "AADHAAR" } },
+        create: {
+          userId,
+          type: "AADHAAR",
+          documentUrl: "VERIFIED_ONLINE",
+          documentNumber: maskedAadhaar,
+          documentNumberHash: `aadhaar_otp_${clientId}`,
+          status: "VERIFIED",
+          verifiedAt: new Date(),
+          metadata: (result.data as Prisma.InputJsonValue) || {},
+        },
+        update: {
+          documentNumber: maskedAadhaar,
+          documentNumberHash: `aadhaar_otp_${clientId}`,
+          status: "VERIFIED",
+          verifiedAt: new Date(),
+          metadata: (result.data as Prisma.InputJsonValue) || {},
+        },
+      });
+
+      await createActivityLog({
+        userId,
+        action: ActivityAction.KYC_APPROVED,
+        entityType: "VerificationDocument",
+        entityId: doc.id,
+        metadata: { type: "AADHAAR", newLevel },
+      }, tx);
     });
     await invalidateUserKYCCache(userId);
   }
@@ -372,12 +425,18 @@ async function handleVerifyPan(userId: string, panNumber: string) {
       };
     }
     await prisma.$transaction(async (tx) => {
+      const currentUser = await tx.user.findUnique({
+        where: { id: userId },
+        select: { verificationLevel: true },
+      });
+      const newLevel = currentUser?.verificationLevel === "FULL" ? "FULL" : "IDENTITY";
+
       await tx.user.update({
         where: { id: userId },
-        data: { verificationLevel: "IDENTITY" },
+        data: { verificationLevel: newLevel },
       });
 
-      await tx.verificationDocument.upsert({
+      const doc = await tx.verificationDocument.upsert({
         where: {
           userId_type: { userId, type: "PAN_CARD" },
         },
@@ -411,6 +470,14 @@ async function handleVerifyPan(userId: string, panNumber: string) {
           verifiedAt: new Date(),
         },
       });
+
+      await createActivityLog({
+        userId,
+        action: ActivityAction.KYC_APPROVED,
+        entityType: "VerificationDocument",
+        entityId: doc.id,
+        metadata: { type: "PAN_CARD", newLevel },
+      }, tx);
     });
 
     await invalidateUserKYCCache(userId);
@@ -467,12 +534,18 @@ async function handleVerifyGst(userId: string, gstNumber: string) {
       };
     }
     await prisma.$transaction(async (tx) => {
+      const currentUser = await tx.user.findUnique({
+        where: { id: userId },
+        select: { verificationLevel: true },
+      });
+      const newLevel = currentUser?.verificationLevel === "FULL" ? "FULL" : "IDENTITY";
+
       await tx.user.update({
         where: { id: userId },
-        data: { verificationLevel: "IDENTITY" },
+        data: { verificationLevel: newLevel },
       });
 
-      await tx.verificationDocument.upsert({
+      const doc = await tx.verificationDocument.upsert({
         where: {
           userId_type: { userId, type: "GST_CERTIFICATE" },
         },
@@ -494,6 +567,14 @@ async function handleVerifyGst(userId: string, gstNumber: string) {
           metadata: (result.data as Prisma.InputJsonValue) || {},
         },
       });
+
+      await createActivityLog({
+        userId,
+        action: ActivityAction.KYC_APPROVED,
+        entityType: "VerificationDocument",
+        entityId: doc.id,
+        metadata: { type: "GST_CERTIFICATE", newLevel },
+      }, tx);
     });
 
     await invalidateUserKYCCache(userId);

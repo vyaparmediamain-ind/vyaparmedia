@@ -8,6 +8,7 @@ import { AppError } from "../errors";
 import { logger } from "../logger";
 import { DocumentType, Prisma } from "@prisma/client";
 import { getCachedKYCResult, setCachedKYCResult } from "./cache";
+import { acquireDistributedLock, releaseDistributedLock } from "../lock";
 
 export * from "./types";
 export * from "./cache";
@@ -143,51 +144,64 @@ export async function assertNoDuplicateDocument(
   // Store only masked representation (XXXXXXXX1234) while keeping HMAC hash for duplicate detection.
   const encrypted = docType === "AADHAAR" ? `XXXXXXXX${docNumber.replace(/[\s-]/g, "").slice(-4)}` : encrypt(docNumber);
 
-  // 1. Check in VerificationDocument
-  const existingDoc = await db.verificationDocument.findFirst({
-    where: {
-      documentNumberHash: hash,
-      type: docType,
-      userId: { not: currentUserId },
-      status: { in: ["VERIFIED", "PENDING"] },
-    },
-    select: { id: true, userId: true },
-  });
-
-  if (existingDoc) {
-    logger.warn("Duplicate document detection triggered", {
-      docType,
-      currentUserId,
-      conflictingUserId: existingDoc.userId,
-    });
-    throw AppError.badRequest(
-      `DUPLICATE_DOCUMENT: This ${docType.replace("_", " ")} is already registered with another account. Each account must have unique identification.`,
+  // Prevent concurrent duplicate registration race attacks using distributed lock
+  const lockKey = `lock:doc_duplicate:${docType}:${hash}`;
+  const lockToken = await acquireDistributedLock(lockKey, 10);
+  if (!lockToken) {
+    throw AppError.conflict(
+      "CONCURRENT_VERIFICATION: A verification is already in progress for this document. Please wait a moment.",
     );
   }
 
-  // 2. If PAN, also check in IndiaTaxCompliance
-  if (docType === "PAN_CARD") {
-    const existingTax = await db.indiaTaxCompliance.findFirst({
+  try {
+    // 1. Check in VerificationDocument
+    const existingDoc = await db.verificationDocument.findFirst({
       where: {
-        panNumberHash: hash,
+        documentNumberHash: hash,
+        type: docType,
         userId: { not: currentUserId },
-        status: "VERIFIED",
+        status: { in: ["VERIFIED", "PENDING"] },
       },
       select: { id: true, userId: true },
     });
 
-    if (existingTax) {
-      logger.warn("Duplicate PAN detection triggered in tax compliance", {
+    if (existingDoc) {
+      logger.warn("Duplicate document detection triggered", {
+        docType,
         currentUserId,
-        conflictingUserId: existingTax.userId,
+        conflictingUserId: existingDoc.userId,
       });
       throw AppError.badRequest(
-        "DUPLICATE_DOCUMENT: This PAN is already verified under another account.",
+        `DUPLICATE_DOCUMENT: This ${docType.replace("_", " ")} is already registered with another account. Each account must have unique identification.`,
       );
     }
-  }
 
-  return { hash, encrypted };
+    // 2. If PAN, also check in IndiaTaxCompliance
+    if (docType === "PAN_CARD") {
+      const existingTax = await db.indiaTaxCompliance.findFirst({
+        where: {
+          panNumberHash: hash,
+          userId: { not: currentUserId },
+          status: "VERIFIED",
+        },
+        select: { id: true, userId: true },
+      });
+
+      if (existingTax) {
+        logger.warn("Duplicate PAN detection triggered in tax compliance", {
+          currentUserId,
+          conflictingUserId: existingTax.userId,
+        });
+        throw AppError.badRequest(
+          "DUPLICATE_DOCUMENT: This PAN is already verified under another account.",
+        );
+      }
+    }
+
+    return { hash, encrypted };
+  } finally {
+    await releaseDistributedLock(lockKey, lockToken);
+  }
 }
 
 /**
