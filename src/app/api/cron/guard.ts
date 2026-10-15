@@ -46,7 +46,7 @@ export async function validateCronSecret(req?: Request) {
       } catch (qstashErr) {
         logger.warn("QStash signature verification failed in cron guard", { error: String(qstashErr) });
       }
-    } else if (process.env.NODE_ENV === "test" || process.env.SKIP_ENV_VALIDATION === "true") {
+    } else if (process.env.NODE_ENV === "test") {
       isUpstashValid = upstashSig === "valid_mock_qstash_signature";
     }
   }

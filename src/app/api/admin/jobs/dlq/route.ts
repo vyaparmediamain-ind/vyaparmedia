@@ -129,15 +129,41 @@ async function _handler_POST(req: NextRequest) {
     publishOptions.deduplicationId = `${deadJob.deduplicationId}-retry-${Date.now()}`;
   }
 
-  const result = await publishJob(publishOptions);
+  try {
+    const result = await publishJob(publishOptions);
 
-  return NextResponse.json({
-    success: true,
-    message: "Job re-enqueued for processing",
-    dlqId,
-    enqueued: result.enqueued,
-    messageId: result.messageId,
-  });
+    if (!result.enqueued) {
+      await prisma.deadLetterJob.update({
+        where: { id: dlqId },
+        data: { status: JobStatus.FAILED },
+      });
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Failed to re-enqueue job into QStash",
+          dlqId,
+          enqueued: false,
+        },
+        { status: 502 },
+      );
+    }
+
+    return NextResponse.json({
+      success: true,
+      message: "Job re-enqueued for processing",
+      dlqId,
+      enqueued: result.enqueued,
+      messageId: result.messageId,
+    });
+  } catch (err: unknown) {
+    await prisma.deadLetterJob
+      .update({
+        where: { id: dlqId },
+        data: { status: JobStatus.FAILED },
+      })
+      .catch(() => {});
+    throw err;
+  }
 }
 
 export const GET = apiWrapper(_handler_GET, { requirePermission: "SYSTEM_ADMIN" });

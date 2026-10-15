@@ -18,6 +18,18 @@ export function secureQStashEndpoint(
   const currentKey = process.env.QSTASH_CURRENT_SIGNING_KEY;
   const nextKey = process.env.QSTASH_NEXT_SIGNING_KEY;
 
+function getExpectedHost(): string {
+  const base = process.env.NEXTAUTH_URL || process.env.NEXT_PUBLIC_APP_URL || process.env.APP_BASE_URL;
+  if (base) {
+    try {
+      return new URL(base).host.toLowerCase();
+    } catch {
+      // ignore
+    }
+  }
+  return "";
+}
+
   // Custom wrapper that unifies 401 Unauthorized for missing/invalid signatures
   return async (req: NextRequest): Promise<Response> => {
     const signature = req.headers.get("upstash-signature");
@@ -31,6 +43,36 @@ export function secureQStashEndpoint(
         { error: "Unauthorized: Missing Upstash-Signature header" },
         { status: 401 },
       );
+    }
+
+    // SEC-13: In production, mock signatures and missing signing keys are strictly forbidden
+    if (process.env.NODE_ENV === "production") {
+      if (signature === "valid_mock_qstash_signature" || !currentKey) {
+        logger.error("SEC-13: Mock QStash signature or missing keys prohibited in production");
+        return NextResponse.json(
+          { error: "Unauthorized: Invalid QStash signature" },
+          { status: 401 },
+        );
+      }
+
+      // Anti-replay: verify host matches expected production environment
+      const reqHost = (
+        req.headers.get("x-forwarded-host") ||
+        req.headers.get("host") ||
+        ""
+      ).toLowerCase();
+      const expectedHost = getExpectedHost();
+      if (expectedHost && reqHost && reqHost !== expectedHost) {
+        logger.warn("QStash anti-replay guard: host mismatch", {
+          reqHost,
+          expectedHost,
+          path: req.nextUrl.pathname,
+        });
+        return NextResponse.json(
+          { error: "Forbidden: Host does not match expected environment (Anti-replay)" },
+          { status: 403 },
+        );
+      }
     }
 
     // In test environment with mock signature, allow immediately
@@ -67,10 +109,20 @@ export function secureQStashEndpoint(
       const receiver = new Receiver(receiverConfig);
 
       const body = await req.clone().text();
-      const isValid = await receiver.verify({
-        signature,
-        body,
-      });
+      let isValid = false;
+      try {
+        isValid = await receiver.verify({
+          signature,
+          body,
+          url: req.url,
+        });
+      } catch {
+        // Fall back to body verification if internal proxy URL rewriting altered URL scheme/host
+        isValid = await receiver.verify({
+          signature,
+          body,
+        });
+      }
 
       if (!isValid) {
         logger.warn("QStash endpoint received invalid Upstash-Signature", {

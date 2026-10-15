@@ -2,6 +2,11 @@ import { NextRequest, NextResponse } from "next/server";
 import { secureQStashEndpoint } from "@/lib/qstash-guard";
 import { logger } from "@/lib/logger";
 import prisma from "@/lib/db";
+import {
+  claimIdempotencyKey,
+  saveIdempotencyResponse,
+  releaseIdempotencyKey,
+} from "@/lib/idempotency";
 import { sendWithdrawalEmail } from "@/lib/email";
 import { checkAndAwardBadges } from "@/lib/gamification-engine";
 import { checkChallengeProgress } from "@/lib/weekly-challenges";
@@ -34,6 +39,52 @@ async function _handler_POST(request: NextRequest) {
     deduplicationId: job.deduplicationId,
   });
 
+  const dedupKey = job.deduplicationId ? `job:dedup:${job.deduplicationId}` : null;
+
+  if (dedupKey) {
+    const claim = await claimIdempotencyKey(dedupKey);
+    if (claim.isDuplicate) {
+      logger.info("QStash consumer skipping duplicate job execution", {
+        deduplicationId: job.deduplicationId,
+        topic: job.topic,
+      });
+      return NextResponse.json({
+        success: true,
+        message: "Duplicate job skipped",
+        deduplicationId: job.deduplicationId,
+        savedResponse: claim.savedResponse,
+      });
+    }
+  }
+
+  try {
+    const response = await processJobPayload(job);
+    if (dedupKey) {
+      await saveIdempotencyResponse(dedupKey, {
+        success: true,
+        topic: job.topic,
+        completedAt: new Date().toISOString(),
+      });
+    }
+    return response;
+  } catch (err) {
+    if (dedupKey) {
+      await releaseIdempotencyKey(dedupKey);
+    }
+    throw err;
+  }
+}
+
+async function processJobPayload(job: {
+  topic: string;
+  category: string;
+  deduplicationId?: string;
+  userId?: string;
+  dealId?: string;
+  withdrawalId?: string;
+  action?: string;
+  metadata?: Record<string, unknown>;
+}): Promise<NextResponse> {
   switch (job.topic) {
     case "email.withdrawal": {
       if (!job.withdrawalId) {
