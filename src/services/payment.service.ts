@@ -873,46 +873,57 @@ throw error;
     }
   }
 
-static async refundFailedWithdrawal(
-withdrawalId: string,
-tx: Prisma.TransactionClient,
-reason: string,
-razorpayPayoutId?: string,
-createRefundTx = false,
-status: "FAILED" | "REVERSED" = "FAILED"
-): Promise<boolean> {
-const updated = await tx.withdrawal.updateMany({
-where: {
-id: withdrawalId,
-status: { notIn: ["COMPLETED", "FAILED", "REVERSED"] },
-},
-data: {
-status,
-failureReason: reason,
-...(razorpayPayoutId ? { razorpayPayoutId } : {}),
-processedAt: new Date(),
-},
-});
+  static async refundFailedWithdrawal(
+    withdrawalId: string,
+    tx: Prisma.TransactionClient,
+    reason: string,
+    razorpayPayoutId?: string,
+    createRefundTx = false,
+    status: "FAILED" | "REVERSED" = "FAILED"
+  ): Promise<boolean> {
+    const updated = await tx.withdrawal.updateMany({
+      where: {
+        id: withdrawalId,
+        status:
+          status === "REVERSED"
+            ? { in: ["COMPLETED", "PROCESSING", "PENDING"] }
+            : { notIn: ["COMPLETED", "FAILED", "REVERSED"] },
+      },
+      data: {
+        status,
+        failureReason: reason,
+        ...(razorpayPayoutId ? { razorpayPayoutId } : {}),
+        processedAt: new Date(),
+      },
+    });
 
-if (updated.count === 0) {
-logger.warn("Skipping payout refund: withdrawal already processed or failed", { withdrawalId });
-return false;
-}
+    if (updated.count === 0) {
+      logger.warn("Skipping payout refund: withdrawal already processed or failed", { withdrawalId });
+      return false;
+    }
 
-const w = await tx.withdrawal.findUnique({
-where: { id: withdrawalId },
-});
-if (!w) throw AppError.notFound("Withdrawal not found during refund");
+    const w = await tx.withdrawal.findUnique({
+      where: { id: withdrawalId },
+    });
+    if (!w) throw AppError.notFound("Withdrawal not found during refund");
 
-await tx.wallet.update({
-where: { id: w.walletId },
-data: { balance: { increment: w.amount } },
-});
+    // If a completed payout was reversed, restore balance and decrement totalWithdrawn
+    await tx.wallet.update({
+      where: { id: w.walletId },
+      data: {
+        balance: { increment: w.amount },
+        ...(status === "REVERSED" ? { totalWithdrawn: { decrement: w.amount } } : {}),
+      },
+    });
 
-await tx.transaction.updateMany({
-where: { withdrawalId, type: "WITHDRAWAL", status: "PENDING" },
-data: { status },
-});
+    await tx.transaction.updateMany({
+      where: {
+        withdrawalId,
+        type: "WITHDRAWAL",
+        status: status === "REVERSED" ? { in: ["COMPLETED", "PENDING"] } : "PENDING",
+      },
+      data: { status },
+    });
 
     const shouldCreateRefundTx = createRefundTx || status === "REVERSED";
     if (shouldCreateRefundTx) {

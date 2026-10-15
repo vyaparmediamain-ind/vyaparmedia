@@ -317,6 +317,7 @@ export async function processWebhookEventInternal(
           reversalReason,
           payoutId,
           true,
+          "REVERSED",
         );
       }
     });
