@@ -4,19 +4,19 @@ export interface KYCVerifyResult {
   success: boolean;
   status: KYCStatus;
   data?: {
-    name?: string;
-    gender?: string;
-    dob?: string;
-    address?: string;
-    documentNumber?: string;
-    category?: string;
-    panType?: string;
-    businessName?: string;
-    clientId?: string;
-    raw?: Record<string, unknown>;
+    name?: string | undefined;
+    gender?: string | undefined;
+    dob?: string | undefined;
+    address?: string | undefined;
+    documentNumber?: string | undefined;
+    category?: string | undefined;
+    panType?: string | undefined;
+    businessName?: string | undefined;
+    clientId?: string | undefined;
+    raw?: Record<string, unknown> | undefined;
   };
-  error?: string;
-  clientId?: string;
+  error?: string | undefined;
+  clientId?: string | undefined;
 }
 
 export interface BankVerifyResult {

@@ -1,17 +1,19 @@
 import { KYCProvider, KYCVerifyResult, BankVerifyResult } from "../types";
 import { logger } from "../../logger";
+import { withCircuitBreaker } from "../../circuit-breaker";
+import { trackSurepassDailySpend } from "../cache";
 
 const KYC_TIMEOUT_MS = 10_000;
+const PROVIDER_DOWN_MSG = "Verification abhi available nahi, thodi der baad try karein";
 
-async function fetchWithTimeout(url: string, init: RequestInit = {}, timeoutMs = KYC_TIMEOUT_MS): Promise<Response> {
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), timeoutMs);
-  try {
-    return await fetch(url, { ...init, signal: controller.signal });
-  } finally {
-    clearTimeout(timer);
-  }
-}
+// Cost estimates per successful API call in INR (⚠️ verify in dashboard)
+const COST_ESTIMATES = {
+  AADHAAR_GENERATE_OTP: 3.0,
+  AADHAAR_SUBMIT_OTP: 3.0,
+  PAN_VERIFY: 2.0,
+  GSTIN_VERIFY: 2.0,
+  BANK_VERIFY: 4.0,
+};
 
 function maskDoc(val: string, showLast = 4): string {
   if (!val) return "";
@@ -19,6 +21,15 @@ function maskDoc(val: string, showLast = 4): string {
   return "*".repeat(Math.max(0, clean.length - showLast)) + clean.slice(-showLast);
 }
 
+/**
+ * Surepass KYC Provider
+ * Official Documentation Links:
+ * - Aadhaar OTP Generate: https://docs.surepass.io/docs/aadhaar-verification/aadhaar-v2-generate-otp (⚠️ verify in dashboard)
+ * - Aadhaar OTP Submit: https://docs.surepass.io/docs/aadhaar-verification/aadhaar-v2-submit-otp (⚠️ verify in dashboard)
+ * - PAN Verification: https://docs.surepass.io/docs/pan-verification/pan-comprehensive (⚠️ verify in dashboard)
+ * - GSTIN Verification: https://docs.surepass.io/docs/gst-verification/gstin (⚠️ verify in dashboard)
+ * - Bank Verification (Penny-drop): https://docs.surepass.io/docs/bank-account-verification/penny-drop (⚠️ verify in dashboard)
+ */
 export class SurepassKYCProvider implements KYCProvider {
   readonly name = "surepass";
   private apiKey: string;
@@ -36,19 +47,51 @@ export class SurepassKYCProvider implements KYCProvider {
     };
   }
 
+  private async executeHttpRequest<T>(
+    endpoint: string,
+    body: Record<string, unknown>,
+    actionName: string,
+  ): Promise<T> {
+    return withCircuitBreaker(
+      "surepass:api",
+      async () => {
+        const res = await fetch(`${this.baseUrl}${endpoint}`, {
+          method: "POST",
+          headers: this.getHeaders(),
+          body: JSON.stringify(body),
+          signal: AbortSignal.timeout(KYC_TIMEOUT_MS),
+        });
+
+        if (!res.ok) {
+          const status = res.status;
+          logger.warn(`[Surepass] HTTP status ${status} on ${actionName}`, {
+            actionName,
+            status,
+          });
+          const error = new Error(`Surepass API HTTP ${status}`);
+          (error as unknown as { statusCode: number }).statusCode = status;
+          throw error;
+        }
+
+        return (await res.json()) as T;
+      },
+      { failureThreshold: 5, resetTimeout: 60 },
+    );
+  }
+
   async verifyAadhaar(aadhaarNumber: string): Promise<KYCVerifyResult> {
     if (!this.apiKey) {
       return { success: false, status: "PENDING", error: "Surepass API key not configured" };
     }
 
     try {
-      const res = await fetchWithTimeout(`${this.baseUrl}/api/v1/aadhaar-v2/generate-otp`, {
-        method: "POST",
-        headers: this.getHeaders(),
-        body: JSON.stringify({ id_number: aadhaarNumber.replace(/\s+/g, "") }),
-      });
+      const cleanAadhaar = aadhaarNumber.replace(/\s+/g, "");
+      const data = await this.executeHttpRequest<{
+        success: boolean;
+        message?: string;
+        data?: { client_id?: string };
+      }>("/api/v1/aadhaar-v2/generate-otp", { id_number: cleanAadhaar }, "aadhaar_generate_otp");
 
-      const data = await res.json();
       if (!data.success) {
         return {
           success: false,
@@ -57,18 +100,23 @@ export class SurepassKYCProvider implements KYCProvider {
         };
       }
 
+      await trackSurepassDailySpend(COST_ESTIMATES.AADHAAR_GENERATE_OTP);
+
       return {
         success: true,
         status: "PENDING",
         data: {
-          documentNumber: maskDoc(aadhaarNumber, 4),
+          documentNumber: maskDoc(cleanAadhaar, 4),
           clientId: data.data?.client_id,
         },
         clientId: data.data?.client_id,
       };
     } catch (err) {
-      logger.error("Surepass Aadhaar verify error", err);
-      return { success: false, status: "PENDING", error: "Verification provider unavailable" };
+      logger.error("Surepass Aadhaar verify failed", {
+        action: "verifyAadhaar",
+        error: err instanceof Error ? err.message : String(err),
+      });
+      return { success: false, status: "PENDING", error: PROVIDER_DOWN_MSG };
     }
   }
 
@@ -78,14 +126,21 @@ export class SurepassKYCProvider implements KYCProvider {
     }
 
     try {
-      const res = await fetchWithTimeout(`${this.baseUrl}/api/v1/aadhaar-v2/submit-otp`, {
-        method: "POST",
-        headers: this.getHeaders(),
-        body: JSON.stringify({ client_id: clientId, otp }),
-      });
+      const data = await this.executeHttpRequest<{
+        success: boolean;
+        message?: string;
+        data?: {
+          full_name?: string;
+          gender?: string;
+          dob?: string;
+          address?: string;
+          aadhaar_number?: string;
+          [key: string]: unknown;
+        };
+      }>("/api/v1/aadhaar-v2/submit-otp", { client_id: clientId, otp }, "aadhaar_submit_otp");
 
-      const data = await res.json();
       if (data.success && data.data) {
+        await trackSurepassDailySpend(COST_ESTIMATES.AADHAAR_SUBMIT_OTP);
         return {
           success: true,
           status: "VERIFIED",
@@ -106,8 +161,12 @@ export class SurepassKYCProvider implements KYCProvider {
         error: data.message || "Aadhaar OTP verification failed",
       };
     } catch (err) {
-      logger.error("Surepass Aadhaar OTP submit error", err);
-      return { success: false, status: "PENDING", error: "Verification provider unavailable" };
+      logger.error("Surepass Aadhaar OTP submit failed", {
+        action: "verifyAadhaarOTP",
+        clientId,
+        error: err instanceof Error ? err.message : String(err),
+      });
+      return { success: false, status: "PENDING", error: PROVIDER_DOWN_MSG };
     }
   }
 
@@ -117,18 +176,20 @@ export class SurepassKYCProvider implements KYCProvider {
     }
 
     try {
-      const res = await fetchWithTimeout(`${this.baseUrl}/api/v1/pan/pan`, {
-        method: "POST",
-        headers: this.getHeaders(),
-        body: JSON.stringify({ id_number: panNumber.toUpperCase() }),
-      });
+      const cleanPAN = panNumber.toUpperCase().trim();
+      const data = await this.executeHttpRequest<{
+        success: boolean;
+        message?: string;
+        data?: {
+          full_name?: string;
+          category?: string;
+          pan_type?: string;
+          [key: string]: unknown;
+        };
+      }>("/api/v1/pan/pan", { id_number: cleanPAN }, "pan_verify");
 
-      if (!res.ok) {
-        return { success: false, status: "PENDING", error: "Verification provider temporarily unavailable" };
-      }
-
-      const data = await res.json();
       if (data.success && data.data) {
+        await trackSurepassDailySpend(COST_ESTIMATES.PAN_VERIFY);
         return {
           success: true,
           status: "VERIFIED",
@@ -136,7 +197,7 @@ export class SurepassKYCProvider implements KYCProvider {
             name: data.data.full_name,
             category: data.data.category,
             panType: data.data.pan_type,
-            documentNumber: maskDoc(panNumber, 4),
+            documentNumber: maskDoc(cleanPAN, 4),
             raw: data.data,
           },
         };
@@ -148,8 +209,12 @@ export class SurepassKYCProvider implements KYCProvider {
         error: data.message || "PAN verification failed",
       };
     } catch (err) {
-      logger.error("Surepass PAN verify error", err);
-      return { success: false, status: "PENDING", error: "Verification provider unavailable" };
+      logger.error("Surepass PAN verify failed", {
+        action: "verifyPAN",
+        maskedDoc: maskDoc(panNumber, 4),
+        error: err instanceof Error ? err.message : String(err),
+      });
+      return { success: false, status: "PENDING", error: PROVIDER_DOWN_MSG };
     }
   }
 
@@ -159,24 +224,25 @@ export class SurepassKYCProvider implements KYCProvider {
     }
 
     try {
-      const res = await fetchWithTimeout(`${this.baseUrl}/api/v1/corporate/gstin`, {
-        method: "POST",
-        headers: this.getHeaders(),
-        body: JSON.stringify({ id_number: gstin.toUpperCase() }),
-      });
+      const cleanGST = gstin.toUpperCase().trim();
+      const data = await this.executeHttpRequest<{
+        success: boolean;
+        message?: string;
+        data?: {
+          trade_name?: string;
+          legal_name?: string;
+          [key: string]: unknown;
+        };
+      }>("/api/v1/corporate/gstin", { id_number: cleanGST }, "gstin_verify");
 
-      if (!res.ok) {
-        return { success: false, status: "PENDING", error: "Verification provider temporarily unavailable" };
-      }
-
-      const data = await res.json();
       if (data.success && data.data) {
+        await trackSurepassDailySpend(COST_ESTIMATES.GSTIN_VERIFY);
         return {
           success: true,
           status: "VERIFIED",
           data: {
             businessName: data.data.trade_name || data.data.legal_name,
-            documentNumber: gstin,
+            documentNumber: cleanGST,
             raw: data.data,
           },
         };
@@ -188,8 +254,12 @@ export class SurepassKYCProvider implements KYCProvider {
         error: data.message || "GSTIN verification failed",
       };
     } catch (err) {
-      logger.error("Surepass GST verify error", err);
-      return { success: false, status: "PENDING", error: "Verification provider unavailable" };
+      logger.error("Surepass GST verify failed", {
+        action: "verifyGSTIN",
+        maskedDoc: maskDoc(gstin, 4),
+        error: err instanceof Error ? err.message : String(err),
+      });
+      return { success: false, status: "PENDING", error: PROVIDER_DOWN_MSG };
     }
   }
 
@@ -199,21 +269,20 @@ export class SurepassKYCProvider implements KYCProvider {
     }
 
     try {
-      const res = await fetchWithTimeout(`${this.baseUrl}/api/v1/bank-verification/`, {
-        method: "POST",
-        headers: this.getHeaders(),
-        body: JSON.stringify({
-          id_number: accountNumber,
-          ifsc: ifsc.toUpperCase(),
-        }),
-      });
+      const cleanAccount = accountNumber.trim();
+      const cleanIFSC = ifsc.toUpperCase().trim();
+      const data = await this.executeHttpRequest<{
+        success: boolean;
+        message?: string;
+        data?: {
+          full_name?: string;
+          account_exists?: boolean;
+          [key: string]: unknown;
+        };
+      }>("/api/v1/bank-verification/", { id_number: cleanAccount, ifsc: cleanIFSC }, "bank_verify");
 
-      if (!res.ok) {
-        return { success: false, nameMatch: false, accountExists: false, error: "Bank verification provider unavailable" };
-      }
-
-      const data = await res.json();
       if (data.success && data.data) {
+        await trackSurepassDailySpend(COST_ESTIMATES.BANK_VERIFY);
         const beneficiaryName = data.data.full_name || "";
         const nameMatch = registeredName
           ? beneficiaryName.toLowerCase().includes(registeredName.toLowerCase()) ||
@@ -235,8 +304,13 @@ export class SurepassKYCProvider implements KYCProvider {
         error: data.message || "Bank account verification failed",
       };
     } catch (err) {
-      logger.error("Surepass bank verify error", err);
-      return { success: false, nameMatch: false, accountExists: false, error: "Bank verification unavailable" };
+      logger.error("Surepass bank verify failed", {
+        action: "verifyBankAccount",
+        maskedAccount: maskDoc(accountNumber, 4),
+        ifsc,
+        error: err instanceof Error ? err.message : String(err),
+      });
+      return { success: false, nameMatch: false, accountExists: false, error: PROVIDER_DOWN_MSG };
     }
   }
 }

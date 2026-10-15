@@ -24,6 +24,9 @@ verifyBankAccount,
 hasMatchingNameTokens,
 assertNoDuplicateDocument,
 invalidateUserKYCCache,
+checkUserKYCRateLimit,
+checkAadhaarOtpRateLimit,
+checkAadhaarOtpVerifyLimit,
 } from "@/lib/kyc";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { bytesToAscii } from "@/lib/utils";
@@ -207,6 +210,15 @@ return NextResponse.json(
 }
 
 async function handleVerifyAadhaar(userId: string, aadhaarNumber: string) {
+  const otpGenLimit = await checkAadhaarOtpRateLimit(userId);
+  if (!otpGenLimit.allowed) {
+    return {
+      success: false,
+      status: "REJECTED" as const,
+      error: "Daily Aadhaar OTP generation limit reached (3 attempts/day). Please try again tomorrow.",
+    };
+  }
+
   const cleanAadhaar = aadhaarNumber.replace(/[\s-]/g, "");
   const { hash } = await assertNoDuplicateDocument(cleanAadhaar, "AADHAAR", userId);
   const result = await verifyAadhaar(cleanAadhaar, userId);
@@ -248,6 +260,15 @@ async function handleVerifyAadhaar(userId: string, aadhaarNumber: string) {
 }
 
 async function handleVerifyAadhaarOtp(userId: string, clientId: string, otp: string) {
+  const otpVerifyLimit = await checkAadhaarOtpVerifyLimit(clientId);
+  if (!otpVerifyLimit.allowed) {
+    return {
+      success: false,
+      status: "REJECTED" as const,
+      error: "Maximum OTP verification attempts exceeded for this session. Please request a new OTP.",
+    };
+  }
+
   const result = await verifyAadhaarOTP(clientId, otp);
   if (result.success && result.status === "VERIFIED") {
     const user = await prisma.user.findUnique({
@@ -436,6 +457,17 @@ return NextResponse.json(
 }
 const body = parsed.data;
 const userId = session.user.id;
+
+const kycRateCheck = await checkUserKYCRateLimit(userId);
+if (!kycRateCheck.allowed) {
+  return NextResponse.json(
+    {
+      error: "Daily verification attempt limit reached (5 attempts/day). Please wait 24 hours before trying again.",
+      code: "RATE_LIMIT_EXCEEDED",
+    },
+    { status: 429 },
+  );
+}
 
 let result;
 switch (body.action) {

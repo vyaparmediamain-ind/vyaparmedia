@@ -7,6 +7,7 @@ import prisma from "../db";
 import { AppError } from "../errors";
 import { logger } from "../logger";
 import { DocumentType, Prisma } from "@prisma/client";
+import { getCachedKYCResult, setCachedKYCResult } from "./cache";
 
 export * from "./types";
 export * from "./cache";
@@ -210,13 +211,30 @@ export async function verifyPAN(
   userId?: string,
 ): Promise<KYCVerifyResult> {
   const cleanPAN = panNumber.toUpperCase().trim();
+  const panHash = hashForDuplicateDetection(cleanPAN);
 
   if (userId) {
     await assertNoDuplicateDocument(cleanPAN, "PAN_CARD", userId);
   }
 
+  const cached = await getCachedKYCResult<KYCVerifyResult["data"]>("PAN", panHash);
+  if (cached) {
+    logger.info("KYC PAN verification served from cache", { docHash: panHash });
+    return {
+      success: true,
+      status: "VERIFIED",
+      data: cached,
+    };
+  }
+
   const provider = getKYCProvider();
-  return provider.verifyPAN(cleanPAN);
+  const result = await provider.verifyPAN(cleanPAN);
+
+  if (result.success && result.status === "VERIFIED" && result.data) {
+    await setCachedKYCResult("PAN", panHash, result.data);
+  }
+
+  return result;
 }
 
 export async function verifyGST(
@@ -224,13 +242,30 @@ export async function verifyGST(
   userId?: string,
 ): Promise<KYCVerifyResult> {
   const cleanGST = gstNumber.toUpperCase().trim();
+  const gstHash = hashForDuplicateDetection(cleanGST);
 
   if (userId) {
     await assertNoDuplicateDocument(cleanGST, "GST_CERTIFICATE", userId);
   }
 
+  const cached = await getCachedKYCResult<KYCVerifyResult["data"]>("GST", gstHash);
+  if (cached) {
+    logger.info("KYC GSTIN verification served from cache", { docHash: gstHash });
+    return {
+      success: true,
+      status: "VERIFIED",
+      data: cached,
+    };
+  }
+
   const provider = getKYCProvider();
-  return provider.verifyGSTIN(cleanGST);
+  const result = await provider.verifyGSTIN(cleanGST);
+
+  if (result.success && result.status === "VERIFIED" && result.data) {
+    await setCachedKYCResult("GST", gstHash, result.data);
+  }
+
+  return result;
 }
 
 export async function verifyBankAccount(
@@ -238,6 +273,29 @@ export async function verifyBankAccount(
   ifsc: string,
   registeredName?: string,
 ): Promise<BankVerifyResult> {
+  const cleanAccount = accountNumber.trim();
+  const cleanIFSC = ifsc.toUpperCase().trim();
+  const bankHash = hashForDuplicateDetection(`${cleanAccount}:${cleanIFSC}`);
+
+  const cached = await getCachedKYCResult<BankVerifyResult>("BANK", bankHash);
+  if (cached) {
+    logger.info("Bank account verification served from cache", { docHash: bankHash });
+    const beneficiaryName = cached.beneficiaryName || "";
+    const nameMatch = registeredName
+      ? hasMatchingNameTokens(beneficiaryName, registeredName)
+      : cached.nameMatch;
+    return {
+      ...cached,
+      nameMatch,
+    };
+  }
+
   const provider = getKYCProvider();
-  return provider.verifyBankAccount(accountNumber, ifsc, registeredName);
+  const result = await provider.verifyBankAccount(cleanAccount, cleanIFSC, registeredName);
+
+  if (result.success && result.accountExists) {
+    await setCachedKYCResult("BANK", bankHash, result);
+  }
+
+  return result;
 }
