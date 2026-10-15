@@ -5,6 +5,7 @@ import { logger } from "@/lib/logger";
 import { NotificationService } from "@/services/notification.service";
 import { invalidateDealCache, lockAndFetchDealForAction, validateShippingAddress } from "./helpers";
 import { shiprocketWebhookPayloadSchema } from "@/lib/validations";
+import { redis } from "@/lib/redis";
 
 export async function submitShippingAddress(
 userId: string,
@@ -454,6 +455,38 @@ export async function trackDealShipping(userId: string, dealId: string) {
 }
 
 
+export type CanonicalShippingStatus =
+  | "PICKUP_SCHEDULED"
+  | "IN_TRANSIT"
+  | "OUT_FOR_DELIVERY"
+  | "DELIVERED"
+  | "RTO_INITIATED"
+  | "RTO_DELIVERED"
+  | "CANCELLED"
+  | "LOST"
+  | "DAMAGED"
+  | "UNKNOWN";
+
+/**
+ * Maps raw carrier/Shiprocket status strings into standardized platform status codes.
+ * Covers pickup, in-transit, delivery, return-to-origin (RTO), loss, and cancellation.
+ */
+export function mapShiprocketStatus(rawStatus: string): CanonicalShippingStatus {
+  const s = rawStatus.trim().toUpperCase().replace(/[\s\-_]+/g, " ");
+
+  if (s.includes("DELIVERED") && !s.includes("RTO")) return "DELIVERED";
+  if (s.includes("RTO DELIVERED") || s.includes("RTO RECEIVED") || s.includes("RETURNED TO ORIGIN")) return "RTO_DELIVERED";
+  if (s.includes("RTO") || s.includes("RETURN TO ORIGIN") || s.includes("UNDELIVERED")) return "RTO_INITIATED";
+  if (s.includes("OUT FOR DELIVERY") || s.includes("OUT FOR PICKUP")) return "OUT_FOR_DELIVERY";
+  if (s.includes("IN TRANSIT") || s.includes("TRANSIT") || s.includes("SHIPPED") || s.includes("DISPATCHED")) return "IN_TRANSIT";
+  if (s.includes("PICKUP SCHEDULED") || s.includes("PICKED UP") || s.includes("MANIFEST")) return "PICKUP_SCHEDULED";
+  if (s.includes("CANCELLED") || s.includes("CANCELED")) return "CANCELLED";
+  if (s.includes("LOST") || s.includes("MISSING")) return "LOST";
+  if (s.includes("DAMAGED") || s.includes("DESTROYED")) return "DAMAGED";
+
+  return "UNKNOWN";
+}
+
 export async function handleShiprocketWebhook(rawPayload: unknown) {
   const parseResult = shiprocketWebhookPayloadSchema.safeParse(rawPayload);
   if (!parseResult.success) {
@@ -466,6 +499,24 @@ export async function handleShiprocketWebhook(rawPayload: unknown) {
   const orderId = (payload.order_id || "").trim();
   const rawStatus = (payload.current_status || payload.status || "").trim().toUpperCase();
   const status = rawStatus.slice(0, 50);
+
+  // Replay Safety / Deduplication:
+  // Use Redis SET NX to short-circuit repeated webhooks with identical timestamp/status
+  const timestamp = String(payload.scans?.[0] || payload.shipment_track_activities?.[0] || "").slice(0, 100);
+  const dedupKey = `shiprocket:webhook:${awb || orderId}:${rawStatus}:${timestamp}`;
+  try {
+    const isNew = await redis.set(dedupKey, "1", "EX", 86400, "NX");
+    if (!isNew) {
+      logger.info("[Shiprocket Webhook] Duplicate webhook received, skipping replay", {
+        awb,
+        orderId,
+        status: rawStatus,
+      });
+      return { matched: true, dealId: orderId || awb, status: rawStatus, duplicate: true };
+    }
+  } catch (redisErr) {
+    logger.warn("[Shiprocket Webhook] Redis dedup check failed, failing open", { error: redisErr });
+  }
 
   // Find matching deal
   const deal = await prisma.deal.findFirst({
@@ -486,8 +537,23 @@ export async function handleShiprocketWebhook(rawPayload: unknown) {
     return { matched: false, message: "No deal found matching AWB / Order ID" };
   }
 
-  const isDelivered = status.includes("DELIVER");
-  
+  const canonicalStatus = mapShiprocketStatus(rawStatus);
+  if (canonicalStatus === "UNKNOWN") {
+    logger.warn("[Shiprocket Webhook] Unmapped carrier status received, preserving status in deal", {
+      rawStatus,
+      awb,
+      orderId,
+      dealId: deal.id,
+    });
+  }
+
+  // Out-of-Order Event Protection:
+  // If deal is already delivered/received, ignore downgrades to in-transit or pickup-scheduled
+  const isAlreadyReceived = deal.productFulfillmentStatus === "RECEIVED";
+  const isDelivered = canonicalStatus === "DELIVERED";
+  const shouldSkipStatusUpdate =
+    isAlreadyReceived && (canonicalStatus === "IN_TRANSIT" || canonicalStatus === "PICKUP_SCHEDULED");
+
   // Safely validate and sanitize scan history checkpoints
   const incomingScans = Array.isArray(payload.scans)
     ? payload.scans
@@ -515,11 +581,11 @@ export async function handleShiprocketWebhook(rawPayload: unknown) {
 
   await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
     const updateData: Prisma.DealUpdateInput = {
-      shippingStatus: status || deal.shippingStatus,
+      ...(shouldSkipStatusUpdate ? {} : { shippingStatus: status || deal.shippingStatus }),
       ...(sanitizedScans.length > 0 ? { shippingTrackingHistory: sanitizedScans as unknown as Prisma.InputJsonValue } : {}),
     };
 
-    if (isDelivered && deal.productFulfillmentStatus !== "RECEIVED") {
+    if (isDelivered && !isAlreadyReceived) {
       updateData.productFulfillmentStatus = "RECEIVED";
       updateData.productReceivedAt = new Date();
     }
@@ -529,7 +595,8 @@ export async function handleShiprocketWebhook(rawPayload: unknown) {
       data: updateData,
     });
 
-    if (isDelivered && deal.productFulfillmentStatus !== "RECEIVED") {
+    // 1. Delivery Successful Notifications
+    if (isDelivered && !isAlreadyReceived) {
       if (deal.brand?.userId) {
         await NotificationService.createNotification({
           userId: deal.brand.userId,
@@ -544,6 +611,47 @@ export async function handleShiprocketWebhook(rawPayload: unknown) {
         type: "deal_update",
         title: "Product Delivered",
         message: `Shiprocket courier confirmed package delivery for "${deal.campaign.title}".`,
+        data: { link: `/dashboard/deals/${deal.id}` },
+      }, tx);
+    }
+
+    // 2. Failure Ops: RTO / Return Notifications
+    if (canonicalStatus === "RTO_INITIATED") {
+      if (deal.brand?.userId) {
+        await NotificationService.createNotification({
+          userId: deal.brand.userId,
+          type: "deal_update",
+          title: "Shipment Return Initiated (RTO)",
+          message: `Delivery attempt failed for "${deal.campaign.title}". The package is returning to your pickup warehouse.`,
+          data: { link: `/dashboard/deals/${deal.id}` },
+        }, tx);
+      }
+      await NotificationService.createNotification({
+        userId: deal.influencer.userId,
+        type: "deal_update",
+        title: "Product Delivery Failed",
+        message: `Courier could not deliver sample package for "${deal.campaign.title}". Package is returning to sender.`,
+        data: { link: `/dashboard/deals/${deal.id}` },
+      }, tx);
+    }
+
+    // 3. Failure Ops: Lost or Damaged in Transit
+    if (canonicalStatus === "LOST" || canonicalStatus === "DAMAGED") {
+      const alertTitle = canonicalStatus === "LOST" ? "Shipment Marked Lost" : "Shipment Reported Damaged";
+      if (deal.brand?.userId) {
+        await NotificationService.createNotification({
+          userId: deal.brand.userId,
+          type: "deal_update",
+          title: alertTitle,
+          message: `Logistics partner reported shipment for "${deal.campaign.title}" as ${canonicalStatus.toLowerCase()}. Please contact support to initiate carrier insurance/dispute.`,
+          data: { link: `/dashboard/deals/${deal.id}` },
+        }, tx);
+      }
+      await NotificationService.createNotification({
+        userId: deal.influencer.userId,
+        type: "deal_update",
+        title: alertTitle,
+        message: `Your sample shipment for "${deal.campaign.title}" was reported ${canonicalStatus.toLowerCase()} by courier. Our team is resolving this.`,
         data: { link: `/dashboard/deals/${deal.id}` },
       }, tx);
     }

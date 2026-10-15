@@ -137,6 +137,8 @@ async function anonymizeUserData(tx: Prisma.TransactionClient, userId: string, a
       maxYoutubeRate: null,
       city: null,
       state: null,
+      address: null,
+      pinCode: null,
     },
   });
 
@@ -147,6 +149,13 @@ async function anonymizeUserData(tx: Prisma.TransactionClient, userId: string, a
       logo: null,
       description: null,
       website: null,
+      city: null,
+      state: null,
+      address: null,
+      pinCode: null,
+      gstNumber: null,
+      panNumber: null,
+      cinNumber: null,
     },
   });
 

@@ -8,6 +8,8 @@ import { logger } from "@/lib/logger";
 import { acquireDistributedLock, releaseDistributedLock, extendDistributedLock } from "@/lib/lock";
 import { transitionDealState } from "@/lib/deal-state-machine";
 
+export const maxDuration = 60;
+
 /**
 * Stale Product Fulfillment Scanner Daily Cron
 *
