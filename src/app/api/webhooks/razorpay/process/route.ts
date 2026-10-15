@@ -199,7 +199,74 @@ export async function processWebhookEventInternal(
     return { success: true, message: "Top-up completed" };
   }
 
-  // payout.*: payout.processed / payout.failed / payout.reversed
+  // payment.failed: Top-up or Escrow payment failure
+  if (event === "payment.failed") {
+    const payment = payload?.payload?.payment?.entity;
+    const orderId = payment?.order_id;
+    const paymentId = payment?.id;
+    const failureReason =
+      payment?.error_description || payment?.error_code || "Payment failed or cancelled at gateway";
+
+    logger.warn("Razorpay payment.failed webhook received", {
+      orderId,
+      paymentId,
+      error: failureReason,
+      eventId: job.eventId,
+    });
+
+    recordPaymentFailure("PAYMENT_FAILED_WEBHOOK", new Error(failureReason), {
+      orderId,
+      paymentId,
+      eventId: job.eventId,
+      reason: failureReason,
+    });
+
+    if (orderId) {
+      await prisma.paymentHold.updateMany({
+        where: { razorpayOrderId: orderId, status: { in: ["PENDING"] } },
+        data: { status: "FAILED" },
+      });
+
+      await prisma.transaction.updateMany({
+        where: { razorpayOrderId: orderId, status: { notIn: ["COMPLETED", "FAILED", "REVERSED"] } },
+        data: {
+          status: "FAILED",
+          description: `Payment failed: ${failureReason}`,
+          razorpayPaymentId: paymentId,
+        },
+      });
+    }
+
+    await markWebhookProcessed(job.eventId, job.eventType, job.payload as Prisma.InputJsonValue);
+    return { success: true, message: "Payment failure recorded" };
+  }
+
+  // order.paid: Razorpay order paid status confirmation
+  if (event === "order.paid") {
+    const orderPayload = (payload?.payload as Record<string, unknown>)?.order as
+      | { entity?: { id?: string; amount?: number; status?: string } }
+      | undefined;
+    const orderId = orderPayload?.entity?.id;
+    logger.info("Razorpay order.paid webhook received", { orderId, eventId: job.eventId });
+
+    if (orderId) {
+      const paymentHold = await prisma.paymentHold.findUnique({
+        where: { razorpayOrderId: orderId },
+        include: { deal: true },
+      });
+      if (paymentHold && paymentHold.status === "PENDING") {
+        await prisma.paymentHold.update({
+          where: { id: paymentHold.id },
+          data: { status: "HELD", capturedAt: new Date() },
+        });
+      }
+    }
+
+    await markWebhookProcessed(job.eventId, job.eventType, job.payload as Prisma.InputJsonValue);
+    return { success: true, message: "Order paid acknowledged" };
+  }
+
+  // payout.*: payout.processed / payout.failed / payout.reversed / payout.queued
   if (event.startsWith("payout.")) {
     const payout = payload?.payload?.payout?.entity;
     const withdrawalId = payout?.reference_id;
@@ -319,6 +386,12 @@ export async function processWebhookEventInternal(
           true,
           "REVERSED",
         );
+      } else if (event === "payout.queued" || event === "payout.pending" || event === "payout.initiated") {
+        logger.info(`Payout in status ${event}`, { withdrawalId: withdrawal.id, payoutId });
+        await tx.withdrawal.updateMany({
+          where: { id: withdrawal.id, status: { notIn: ["COMPLETED", "FAILED", "REVERSED"] } },
+          data: { status: "PROCESSING", razorpayPayoutId: payoutId },
+        });
       }
     });
 
@@ -453,10 +526,40 @@ export async function processWebhookEventInternal(
           errorCode: transfer?.error_code,
         });
       }
+    } else if (event === "transfer.reversed") {
+      logger.warn("Razorpay Route transfer reversed webhook received", {
+        transferId: transfer?.id,
+        dealId: paymentHold?.dealId,
+      });
+      if (paymentHold) {
+        await prisma.paymentHold.update({
+          where: { id: paymentHold.id },
+          data: { status: "FAILED" },
+        });
+      }
     }
 
     await markWebhookProcessed(job.eventId, job.eventType, job.payload as Prisma.InputJsonValue);
     return { success: true, message: `Transfer event ${event} reconciled successfully` };
+  }
+
+  // Handle gateway refund failures separately (never debit wallet for failed refund)
+  if (event === "refund.failed") {
+    const refund = payload?.payload?.refund?.entity;
+    logger.warn("Gateway refund.failed event received: refund failed at gateway", {
+      eventId: job.eventId,
+      refundId: refund?.id,
+      paymentId: refund?.payment_id,
+      amount: refund?.amount,
+    });
+    recordWebhookAnomaly("REFUND_FAILED" as any, {
+      eventId: job.eventId,
+      refundId: refund?.id,
+      paymentId: refund?.payment_id,
+      amount: refund?.amount,
+    });
+    await markWebhookProcessed(job.eventId, job.eventType, job.payload as Prisma.InputJsonValue);
+    return { success: true, message: "Refund failure acknowledged without wallet deduction" };
   }
 
   // Handle gateway refunds and chargeback disputes (P6-MONEY-01)
@@ -550,7 +653,20 @@ export async function processWebhookEventInternal(
     return { success: true, message: `Financial event ${event} processed and reconciled` };
   }
 
-  // Acknowledge unhandled event types
+  // Alert on critical unhandled event types
+  if (
+    event.startsWith("payout.") ||
+    event.startsWith("refund.") ||
+    event.startsWith("dispute.") ||
+    event.startsWith("transfer.")
+  ) {
+    logger.warn("Unhandled critical Razorpay webhook event received", {
+      event,
+      eventId: job.eventId,
+    });
+  }
+
+  // Acknowledge unhandled event types with 200 OK
   await markWebhookProcessed(job.eventId, job.eventType, job.payload as Prisma.InputJsonValue);
   return { success: true, message: `Event type ${event} acknowledged` };
 }
