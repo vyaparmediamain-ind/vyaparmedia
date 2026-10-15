@@ -6,6 +6,7 @@ import { PaymentService } from "@/services/payment.service";
 import { logger } from "@/lib/logger";
 import { redis } from "@/lib/redis";
 import { acquireDistributedLock, releaseDistributedLock } from "@/lib/lock";
+import { fetchPayoutByReferenceId, fetchRazorpayXBalance } from "@/lib/razorpay";
 
 const CRON_LAST_RUN_KEY = "cron:reconcile-payouts:last_run";
 const CRON_LOCK_KEY = "cron:reconcile-payouts:lock";
@@ -102,6 +103,7 @@ async function _handler_POST(_req: NextRequest) {
     }
 
     // P6-MONEY-03 FIX: Reconcile stuck withdrawals (> 30 minutes in PROCESSING without resolution)
+    // TP-04 FIX: Query gateway by deterministic reference_id (withdrawal.id) to prevent blind double-refunds
     const stuckWithdrawals = await prisma.withdrawal.findMany({
       where: {
         status: "PROCESSING",
@@ -113,21 +115,96 @@ async function _handler_POST(_req: NextRequest) {
 
     for (const w of stuckWithdrawals) {
       try {
-        if (!w.razorpayPayoutId) {
+        const gatewayPayout = await fetchPayoutByReferenceId(w.id);
+
+        if (gatewayPayout) {
+          if (gatewayPayout.status === "processed") {
+            await prisma.withdrawal.updateMany({
+              where: { id: w.id, status: "PROCESSING" },
+              data: {
+                status: "COMPLETED",
+                razorpayPayoutId: gatewayPayout.id,
+                processedAt: new Date(),
+              },
+            });
+            logger.info("Reconciled stuck withdrawal: verified processed on gateway", {
+              withdrawalId: w.id,
+              payoutId: gatewayPayout.id,
+              utr: gatewayPayout.utr,
+            });
+          } else if (gatewayPayout.status === "reversed") {
+            await prisma.$transaction(async (tx) => {
+              await PaymentService.refundFailedWithdrawal(
+                w.id,
+                tx,
+                `Gateway payout reversed by bank: ${gatewayPayout.failure_reason || "Reversed"}`,
+                undefined,
+                false,
+                "REVERSED",
+              );
+            });
+            logger.warn("Reconciled stuck withdrawal: gateway confirmed reversed, wallet re-credited", {
+              withdrawalId: w.id,
+              payoutId: gatewayPayout.id,
+            });
+          } else if (gatewayPayout.status === "failed" || gatewayPayout.status === "rejected") {
+            await prisma.$transaction(async (tx) => {
+              await PaymentService.refundFailedWithdrawal(
+                w.id,
+                tx,
+                `Gateway payout ${gatewayPayout.status}: ${gatewayPayout.failure_reason || "Gateway rejection"}`,
+                undefined,
+                false,
+                "FAILED",
+              );
+            });
+            logger.warn("Reconciled stuck withdrawal: gateway confirmed failed, funds refunded", {
+              withdrawalId: w.id,
+              payoutId: gatewayPayout.id,
+            });
+          } else {
+            // queued / pending / processing
+            if (!w.razorpayPayoutId && gatewayPayout.id) {
+              await prisma.withdrawal.updateMany({
+                where: { id: w.id },
+                data: { razorpayPayoutId: gatewayPayout.id },
+              });
+            }
+            logger.info("Stuck withdrawal still active on gateway, awaiting webhook/completion", {
+              withdrawalId: w.id,
+              gatewayStatus: gatewayPayout.status,
+            });
+          }
+        } else if (!w.razorpayPayoutId) {
+          // Confirmed 404/null from gateway and no payout ID exists locally: safely refund
           await prisma.$transaction(async (tx) => {
             await PaymentService.refundFailedWithdrawal(
               w.id,
               tx,
-              "Gateway timeout during payout submission: funds returned to wallet for retry",
+              "Gateway timeout during payout submission: verified never reached gateway, funds returned to wallet for retry",
               undefined,
               false,
             );
           });
-          logger.warn("Reconciled timed-out withdrawal with no gateway ID: funds refunded", { withdrawalId: w.id });
+          logger.warn("Reconciled timed-out withdrawal with verified no gateway record: funds refunded", { withdrawalId: w.id });
         }
       } catch (wErr) {
         logger.error("Failed to reconcile stuck withdrawal", { withdrawalId: w.id, error: wErr });
       }
+    }
+
+    // Check RazorpayX balance and trigger alert if balance < 50,000 INR (5,000,000 paise)
+    try {
+      const { balance } = await fetchRazorpayXBalance();
+      const LOW_BALANCE_THRESHOLD_PAISE = 5_000_000;
+      if (balance > 0 && balance < LOW_BALANCE_THRESHOLD_PAISE) {
+        logger.critical("[RazorpayX Alert] Low account balance! Payouts may be queued", {
+          balancePaise: balance,
+          thresholdPaise: LOW_BALANCE_THRESHOLD_PAISE,
+        });
+      }
+    } catch (balErr) {
+      logger.warn("Failed to check RazorpayX balance in cron", { error: balErr });
     }
 
     try {

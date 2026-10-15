@@ -37,12 +37,12 @@ describe("RZP-PAYOUT-01: RazorpayX Payout Reversal & Re-Credit Idempotency", () 
     vi.spyOn(prisma.processedWebhookEvent, "findUnique").mockResolvedValue(null as never);
     vi.spyOn(prisma.processedWebhookEvent, "create").mockResolvedValue({} as never);
 
-    vi.spyOn(prisma.withdrawal, "findUnique").mockImplementation(async () => ({
+    vi.spyOn(prisma.withdrawal, "findUnique").mockImplementation((async () => ({
       ...mockWithdrawal,
       status: currentWithdrawalStatus,
-    } as never));
+    })) as any);
 
-    vi.spyOn(prisma.withdrawal, "updateMany").mockImplementation(async (args: any) => {
+    vi.spyOn(prisma.withdrawal, "updateMany").mockImplementation((async (args: any) => {
       // Check if filter matches
       const statusFilter = args.where.status;
       if (statusFilter && typeof statusFilter === "object") {
@@ -55,9 +55,9 @@ describe("RZP-PAYOUT-01: RazorpayX Payout Reversal & Re-Credit Idempotency", () 
       }
       currentWithdrawalStatus = args.data.status;
       return { count: 1 };
-    });
+    }) as any);
 
-    vi.spyOn(prisma.wallet, "update").mockImplementation(async (args: any) => {
+    vi.spyOn(prisma.wallet, "update").mockImplementation((async (args: any) => {
       if (args.data.balance?.increment) {
         walletBalance += args.data.balance.increment;
       }
@@ -65,7 +65,7 @@ describe("RZP-PAYOUT-01: RazorpayX Payout Reversal & Re-Credit Idempotency", () 
         totalWithdrawn -= args.data.totalWithdrawn.decrement;
       }
       return {} as never;
-    });
+    }) as any);
 
     vi.spyOn(prisma.transaction, "findFirst").mockResolvedValue({
       id: "tx_w_123",

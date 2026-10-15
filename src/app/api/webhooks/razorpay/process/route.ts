@@ -201,11 +201,11 @@ export async function processWebhookEventInternal(
 
   // payment.failed: Top-up or Escrow payment failure
   if (event === "payment.failed") {
-    const payment = payload?.payload?.payment?.entity;
-    const orderId = payment?.order_id;
-    const paymentId = payment?.id;
+    const payment = payload?.payload?.payment?.entity as Record<string, any> | undefined;
+    const orderId = payment?.order_id as string | undefined;
+    const paymentId = payment?.id as string | undefined;
     const failureReason =
-      payment?.error_description || payment?.error_code || "Payment failed or cancelled at gateway";
+      (payment?.error_description as string) || (payment?.error_code as string) || "Payment failed or cancelled at gateway";
 
     logger.warn("Razorpay payment.failed webhook received", {
       orderId,
@@ -232,7 +232,7 @@ export async function processWebhookEventInternal(
         data: {
           status: "FAILED",
           description: `Payment failed: ${failureReason}`,
-          razorpayPaymentId: paymentId,
+          ...(paymentId ? { razorpayPaymentId: paymentId } : {}),
         },
       });
     }

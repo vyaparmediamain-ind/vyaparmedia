@@ -6,6 +6,7 @@ import { NotificationService } from "@/services/notification.service";
 import { logger } from "@/lib/logger";
 import { acquireDistributedLock, releaseDistributedLock } from "@/lib/lock";
 import { createActivityLog } from "@/lib/audit";
+import { fetchRazorpayPayments } from "@/lib/razorpay";
 
 /**
  * Daily Ledger vs Razorpay Settlement Reconciliation Cron Job
@@ -209,6 +210,113 @@ async function notifyAdminsOfReconciliationDrift(summary: ReconciliationSummary)
   });
 }
 
+/**
+ * Computes yesterday's 00:00:00 to 23:59:59 window in Indian Standard Time (IST, UTC+5:30),
+ * returning UTC epoch timestamps in seconds as required by the Razorpay Payments API.
+ */
+export function getYesterdayISTWindow(): { from: number; to: number } {
+  const now = new Date();
+  const utcMs = now.getTime() + now.getTimezoneOffset() * 60000;
+  const istMs = utcMs + 5.5 * 3600000;
+  const istDate = new Date(istMs);
+
+  const startYesterdayIST = new Date(istDate.getFullYear(), istDate.getMonth(), istDate.getDate() - 1, 0, 0, 0, 0);
+  const endYesterdayIST = new Date(istDate.getFullYear(), istDate.getMonth(), istDate.getDate() - 1, 23, 59, 59, 0);
+
+  const from = Math.floor((startYesterdayIST.getTime() - 5.5 * 3600000) / 1000);
+  const to = Math.floor((endYesterdayIST.getTime() - 5.5 * 3600000) / 1000);
+
+  return { from, to };
+}
+
+/**
+ * Daily Gateway Payment vs Ledger Cross-Check for Yesterday in IST.
+ * Fetches all captured payments from Razorpay (paginating count/skip max 100)
+ * and compares with prisma.transaction table.
+ * Any missing transaction or amount mismatch is logged and recorded in DeadLetterJob.
+ */
+export async function reconcileGatewayPaymentsIST(): Promise<{
+  totalGatewayPayments: number;
+  matchedCount: number;
+  mismatchCount: number;
+}> {
+  const { from, to } = getYesterdayISTWindow();
+  let skip = 0;
+  const count = 100;
+  let hasMore = true;
+  let totalGatewayPayments = 0;
+  let matchedCount = 0;
+  let mismatchCount = 0;
+
+  while (hasMore) {
+    const payments = await fetchRazorpayPayments({ from, to, count, skip });
+    if (!payments || payments.length === 0) {
+      break;
+    }
+
+    for (const payment of payments) {
+      if (payment.status !== "captured") continue;
+      totalGatewayPayments++;
+
+      const tx = await prisma.transaction.findFirst({
+        where: { razorpayPaymentId: payment.id },
+      });
+
+      if (!tx) {
+        mismatchCount++;
+        logger.critical("[Reconciliation] Gateway payment missing from ledger!", {
+          paymentId: payment.id,
+          amount: payment.amount,
+          created_at: payment.created_at,
+        });
+
+        await prisma.deadLetterJob.create({
+          data: {
+            endpoint: "/api/cron/reconcile-ledger-settlements",
+            category: "TIME_CRITICAL",
+            topic: "reconciliation.gateway_mismatch",
+            deduplicationId: `recon_missing_${payment.id}`,
+            payload: { paymentId: payment.id, amount: payment.amount, reason: "MISSING_FROM_LEDGER" },
+            errorMessage: `Gateway payment ${payment.id} for ₹${payment.amount / 100} exists on Razorpay but missing from transaction ledger`,
+            attempts: 1,
+            status: "FAILED",
+          },
+        }).catch((err) => logger.error("Failed to record DLQ for missing payment", err));
+      } else if (tx.amount !== payment.amount) {
+        mismatchCount++;
+        logger.critical("[Reconciliation] Gateway payment amount mismatch with ledger!", {
+          paymentId: payment.id,
+          gatewayAmount: payment.amount,
+          ledgerAmount: tx.amount,
+        });
+
+        await prisma.deadLetterJob.create({
+          data: {
+            endpoint: "/api/cron/reconcile-ledger-settlements",
+            category: "TIME_CRITICAL",
+            topic: "reconciliation.gateway_mismatch",
+            deduplicationId: `recon_amount_mismatch_${payment.id}`,
+            payload: { paymentId: payment.id, gatewayAmount: payment.amount, ledgerAmount: tx.amount, reason: "AMOUNT_MISMATCH" },
+            errorMessage: `Gateway payment ${payment.id} amount mismatch: Razorpay=${payment.amount} vs Ledger=${tx.amount}`,
+            attempts: 1,
+            status: "FAILED",
+          },
+        }).catch((err) => logger.error("Failed to record DLQ for payment amount mismatch", err));
+      } else {
+        matchedCount++;
+      }
+    }
+
+    if (payments.length < count) {
+      hasMore = false;
+    } else {
+      skip += count;
+    }
+  }
+
+  return { totalGatewayPayments, matchedCount, mismatchCount };
+}
+
 async function _handler_POST(_req: NextRequest) {
   await validateCronSecret(_req);
 
@@ -223,7 +331,10 @@ async function _handler_POST(_req: NextRequest) {
   }
 
   try {
-    const summary = await performLedgerReconciliation();
+    const [summary, gatewayRecon] = await Promise.all([
+      performLedgerReconciliation(),
+      reconcileGatewayPaymentsIST(),
+    ]);
 
     if (summary.driftDetected) {
       logger.critical("CRITICAL_RECONCILIATION_MISMATCH: Stored wallet balances do not match ledger sum", {
@@ -254,7 +365,10 @@ async function _handler_POST(_req: NextRequest) {
       message: summary.isBalanced
         ? "Reconciliation complete: All ledger balances and stored wallets match."
         : `Reconciliation discrepancy detected: Drift of ₹${(summary.ledgerToWalletDriftPaise / 100).toFixed(2)}`,
-      data: summary,
+      data: {
+        ...summary,
+        gatewayReconciliation: gatewayRecon,
+      },
     });
   } finally {
     await releaseDistributedLock(CRON_LOCK_KEY, lockToken).catch((err) => {

@@ -711,6 +711,15 @@ status: refund.status,
 * Caches Contact and Fund Account IDs in Redis to avoid duplicate creation.
 */
 async function fetchWithTimeout(url: string, options: RequestInit, timeoutMs = 10000): Promise<Response> {
+  const signal =
+    typeof AbortSignal !== "undefined" && "timeout" in AbortSignal
+      ? AbortSignal.timeout(timeoutMs)
+      : undefined;
+
+  if (signal) {
+    return await fetch(url, { ...options, signal });
+  }
+
   const controller = new AbortController();
   const id = setTimeout(() => controller.abort(), timeoutMs);
   try {
@@ -1140,79 +1149,232 @@ export async function validateFundAccount(params: {
   const auth = Buffer.from(`${keyId}:${keySecret}`).toString("base64");
   const baseUrl = "https://api.razorpay.com/v1";
 
-  async function razorpayPost<T>(path: string, body: Record<string, unknown>): Promise<T> {
-    const res = await fetch(`${baseUrl}${path}`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Basic ${auth}`,
-      },
-      body: JSON.stringify(body),
-    });
-    if (!res.ok) {
-      const err = await res.json().catch(() => ({ error: { description: res.statusText } }));
-      const description = (err as { error?: { description?: string } })?.error?.description ?? res.statusText;
-      throw AppError.internal(`Razorpay FAV error: ${description}`);
+  return await withCircuitBreaker("razorpay:validateFundAccount", async () => {
+    async function razorpayPost<T>(path: string, body: Record<string, unknown>): Promise<T> {
+      const res = await fetchWithTimeout(`${baseUrl}${path}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Basic ${auth}`,
+        },
+        body: JSON.stringify(body),
+      }, 10000);
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ error: { description: res.statusText } }));
+        const description = (err as { error?: { description?: string } })?.error?.description ?? res.statusText;
+        throw AppError.internal(`Razorpay FAV error: ${description}`);
+      }
+      return res.json() as Promise<T>;
     }
-    return res.json() as Promise<T>;
-  }
 
-  // Step 1: Create contact
-  const contact = await razorpayPost<{ id: string }>("/contacts", {
-    name: params.accountHolderName,
-    type: "employee",
-    reference_id: params.userId,
-  });
-
-  // Step 2: Create fund account linked to contact
-  const fundAccount = await razorpayPost<{ id: string }>("/fund_accounts", {
-    contact_id: contact.id,
-    account_type: "bank_account",
-    bank_account: {
+    // Step 1: Create contact
+    const contact = await razorpayPost<{ id: string }>("/contacts", {
       name: params.accountHolderName,
-      ifsc: params.ifscCode,
-      account_number: params.accountNumber,
-    },
-  });
+      type: "employee",
+      reference_id: params.userId,
+    });
 
-  // Step 3: Trigger fund account validation (penny-drop)
-  const validation = await razorpayPost<{
-    id: string;
-    fund_account_id: string;
-    results?: {
-      account_status?: string;
-      registered_name?: string;
+    // Step 2: Create fund account linked to contact
+    const fundAccount = await razorpayPost<{ id: string }>("/fund_accounts", {
+      contact_id: contact.id,
+      account_type: "bank_account",
+      bank_account: {
+        name: params.accountHolderName,
+        ifsc: params.ifscCode,
+        account_number: params.accountNumber,
+      },
+    });
+
+    // Step 3: Trigger fund account validation (penny-drop)
+    const validation = await razorpayPost<{
+      id: string;
+      fund_account_id: string;
+      results?: {
+        account_status?: string;
+        registered_name?: string;
+      };
+    }>("/fund_accounts/validations", {
+      account_number: process.env.RAZORPAY_ACCOUNT_NUMBER, // Platform payout account
+      fund_account: { id: fundAccount.id },
+      amount: 100, // Re 1 in paise
+      currency: "INR",
+      description: "Bank account ownership verification",
+      receipt: `fav_${params.userId}_${Date.now()}`,
+      notes: { purpose: "bank_verification", user_id: params.userId },
+    });
+
+    const registeredName = validation.results?.registered_name ?? null;
+    const accountStatus = validation.results?.account_status ?? "unknown";
+    let isValid = accountStatus === "active";
+
+    if (isValid && registeredName) {
+      isValid = isFuzzyNameMatch(params.accountHolderName, registeredName);
+    }
+
+    logger.info("Fund account validation completed", {
+      userId: params.userId,
+      fundAccountId: fundAccount.id,
+      validationId: validation.id,
+      accountStatus,
+      registeredName,
+    });
+
+    return {
+      fundAccountId: fundAccount.id,
+      validationId: validation.id,
+      registeredName,
+      isValid,
     };
-  }>("/fund_accounts/validations", {
-    account_number: process.env.RAZORPAY_ACCOUNT_NUMBER, // Platform payout account
-    fund_account: { id: fundAccount.id },
-    amount: 100, // Re 1 in paise
-    currency: "INR",
-    description: "Bank account ownership verification",
-    receipt: `fav_${params.userId}_${Date.now()}`,
-    notes: { purpose: "bank_verification", user_id: params.userId },
   });
+}
 
-  const registeredName = validation.results?.registered_name ?? null;
-  const accountStatus = validation.results?.account_status ?? "unknown";
-  let isValid = accountStatus === "active";
+/**
+ * Query RazorpayX for a payout by deterministic reference_id (TP-04).
+ * Used during payout reconciliation when a payout submission timed out (5xx or timeout)
+ * so we don't blindly re-credit the wallet if Razorpay successfully processed the payout.
+ * Reference: https://razorpay.com/docs/x/payouts/fetch/
+ */
+export async function fetchPayoutByReferenceId(referenceId: string): Promise<{
+  id: string;
+  entity: string;
+  amount: number;
+  currency: string;
+  status: string;
+  utr?: string;
+  reference_id?: string;
+  failure_reason?: string;
+} | null> {
+  const { keyId, keySecret } = getRazorpayCredentials();
+  const authHeader = Buffer.from(`${keyId}:${keySecret}`).toString("base64");
 
-  if (isValid && registeredName) {
-    isValid = isFuzzyNameMatch(params.accountHolderName, registeredName);
+  if (process.env.NODE_ENV !== "production" || keyId.startsWith("rzp_test_")) {
+    if (referenceId.includes("sandbox") || referenceId.includes("sim")) {
+      return null;
+    }
   }
 
-  logger.info("Fund account validation completed", {
-    userId: params.userId,
-    fundAccountId: fundAccount.id,
-    validationId: validation.id,
-    accountStatus,
-    registeredName,
-  });
+  return await withCircuitBreaker("razorpay:fetchPayoutByReferenceId", async () => {
+    const res = await fetchWithTimeout(
+      `https://api.razorpay.com/v1/payouts?reference_id=${encodeURIComponent(referenceId)}`,
+      {
+        method: "GET",
+        headers: { Authorization: `Basic ${authHeader}` },
+      },
+      10000,
+    );
 
-  return {
-    fundAccountId: fundAccount.id,
-    validationId: validation.id,
-    registeredName,
-    isValid,
-  };
+    if (!res.ok) {
+      if (res.status === 404) return null;
+      logger.warn("Failed to query payout by reference_id from Razorpay", { referenceId, status: res.status });
+      return null;
+    }
+
+    const data = await res.json().catch(() => ({}));
+    const items = data?.items;
+    if (Array.isArray(items) && items.length > 0) {
+      const match = items.find((p: { reference_id?: string }) => p.reference_id === referenceId) || items[0];
+      return match || null;
+    }
+    return null;
+  });
+}
+
+/**
+ * Fetch payments from Razorpay Payments API with count/skip pagination (max 100 per page).
+ * Used for daily IST settlement reconciliation against the transaction ledger.
+ * Reference: https://razorpay.com/docs/api/payments/#fetch-all-payments
+ */
+export async function fetchRazorpayPayments(params: {
+  from: number; // Unix timestamp in seconds
+  to: number;   // Unix timestamp in seconds
+  count?: number; // max 100
+  skip?: number;
+}): Promise<Array<{
+  id: string;
+  entity: string;
+  amount: number;
+  currency: string;
+  status: string;
+  order_id?: string;
+  created_at: number;
+}>> {
+  const { keyId, keySecret } = getRazorpayCredentials();
+  const authHeader = Buffer.from(`${keyId}:${keySecret}`).toString("base64");
+  const count = Math.min(Math.max(1, params.count ?? 100), 100);
+  const skip = Math.max(0, params.skip ?? 0);
+
+  if (process.env.NODE_ENV !== "production" || keyId.startsWith("rzp_test_")) {
+    return [];
+  }
+
+  return await withCircuitBreaker("razorpay:fetchRazorpayPayments", async () => {
+    const res = await fetchWithTimeout(
+      `https://api.razorpay.com/v1/payments?from=${params.from}&to=${params.to}&count=${count}&skip=${skip}`,
+      {
+        method: "GET",
+        headers: { Authorization: `Basic ${authHeader}` },
+      },
+      10000,
+    );
+
+    if (!res.ok) {
+      logger.warn("Failed to fetch payments from Razorpay", { status: res.status });
+      return [];
+    }
+
+    const data = await res.json().catch(() => ({}));
+    return (data?.items as Array<{
+      id: string;
+      entity: string;
+      amount: number;
+      currency: string;
+      status: string;
+      order_id?: string;
+      created_at: number;
+    }>) || [];
+  });
+}
+
+/**
+ * Fetch account balance from RazorpayX API.
+ * Alerts when balance is low to prevent payouts queueing.
+ * Reference: https://razorpay.com/docs/x/account/
+ */
+export async function fetchRazorpayXBalance(accountNumber?: string): Promise<{
+  balance: number; // In paise
+  currency: string;
+}> {
+  const { keyId, keySecret } = getRazorpayCredentials();
+  const accNum = accountNumber || process.env.RAZORPAY_ACCOUNT_NUMBER;
+  if (!accNum) {
+    return { balance: 0, currency: "INR" };
+  }
+
+  const authHeader = Buffer.from(`${keyId}:${keySecret}`).toString("base64");
+
+  if (process.env.NODE_ENV !== "production" || keyId.startsWith("rzp_test_")) {
+    return { balance: 100000000, currency: "INR" }; // 10 Lakh test sandbox balance
+  }
+
+  return await withCircuitBreaker("razorpay:fetchRazorpayXBalance", async () => {
+    const res = await fetchWithTimeout(
+      `https://api.razorpay.com/v1/banking/accounts/${encodeURIComponent(accNum)}/balances`,
+      {
+        method: "GET",
+        headers: { Authorization: `Basic ${authHeader}` },
+      },
+      10000,
+    );
+
+    if (!res.ok) {
+      logger.warn("Failed to fetch RazorpayX balance", { status: res.status });
+      return { balance: 0, currency: "INR" };
+    }
+
+    const data = await res.json().catch(() => ({}));
+    return {
+      balance: typeof data?.balance === "number" ? data.balance : 0,
+      currency: data?.currency || "INR",
+    };
+  });
 }

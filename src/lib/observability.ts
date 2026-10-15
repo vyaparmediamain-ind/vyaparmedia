@@ -128,11 +128,12 @@ export function recordPaymentFailure(
   action: string,
   error: unknown,
   context: {
-    userId?: string;
-    transactionId?: string;
-    orderId?: string;
-    amount?: number;
-    reason?: string;
+    userId?: string | undefined;
+    transactionId?: string | undefined;
+    orderId?: string | undefined;
+    paymentId?: string | undefined;
+    amount?: number | undefined;
+    reason?: string | undefined;
     [key: string]: unknown;
   },
 ) {
@@ -151,14 +152,16 @@ export function recordPaymentFailure(
  * Helper specifically for webhook anomalies (e.g. invalid signature, amount mismatch).
  */
 export function recordWebhookAnomaly(
-  action: "SIGNATURE_MISMATCH" | "AMOUNT_MISMATCH" | "ORPHAN_EVENT" | "MALFORMED_PAYLOAD",
+  action: "SIGNATURE_MISMATCH" | "AMOUNT_MISMATCH" | "ORPHAN_EVENT" | "MALFORMED_PAYLOAD" | "REFUND_FAILED",
   context: {
-    eventId?: string;
-    eventType?: string;
-    orderId?: string;
-    paymentId?: string;
-    expectedAmount?: number;
-    receivedAmount?: number;
+    eventId?: string | undefined;
+    eventType?: string | undefined;
+    orderId?: string | undefined;
+    paymentId?: string | undefined;
+    expectedAmount?: number | undefined;
+    receivedAmount?: number | undefined;
+    refundId?: string | undefined;
+    amount?: number | undefined;
     [key: string]: unknown;
   },
 ) {
