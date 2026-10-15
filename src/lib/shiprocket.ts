@@ -2,6 +2,8 @@ import crypto from "node:crypto";
 import { AppError } from "@/lib/errors";
 import { env } from "@/env";
 import { withCircuitBreaker } from "@/lib/circuit-breaker";
+import { redis } from "@/lib/redis";
+import { logger } from "@/lib/logger";
 
 const SHIPROCKET_REQUEST_TIMEOUT_MS = 10000;
 
@@ -77,6 +79,10 @@ export interface CompleteShipmentResult {
   courierChargePaise: number;
 }
 
+// Redis token cache and single-flight lock constants
+const SHIPROCKET_TOKEN_REDIS_KEY = "shiprocket:auth:token";
+const SHIPROCKET_TOKEN_TTL_SECONDS = 7 * 24 * 60 * 60; // 7 days (Shiprocket tokens valid ~10 days)
+
 // In-memory token cache with concurrency deduplication
 let cachedToken: string | null = null;
 let tokenExpiresAt = 0;
@@ -94,9 +100,23 @@ export function isShiprocketConfigured(): boolean {
 }
 
 /**
+ * Clears cached tokens from memory and Redis (useful for test resets and 401 invalidations).
+ */
+export async function clearCachedShiprocketToken(): Promise<void> {
+  cachedToken = null;
+  tokenExpiresAt = 0;
+  tokenFetchPromise = null;
+  try {
+    await redis.del(SHIPROCKET_TOKEN_REDIS_KEY);
+  } catch (err) {
+    logger.warn("[Shiprocket] Failed to delete token from Redis", { error: err });
+  }
+}
+
+/**
  * Authenticates with Shiprocket API and returns a valid Bearer token.
- * Tokens are valid for 10 days; we cache for 7 days.
- * Deduplicates in-flight requests to prevent concurrent cold-start race conditions.
+ * Tokens are valid for 10 days; we cache in Redis and memory for 7 days.
+ * Deduplicates in-flight requests using single-flight promises to prevent concurrent cold-start race conditions.
  */
 export async function getShiprocketToken(): Promise<string> {
   const email = process.env.SHIPROCKET_EMAIL ?? env.SHIPROCKET_EMAIL;
@@ -111,13 +131,42 @@ export async function getShiprocketToken(): Promise<string> {
     return cachedToken;
   }
 
-  // Deduplicate concurrent login requests during cold start / expiry
+  // 1. Check Redis cache
+  try {
+    const redisToken = await redis.get(SHIPROCKET_TOKEN_REDIS_KEY);
+    if (redisToken) {
+      const ttl = await redis.ttl(SHIPROCKET_TOKEN_REDIS_KEY);
+      if (ttl > 60) {
+        cachedToken = redisToken;
+        tokenExpiresAt = Date.now() + ttl * 1000;
+        return cachedToken;
+      }
+    }
+  } catch (redisErr) {
+    // If Redis fails, fail-open to fetch from API
+    logger.warn("[Shiprocket] Failed to read token from Redis, falling back to direct login", { error: redisErr });
+  }
+
+  // 2. Single-flight deduplication to avoid login storms during cold starts
   if (tokenFetchPromise) {
     return tokenFetchPromise;
   }
 
   tokenFetchPromise = (async () => {
     try {
+      // Double check Redis in case a parallel request just cached it
+      try {
+        const redisToken = await redis.get(SHIPROCKET_TOKEN_REDIS_KEY);
+        if (redisToken) {
+          const ttl = await redis.ttl(SHIPROCKET_TOKEN_REDIS_KEY);
+          if (ttl > 60) {
+            cachedToken = redisToken;
+            tokenExpiresAt = Date.now() + ttl * 1000;
+            return cachedToken;
+          }
+        }
+      } catch {}
+
       const response = await shiprocketFetch(`${SHIPROCKET_API_BASE}/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -125,28 +174,61 @@ export async function getShiprocketToken(): Promise<string> {
       });
 
       if (!response.ok) {
-        const errText = await response.text();
-        throw new Error(`Shiprocket auth failed (${response.status}): ${errText}`);
+        throw AppError.gatewayError("Shiprocket authentication failed with logistics partner");
       }
 
       const data = await response.json();
       if (!data.token) {
-        throw new Error("Shiprocket auth response did not include a token");
+        throw AppError.gatewayError("Shiprocket authentication response did not include a valid token");
       }
 
-      cachedToken = data.token;
-      // Cache for 7 days (604800 seconds)
-      tokenExpiresAt = Date.now() + 7 * 24 * 60 * 60 * 1000;
-      return cachedToken as string;
+      cachedToken = String(data.token);
+      tokenExpiresAt = Date.now() + SHIPROCKET_TOKEN_TTL_SECONDS * 1000;
+
+      // Cache token in Redis
+      try {
+        await redis.set(SHIPROCKET_TOKEN_REDIS_KEY, cachedToken, "EX", SHIPROCKET_TOKEN_TTL_SECONDS);
+      } catch (setErr) {
+        logger.warn("[Shiprocket] Failed to write token to Redis", { error: setErr });
+      }
+
+      return cachedToken;
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : "Shiprocket authentication error";
-      throw AppError.internal(message);
+      if (err instanceof AppError) throw err;
+      throw AppError.gatewayError("Shiprocket authentication error with logistics provider");
     } finally {
       tokenFetchPromise = null;
     }
   })();
 
   return tokenFetchPromise;
+}
+
+/**
+ * Executes an authenticated request to Shiprocket with Bearer token injection.
+ * If 401 Unauthorized occurs, invalidates cache and retries once with a fresh token.
+ */
+export async function shiprocketAuthenticatedFetch(
+  url: string,
+  init?: RequestInit,
+  timeoutMs = SHIPROCKET_REQUEST_TIMEOUT_MS,
+): Promise<Response> {
+  const token = await getShiprocketToken();
+  const headers = new Headers(init?.headers);
+  headers.set("Authorization", `Bearer ${token}`);
+
+  const res = await shiprocketFetch(url, { ...init, headers }, timeoutMs);
+
+  if (res.status === 401) {
+    logger.warn("[Shiprocket] 401 Unauthorized encountered. Invalidating token and retrying once.");
+    await clearCachedShiprocketToken();
+    const freshToken = await getShiprocketToken();
+    const retryHeaders = new Headers(init?.headers);
+    retryHeaders.set("Authorization", `Bearer ${freshToken}`);
+    return shiprocketFetch(url, { ...init, headers: retryHeaders }, timeoutMs);
+  }
+
+  return res;
 }
 
 /**
