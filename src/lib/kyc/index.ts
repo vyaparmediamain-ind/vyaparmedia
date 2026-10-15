@@ -79,6 +79,19 @@ export function setKYCProvider(provider: KYCProvider) {
 
 /**
  * Robust tokenized and substring name matching for Indian KYC and bank records.
+ *
+ * Matching Algorithm & Thresholds:
+ * 1. Normalization: Lowercase + strip all non-alphanumeric chars (dots, commas, hyphens, prefixes like Dr./Shri).
+ * 2. Exact Match: If normalized strings are identical -> TRUE.
+ * 3. Substring Containment: If both strings >= 4 chars and one contains the other (e.g. "Priya Sharma" in "Priya Ramesh Sharma") -> TRUE.
+ * 4. Token Intersection Threshold: Split into word tokens (> 1 char).
+ *    Matches if matchCount >= min(2, min(tokens1.length, tokens2.length)).
+ *    Handles surname-first vs surname-last ("Sharma Priya" vs "Priya Sharma") and abbreviations ("Mohd" vs "Mohammad").
+ *
+ * False-Reject Mitigation & UX Fallback:
+ * If this function returns FALSE, the system does NOT reject the user's KYC submission outright.
+ * Instead, the document is saved with status `PENDING`, a descriptive mismatch note is attached,
+ * and the case is forwarded to `/admin/verifications/[id]` for human operator manual review.
  */
 export function hasMatchingNameTokens(name1?: string | null, name2?: string | null): boolean {
   if (!name1 || !name2) return false;

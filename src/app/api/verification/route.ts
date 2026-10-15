@@ -286,10 +286,32 @@ async function handleVerifyAadhaarOtp(userId: string, clientId: string, otp: str
       "";
     const returnedName = result.data?.name || "";
     if (returnedName && registeredName && !hasMatchingNameTokens(returnedName, registeredName)) {
+      const maskedAadhaar = result.data?.documentNumber || "XXXXXXXX0000";
+      await prisma.verificationDocument.upsert({
+        where: { userId_type: { userId, type: "AADHAAR" } },
+        create: {
+          userId,
+          type: "AADHAAR",
+          documentUrl: "VERIFIED_ONLINE",
+          documentNumber: maskedAadhaar,
+          documentNumberHash: `aadhaar_otp_${clientId}`,
+          status: "PENDING",
+          rejectionReason: `Name mismatch detected between Aadhaar (${returnedName}) and profile (${registeredName}). Submitted for admin manual review.`,
+          metadata: (result.data as Prisma.InputJsonValue) || {},
+        },
+        update: {
+          documentNumber: maskedAadhaar,
+          status: "PENDING",
+          rejectionReason: `Name mismatch detected between Aadhaar (${returnedName}) and profile (${registeredName}). Submitted for admin manual review.`,
+          metadata: (result.data as Prisma.InputJsonValue) || {},
+        },
+      });
+      await invalidateUserKYCCache(userId);
       return {
-        success: false,
-        status: "REJECTED" as const,
-        error: "The name on the verified Aadhaar does not match your registered profile name.",
+        success: true,
+        status: "PENDING" as const,
+        message: `Name mismatch detected between Aadhaar (${returnedName}) and profile (${registeredName}). Your document has been submitted for manual review by our verification team.`,
+        data: result.data,
       };
     }
     await prisma.user.update({
@@ -321,10 +343,32 @@ async function handleVerifyPan(userId: string, panNumber: string) {
       "";
     const returnedName = result.data?.name || "";
     if (returnedName && registeredName && !hasMatchingNameTokens(returnedName, registeredName)) {
+      await prisma.verificationDocument.upsert({
+        where: { userId_type: { userId, type: "PAN_CARD" } },
+        create: {
+          userId,
+          type: "PAN_CARD",
+          documentUrl: "VERIFIED_ONLINE",
+          documentNumber: encrypted,
+          documentNumberHash: hash,
+          status: "PENDING",
+          rejectionReason: `Name mismatch detected between PAN card (${returnedName}) and profile (${registeredName}). Submitted for admin manual review.`,
+          metadata: (result.data as Prisma.InputJsonValue) || {},
+        },
+        update: {
+          documentNumber: encrypted,
+          documentNumberHash: hash,
+          status: "PENDING",
+          rejectionReason: `Name mismatch detected between PAN card (${returnedName}) and profile (${registeredName}). Submitted for admin manual review.`,
+          metadata: (result.data as Prisma.InputJsonValue) || {},
+        },
+      });
+      await invalidateUserKYCCache(userId);
       return {
-        success: false,
-        status: "REJECTED" as const,
-        error: "The name on the verified PAN card does not match your registered profile name.",
+        success: true,
+        status: "PENDING" as const,
+        message: `Name mismatch detected between PAN card (${returnedName}) and profile (${registeredName}). Your PAN has been submitted for manual review by our verification team.`,
+        data: result.data,
       };
     }
     await prisma.$transaction(async (tx) => {
@@ -394,10 +438,32 @@ async function handleVerifyGst(userId: string, gstNumber: string) {
       "";
     const returnedName = result.data?.name || "";
     if (returnedName && registeredName && !hasMatchingNameTokens(returnedName, registeredName)) {
+      await prisma.verificationDocument.upsert({
+        where: { userId_type: { userId, type: "GST_CERTIFICATE" } },
+        create: {
+          userId,
+          type: "GST_CERTIFICATE",
+          documentUrl: "VERIFIED_ONLINE",
+          documentNumber: encrypted,
+          documentNumberHash: hash,
+          status: "PENDING",
+          rejectionReason: `Business name mismatch detected between GST (${returnedName}) and company profile (${registeredName}). Submitted for admin manual review.`,
+          metadata: (result.data as Prisma.InputJsonValue) || {},
+        },
+        update: {
+          documentNumber: encrypted,
+          documentNumberHash: hash,
+          status: "PENDING",
+          rejectionReason: `Business name mismatch detected between GST (${returnedName}) and company profile (${registeredName}). Submitted for admin manual review.`,
+          metadata: (result.data as Prisma.InputJsonValue) || {},
+        },
+      });
+      await invalidateUserKYCCache(userId);
       return {
-        success: false,
-        status: "REJECTED" as const,
-        error: "The business name on the verified GST does not match your registered company name.",
+        success: true,
+        status: "PENDING" as const,
+        message: `Business name mismatch detected between GST (${returnedName}) and company profile (${registeredName}). Your GST certificate has been submitted for manual review by our verification team.`,
+        data: result.data,
       };
     }
     await prisma.$transaction(async (tx) => {
