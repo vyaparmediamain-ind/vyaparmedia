@@ -10,16 +10,19 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+permissions:
+  contents: read
+
 jobs:
   lint:
     name: ESLint Validation
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.2
 
       - name: Setup Node.js 24.x
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@60edb5dd545a775178f5252478337951c3269ab8 # v4.0.2
         with:
           node-version: 24
           cache: "npm"
@@ -38,10 +41,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.2
 
       - name: Setup Node.js 24.x
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@60edb5dd545a775178f5252478337951c3269ab8 # v4.0.2
         with:
           node-version: 24
           cache: "npm"
@@ -63,10 +66,10 @@ jobs:
       DIRECT_URL: "postgresql://test_user:test_password@localhost:5432/vyapar_test_db?schema=public"
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.2
 
       - name: Setup Node.js 24.x
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@60edb5dd545a775178f5252478337951c3269ab8 # v4.0.2
         with:
           node-version: 24
           cache: "npm"
@@ -121,10 +124,10 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.2
 
       - name: Setup Node.js 24.x
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@60edb5dd545a775178f5252478337951c3269ab8 # v4.0.2
         with:
           node-version: 24
           cache: "npm"

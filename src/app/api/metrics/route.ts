@@ -6,20 +6,18 @@ import crypto from "node:crypto";
 
 // Optional: you can restrict access to this route with a bearer token for enterprise security
 // This is typical for Prometheus scraping endpoints
-const EXPECTED_TOKEN = process.env.PROMETHEUS_AUTH_TOKEN || null;
-
 export async function GET(request: Request) {
-try {
-// Require auth token in ALL environments metrics exposure is a security risk.
-if (!EXPECTED_TOKEN) {
-logger.error(
-"[Metrics] PROMETHEUS_AUTH_TOKEN is not set metrics endpoint disabled",
-);
-return new NextResponse("Not Found", { status: 404 });
-}
+  try {
+    const expectedToken = process.env.PROMETHEUS_AUTH_TOKEN;
+    if (!expectedToken) {
+      logger.error(
+        "[Metrics] PROMETHEUS_AUTH_TOKEN is not set metrics endpoint disabled",
+      );
+      return new NextResponse("Not Found", { status: 404 });
+    }
 
-const authHeader = request.headers.get("Authorization") || "";
-const expectedHeader = `Bearer ${EXPECTED_TOKEN}`;
+    const authHeader = request.headers.get("Authorization") || "";
+    const expectedHeader = `Bearer ${expectedToken}`;
 
 // Use timingSafeEqual on hashed values to prevent timing attacks while handling variable length headers.
 const expectedHash = crypto.createHash("sha256").update(expectedHeader).digest();

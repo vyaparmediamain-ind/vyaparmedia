@@ -119,5 +119,8 @@ export default withSentryConfig(withBundleAnalyzer(nextConfig), {
   ...(sentryAuthToken ? { authToken: sentryAuthToken } : {}),
   silent: !sentryAuthToken || !process.env.CI,
   widenClientFileUpload: Boolean(sentryAuthToken && sentryOrg && sentryProject),
+  sourcemaps: {
+    deleteSourcemapsAfterUpload: true,
+  },
   telemetry: false,
 });
