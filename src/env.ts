@@ -130,9 +130,6 @@ export const envSchema = z.object({
   OTP_PRIMARY_CHANNEL: z.enum(["whatsapp", "sms"]).optional().default("whatsapp"),
   OTP_SMS_FALLBACK: z.preprocess((val) => val === "true" || val === true || val === "1" || val === 1, z.boolean()).optional().default(true),
 
-  // Supabase Realtime (Websocket updates)
-  NEXT_PUBLIC_SUPABASE_URL: emptyAsUndefined(z.string().url().optional()),
-  NEXT_PUBLIC_SUPABASE_ANON_KEY: emptyAsUndefined(z.string().min(1).optional()),
 
   // Web Push Notifications
   NEXT_PUBLIC_VAPID_PUBLIC_KEY: emptyAsUndefined(z.string().min(1).optional()),

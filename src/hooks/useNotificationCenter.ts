@@ -1,10 +1,6 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
-import {
-  subscribeToNotificationUpdates,
-  NotificationRealtimePayload,
-} from "@/lib/supabase-realtime";
 import { NotificationItem } from "@/lib/notification-utils";
 import { logger } from "@/lib/logger-client";
 import { apiClient } from "@/lib/api-client";
@@ -108,75 +104,18 @@ export function useNotificationCenter(userId?: string | null) {
     setActiveToast(null);
   }, []);
 
-  // Supabase Realtime Subscription
+  // Adaptive background polling: refresh notifications every 30 seconds when tab is active
   useEffect(() => {
     if (!userId) return;
 
-    const unsubscribe = subscribeToNotificationUpdates(userId, (event) => {
-      if (!isMountedRef.current) return;
-
-      if (event.eventType === "INSERT" && event.new) {
-        const raw = event.new as NotificationRealtimePayload;
-        const newItem: NotificationItem = {
-          id: raw.id,
-          type: raw.type,
-          title: raw.title,
-          message: raw.message,
-          isRead: raw.isRead ?? false,
-          createdAt: raw.createdAt,
-          data: (raw.data as Record<string, unknown>) || null,
-        };
-
-        // Prepend new item and avoid duplicate if already in state
-        setNotifications((prev) => {
-          if (prev.some((n) => n.id === newItem.id)) {
-            return prev;
-          }
-          return [newItem, ...prev];
-        });
-
-        // Increment unread count if newly inserted item is unread
-        if (!newItem.isRead) {
-          setUnreadCount((c) => c + 1);
-        }
-
-        // If user is actively looking at the app in the foreground, trigger In-App Toast
-        if (typeof document !== "undefined" && document.visibilityState === "visible") {
-          triggerToast({
-            id: newItem.id,
-            title: newItem.title,
-            message: newItem.message,
-            type: newItem.type,
-            data: newItem.data || undefined,
-          });
-        }
-      } else if (event.eventType === "UPDATE" && event.new) {
-        const updated = event.new as NotificationRealtimePayload;
-        setNotifications((prev) => {
-          const existing = prev.find((n) => n.id === updated.id);
-          // If state changed from unread to read, decrement unread count accurately
-          if (existing && !existing.isRead && updated.isRead) {
-            setUnreadCount((c) => Math.max(0, c - 1));
-          }
-          return prev.map((n) =>
-            n.id === updated.id
-              ? {
-                  ...n,
-                  isRead: updated.isRead ?? n.isRead,
-                  title: updated.title ?? n.title,
-                  message: updated.message ?? n.message,
-                  data: (updated.data as Record<string, unknown>) ?? n.data,
-                }
-              : n
-          );
-        });
+    const interval = setInterval(() => {
+      if (typeof document !== "undefined" && document.visibilityState === "visible") {
+        fetchNotifications();
       }
-    });
+    }, 30000);
 
-    return () => {
-      unsubscribe();
-    };
-  }, [userId, triggerToast]);
+    return () => clearInterval(interval);
+  }, [userId, fetchNotifications]);
 
   // Mark single notification as read (with zero off-by-one errors)
   const markAsRead = useCallback(

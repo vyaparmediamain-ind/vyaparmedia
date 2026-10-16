@@ -1,5 +1,13 @@
-import { getSupabaseRealtimeClient } from "./supabase-realtime";
-import { RealtimeChannel } from "@supabase/supabase-js";
+/**
+ * Realtime Messaging Layer (Option A: Polling & SWR Architecture)
+ * 
+ * ARCHITECTURE NOTE:
+ * Direct Supabase Realtime message subscriptions are disabled in favor of:
+ * 1. 2.5s Adaptive visibility-aware polling in `useMessages.ts` for chat delivery.
+ * 2. Dedicated Redis ephemeral typing indicators via `/api/messages/typing`.
+ *
+ * This eliminates anon-key exposure, unauthenticated websocket attempts, and RLS blocking.
+ */
 
 export interface RealtimeMessagePayload {
   id: string;
@@ -15,98 +23,27 @@ export interface RealtimeMessagePayload {
 }
 
 /**
- * Subscribes to new incoming messages for the logged-in user in real-time.
+ * Incoming messages are synchronized via visibility-aware polling in `useMessages.ts`.
  */
 export function subscribeToIncomingMessages(
-  userId: string,
-  onMessage: (message: RealtimeMessagePayload) => void
+  _userId: string,
+  _onMessage: (message: RealtimeMessagePayload) => void
 ): () => void {
-  const client = getSupabaseRealtimeClient();
-  if (!client) {
-    return () => {};
-  }
-
-  const channelName = `user-messages-${userId}`;
-  let channel: RealtimeChannel | null = null;
-
-  try {
-    channel = client
-      .channel(channelName)
-      .on(
-        "postgres_changes",
-        {
-          event: "INSERT",
-          schema: "public",
-          table: "Message",
-          filter: `receiverId=eq.${userId}`,
-        },
-        (payload) => {
-          if (payload?.new && typeof payload.new === "object") {
-            onMessage(payload.new as RealtimeMessagePayload);
-          }
-        }
-      )
-      .subscribe();
-  } catch (err) {
-    console.warn("[RealtimeMessages] Subscription error:", err);
-  }
-
-  return () => {
-    if (channel && client) {
-      client.removeChannel(channel);
-    }
-  };
+  return () => {};
 }
 
 /**
- * Subscribes to typing broadcast presence between two users.
+ * Typing presence interface stub maintaining API compatibility.
  */
 export function subscribeToTypingPresence(
-  conversationKey: string,
-  onTyping: (isTyping: boolean) => void
+  _conversationKey: string,
+  _onTyping: (isTyping: boolean) => void
 ): {
   broadcastTyping: (isTyping: boolean) => void;
   unsubscribe: () => void;
 } {
-  const client = getSupabaseRealtimeClient();
-  if (!client) {
-    return {
-      broadcastTyping: () => {},
-      unsubscribe: () => {},
-    };
-  }
-
-  const channelName = `typing-${conversationKey}`;
-  let channel: RealtimeChannel | null = null;
-
-  try {
-    channel = client
-      .channel(channelName)
-      .on("broadcast", { event: "typing" }, (event) => {
-        if (event?.payload && typeof event.payload.isTyping === "boolean") {
-          onTyping(event.payload.isTyping);
-        }
-      })
-      .subscribe();
-  } catch (err) {
-    console.warn("[RealtimeTyping] Subscription error:", err);
-  }
-
-  const broadcastTyping = (isTyping: boolean) => {
-    if (channel) {
-      channel.send({
-        type: "broadcast",
-        event: "typing",
-        payload: { isTyping },
-      });
-    }
+  return {
+    broadcastTyping: () => {},
+    unsubscribe: () => {},
   };
-
-  const unsubscribe = () => {
-    if (channel && client) {
-      client.removeChannel(channel);
-    }
-  };
-
-  return { broadcastTyping, unsubscribe };
 }

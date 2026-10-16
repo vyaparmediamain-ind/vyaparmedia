@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { subscribeToDealUpdates, getSupabaseRealtimeClient } from "@/lib/supabase-realtime";
 
 interface UseDealRealtimeOptions {
   dealId: string;
@@ -10,6 +9,13 @@ interface UseDealRealtimeOptions {
   showToast?: ((type: "success" | "error" | "info", message: string) => void) | undefined;
 }
 
+/**
+ * useDealRealtime — Adaptive Live Deal Synchronization
+ * 
+ * ARCHITECTURE (Option A):
+ * Uses 2-second adaptive visibility-aware polling during active deal lifecycles.
+ * Halts polling when tab is hidden or deal reaches terminal states (COMPLETED/CANCELLED).
+ */
 export function useDealRealtime({
   dealId,
   currentStatus,
@@ -18,58 +24,35 @@ export function useDealRealtime({
 }: UseDealRealtimeOptions) {
   const [justUpdated, setJustUpdated] = useState(false);
   const [lastSyncTime, setLastSyncTime] = useState<Date>(() => new Date());
-  const [isRealtimeActive, setIsRealtimeActive] = useState(false);
   const lastKnownStatusRef = useRef(currentStatus);
 
-  // Keep ref up-to-date
+  // Status transition detection
   useEffect(() => {
-    lastKnownStatusRef.current = currentStatus;
-  }, [currentStatus]);
-
-  // 1. Supabase Realtime Subscription
-  useEffect(() => {
-    if (!dealId) return;
-
-    const client = getSupabaseRealtimeClient();
-    setIsRealtimeActive(Boolean(client));
-
-    const unsubscribe = subscribeToDealUpdates(dealId, (newRow) => {
-      const newStatus = typeof newRow.status === "string" ? newRow.status : undefined;
-      const prevStatus = lastKnownStatusRef.current;
-
-      setLastSyncTime(new Date());
+    const prevStatus = lastKnownStatusRef.current;
+    if (currentStatus && prevStatus && currentStatus !== prevStatus) {
       setJustUpdated(true);
-      setTimeout(() => setJustUpdated(false), 3500);
-
-      if (newStatus && newStatus !== prevStatus) {
-        lastKnownStatusRef.current = newStatus;
-        if (showToast) {
-          showToast(
-            "info",
-            `Deal updated to ${newStatus.replaceAll("_", " ")}`
-          );
-        }
+      const timer = setTimeout(() => setJustUpdated(false), 3500);
+      if (showToast) {
+        showToast("info", `Deal updated to ${currentStatus.replaceAll("_", " ")}`);
       }
+      lastKnownStatusRef.current = currentStatus;
+      return () => clearTimeout(timer);
+    }
+    lastKnownStatusRef.current = currentStatus;
+    return undefined;
+  }, [currentStatus, showToast]);
 
-      onRefresh();
-    });
-
-    return () => {
-      unsubscribe();
-    };
-  }, [dealId, onRefresh, showToast]);
-
-  // 2. Adaptive Fallback Polling (Every 2 seconds during active/in-progress deals)
+  // Adaptive Visibility-Aware Polling (2 seconds for active in-progress deals)
   useEffect(() => {
     if (!dealId) return;
 
-    // Terminal states do not require high frequency polling
+    // Terminal states do not require high-frequency polling
     if (currentStatus === "COMPLETED" || currentStatus === "CANCELLED") {
       return;
     }
 
     const interval = setInterval(() => {
-      // Only poll if document is visible
+      // Only poll when document is visible to save battery and network bandwidth
       if (typeof document !== "undefined" && document.visibilityState === "visible") {
         onRefresh();
         setLastSyncTime(new Date());
@@ -82,6 +65,6 @@ export function useDealRealtime({
   return {
     justUpdated,
     lastSyncTime,
-    isRealtimeActive,
+    isRealtimeActive: true,
   };
 }

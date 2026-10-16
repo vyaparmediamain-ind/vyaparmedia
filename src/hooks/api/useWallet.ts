@@ -13,7 +13,6 @@ import { useSession } from "next-auth/react";
 import { useCallback, useEffect } from "react";
 import { createSchemaFetcher } from "@/lib/fetcher";
 import { walletResponseSchema, type WalletResponse, type WalletSummary } from "@/lib/schemas";
-import { subscribeToWalletUpdates } from "@/lib/supabase-realtime";
 
 const walletFetcher = createSchemaFetcher(walletResponseSchema);
 
@@ -36,14 +35,7 @@ export function useWallet(enableRealtime = false): UseWalletResult {
     { revalidateOnFocus: true, revalidateIfStale: false },
   );
 
-  // Realtime subscription — opt-in per usage site
-  useEffect(() => {
-    if (!enableRealtime || !userId) return;
-    const unsub = subscribeToWalletUpdates(userId, () => {
-      mutate();
-    });
-    return () => unsub();
-  }, [enableRealtime, userId, mutate]);
+  // SWR automatically revalidates on window focus; no realtime client needed under Option A
 
   const walletData: WalletSummary | null = walletResponse
     ? (() => {

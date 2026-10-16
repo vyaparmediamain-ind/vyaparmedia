@@ -22,7 +22,6 @@ import {
   MIN_WALLET_TOPUP_RUPEES,
   DEFAULT_TOAST_DURATION_MS,
 } from "@/constants";
-import { subscribeToWalletUpdates } from "@/lib/supabase-realtime";
 import { useTokenRefreshGuard } from "@/hooks/useTokenRefreshGuard";
 import { useWallet } from "@/hooks/api/useWallet";
 import { formatCurrency, formatDateTime } from "@/lib/utils-client";
@@ -299,20 +298,20 @@ export default function WalletPage() {
     );
   }, [topUpAmount, walletData, session?.user]);
 
-  // ── Supabase Realtime Synchronization ─────────────────────────────────────
+  // ── Automatic Visibility Reconciliation ─────────────────────────────────────
   useEffect(() => {
     if (!session?.user?.id) return;
-    const unsubscribe = subscribeToWalletUpdates(session.user.id, () => {
-      fetchWalletData();
-      mutateTransactions();
-      setIsRealtimeActive(true);
-      showToast("info", "Wallet balance updated in real time");
-    });
-    setIsRealtimeActive(true);
+    function handleVisibility() {
+      if (document.visibilityState === "visible") {
+        fetchWalletData();
+        mutateTransactions();
+      }
+    }
+    document.addEventListener("visibilitychange", handleVisibility);
     return () => {
-      unsubscribe();
+      document.removeEventListener("visibilitychange", handleVisibility);
     };
-  }, [session?.user?.id, fetchWalletData, mutateTransactions, showToast]);
+  }, [session?.user?.id, fetchWalletData, mutateTransactions]);
 
   const handleRefreshAll = useCallback(async () => {
     await Promise.all([fetchWalletData(), mutateTransactions()]);

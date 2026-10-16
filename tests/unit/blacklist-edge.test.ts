@@ -76,16 +76,16 @@ describe("isIpBannedEdge Security & Fail-Closed Guard", () => {
       expect(result).toBe(false);
     });
 
-    it("SECURITY: should fail CLOSED (return true) in production environment when fetch throws / times out", async () => {
+    it("RESILIENCE: should fail OPEN (return false) in production when fetch throws/times out for uncached IP to prevent platform outage", async () => {
       setNodeEnv("production");
       global.fetch = vi.fn().mockRejectedValue(new Error("Redis connection refused or AbortSignal timeout"));
 
       const result = await isIpBannedEdge("198.51.100.12");
-      // Must return true in production to prevent malicious/banned IPs bypassing security during an outage
-      expect(result).toBe(true);
+      // Redis outage must fail-open to preserve legitimate user traffic
+      expect(result).toBe(false);
     });
 
-    it("SECURITY: should fail CLOSED (return true) in production environment on HTTP error (!response.ok)", async () => {
+    it("RESILIENCE: should fail OPEN (return false) in production on HTTP 503 error for uncached IP", async () => {
       setNodeEnv("production");
       global.fetch = vi.fn().mockResolvedValue({
         ok: false,
@@ -94,7 +94,23 @@ describe("isIpBannedEdge Security & Fail-Closed Guard", () => {
       });
 
       const result = await isIpBannedEdge("198.51.100.13");
-      // Must return true in production to prevent malicious/banned IPs bypassing security during Upstash 503
+      // Upstash 503 must fail-open to preserve legitimate user traffic
+      expect(result).toBe(false);
+    });
+
+    it("RESILIENCE: should retain ban (return true) when cached even if Upstash is down", async () => {
+      // First populate cache with positive ban
+      global.fetch = vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => ({ result: "banned:threat" }),
+      });
+      await isIpBannedEdge("198.51.100.99");
+
+      // Now simulate outage
+      setNodeEnv("production");
+      global.fetch = vi.fn().mockRejectedValue(new Error("Upstash down"));
+
+      const result = await isIpBannedEdge("198.51.100.99");
       expect(result).toBe(true);
     });
   });

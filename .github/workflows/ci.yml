@@ -135,8 +135,11 @@ jobs:
       - name: Generate Prisma Client
         run: npx prisma generate
 
-      - name: Apply DB schema
-        run: npx prisma db push --skip-generate
+      - name: Deploy Prisma Migrations on Ephemeral DB (P11 REL-16)
+        run: npx prisma migrate deploy
+
+      - name: Verify Database RLS Policies and Privileges
+        run: npm run db:verify-rls
 
       - name: Run Vitest Suite (Unit + Integration)
         run: npm run test
