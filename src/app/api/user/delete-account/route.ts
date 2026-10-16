@@ -8,7 +8,7 @@ import { z } from "zod";
 import bcrypt from "bcryptjs";
 import { randomBytes } from "node:crypto";
 import { AppError } from "@/lib/errors";
-import { deleteFile } from "@/lib/storage";
+import { deleteFile, deleteUserObjectsByPrefix } from "@/lib/storage";
 import { checkAccountDeletionEligibility } from "@/lib/action-eligibility";
 
 function getStorageKeyFromUrl(url: string): string | null {
@@ -204,7 +204,15 @@ async function anonymizeUserData(tx: Prisma.TransactionClient, userId: string, a
   });
 }
 
-async function deletePhysicalFiles(fileUrls: string[]): Promise<void> {
+async function deletePhysicalFiles(fileUrls: string[], userId?: string): Promise<void> {
+  if (userId) {
+    try {
+      await deleteUserObjectsByPrefix(userId);
+    } catch (prefixErr) {
+      logger.warn("Failed to delete user objects by prefix", { userId, error: prefixErr });
+    }
+  }
+
   for (const url of fileUrls) {
     const key = getStorageKeyFromUrl(url);
     if (!key) continue;
@@ -278,7 +286,7 @@ export const POST = apiWrapper(async (req) => {
       }, tx);
     });
 
-    await deletePhysicalFiles(fileUrlsToDelete);
+    await deletePhysicalFiles(fileUrlsToDelete, userId);
   } catch (error: unknown) {
     if (error instanceof AppError) {
       throw error;

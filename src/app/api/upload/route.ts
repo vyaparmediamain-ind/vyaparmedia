@@ -13,7 +13,7 @@ type UploadSession = {
     image?: string | null;
   };
 };
-import { uploadFormFile, uploadBase64, type UploadFolder } from "@/lib/storage";
+import { uploadFormFile, uploadBase64, validateStorageCategory, type UploadFolder } from "@/lib/storage";
 import { logger } from "@/lib/logger";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { bytesToAscii, matchesHeader } from "@/lib/utils";
@@ -72,6 +72,11 @@ function resolveFolder(
 
 function detectMimeFromMagicBytes(bytes: Uint8Array): string | null {
   if (bytes.length < 12) return null;
+
+  const textHeader = bytesToAscii(bytes.slice(0, 16)).toLowerCase();
+  if (textHeader.includes("<svg") || textHeader.includes("<?xml") || textHeader.includes("<!do") || textHeader.includes("<htm")) {
+    return null;
+  }
 
   if (matchesHeader(bytes, [0x25, 0x50, 0x44, 0x46])) return "application/pdf";
   if (matchesHeader(bytes, [0xff, 0xd8, 0xff])) return "image/jpeg";
@@ -218,9 +223,9 @@ const base64Size = Buffer.byteLength(base64, "utf8");
 const estimatedBinarySize = Math.floor(base64Size * 0.75);
 
 const fileExt = fileName.split('.').pop()?.toLowerCase() || "";
-const badExts = ["exe", "php", "sh", "bat", "js", "html"];
+const badExts = ["exe", "php", "sh", "bat", "js", "html", "svg", "htm", "xml"];
 if (badExts.includes(fileExt)) {
-return { success: false, errorResponse: ApiResponse.error("Executable/script files are strictly prohibited") };
+return { success: false, errorResponse: ApiResponse.error("Executable/script/SVG files are strictly prohibited") };
 }
 
 const isVideo = ["mp4", "webm", "mov", "qt"].includes(fileExt);
@@ -330,7 +335,7 @@ return ApiResponse.forbidden(
 );
 }
 
-  const result = await uploadBase64(base64, fileName, uploadFolder, mimeType);
+  const result = await uploadBase64(base64, fileName, uploadFolder, mimeType, session.user.id);
 
   if (!result.success) {
     return ApiResponse.error(result.error || "Upload failed", 500);
@@ -359,41 +364,20 @@ function validateUploadFile(file: File, folder: string, session: UploadSession):
     return "Empty file provided";
   }
 
-  const fileExt = file.name.split('.').pop()?.toLowerCase();
-  const badExts = ["exe", "php", "sh", "bat", "js", "html"];
-  if (fileExt && badExts.includes(fileExt)) {
-    return "Executable files are strictly prohibited";
+  const fileExt = file.name.split('.').pop()?.toLowerCase() || "";
+  const badExts = ["exe", "php", "sh", "bat", "js", "html", "svg", "htm", "xml"];
+  if (badExts.includes(fileExt)) {
+    return "Executable/script/SVG files are strictly prohibited";
   }
 
-  const ALLOWED_MIME_TYPES = [
-    "image/jpeg",
-    "image/png",
-    "image/webp",
-    "image/gif",
-    "image/heic",
-    "video/mp4",
-    "video/webm",
-    "video/quicktime",
-    "application/pdf",
-  ];
-
-  if (!ALLOWED_MIME_TYPES.includes(file.type)) {
-    logger.warn("Blocked disallowed file type upload", {
-      userId: session.user.id,
-      mimeType: file.type,
-    });
-    return `File type '${file.type}' is not allowed. Only images, videos and PDFs are permitted.`;
+  if (file.type.includes("svg") || file.type.includes("html")) {
+    return "SVG and HTML files are strictly prohibited due to security restrictions";
   }
 
-  if (file.type === "application/pdf" && folder !== "chat" && folder !== "verification") {
-    return "PDF uploads must use the verification document flow.";
-  }
-
-  const MAX_SIZE = file.type.startsWith("video/")
-    ? 50 * 1024 * 1024
-    : 5 * 1024 * 1024;
-  if (file.size > MAX_SIZE) {
-    return `File too large. Max size: ${file.type.startsWith("video/") ? "50MB" : "5MB"}`;
+  try {
+    validateStorageCategory(folder as UploadFolder, file.type, fileExt, file.size);
+  } catch (err) {
+    return (err as Error).message;
   }
 
   return null;
@@ -476,7 +460,7 @@ async function handleFormDataUpload(req: NextRequest, session: UploadSession) {
       return ApiResponse.error(contentValidationError);
     }
 
-    const result = await uploadFormFile(file, folder);
+    const result = await uploadFormFile(file, folder, session.user.id);
 
     if (!result.success) {
       return ApiResponse.error(result.error || "Upload failed", 500);

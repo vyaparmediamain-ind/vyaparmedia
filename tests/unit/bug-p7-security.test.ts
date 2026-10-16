@@ -123,7 +123,7 @@ describe("Phase 7 Platform Security Remediation Suite (P7-SEC-01 through P7-SEC-
 
     expect(storageContent).toContain("ContentLength: fileSize");
     expect(storageContent).toContain("createUploadPresignedUrl");
-    expect(routeContent).toContain("createUploadPresignedUrl(fileName, folder, fileType, 900, fileSize)");
+    expect(routeContent).toContain("createUploadPresignedUrl(fileName, folder, fileType, 900, fileSize, session.user.id)");
   });
 
   it("P7-SEC-07: restricts middleware auth route matcher bypass to public NextAuth endpoints only", () => {

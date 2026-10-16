@@ -23,9 +23,24 @@ export const POST = apiWrapper(async (req) => {
     return ApiResponse.unauthorized();
   }
 
-  const rateLimit = await checkRateLimit(session.user.id, "DEAL_UPDATES");
+  const rateLimit = await checkRateLimit(session.user.id, "UPLOAD");
   if (!rateLimit.success) {
     return ApiResponse.tooManyRequests("Upload limit reached, please wait a moment.");
+  }
+
+  // Daily quota: maximum 50 uploads per user per day
+  const dailyUploadKey = `quota:upload:${session.user.id}:${new Date().toISOString().slice(0, 10)}`;
+  try {
+    const { redis } = await import("@/lib/redis");
+    const count = await redis.incr(dailyUploadKey);
+    if (count === 1) {
+      await redis.expire(dailyUploadKey, 86400);
+    }
+    if (count > 50) {
+      return ApiResponse.tooManyRequests("Daily upload quota of 50 uploads reached. Please resume tomorrow.");
+    }
+  } catch (quotaErr) {
+    logger.warn("Daily upload quota check bypassed due to Redis outage (fail-open)", { error: quotaErr });
   }
 
   let body: {
@@ -55,12 +70,14 @@ export const POST = apiWrapper(async (req) => {
     return ApiResponse.error("fileSize must be a positive number", 400);
   }
 
-  if (fileSize > MAX_CONTENT_FILE_SIZE) {
-    return ApiResponse.error(`File exceeds maximum size of 100MB (${Math.round(fileSize / (1024 * 1024))}MB uploaded)`, 400);
-  }
+  const ext = (fileName.split(".").pop() || "").toLowerCase();
 
-  if (!ALLOWED_MIME_TYPES.has(fileType)) {
-    return ApiResponse.error(`File type '${fileType}' is not supported. Please upload MP4, MOV, WEBM, JPG, PNG, or WEBP.`, 400);
+  // Validate folder, MIME, extension, and file size category limits
+  try {
+    const { validateStorageCategory } = await import("@/lib/storage");
+    validateStorageCategory(folder, fileType, ext, fileSize);
+  } catch (valError) {
+    return ApiResponse.error((valError as Error).message, 400);
   }
 
   // Authorization check based on folder
@@ -76,7 +93,7 @@ export const POST = apiWrapper(async (req) => {
   }
 
   try {
-    const result = await createUploadPresignedUrl(fileName, folder, fileType, 900, fileSize);
+    const result = await createUploadPresignedUrl(fileName, folder, fileType, 900, fileSize, session.user.id);
     logger.info("Generated presigned upload URL", {
       userId: session.user.id,
       folder,

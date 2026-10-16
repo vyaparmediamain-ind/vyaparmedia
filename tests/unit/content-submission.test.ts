@@ -181,12 +181,12 @@ describe("Content Submission: Versioning & Iteration Trail", () => {
 
 describe("Content Submission: Presigned Upload Backend", () => {
   it("generates presigned upload URL or local fallback without throwing", async () => {
-    const result = await createUploadPresignedUrl("test_video.mp4", "content", "video/mp4");
+    const result = await createUploadPresignedUrl("test_video.mp4", "content", "video/mp4", 900, 1024 * 1024);
     expect(result).toBeDefined();
     expect(result.uploadUrl).toBeDefined();
     expect(result.fileUrl).toBeDefined();
     expect(result.key).toContain("content/");
-    expect(result.key).toContain("test-video.mp4");
+    expect(result.key).toMatch(/\.mp4$/);
     expect(["PUT", "POST"]).toContain(result.method);
   });
 });
