@@ -1,6 +1,9 @@
 import nlp from "compromise";
 import { logger } from "./logger";
 import { normalizeUnicodeDigits } from "./contact-leak-detector";
+import { withCircuitBreaker } from "./circuit-breaker";
+import { redis } from "./redis";
+import { visionOcrRequestsTotal, visionOcrErrorsTotal } from "./metrics";
 
 const CONTACT_REGEX = {
   email: /\b[a-z0-9._%+-]+@[a-z0-9-]+\.[a-z]{2,}\b/gi,
@@ -260,22 +263,77 @@ findings,
 };
 }
 
+const MAX_OCR_IMAGE_BYTES = 4 * 1024 * 1024; // 4MB maximum payload limit before base64
+
 export async function checkImageBufferForContacts(
   buffer: Buffer,
-  filename: string
+  filename: string,
+  options?: { userId?: string }
 ): Promise<{ hasContactInfo: boolean; findings: string[]; detectedText?: string }> {
+  // 1. Enforce size limit to prevent memory exhaustion and excessive cloud billing
+  if (buffer.length > MAX_OCR_IMAGE_BYTES) {
+    logger.warn("[contact-filter] Image buffer exceeds 4MB limit; skipping Vision OCR", {
+      filename,
+      sizeBytes: buffer.length,
+    });
+    return { hasContactInfo: false, findings: [] };
+  }
+
+  // 2. Feature flag check
+  if (process.env.ENABLE_VISION_OCR === "false") {
+    return { hasContactInfo: false, findings: [] };
+  }
+
   const apiKey = process.env.VISION_API_KEY;
   let detectedText = "";
   const findings: string[] = [];
 
   if (apiKey) {
     try {
+      // 3. Optional Rate-Limiting & Cost Caps in Redis
+      if (options?.userId) {
+        try {
+          const userRateKey = `ocr:rate:${options.userId}`;
+          const currentRate = await redis.incr(userRateKey);
+          if (currentRate === 1) await redis.expire(userRateKey, 60);
+          if (currentRate > 10) {
+            logger.warn("[contact-filter] Per-user OCR rate limit exceeded (10/min); failing open", {
+              userId: options.userId,
+            });
+            return { hasContactInfo: false, findings: [] };
+          }
+        } catch {
+          // Redis down => fail-open
+        }
+      }
+
+      // Global daily budget protection cap (1000 scans/day)
+      try {
+        const today = new Date().toISOString().slice(0, 10);
+        const dailyKey = `ocr:daily_count:${today}`;
+        const dailyCount = await redis.incr(dailyKey);
+        if (dailyCount === 1) await redis.expire(dailyKey, 86400 * 2);
+        if (dailyCount > 1000) {
+          logger.warn("[contact-filter] Global daily OCR budget cap exceeded (1000/day); failing open");
+          return { hasContactInfo: false, findings: [] };
+        }
+      } catch {
+        // Redis down => fail-open
+      }
+
+      // 4. Execute Vision API with Circuit Breaker and X-Goog-Api-Key Header
+      // ⚠️ Official Google Cloud API System Parameters: https://cloud.google.com/apis/docs/system-parameters
+      // Using 'X-Goog-Api-Key' HTTP header prevents API key exposure in HTTP access logs, proxy traces, and URLs.
       const base64Image = buffer.toString("base64");
-      const res = await fetch(
-        `https://vision.googleapis.com/v1/images:annotate?key=${apiKey}`,
-        {
+      
+      const payload = await withCircuitBreaker("google-vision-ocr", async () => {
+        visionOcrRequestsTotal.inc({ status: "attempt" });
+        const res = await fetch("https://vision.googleapis.com/v1/images:annotate", {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/json",
+            "X-Goog-Api-Key": apiKey,
+          },
           body: JSON.stringify({
             requests: [
               {
@@ -284,27 +342,33 @@ export async function checkImageBufferForContacts(
               },
             ],
           }),
-        }
-      );
-
-      if (res.ok) {
-        const payload = await res.json();
-        const fullText = payload.responses?.[0]?.fullTextAnnotation?.text;
-        if (fullText) {
-          detectedText = fullText;
-        }
-      } else {
-        const errText = await res.text();
-        logger.warn("[contact-filter] Vision API returned non-OK response", {
-          status: res.status,
-          body: errText.slice(0, 500),
-          filename,
+          signal: AbortSignal.timeout(8000),
         });
+
+        if (!res.ok) {
+          visionOcrErrorsTotal.inc({ error_type: `http_${res.status}` });
+          logger.warn("[contact-filter] Google Vision API returned non-OK status", {
+            status: res.status,
+            filename,
+          });
+          return null;
+        }
+
+        visionOcrRequestsTotal.inc({ status: "success" });
+        return (await res.json()) as { responses?: Array<{ fullTextAnnotation?: { text?: string } }> };
+      }, { failureThreshold: 5, resetTimeout: 60 });
+
+      const fullText = payload?.responses?.[0]?.fullTextAnnotation?.text;
+      if (fullText) {
+        detectedText = fullText;
       }
     } catch (err) {
-      logger.error("[contact-filter] Vision API exception during image scan", err instanceof Error ? err : new Error(String(err)), {
+      visionOcrErrorsTotal.inc({ error_type: "exception" });
+      logger.warn("[contact-filter] Vision API exception during image scan; failing open", {
         filename,
+        error: err instanceof Error ? err.message : String(err),
       });
+      // Fail mode: Allow message but do not throw or crash chat
     }
   } else {
     // Simulated/mock OCR fallback for testing:

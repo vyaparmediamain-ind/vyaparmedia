@@ -94,6 +94,30 @@ export const circuitBreakerOpenTotal = getOrCreateCounter(
   },
 );
 
+export const ipIntelFailuresTotal = getOrCreateCounter(
+  "VyaparMedia_ip_intel_failures_total",
+  {
+    help: "Total number of failed or degraded IP intelligence lookups",
+    labelNames: ["reason"],
+  },
+);
+
+export const visionOcrRequestsTotal = getOrCreateCounter(
+  "VyaparMedia_vision_ocr_requests_total",
+  {
+    help: "Total number of Google Vision OCR scanning attempts",
+    labelNames: ["status"],
+  },
+);
+
+export const visionOcrErrorsTotal = getOrCreateCounter(
+  "VyaparMedia_vision_ocr_errors_total",
+  {
+    help: "Total number of Google Vision OCR scanning errors",
+    labelNames: ["error_type"],
+  },
+);
+
 // Provide access to the metrics string
 export const getMetrics = async () => {
 return await client.register.metrics();

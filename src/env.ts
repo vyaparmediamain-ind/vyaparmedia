@@ -136,6 +136,10 @@ export const envSchema = z.object({
 
   // Computer Vision OCR (Contact Leakage Detection)
   VISION_API_KEY: emptyAsUndefined(z.string().min(1).optional()),
+  ENABLE_VISION_OCR: z
+    .preprocess((val) => val === "true" || val === true || val === "1", z.boolean())
+    .optional()
+    .default(true),
 
   // Logging and monitoring
   LOG_LEVEL: z.enum(["debug", "info", "warn", "error"]).default("info"),

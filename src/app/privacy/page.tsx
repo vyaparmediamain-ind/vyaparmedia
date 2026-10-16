@@ -96,6 +96,8 @@ export default function PrivacyPage() {
           <li><strong className="text-foreground">Payment Gateways:</strong> Razorpay (for PCI-DSS compliant card, UPI, and IMPS escrow processing).</li>
           <li><strong className="text-foreground">Cloud Infrastructure:</strong> Supabase (PostgreSQL), Cloudflare R2 (encrypted media assets), and Upstash (high-speed Redis cache).</li>
           <li><strong className="text-foreground">Communications:</strong> Resend (transactional email) and Twilio / MSG91 (two-factor authentication OTPs).</li>
+          <li><strong className="text-foreground">Automated Safety &amp; Content Moderation:</strong> Google Cloud Vision API (transient in-memory optical character recognition on deal chat attachments to detect off-platform commercial leakage and contact leaks; image data is never retained, logged, or utilized for AI training).</li>
+          <li><strong className="text-foreground">Fraud Telemetry &amp; Geo-Intelligence:</strong> IP geolocation intelligence providers to compute risk scores, identify impossible travel velocity, and detect proxy/VPN syndicates during registration.</li>
           <li><strong className="text-foreground">Law Enforcement:</strong> Government agencies or tax authorities only when presented with a valid statutory order or court decree under applicable Indian laws.</li>
         </ul>
       </LegalSection>
@@ -104,6 +106,9 @@ export default function PrivacyPage() {
       <LegalSection id="security-retention" heading="6. Security &amp; Statutory Retention">
         <p>
           All sensitive identifiers (such as bank details and PANs) are encrypted at rest using AES-256 and transmitted exclusively via TLS 1.3. We implement strict role-based access control (RBAC), multi-factor session authentication, rate-limiting, and real-time security event auditing.
+        </p>
+        <p>
+          To protect account integrity under DPDP legitimate use exemptions, user IP addresses, login timestamps, and device hardware fingerprints are retained for a rolling window of 90 days in security audit logs before automated purging.
         </p>
         <p>
           Users must safeguard their passwords and OTPs. VyaparMedia employees will never solicit your password, two-factor OTP, or UPI PIN via call, WhatsApp, or direct message.
