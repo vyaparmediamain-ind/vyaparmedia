@@ -550,7 +550,12 @@ export async function findPostByUrlDetailed(
 
   try {
     while (nextUrl && checkedCount < 150) {
-      const res = await fetch(nextUrl);
+      const currentNextUrl = nextUrl;
+      const res = await withCircuitBreaker("instagram:fetch_media", async () => {
+        return await fetch(currentNextUrl, {
+          signal: AbortSignal.timeout(SOCIAL_API_TIMEOUT_MS),
+        });
+      });
       if (!res.ok) {
         let errorDetails = `Instagram API HTTP ${res.status}`;
         try {
@@ -676,19 +681,23 @@ export async function checkIsInstagramPostPublic(permalink: string): Promise<boo
 
     if (!/^\/(p|reel|tv)\/[\w-]+/i.test(parsed.pathname)) return false;
 
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), SOCIAL_API_TIMEOUT_MS);
-
-    const res = await fetch(parsed.toString(), {
-      method: "GET",
-      headers: {
-        "User-Agent":
-          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-      },
-      redirect: "manual",
-      signal: controller.signal,
+    const res = await withCircuitBreaker("instagram:public_check", async () => {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), SOCIAL_API_TIMEOUT_MS);
+      try {
+        return await fetch(parsed.toString(), {
+          method: "GET",
+          headers: {
+            "User-Agent":
+              "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+          },
+          redirect: "manual",
+          signal: controller.signal,
+        });
+      } finally {
+        clearTimeout(timeoutId);
+      }
     });
-    clearTimeout(timeoutId);
 
     if ([404, 403, 302, 301, 307].includes(res.status)) return false;
     return true;

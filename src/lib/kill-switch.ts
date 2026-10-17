@@ -12,6 +12,13 @@ export const KILL_SWITCH_FEATURES = {
   SOCIAL_INSTAGRAM: "killswitch:social:instagram",
   SOCIAL_YOUTUBE: "killswitch:social:youtube",
   AUTH_GOOGLE: "killswitch:auth:google",
+  VENDOR_SUREPASS: "killswitch:vendor:surepass",
+  VENDOR_DIGILOCKER: "killswitch:vendor:digilocker",
+  VENDOR_VISION: "killswitch:vendor:vision",
+  VENDOR_SHIPROCKET: "killswitch:vendor:shiprocket",
+  VENDOR_RAZORPAY: "killswitch:vendor:razorpay",
+  VENDOR_RESEND: "killswitch:vendor:resend",
+  VENDOR_FREEIPAPI: "killswitch:vendor:freeipapi",
 } as const;
 
 export type KillSwitchFeature =
@@ -23,7 +30,14 @@ export type KillSwitchFeature =
   | "killswitch:otp"
   | "killswitch:social:instagram"
   | "killswitch:social:youtube"
-  | "killswitch:auth:google";
+  | "killswitch:auth:google"
+  | "killswitch:vendor:surepass"
+  | "killswitch:vendor:digilocker"
+  | "killswitch:vendor:vision"
+  | "killswitch:vendor:shiprocket"
+  | "killswitch:vendor:razorpay"
+  | "killswitch:vendor:resend"
+  | "killswitch:vendor:freeipapi";
 
 export const KILL_SWITCH_MESSAGES: Record<KillSwitchFeature, string> = {
   "killswitch:withdrawals":
@@ -44,6 +58,20 @@ export const KILL_SWITCH_MESSAGES: Record<KillSwitchFeature, string> = {
     "YouTube connection is temporarily unavailable. Please try again later.",
   "killswitch:auth:google":
     "Google sign-in is temporarily paused. Please use email and password to log in.",
+  "killswitch:vendor:surepass":
+    "Automated identity verification is temporarily unavailable. Please try manual upload or check back shortly.",
+  "killswitch:vendor:digilocker":
+    "DigiLocker document retrieval is temporarily paused. Please try again later.",
+  "killswitch:vendor:vision":
+    "Automated image attachment scanning is currently offline. Attachments are routed for human review.",
+  "killswitch:vendor:shiprocket":
+    "Automated logistics label creation is temporarily paused. Sample orders can still be tracked manually.",
+  "killswitch:vendor:razorpay":
+    "Payment gateway integration is temporarily undergoing routine maintenance.",
+  "killswitch:vendor:resend":
+    "Email notifications are queued and will be dispatched once maintenance concludes.",
+  "killswitch:vendor:freeipapi":
+    "IP geolocation verification is operating in offline fallback mode.",
 };
 
 // In-memory overrides for testing or emergency runtime bypasses
@@ -113,4 +141,14 @@ export function setKillSwitchOverride(feature: KillSwitchFeature, active: boolea
  */
 export function clearKillSwitchOverrides(): void {
   localOverrides.clear();
+}
+
+/**
+ * Returns user-facing degraded notification message for an active kill switch feature.
+ */
+export function getKillSwitchMessage(feature: KillSwitchFeature): string {
+  return (
+    KILL_SWITCH_MESSAGES[feature] ||
+    "This service is temporarily undergoing routine maintenance. Please try again shortly."
+  );
 }

@@ -6,16 +6,20 @@ import { encrypt } from "@/lib/encryption";
 import { auth } from "@/lib/auth";
 import { appUrl, getConfiguredAppUrl } from "@/lib/app-url";
 
+import { withCircuitBreaker } from "@/lib/circuit-breaker";
+
 const DIGILOCKER_TIMEOUT_MS = 15_000;
 
 async function fetchWithTimeout(url: string, init: RequestInit = {}, timeoutMs = DIGILOCKER_TIMEOUT_MS): Promise<Response> {
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), timeoutMs);
-  try {
-    return await fetch(url, { ...init, signal: controller.signal });
-  } finally {
-    clearTimeout(timer);
-  }
+  return await withCircuitBreaker("digilocker:api", async () => {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
+    try {
+      return await fetch(url, { ...init, signal: controller.signal });
+    } finally {
+      clearTimeout(timer);
+    }
+  });
 }
 
 async function exchangeDigiLockerToken(code: string, codeVerifier: string, baseUrl: string) {

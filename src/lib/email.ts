@@ -26,6 +26,7 @@ import { stripHtml, sanitizeHtml } from "./sanitize";
 import { randomUUID } from "node:crypto";
 import { env } from "@/env";
 import redis from "./redis";
+import { withCircuitBreaker } from "./circuit-breaker";
 
 const APP_NAME = "VyaparMedia";
 const RESEND_API_URL = "https://api.resend.com/emails";
@@ -199,21 +200,24 @@ async function performSendAttempt(
   log: ReturnType<typeof logger.withContext>,
 ): Promise<{ success: boolean; retry?: boolean; retryAfter?: number; error?: string; messageId?: string | undefined }> {
   try {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
-
-    const res = await fetch(RESEND_API_URL, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${getResendApiKey()}`,
-        "Content-Type": "application/json",
-        "Idempotency-Key": `resend_${correlationId}`,
-      },
-      body: JSON.stringify(payload),
-      signal: controller.signal,
-    });
-
-    clearTimeout(timeoutId);
+    const res = await withCircuitBreaker("resend:api", async () => {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+      try {
+        return await fetch(RESEND_API_URL, {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${getResendApiKey()}`,
+            "Content-Type": "application/json",
+            "Idempotency-Key": `resend_${correlationId}`,
+          },
+          body: JSON.stringify(payload),
+          signal: controller.signal,
+        });
+      } finally {
+        clearTimeout(timeoutId);
+      }
+    }, { failureThreshold: 5, resetTimeout: 60 });
 
     // Resend returns 200 with { id: "..." } on success
     if (res.ok) {

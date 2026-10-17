@@ -88,18 +88,107 @@ export default function PrivacyPage() {
       </LegalSection>
 
       {/* 5 */}
-      <LegalSection id="sharing" heading="5. Authorized Service Providers">
-        <p>
-          We do not sell, rent, or monetize your personal data. We disclose strictly scoped data to authorized infrastructure partners under confidentiality and data protection agreements:
+      <LegalSection id="sharing" heading="5. Authorized Service Providers &amp; Cross-Border Transfers">
+        <p className="mb-4">
+          We do not sell, rent, or trade your personal data. We disclose strictly scoped data to authorized infrastructure partners and sub-processors under strict confidentiality and Data Processing Agreements (DPAs) in compliance with the Digital Personal Data Protection (DPDP) Act, 2023:
         </p>
-        <ul className="list-disc pl-6 space-y-2 my-3">
-          <li><strong className="text-foreground">Payment Gateways:</strong> Razorpay (for PCI-DSS compliant card, UPI, and IMPS escrow processing).</li>
-          <li><strong className="text-foreground">Cloud Infrastructure:</strong> Supabase (PostgreSQL), Cloudflare R2 (encrypted media assets), and Upstash (high-speed Redis cache).</li>
-          <li><strong className="text-foreground">Communications:</strong> Resend (transactional email) and Twilio / MSG91 (two-factor authentication OTPs).</li>
-          <li><strong className="text-foreground">Automated Safety &amp; Content Moderation:</strong> Google Cloud Vision API (transient in-memory optical character recognition on deal chat attachments to detect off-platform commercial leakage and contact leaks; image data is never retained, logged, or utilized for AI training).</li>
-          <li><strong className="text-foreground">Fraud Telemetry &amp; Geo-Intelligence:</strong> IP geolocation intelligence providers to compute risk scores, identify impossible travel velocity, and detect proxy/VPN syndicates during registration.</li>
-          <li><strong className="text-foreground">Law Enforcement:</strong> Government agencies or tax authorities only when presented with a valid statutory order or court decree under applicable Indian laws.</li>
-        </ul>
+
+        <div className="overflow-x-auto not-prose my-4">
+          <table className="w-full text-xs text-left border border-border rounded-lg overflow-hidden">
+            <thead className="bg-muted text-foreground font-semibold">
+              <tr className="border-b border-border">
+                <th className="p-2.5">Sub-Processor</th>
+                <th className="p-2.5">Purpose</th>
+                <th className="p-2.5">Data Shared</th>
+                <th className="p-2.5">Location &amp; Cross-Border</th>
+                <th className="p-2.5">Account Erasure Policy</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-border text-muted-foreground">
+              <tr>
+                <td className="p-2.5 font-medium text-foreground">Razorpay</td>
+                <td className="p-2.5">Payment gateway, milestone escrow, bank penny-drop</td>
+                <td className="p-2.5">Name, Bank Account, IFSC, Transaction Amount</td>
+                <td className="p-2.5">India</td>
+                <td className="p-2.5">Retained 7 yrs (PMLA &amp; RBI compliance)</td>
+              </tr>
+              <tr>
+                <td className="p-2.5 font-medium text-foreground">Shiprocket</td>
+                <td className="p-2.5">Product sample shipping &amp; automated dispatch labels</td>
+                <td className="p-2.5">Recipient Name, Shipping Address, Phone</td>
+                <td className="p-2.5">India</td>
+                <td className="p-2.5">Purged after shipment settlement</td>
+              </tr>
+              <tr>
+                <td className="p-2.5 font-medium text-foreground">Surepass &amp; DigiLocker</td>
+                <td className="p-2.5">Statutory identity verification (PAN, Aadhaar)</td>
+                <td className="p-2.5">PAN / Aadhaar token, Legal Name, DOB</td>
+                <td className="p-2.5">India</td>
+                <td className="p-2.5">Ephemeral verification; zero raw image retention</td>
+              </tr>
+              <tr>
+                <td className="p-2.5 font-medium text-foreground">MSG91</td>
+                <td className="p-2.5">DLT-registered transactional SMS &amp; OTPs</td>
+                <td className="p-2.5">Phone Number, 6-digit OTP</td>
+                <td className="p-2.5">India</td>
+                <td className="p-2.5">Delivery reports purged after 30 days</td>
+              </tr>
+              <tr>
+                <td className="p-2.5 font-medium text-foreground">Twilio &amp; Meta</td>
+                <td className="p-2.5">WhatsApp / SMS notifications &amp; authentication</td>
+                <td className="p-2.5">Phone Number, Transactional Template data</td>
+                <td className="p-2.5">USA / Ireland (Standard Contractual Clauses)</td>
+                <td className="p-2.5">Purged from message logs within 30 days</td>
+              </tr>
+              <tr>
+                <td className="p-2.5 font-medium text-foreground">Resend</td>
+                <td className="p-2.5">Transactional emails &amp; system alerts</td>
+                <td className="p-2.5">Email address, First Name, Notification Body</td>
+                <td className="p-2.5">USA (Adequacy / DPA safeguards)</td>
+                <td className="p-2.5">Suppression record maintained upon unsubscribe</td>
+              </tr>
+              <tr>
+                <td className="p-2.5 font-medium text-foreground">Upstash Redis &amp; QStash</td>
+                <td className="p-2.5">Distributed rate-limiting, idempotency &amp; cron scheduling</td>
+                <td className="p-2.5">Hashed IPs, Session IDs, Scoped Job Payloads</td>
+                <td className="p-2.5">USA / Germany (Encrypted in transit)</td>
+                <td className="p-2.5">Automatic TTL expiry (1 hr to 30 days)</td>
+              </tr>
+              <tr>
+                <td className="p-2.5 font-medium text-foreground">Supabase</td>
+                <td className="p-2.5">Relational database storage &amp; real-time messaging</td>
+                <td className="p-2.5">Encrypted User records, Deals, Invoices</td>
+                <td className="p-2.5">India (AWS Mumbai ap-south-1)</td>
+                <td className="p-2.5">Soft-delete with cryptographic anonymization</td>
+              </tr>
+              <tr>
+                <td className="p-2.5 font-medium text-foreground">Cloudflare R2 / AWS S3</td>
+                <td className="p-2.5">Encrypted document storage (Tax invoices, media)</td>
+                <td className="p-2.5">Contract PDFs, Invoices, Delivery Previews</td>
+                <td className="p-2.5">India &amp; Global Edge CDN (AES-256)</td>
+                <td className="p-2.5">Permanent bucket purge upon approved erasure</td>
+              </tr>
+              <tr>
+                <td className="p-2.5 font-medium text-foreground">Sentry</td>
+                <td className="p-2.5">Error monitoring &amp; platform stability telemetry</td>
+                <td className="p-2.5">Stack traces (PII scrubbed at client &amp; edge)</td>
+                <td className="p-2.5">USA (Zero-PII Data Scrubbing DPA)</td>
+                <td className="p-2.5">Rolling 30-day retention window</td>
+              </tr>
+              <tr>
+                <td className="p-2.5 font-medium text-foreground">Google Cloud Vision</td>
+                <td className="p-2.5">Automated attachment safety &amp; contact leak detection</td>
+                <td className="p-2.5">Transient base64 image data (in-memory only)</td>
+                <td className="p-2.5">USA (Encrypted TLS 1.3)</td>
+                <td className="p-2.5">Zero retention; strictly ephemeral memory analysis</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <p className="text-xs text-muted-foreground mt-2">
+          Cross-border data transfers to jurisdictions outside India are executed strictly with vendors that provide comparable data protection standards pursuant to Section 16 of the DPDP Act, 2023 and under binding Data Processing Agreements.
+        </p>
       </LegalSection>
 
       {/* 6 */}

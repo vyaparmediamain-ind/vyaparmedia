@@ -692,19 +692,21 @@ export async function fetchTransfer(transferId: string): Promise<{
   const { keyId, keySecret } = getRazorpayCredentials();
   const authHeader = Buffer.from(`${keyId}:${keySecret}`).toString("base64");
 
-  const res = await fetchWithTimeout(
-    `https://api.razorpay.com/v1/transfers/${encodeURIComponent(transferId)}`,
-    {
-      method: "GET",
-      headers: { Authorization: `Basic ${authHeader}` },
-    },
-    10000
-  );
+  return await withCircuitBreaker("razorpay:fetchTransfer", async () => {
+    const res = await fetchWithTimeout(
+      `https://api.razorpay.com/v1/transfers/${encodeURIComponent(transferId)}`,
+      {
+        method: "GET",
+        headers: { Authorization: `Basic ${authHeader}` },
+      },
+      10000
+    );
 
-  if (!res.ok) {
-    throw AppError.badRequest(`Failed to fetch transfer: ${res.statusText}`);
-  }
-  return await res.json();
+    if (!res.ok) {
+      throw AppError.badRequest(`Failed to fetch transfer: ${res.statusText}`);
+    }
+    return await res.json();
+  });
 }
 
 
@@ -999,27 +1001,33 @@ utr: payout.utr,
 }
 
 export async function getPayout(payoutId: string) {
-const { keyId, keySecret } = getRazorpayCredentials();
-const authHeader = Buffer.from(`${keyId}:${keySecret}`).toString("base64");
+  const { keyId, keySecret } = getRazorpayCredentials();
+  const authHeader = Buffer.from(`${keyId}:${keySecret}`).toString("base64");
 
-const res = await fetchWithTimeout(`https://api.razorpay.com/v1/payouts/${encodeURIComponent(payoutId)}`, {
-method: "GET",
-headers: {
-Authorization: `Basic ${authHeader}`,
-},
-}, 10000);
+  return await withCircuitBreaker("razorpay:getPayout", async () => {
+    const res = await fetchWithTimeout(
+      `https://api.razorpay.com/v1/payouts/${encodeURIComponent(payoutId)}`,
+      {
+        method: "GET",
+        headers: {
+          Authorization: `Basic ${authHeader}`,
+        },
+      },
+      10000
+    );
 
-if (!res.ok) {
-throw AppError.badRequest(`Failed to fetch payout status: ${res.statusText}`);
-}
+    if (!res.ok) {
+      throw AppError.badRequest(`Failed to fetch payout status: ${res.statusText}`);
+    }
 
-const payout = await res.json();
-return {
-payoutId: payout.id,
-amount: payout.amount,
-status: payout.status,
-utr: payout.utr,
-};
+    const payout = await res.json();
+    return {
+      payoutId: payout.id,
+      amount: payout.amount,
+      status: payout.status,
+      utr: payout.utr,
+    };
+  });
 }
 
 import { isWebhookProcessed } from "./idempotency";
