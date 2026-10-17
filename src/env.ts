@@ -133,6 +133,13 @@ export const envSchema = z.object({
 
   // Web Push Notifications
   NEXT_PUBLIC_VAPID_PUBLIC_KEY: emptyAsUndefined(z.string().min(1).optional()),
+  VAPID_PUBLIC_KEY: emptyAsUndefined(z.string().min(1).optional()),
+  VAPID_PRIVATE_KEY: emptyAsUndefined(z.string().min(1).optional()),
+  VAPID_SUBJECT: emptyAsUndefined(z.string().min(1).optional().default("mailto:security@vyaparmedia.in")),
+  ENABLE_WEB_PUSH: z
+    .preprocess((val) => val === "true" || val === true || val === "1", z.boolean())
+    .optional()
+    .default(false),
 
   // Computer Vision OCR (Contact Leakage Detection)
   VISION_API_KEY: emptyAsUndefined(z.string().min(1).optional()),
@@ -232,6 +239,7 @@ validateDatabaseAndRedis(env, ctx, isVercel);
 validateMonitoringAndApp(env, ctx);
 validateStorage(env, ctx);
 validateLogistics(env, ctx);
+validateWebPush(env, ctx);
 validatePlatformCompliance(env, ctx);
 });
 
@@ -476,6 +484,27 @@ function validateLogistics(env: Record<string, unknown>, ctx: z.RefinementCtx) {
         code: z.ZodIssueCode.custom,
         path: ["SHIPROCKET_WEBHOOK_SECRET"],
         message: "SHIPROCKET_WEBHOOK_SECRET must be configured in production when SHIPROCKET_EMAIL is set.",
+      });
+    }
+  }
+}
+
+function validateWebPush(env: Record<string, unknown>, ctx: z.RefinementCtx) {
+  if (env.ENABLE_WEB_PUSH === true) {
+    const vapidPub = (env.VAPID_PUBLIC_KEY || env.NEXT_PUBLIC_VAPID_PUBLIC_KEY) as string | undefined;
+    const vapidPriv = env.VAPID_PRIVATE_KEY as string | undefined;
+    if (!vapidPub || vapidPub.trim() === "" || vapidPub.includes("placeholder")) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["VAPID_PUBLIC_KEY"],
+        message: "VAPID_PUBLIC_KEY (or NEXT_PUBLIC_VAPID_PUBLIC_KEY) is required in production when ENABLE_WEB_PUSH is true.",
+      });
+    }
+    if (!vapidPriv || vapidPriv.trim() === "" || vapidPriv.includes("placeholder")) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["VAPID_PRIVATE_KEY"],
+        message: "VAPID_PRIVATE_KEY is required in production when ENABLE_WEB_PUSH is true.",
       });
     }
   }

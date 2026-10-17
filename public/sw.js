@@ -168,7 +168,17 @@ self.addEventListener("push", (event) => {
 self.addEventListener("notificationclick", (event) => {
   event.notification.close();
 
-  const targetUrl = event.notification.data?.url || "/dashboard";
+  let targetUrl = event.notification.data?.url || "/dashboard";
+  try {
+    const parsed = new URL(targetUrl, self.location.origin);
+    if (parsed.origin !== self.location.origin) {
+      targetUrl = "/dashboard";
+    } else {
+      targetUrl = parsed.pathname + parsed.search + parsed.hash;
+    }
+  } catch {
+    targetUrl = "/dashboard";
+  }
 
   event.waitUntil(
     self.clients

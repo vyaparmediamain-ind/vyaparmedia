@@ -5,10 +5,16 @@ import { z } from "zod";
 import {
   savePushSubscription,
   removePushSubscription,
+  isPushEndpointAllowed,
 } from "@/lib/push-notifications";
 
 const subscribeSchema = z.object({
-  endpoint: z.string().url(),
+  endpoint: z
+    .string()
+    .url()
+    .refine(isPushEndpointAllowed, {
+      message: "Untrusted push service endpoint URL",
+    }),
   keys: z.object({
     p256dh: z.string().min(1),
     auth: z.string().min(1),

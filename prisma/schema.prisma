@@ -97,6 +97,7 @@ model User {
   reviewsWritten          Review[]               @relation("Reviewer")
   reviewsReceived         Review[]               @relation("ReviewReceiver")
   notificationPreferences Json?                  @default("{\"email\":{\"marketing\":true,\"updates\":true,\"security\":true}}")
+  pushSubscriptions       PushSubscription[]
   creditorClaims          DebtClaim[]            @relation("CreditorUser")
   blocksSent              UserBlock[]            @relation("UserBlocksSent")
   blocksReceived          UserBlock[]            @relation("UserBlocksReceived")
@@ -1548,3 +1549,19 @@ model DrsScoreSnapshot {
   @@index([userId, createdAt])
   @@index([userId])
 }
+
+model PushSubscription {
+  id        String   @id @default(cuid())
+  userId    String
+  endpoint  String   @unique
+  p256dh    String
+  auth      String
+  userAgent String?
+  createdAt DateTime @default(now())
+  lastSeen  DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
