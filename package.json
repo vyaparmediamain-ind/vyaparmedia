@@ -43,7 +43,7 @@
     "@upstash/qstash": "^2.11.3",
     "autoprefixer": "^10.6.0",
     "bcryptjs": "^3.0.3",
-    "compromise": "^14.14.5",
+    "compromise": "^14.18.0",
     "date-fns": "^4.1.0",
     "disposable-email-domains": "^1.0.62",
     "framer-motion": "^12.34.0",
