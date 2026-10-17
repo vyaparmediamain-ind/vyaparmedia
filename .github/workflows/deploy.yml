@@ -27,7 +27,7 @@ jobs:
       VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
     steps:
       - name: Checkout repository
-        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.2
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v4.1.2
 
       - name: Setup Node.js 24.x
         uses: actions/setup-node@60edb5dd545a775178f5252478337951c3269ab8 # v4.0.2
@@ -61,7 +61,7 @@ jobs:
       VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
     steps:
       - name: Checkout repository
-        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.2
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v4.1.2
 
       - name: Setup Node.js 24.x
         uses: actions/setup-node@60edb5dd545a775178f5252478337951c3269ab8 # v4.0.2
