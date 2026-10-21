@@ -1,6 +1,6 @@
 # VyaparMedia — India's Premier Influencer Marketing & Escrow Marketplace
 
-> **Production Platform Baseline** | Next.js 16.2.6 (App Router) · React 19.2.6 · TypeScript 5 · Prisma ORM 6.19.3 · Base UI · Tailwind CSS · Upstash Redis & ioredis · Razorpay & Route · Shiprocket
+> **Production Platform Baseline** | Next.js 16.2.6 (App Router) · React 19.2.6 · TypeScript 5 · Prisma ORM 7.10.0 · Base UI · Tailwind CSS · Upstash Redis & ioredis · Razorpay & Route · Shiprocket
 
 VyaparMedia is an enterprise-grade fintech and marketing marketplace connecting direct-to-consumer (D2C) brands, digital marketing agencies, and corporate sponsors with verified content creators through legally binding digital contracts, milestone-based escrow payments, automated Indian tax compliance (TDS Section 194-O, GST, PAN), and integrated courier logistics.
 
@@ -20,7 +20,7 @@ VyaparMedia is an enterprise-grade fintech and marketing marketplace connecting 
 
 ## 2. Complete Application Page & Route Catalog
 
-The platform encompasses **55 distinct page entrypoints** organized cleanly across public marketing, authentication/onboarding, dynamic creator portfolios, authenticated user dashboards, admin governance, and system error boundaries:
+The platform encompasses **56 distinct page entrypoints** (55 `page.tsx` routes + 1 branded `not-found.tsx`) organized cleanly across public marketing, authentication/onboarding, dynamic creator portfolios, authenticated user dashboards, admin governance, and system error boundaries:
 
 ### 2.1 Public Marketing & Informational Routes
 | Route | Source File | Purpose & Description |
@@ -46,10 +46,11 @@ The platform encompasses **55 distinct page entrypoints** organized cleanly acro
 | `/forgot-password` | `src/app/forgot-password/page.tsx` | Secure password reset request via rate-limited email token dispatch |
 | `/reset-password` | `src/app/reset-password/page.tsx` | Cryptographic token-authenticated password update form |
 
-### 2.3 Dynamic Public Portfolios
+### 2.3 Dynamic Public Portfolios & Profiles
 | Route | Source File | Purpose & Description |
 | :--- | :--- | :--- |
 | `/creator/[username]` | `src/app/creator/[username]/page.tsx` | Public SEO-indexed creator profile: Instagram/YouTube stats, verified badges, DRS score, rate slabs, campaign proof modal, and direct collaboration CTA |
+| `/brand/[id]` | `src/app/brand/[id]/page.tsx` | Public brand profile: company overview, verified badge, active campaigns listing, and direct collaboration CTA |
 
 ### 2.4 User Dashboard (`/dashboard`)
 | Route | Source File | Purpose & Description |
@@ -150,16 +151,16 @@ npm install
 # Run development server (http://localhost:3000)
 npm run dev
 
-# Run action-button premature exposure regression guard (49 mutating buttons verified)
+# Run action-button premature exposure regression guard (47 mutating buttons verified)
 npm run lint:actions
 
-# Run semantic design token consistency check (579 source files verified)
+# Run semantic design token consistency check (595 source files verified)
 npm run lint:theme
 
 # Run full project validation (ESLint + Theme + Actions + TypeScript + Prisma)
 npm run validate
 
-# Run automated Vitest test battery (50 test files, 546 passed tests)
+# Run automated Vitest test battery (71 test files, 643 passed tests)
 npm test
 
 # Run full pre-deployment pipeline (validate + test + build)
@@ -172,7 +173,7 @@ npm run deploy:check
 
 For deep technical specifications, refer to canonical repository references:
 - **[PRD.md](./PRD.md)** — Comprehensive Master Product Requirements Document (v3.4)
-- **[PAGE_INVENTORY.md](./PAGE_INVENTORY.md)** — 55-Page Master Catalog & Verified Route Directory
+- **[PAGE_INVENTORY.md](./PAGE_INVENTORY.md)** — 56-Page Master Catalog & Verified Route Directory
 - **[ARCHITECTURE_PATTERNS.md](./ARCHITECTURE_PATTERNS.md)** — Codebase Architecture, File Conventions & Cross-Cutting Standards
 - **[DESIGN_TOKENS.md](./DESIGN_TOKENS.md)** — Design Tokens, Typography, Dark Mode Palettes, and WCAG AA Specifications
 - **[MESSAGES.md](./MESSAGES.md)** — Centralized User-Facing Message Architecture & Error Sanitization Catalog

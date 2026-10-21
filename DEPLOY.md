@@ -764,4 +764,4 @@ Before opening registration to live creators and brands, verify these 4 commands
 ---
 
 ### 🎉 Your VyaparMedia production environment is fully documented, legally compliant, and ready for deployment!
-For design tokens or architecture patterns, see [`ARCHITECTURE_PATTERNS.md`](file:///c:/Decisional-main/ARCHITECTURE_PATTERNS.md) and [`AGENTS.md`](file:///c:/Decisional-main/AGENTS.md).
+For design tokens or architecture patterns, see [`ARCHITECTURE_PATTERNS.md`](./ARCHITECTURE_PATTERNS.md) and [`AGENTS.md`](./AGENTS.md).

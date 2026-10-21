@@ -383,19 +383,13 @@ Equivalent active Vitest suites:
 ### FINDING-12: Root Documentation Duplication & Near-Empty `CLAUDE.md`
 - **ID:** `DEAD-DOCS-01`
 - **Severity:** P3
-- **Label:** CONFIRMED
+- **Label:** RESOLVED
 - **Area:** Documentation Clutter
 - **file:line:** [CLAUDE.md:1-2](file:///C:/Decisional-main/vyaparmedia/CLAUDE.md#L1-L2), `C:\Decisional-main\*.md` vs `C:\Decisional-main\vyaparmedia\*.md`
-- **What happens:**
-  1. `CLAUDE.md` is an 11-byte file containing only `@AGENTS.md`.
-  2. 10 oversized markdown files (`PRD.md`, `DEPLOY.md`, `ARCHITECTURE_PATTERNS.md`, `ACTION_VALIDATION_AUDIT.md`, `FEATURE_VERIFICATION.md`, `PAGE_INVENTORY.md`, etc.) are duplicated verbatim between the workspace root (`C:\Decisional-main\`) and project root (`C:\Decisional-main\vyaparmedia\`).
-  3. Edits made in one folder cause drift against the other copy (e.g. `AGENTS.md` is 1,988 bytes at root and 2,667 bytes in `vyaparmedia/`).
-- **Evidence:**
-```
-C:\Decisional-main\PRD.md (103,393 bytes)  <===>  C:\Decisional-main\vyaparmedia\PRD.md (103,393 bytes)
-C:\Decisional-main\DEPLOY.md (36,934 bytes) <===> C:\Decisional-main\vyaparmedia\DEPLOY.md (36,986 bytes)
-```
-- **Minimal fix:** Remove duplicate copies from `C:\Decisional-main\vyaparmedia\`, keeping canonical references in `C:\Decisional-main\` (or vice versa), and remove redundant 11-byte `CLAUDE.md`.
+- **What happened:**
+  1. 10 oversized markdown files (`PRD.md`, `DEPLOY.md`, `ARCHITECTURE_PATTERNS.md`, `ACTION_VALIDATION_AUDIT.md`, `FEATURE_VERIFICATION.md`, `PAGE_INVENTORY.md`, `MESSAGES.md`, `DESIGN_TOKENS.md`, `OAUTH_SETUP.md`, and `audit/`) were duplicated between the workspace root (`C:\Decisional-main\`) and the canonical project repository (`C:\Decisional-main\vyaparmedia\`).
+  2. Edits made in one folder caused drift against the other copy.
+- **Resolution:** All stale duplicate copies in `C:\Decisional-main\` and duplicate `OAUTH_SETUP.md` were deleted. The single canonical source of truth is established within the Git repository (`C:\Decisional-main\vyaparmedia\`).
 
 ---
 
