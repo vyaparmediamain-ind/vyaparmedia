@@ -836,8 +836,7 @@ return NextResponse.json(
     if (error instanceof AppError) {
       return ApiResponse.error(error.message, error.statusCode);
     }
-    const message = error instanceof Error ? error.message : "Failed to process document upload. Please try again.";
-    return ApiResponse.error(message, 500);
+    return ApiResponse.error("Failed to process document upload. Please try again.", 500);
   }
 }
 

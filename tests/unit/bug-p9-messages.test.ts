@@ -75,11 +75,11 @@ describe("Audit P9 — User Messages & Error Sanitization Regressions", () => {
       expect(sanitized).toBe("Something went wrong while processing your request. Please try again shortly.");
     });
 
-    it("verifies verification/route.ts catch block delegates to ApiResponse.error", () => {
+    it("verifies verification/route.ts catch block delegates to ApiResponse.error without leaking raw error.message", () => {
       const routePath = path.resolve(process.cwd(), "src/app/api/verification/route.ts");
       const content = fs.readFileSync(routePath, "utf-8");
-      expect(content).toContain("return ApiResponse.error(message, 500);");
-      expect(content).not.toContain("return NextResponse.json(\n      { error: message },\n      { status: 500 },\n    );");
+      expect(content).toContain('return ApiResponse.error("Failed to process document upload. Please try again.", 500);');
+      expect(content).not.toContain("const message = error instanceof Error ? error.message");
     });
   });
 
