@@ -672,7 +672,7 @@ export default function ProfileTab({
               type="text"
               placeholder={
                 isBrand(user.userType)
-                  ? "Warehouse / Office Street Address & Landmark"
+                  ? "Street address, building, landmark"
                   : "House / Flat No., Street, Area"
               }
               value={profile.address || ""}

@@ -307,7 +307,7 @@ export default function LeaderboardPage() {
                   </div>
 
                   <div className="pt-2">
-                    <span className="font-bold text-xs sm:text-sm text-foreground block truncate max-w-[100px] sm:max-w-[140px]">
+                    <span className="font-bold text-xs sm:text-sm text-foreground block line-clamp-2 leading-tight break-words max-w-[100px] sm:max-w-[140px] mx-auto">
                       {second.name}
                     </span>
                     <span className="text-2xs text-muted-foreground font-semibold tabular-nums">
@@ -354,7 +354,7 @@ export default function LeaderboardPage() {
                   </div>
 
                   <div className="pt-2">
-                    <span className="font-extrabold text-sm sm:text-base text-foreground block truncate max-w-[110px] sm:max-w-[160px]">
+                    <span className="font-extrabold text-sm sm:text-base text-foreground block line-clamp-2 leading-tight break-words max-w-[110px] sm:max-w-[160px] mx-auto">
                       {first.name}
                     </span>
                     <span className="text-xs text-amber-500 font-bold tabular-nums">
@@ -400,7 +400,7 @@ export default function LeaderboardPage() {
                   </div>
 
                   <div className="pt-2">
-                    <span className="font-bold text-xs sm:text-sm text-foreground block truncate max-w-[100px] sm:max-w-[140px]">
+                    <span className="font-bold text-xs sm:text-sm text-foreground block line-clamp-2 leading-tight break-words max-w-[100px] sm:max-w-[140px] mx-auto">
                       {third.name}
                     </span>
                     <span className="text-2xs text-muted-foreground font-semibold tabular-nums">

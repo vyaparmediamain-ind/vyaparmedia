@@ -168,7 +168,7 @@ export default function DashboardShell({
       />
 
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col min-w-0 min-h-screen pb-24 md:pb-8">
+      <div className="flex-1 flex flex-col min-w-0">
         <TopbarComponent
           user={user}
           isAdmin={isAdmin}
@@ -203,7 +203,7 @@ export default function DashboardShell({
         )}
 
         {/* Dashboard Page Content with Client-side Role Guard */}
-        <main className="flex-1 w-full pb-[calc(5.25rem+env(safe-area-inset-bottom,0px))] md:pb-6 animate-fade-in">
+        <main className="flex-1 w-full pb-[calc(4.5rem+env(safe-area-inset-bottom,0px))] md:pb-6 animate-fade-in">
           <RoleGuard userType={user?.userType}>
             {children}
           </RoleGuard>
@@ -265,7 +265,7 @@ const TopbarComponent = memo(function TopbarComponent({
           />
         )}
         <div className="dashboard-mobile-logo md:hidden" aria-hidden="true">
-          <Logo tabIndex={-1} />
+          <Logo tabIndex={-1} showTagline={false} size="sm" />
         </div>
         <div>
           <h1 className="dashboard-topbar-title">

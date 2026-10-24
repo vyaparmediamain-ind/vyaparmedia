@@ -116,6 +116,7 @@ export function ConversationsSidebar({ state }: Readonly<ConversationsSidebarPro
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
           <input
+            id="conversations-search-input"
             type="text"
             placeholder="Search conversations…"
             value={searchQuery}

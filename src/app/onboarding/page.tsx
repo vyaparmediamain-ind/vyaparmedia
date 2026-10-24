@@ -677,34 +677,24 @@ export default function OnboardingPage() {
                   <ArrowLeft className="w-4 h-4" />
                   <span>Back</span>
                 </button>
-                <div className="flex items-center gap-2">
-                  <button
-                    type="button"
-                    disabled={isLoading}
-                    onClick={handleSubmit}
-                    className="px-4 py-2.5 rounded-xl text-xs font-bold text-muted-foreground hover:text-foreground transition-colors disabled:opacity-50"
-                  >
-                    Skip &amp; Finish
-                  </button>
-                  <button
-                    type="button"
-                    disabled={isLoading}
-                    onClick={handleSubmit}
-                    className="px-7 py-3 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-xs sm:text-sm flex items-center gap-2 shadow-md shadow-primary/25 transition-all disabled:opacity-50 active:scale-95"
-                  >
-                    {isLoading ? (
-                      <>
-                        <Loader2 className="w-4 h-4 animate-spin" />
-                        <span>Saving Profile...</span>
-                      </>
-                    ) : (
-                      <>
-                        <span>Complete Setup</span>
-                        <Sparkles className="w-4 h-4" />
-                      </>
-                    )}
-                  </button>
-                </div>
+                <button
+                  type="button"
+                  disabled={isLoading}
+                  onClick={handleSubmit}
+                  className="px-7 py-3 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-xs sm:text-sm flex items-center gap-2 shadow-md shadow-primary/25 transition-all disabled:opacity-50 active:scale-95"
+                >
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <span>Saving Profile...</span>
+                    </>
+                  ) : (
+                    <>
+                      <span>Complete Setup</span>
+                      <Sparkles className="w-4 h-4" />
+                    </>
+                  )}
+                </button>
               </div>
             </div>
           )}

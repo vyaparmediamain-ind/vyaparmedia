@@ -139,7 +139,7 @@ export default function NotificationsPage() {
   return (
     <DashboardShell user={session?.user}>
       <PullToRefresh onRefresh={refresh}>
-        <PageContainer maxWidth="4xl" className="space-y-6 animate-fade-in pb-16 py-4 sm:py-6">
+        <PageContainer maxWidth="4xl" className="space-y-6 animate-fade-in pt-4 pb-0 sm:py-6">
         {/* ── 1. HEADER (INSTAGRAM ACTIVITY BENCHMARK) ───────────────────── */}
         <PageHeader
           title="Activity Feed"
@@ -181,16 +181,15 @@ export default function NotificationsPage() {
                 <RefreshCw className={`w-4 h-4 ${isLoading ? "animate-spin text-primary" : "text-muted-foreground"}`} />
               </Button>
 
-              <Link href="/dashboard/settings?tab=notifications">
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  className="gap-1.5 text-xs font-semibold cursor-pointer shadow-xs"
-                >
-                  <Settings className="w-3.5 h-3.5 text-muted-foreground" />
-                  <span>Preferences</span>
-                </Button>
-              </Link>
+              <Button
+                href="/dashboard/settings?tab=notifications"
+                variant="secondary"
+                size="sm"
+                className="gap-1.5 text-xs font-semibold cursor-pointer shadow-xs"
+              >
+                <Settings className="w-3.5 h-3.5 text-muted-foreground" />
+                <span>Preferences</span>
+              </Button>
             </>
           }
           border={false}
@@ -216,7 +215,7 @@ export default function NotificationsPage() {
                   setActiveFilter(tab.key);
                   setDisplayLimit(ITEMS_PER_PAGE);
                 }}
-                className={`px-4 py-2 rounded-xl text-xs font-medium transition-all shrink-0 cursor-pointer border ${
+                className={`px-4 py-2 rounded-xl text-xs font-medium transition-all shrink-0 whitespace-nowrap cursor-pointer border ${
                   active
                     ? "bg-primary text-primary-foreground border-primary font-bold shadow-xs"
                     : "bg-card border-border text-muted-foreground hover:text-foreground hover:bg-muted"

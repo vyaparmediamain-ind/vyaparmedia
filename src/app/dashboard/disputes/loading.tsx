@@ -5,7 +5,7 @@ import { PageContainer } from "@/components/ui";
  */
 export default function DashboardDisputesLoading() {
   return (
-    <PageContainer maxWidth="6xl" className="space-y-6 animate-pulse py-4 sm:py-6" aria-hidden="true">
+    <PageContainer maxWidth="6xl" className="space-y-6 animate-pulse pt-4 pb-0 sm:py-6" aria-hidden="true">
       <div className="mb-6 space-y-2">
         <div className="skeleton h-8 w-40 rounded-md" />
         <div className="skeleton h-4 w-64 rounded-sm" />

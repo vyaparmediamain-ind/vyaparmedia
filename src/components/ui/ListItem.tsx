@@ -147,7 +147,7 @@ export function ListItem({
             <div className="min-w-0 flex-1 space-y-0.5">
               {title && (
                 <div className="flex items-center gap-1.5 sm:gap-2 min-w-0 flex-wrap">
-                  <div className="text-sm sm:text-base font-bold text-foreground truncate group-hover:text-primary transition-colors">
+                  <div className="text-sm sm:text-base font-bold text-foreground break-words line-clamp-1 sm:line-clamp-2 group-hover:text-primary transition-colors">
                     {title}
                   </div>
                   {titleBadge}

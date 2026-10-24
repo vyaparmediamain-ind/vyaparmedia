@@ -643,11 +643,11 @@ export default function StoryShareModal({
       <div className="space-y-4 pt-1">
         {/* Tab Switcher */}
         {hasProfile && hasReferral && (
-          <div className="flex items-center p-1 rounded-2xl bg-muted/50 border border-border">
+          <div className="flex items-center p-1 rounded-2xl bg-muted/50 border border-border overflow-x-auto no-scrollbar flex-nowrap max-w-full">
             <button
               type="button"
               onClick={() => setActiveTab("profile")}
-              className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-xl text-xs font-bold transition-all duration-200 ${
+              className={`flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-xl text-xs font-bold transition-all duration-200 shrink-0 whitespace-nowrap cursor-pointer ${
                 activeTab === "profile"
                   ? "bg-card text-foreground shadow-sm border border-border"
                   : "text-muted-foreground hover:text-foreground"
@@ -663,7 +663,7 @@ export default function StoryShareModal({
             <button
               type="button"
               onClick={() => setActiveTab("referral")}
-              className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-xl text-xs font-bold transition-all duration-200 ${
+              className={`flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-xl text-xs font-bold transition-all duration-200 shrink-0 whitespace-nowrap cursor-pointer ${
                 activeTab === "referral"
                   ? "bg-card text-foreground shadow-sm border border-border"
                   : "text-muted-foreground hover:text-foreground"

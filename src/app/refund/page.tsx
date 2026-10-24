@@ -6,9 +6,19 @@ import { Button } from "@/components/ui";
 import { PLATFORM_CONFIG } from "@/lib/platform-config";
 
 export const metadata: Metadata = {
-  title: "Refund & Cancellation Policy — VyaparMedia",
+  title: "Refund & Cancellation Policy",
   description:
     "Comprehensive refund eligibility, cancellation protocols, and escrow return timelines for brand campaigns on VyaparMedia.",
+  alternates: {
+    canonical: "/refund",
+  },
+  openGraph: {
+    title: "Refund & Cancellation Policy | VyaparMedia",
+    description:
+      "Escrow refund rules, non-refundable components, and cancellation policies for Indian brands and creators.",
+    url: "/refund",
+    type: "website",
+  },
 };
 
 const SECTIONS = [

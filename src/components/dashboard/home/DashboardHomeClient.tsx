@@ -71,7 +71,7 @@ export default function DashboardHomeClient({
   const availableBalancePaise = walletData?.balance ?? 0;
 
   return (
-    <div className="space-y-6 sm:space-y-8 pb-12">
+    <div className="space-y-6 sm:space-y-8">
       {/* 1. TOP GREETING & VIEW SWITCHER */}
       <PageHeader
         icon={
@@ -101,37 +101,50 @@ export default function DashboardHomeClient({
               {isInfluencer && (
                 <Link
                   href="/dashboard/wallet"
-                  className="flex items-center gap-1.5 px-3.5 py-2.5 min-h-[44px] rounded-xl bg-card border border-border shadow-xs hover:border-primary/50 transition-colors"
+                  className="flex items-center gap-3 px-3.5 py-2.5 min-h-[44px] rounded-xl bg-card border border-border shadow-xs hover:border-primary/50 transition-colors"
+                  title="View wallet & payouts"
                 >
-                  <Wallet className="w-3.5 h-3.5 text-primary" />
-                  <span className="text-[11px] text-muted-foreground font-medium">Available:</span>
-                  <span className="text-xs font-mono font-extrabold text-foreground tabular-nums">
-                    {formatCurrency(availableBalancePaise)}
-                  </span>
+                  <div className="flex items-center gap-1.5">
+                    <Wallet className="w-3.5 h-3.5 text-primary" />
+                    <span className="text-[11px] text-muted-foreground font-medium">Available:</span>
+                    <span className="text-xs font-mono font-extrabold text-foreground tabular-nums">
+                      {formatCurrency(availableBalancePaise)}
+                    </span>
+                  </div>
+                  <div className="h-4 w-px bg-border" />
+                  <div className="flex items-center gap-1.5 text-escrow">
+                    <Lock className="w-3.5 h-3.5" />
+                    <span className="text-[11px] font-medium">Escrow:</span>
+                    <span className="text-xs font-mono font-extrabold tabular-nums">
+                      {formatCurrency(escrowBalancePaise)}
+                    </span>
+                  </div>
                 </Link>
               )}
               {isBrand && (
-                <Link
-                  href="/dashboard/deals"
-                  className="flex items-center gap-1.5 px-3.5 py-2.5 min-h-[44px] rounded-xl bg-card border border-border shadow-xs hover:border-primary/50 transition-colors"
-                >
-                  <Layers className="w-3.5 h-3.5 text-primary" />
-                  <span className="text-[11px] text-muted-foreground font-medium">Active:</span>
-                  <span className="text-xs font-mono font-extrabold text-foreground tabular-nums">
-                    {activeDeals.length} Deals
-                  </span>
-                </Link>
+                <>
+                  <Link
+                    href="/dashboard/deals"
+                    className="flex items-center gap-1.5 px-3.5 py-2.5 min-h-[44px] rounded-xl bg-card border border-border shadow-xs hover:border-primary/50 transition-colors"
+                  >
+                    <Layers className="w-3.5 h-3.5 text-primary" />
+                    <span className="text-[11px] text-muted-foreground font-medium">Active:</span>
+                    <span className="text-xs font-mono font-extrabold text-foreground tabular-nums">
+                      {activeDeals.length} Deals
+                    </span>
+                  </Link>
+                  <Link
+                    href="/dashboard/wallet"
+                    className="flex items-center gap-1.5 px-3.5 py-2.5 min-h-[44px] rounded-xl bg-escrow-muted border border-escrow-border text-escrow shadow-xs hover:bg-escrow/15 transition-colors"
+                  >
+                    <Lock className="w-3.5 h-3.5" />
+                    <span className="text-[11px] font-medium">Escrow:</span>
+                    <span className="text-xs font-mono font-extrabold tabular-nums">
+                      {formatCurrency(escrowBalancePaise)}
+                    </span>
+                  </Link>
+                </>
               )}
-              <Link
-                href="/dashboard/wallet"
-                className="flex items-center gap-1.5 px-3.5 py-2.5 min-h-[44px] rounded-xl bg-escrow-muted border border-escrow-border text-escrow shadow-xs hover:bg-escrow/15 transition-colors"
-              >
-                <Lock className="w-3.5 h-3.5" />
-                <span className="text-[11px] font-medium">Escrow:</span>
-                <span className="text-xs font-mono font-extrabold tabular-nums">
-                  {formatCurrency(escrowBalancePaise)}
-                </span>
-              </Link>
             </div>
 
             {/* View Switcher: Action Feed vs Deep-Dive Analytics */}

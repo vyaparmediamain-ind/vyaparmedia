@@ -52,7 +52,14 @@ success: act.success,
 };
 });
 
-return NextResponse.json({ activity: parsedActivity });
+return NextResponse.json(
+  { activity: parsedActivity },
+  {
+    headers: {
+      "Cache-Control": "private, max-age=30, stale-while-revalidate=60",
+    },
+  }
+);
 } catch (error) {
 logger.error("Activity fetch error", error);
 return NextResponse.json(

@@ -117,7 +117,7 @@ export function ActionRequiredBanner({
       >
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="flex items-start gap-3.5">
-            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-pending text-card shadow-xs">
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-pending text-pending-foreground shadow-xs">
               <AlertTriangle className="h-5 w-5" />
             </div>
             <div>

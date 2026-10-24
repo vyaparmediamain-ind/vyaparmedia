@@ -35,8 +35,7 @@ OR: [
 if (params.dealId) where.dealId = params.dealId;
 if (params.status) where.status = params.status as DisputeStatus;
 
-const [disputes, total] = await Promise.all([
-prisma.dispute.findMany({
+const disputes = await prisma.dispute.findMany({
 where,
 include: {
 deal: {
@@ -53,9 +52,12 @@ evidence: true,
 orderBy: { createdAt: "desc" },
 skip: (params.page - 1) * params.limit,
 take: params.limit,
-}),
-prisma.dispute.count({ where }),
-]);
+});
+
+let total = disputes.length;
+if (params.page > 1 || disputes.length === params.limit) {
+  total = await prisma.dispute.count({ where });
+}
 
 return { disputes, total };
 }

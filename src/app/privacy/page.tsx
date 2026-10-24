@@ -3,9 +3,19 @@ import { LegalLayout, LegalSection } from "@/components/legal/LegalLayout";
 import { PLATFORM_CONFIG } from "@/lib/platform-config";
 
 export const metadata: Metadata = {
-  title: "Privacy Policy — VyaparMedia",
+  title: "Privacy Policy",
   description:
     "How VyaparMedia collects, uses, tokenizes, and protects your personal data under the DPDP Act 2023 and Indian IT regulations. Last updated June 20, 2026.",
+  alternates: {
+    canonical: "/privacy",
+  },
+  openGraph: {
+    title: "Privacy Policy | VyaparMedia",
+    description:
+      "DPDP Act compliant data protection policies for brands, influencers, and banking KYC.",
+    url: "/privacy",
+    type: "website",
+  },
 };
 
 const SECTIONS = [

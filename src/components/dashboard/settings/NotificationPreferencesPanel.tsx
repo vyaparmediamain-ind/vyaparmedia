@@ -1,6 +1,8 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import useSWR, { mutate } from "swr";
+import { fetcher } from "@/lib/fetcher";
 import { logger } from "@/lib/logger-client";
 import {
   Mail,
@@ -109,20 +111,21 @@ export default function NotificationPreferencesPanel({
     }
   }, []);
 
-  // Fetch current user preferences
-  useEffect(() => {
-    async function loadPreferences() {
-      try {
-        const data = await apiClient.settings.getNotificationPrefs() as { preferences?: typeof matrix };
-        if (data.preferences) {
-          setMatrix(data.preferences);
-        }
-      } catch {
-        // Fallback to default
-      }
+  // Fetch current user preferences with SWR deduplication
+  const { data: prefData } = useSWR<{ preferences?: GranularNotificationPreferences }>(
+    "/api/notifications/preferences",
+    fetcher,
+    {
+      revalidateOnFocus: false,
+      dedupingInterval: 60000,
     }
-    loadPreferences();
-  }, []);
+  );
+
+  useEffect(() => {
+    if (prefData?.preferences) {
+      setMatrix(prefData.preferences);
+    }
+  }, [prefData]);
 
   const handleCellToggle = (category: NotificationCategory, channel: NotificationChannel) => {
     setMatrix((prev) => ({
@@ -139,6 +142,7 @@ export default function NotificationPreferencesPanel({
     setSaveStatus(null);
     try {
       await apiClient.settings.saveNotificationPrefs({ preferences: matrix });
+      mutate("/api/notifications/preferences", { preferences: matrix }, false);
       setSaveStatus("Preferences saved successfully!");
       if (onSaved) {
         onSaved();

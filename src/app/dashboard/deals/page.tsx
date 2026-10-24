@@ -185,7 +185,7 @@ export default function DealsPage() {
   return (
     <DashboardShell user={session.user}>
       <PullToRefresh onRefresh={async () => { await mutate(); }}>
-        <PageContainer maxWidth="7xl" className="space-y-6 pb-12 animate-fade-in py-4 sm:py-6">
+        <PageContainer maxWidth="7xl" className="space-y-6 animate-fade-in pt-4 pb-0 sm:py-6">
           <PageHeader
             title="My Collaborations"
             subtitle={

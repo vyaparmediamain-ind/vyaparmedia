@@ -18,37 +18,39 @@ async () => {
 const now = new Date();
 const thirtyDaysAgo = subDays(now, 30);
 
-// Core Financial Metrics
-const [
-totalDeals,
-completedDeals,
-activeDeals,
-disputedDeals,
-cancelledDeals,
-] = await Promise.all([
-prisma.deal.count(),
-prisma.deal.count({ where: { status: "COMPLETED" } }),
-prisma.deal.count({
-where: {
-status: {
-in: [
-"PENDING_SIGNATURE",
-"PAYMENT_PENDING",
-"PAYMENT_HELD",
-"ACTIVE",
-"CONTENT_SUBMITTED",
-"REVISION_REQUESTED",
-"CONTENT_APPROVED",
-"POSTED",
-"VERIFICATION_PENDING",
-"VERIFIED",
-],
-},
-},
-}),
-prisma.deal.count({ where: { status: "DISPUTED" } }),
-prisma.deal.count({ where: { status: "CANCELLED" } }),
+// Core Financial Metrics (single grouped query instead of 5 individual count queries)
+const statusGroups = await prisma.deal.groupBy({
+  by: ["status"],
+  _count: { _all: true },
+});
+
+let totalDeals = 0;
+let completedDeals = 0;
+let activeDeals = 0;
+let disputedDeals = 0;
+let cancelledDeals = 0;
+
+const activeStatuses = new Set([
+  "PENDING_SIGNATURE",
+  "PAYMENT_PENDING",
+  "PAYMENT_HELD",
+  "ACTIVE",
+  "CONTENT_SUBMITTED",
+  "REVISION_REQUESTED",
+  "CONTENT_APPROVED",
+  "POSTED",
+  "VERIFICATION_PENDING",
+  "VERIFIED",
 ]);
+
+for (const g of statusGroups) {
+  const count = g._count._all;
+  totalDeals += count;
+  if (g.status === "COMPLETED") completedDeals = count;
+  else if (g.status === "DISPUTED") disputedDeals = count;
+  else if (g.status === "CANCELLED") cancelledDeals = count;
+  if (activeStatuses.has(g.status)) activeDeals += count;
+}
 
 // GMV & Revenue
 const dealAggregations = await prisma.deal.aggregate({
@@ -262,65 +264,79 @@ const todayIST = new Date(now.getTime() + istOffset);
 todayIST.setUTCHours(0, 0, 0, 0);
 const today = new Date(todayIST.getTime() - istOffset);
 
-const [totalUsers, totalInfluencers, totalBrands, activeUsers7d] =
-await Promise.all([
-prisma.user.count(),
-prisma.user.count({
-where: { userType: "INFLUENCER", status: "ACTIVE" },
-}),
-prisma.user.count({ where: { userType: "BRAND", status: "ACTIVE" } }),
-prisma.user.count({ where: { updatedAt: { gte: sevenDaysAgo } } }),
+const [userGroups, activeUsers7d] = await Promise.all([
+  prisma.user.groupBy({
+    by: ["userType", "status"],
+    _count: { _all: true },
+  }),
+  prisma.user.count({ where: { updatedAt: { gte: sevenDaysAgo } } }),
 ]);
+
+let totalUsers = 0;
+let totalInfluencers = 0;
+let totalBrands = 0;
+for (const ug of userGroups) {
+  const count = ug._count._all;
+  totalUsers += count;
+  if (ug.userType === "INFLUENCER" && ug.status === "ACTIVE") totalInfluencers += count;
+  if (ug.userType === "BRAND" && ug.status === "ACTIVE") totalBrands += count;
+}
+
+const [dealStatusGroups, completedDealsToday, disputesOpen] = await Promise.all([
+  prisma.deal.groupBy({
+    by: ["status"],
+    _count: { _all: true },
+  }),
+  prisma.deal.count({
+    where: { status: "COMPLETED", completedAt: { gte: today } },
+  }),
+  prisma.dispute.count({
+    where: {
+      status: {
+        in: ["OPEN", "TIER1_AUTO", "TIER2_MEDIATION", "TIER3_ARBITRATION"],
+      },
+    },
+  }),
+]);
+
+let totalCompletedDeals = 0;
+let activeDeals = 0;
+for (const dg of dealStatusGroups) {
+  const count = dg._count._all;
+  if (dg.status === "COMPLETED") totalCompletedDeals = count;
+  if (!["COMPLETED", "CANCELLED", "DISPUTED"].includes(dg.status)) {
+    activeDeals += count;
+  }
+}
+
+const sixtyDaysAgo = subDays(now, 60);
 
 const [
-activeDeals,
-completedDealsToday,
-totalCompletedDeals,
-disputesOpen,
+  revenueToday,
+  users,
+  totalRevenue,
+  totalGMV,
+  pendingPayouts,
+  totalRefunds,
+  monthlyRevenue,
+  signupsPrev30,
+  activatedUsers,
+  inactiveUsers,
+  totalReferrals,
+  referringUsers,
+  paymentGroups,
+  recentErrors,
+  fraudAlerts,
 ] = await Promise.all([
-prisma.deal.count({
-where: { status: { notIn: ["COMPLETED", "CANCELLED", "DISPUTED"] } },
-}),
-prisma.deal.count({
-where: { status: "COMPLETED", completedAt: { gte: today } },
-}),
-prisma.deal.count({ where: { status: "COMPLETED" } }),
-prisma.dispute.count({
-where: {
-status: {
-in: ["OPEN", "TIER1_AUTO", "TIER2_MEDIATION", "TIER3_ARBITRATION"],
-},
-},
-}),
-]);
-
-const revenueToday = await prisma.deal.aggregate({
-where: { status: "COMPLETED", completedAt: { gte: today } },
-_sum: { platformFee: true },
-});
-
-const users = await prisma.user.findMany({
-where: { createdAt: { gte: thirtyDaysAgo } },
-select: { createdAt: true, userType: true },
-take: 10000, // Safety cap to prevent loading excessive user data
-});
-
-const growthByDay = new Map<
-string,
-{ total: number; influencer: number; brand: number }
->();
-users.forEach((u) => {
-const day = format(u.createdAt, "yyyy-MM-dd");
-if (!growthByDay.has(day))
-growthByDay.set(day, { total: 0, influencer: 0, brand: 0 });
-const entry = growthByDay.get(day)!;
-entry.total++;
-if (u.userType === "INFLUENCER") entry.influencer++;
-else if (u.userType === "BRAND") entry.brand++;
-});
-
-const [totalRevenue, totalGMV, pendingPayouts, totalRefunds] =
-await Promise.all([
+  prisma.deal.aggregate({
+    where: { status: "COMPLETED", completedAt: { gte: today } },
+    _sum: { platformFee: true },
+  }),
+  prisma.user.findMany({
+    where: { createdAt: { gte: thirtyDaysAgo } },
+    select: { createdAt: true, userType: true },
+    take: 10000,
+  }),
   prisma.deal.aggregate({
     where: { status: "COMPLETED" },
     _sum: { platformFee: true },
@@ -354,82 +370,96 @@ await Promise.all([
     },
     _sum: { amount: true },
   }),
+  AdminAnalyticsService.getMonthlyRevenueHistory(12),
+  prisma.user.count({
+    where: { createdAt: { gte: sixtyDaysAgo, lt: thirtyDaysAgo } },
+  }),
+  prisma.user.count({
+    where: {
+      OR: [
+        { influencerProfile: { completedDeals: { gt: 0 } } },
+        { brandProfile: { totalCampaigns: { gt: 0 } } },
+      ],
+    },
+  }),
+  prisma.user.count({
+    where: { updatedAt: { lt: thirtyDaysAgo }, status: "ACTIVE" },
+  }),
+  prisma.user.count({
+    where: { referredBy: { not: null } },
+  }),
+  prisma.user.count({
+    where: { referredUsers: { some: {} } },
+  }),
+  prisma.transaction.groupBy({
+    by: ["status"],
+    where: { type: { in: ["CREDIT", "DEBIT"] } },
+    _count: { _all: true },
+  }),
+  prisma.activityLog.count({
+    where: {
+      action: { contains: "ERROR" },
+      createdAt: { gte: sevenDaysAgo },
+    },
+  }),
+  prisma.userViolation.count({
+    where: {
+      type: "FRAUD",
+      createdAt: { gte: sevenDaysAgo },
+    },
+  }),
 ]);
 
-// Monthly revenue for cash flow chart
-// Reusing custom logic here instead of calling getFinancialOverview to match format
-const monthlyRevenue =
-await AdminAnalyticsService.getMonthlyRevenueHistory(12);
+const growthByDay = new Map<
+  string,
+  { total: number; influencer: number; brand: number }
+>();
+users.forEach((u) => {
+  const day = format(u.createdAt, "yyyy-MM-dd");
+  if (!growthByDay.has(day))
+    growthByDay.set(day, { total: 0, influencer: 0, brand: 0 });
+  const entry = growthByDay.get(day)!;
+  entry.total++;
+  if (u.userType === "INFLUENCER") entry.influencer++;
+  else if (u.userType === "BRAND") entry.brand++;
+});
 
 // Signups trend (last 30d vs previous 30d)
-const sixtyDaysAgo = subDays(now, 60);
 const signupsLast30 = users.length;
-const signupsPrev30 = await prisma.user.count({
-where: { createdAt: { gte: sixtyDaysAgo, lt: thirtyDaysAgo } },
-});
 const signupGrowthRate =
-signupsPrev30 > 0
-? Math.round(((signupsLast30 - signupsPrev30) / signupsPrev30) * 100)
-: 100;
+  signupsPrev30 > 0
+    ? Math.round(((signupsLast30 - signupsPrev30) / signupsPrev30) * 100)
+    : 100;
 
 // Activation rate (users who completed at least 1 deal / total signups)
-const activatedUsers = await prisma.user.count({
-where: {
-OR: [
-{ influencerProfile: { completedDeals: { gt: 0 } } },
-{ brandProfile: { totalCampaigns: { gt: 0 } } },
-],
-},
-});
 const activationRate =
-totalUsers > 0 ? Math.round((activatedUsers / totalUsers) * 100) : 0;
+  totalUsers > 0 ? Math.round((activatedUsers / totalUsers) * 100) : 0;
 
 // Churn rate (users who haven't been active in 30 days)
-const inactiveUsers = await prisma.user.count({
-where: { updatedAt: { lt: thirtyDaysAgo }, status: "ACTIVE" },
-});
 const churnRate =
-totalUsers > 0 ? Math.round((inactiveUsers / totalUsers) * 100) : 0;
+  totalUsers > 0 ? Math.round((inactiveUsers / totalUsers) * 100) : 0;
 
-// K-Factor (viral coefficient) = invites per user conversion rate
-const totalReferrals = await prisma.user.count({
-where: { referredBy: { not: null } },
-});
-const referringUsers = await prisma.user.count({
-where: { referredUsers: { some: {} } },
-});
+// K-Factor (viral coefficient) = invites per user * conversion rate
 const avgInvitesPerUser =
-referringUsers > 0 ? totalReferrals / referringUsers : 0;
+  referringUsers > 0 ? totalReferrals / referringUsers : 0;
 const referralConversionRate =
-totalUsers > 0 ? totalReferrals / totalUsers : 0;
+  totalUsers > 0 ? totalReferrals / totalUsers : 0;
 const kFactor = Number(
-(avgInvitesPerUser * referralConversionRate).toFixed(2),
+  (avgInvitesPerUser * referralConversionRate).toFixed(2),
 );
 
-const [totalPayments, failedPayments] = await Promise.all([
-prisma.transaction.count({
-where: { type: { in: ["CREDIT", "DEBIT"] } },
-}),
-prisma.transaction.count({ where: { status: "FAILED" } }),
-]);
+let totalPayments = 0;
+let failedPayments = 0;
+for (const pg of paymentGroups) {
+  totalPayments += pg._count._all;
+  if (pg.status === "FAILED") {
+    failedPayments += pg._count._all;
+  }
+}
 const paymentSuccessRate =
-totalPayments > 0
-? Math.round(((totalPayments - failedPayments) / totalPayments) * 100)
-: 100;
-
-const recentErrors = await prisma.activityLog.count({
-where: {
-action: { contains: "ERROR" },
-createdAt: { gte: sevenDaysAgo },
-},
-});
-
-const fraudAlerts = await prisma.userViolation.count({
-where: {
-type: "FRAUD",
-createdAt: { gte: sevenDaysAgo },
-},
-});
+  totalPayments > 0
+    ? Math.round(((totalPayments - failedPayments) / totalPayments) * 100)
+    : 100;
 
 let systemStatus = "CRITICAL";
 if (recentErrors < 10) {

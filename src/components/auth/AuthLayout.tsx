@@ -2,6 +2,8 @@
 
 import React from "react";
 import Link from "next/link";
+import useSWR from "swr";
+import { fetcher } from "@/lib/fetcher";
 import { Logo } from "@/components/Logo";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import { BackButton } from "@/components/ui/BackButton";
@@ -19,6 +21,24 @@ export function AuthLayout({
   pageTitle,
   pageSubtitle,
 }: AuthLayoutProps) {
+  const { data: landingPayload } = useSWR<{
+    data?: {
+      stats?: {
+        totalEscrowFormatted?: string;
+        totalVerifiedFormatted?: string;
+        onTimeRate?: string;
+      };
+    };
+  }>("/api/public/landing", fetcher, {
+    revalidateOnFocus: false,
+    dedupingInterval: 60000,
+  });
+
+  const stats = landingPayload?.data?.stats;
+  const escrowSecured = stats?.totalEscrowFormatted || "₹20+ Lakh";
+  const activeVyaparis = stats?.totalVerifiedFormatted || "150+";
+  const onTimeRelease = stats?.onTimeRate || "99.4%";
+
   return (
     <div className="auth-split-wrapper">
       {/* Left Showcase Panel (Desktop) */}
@@ -97,15 +117,15 @@ export function AuthLayout({
           {/* Social Proof Stats */}
           <div className="auth-stats-ribbon">
             <div className="auth-stat-col">
-              <span className="auth-stat-num">₹50L+</span>
+              <span className="auth-stat-num">{escrowSecured}</span>
               <span className="auth-stat-label">Escrow Secured</span>
             </div>
             <div className="auth-stat-col">
-              <span className="auth-stat-num">2,400+</span>
+              <span className="auth-stat-num">{activeVyaparis}</span>
               <span className="auth-stat-label">Active Vyaparis</span>
             </div>
             <div className="auth-stat-col">
-              <span className="auth-stat-num">99.8%</span>
+              <span className="auth-stat-num">{onTimeRelease}</span>
               <span className="auth-stat-label">On-Time Release</span>
             </div>
           </div>

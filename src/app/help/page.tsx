@@ -5,7 +5,7 @@ import Footer from "@/components/Footer";
 import HelpCenterClient from "@/components/help/HelpCenterClient";
 
 export const metadata: Metadata = {
-  title: "Help Center & FAQ | VyaparMedia Escrow Marketplace",
+  title: "Help Center & FAQ",
   description:
     "Get instant answers to all questions regarding VyaparMedia escrow security, milestone approvals, creator rate cards, TDS deductions, and dispute arbitration.",
   keywords: [
@@ -16,6 +16,9 @@ export const metadata: Metadata = {
     "Escrow Dispute Resolution",
     "India Creator Rate Card Support",
   ],
+  alternates: {
+    canonical: "/help",
+  },
   openGraph: {
     title: "Help Center & FAQ | VyaparMedia",
     description:

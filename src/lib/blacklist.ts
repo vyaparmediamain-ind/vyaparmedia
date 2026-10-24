@@ -213,4 +213,11 @@ export async function revokeAllUserSessions(userId: string): Promise<void> {
   } catch (error) {
     logger.warn("Redis session revocation failed (handled via DB fallback)", { userId, error });
   }
+
+  try {
+    const { invalidateUserStatusCache } = await import("./auth/session");
+    invalidateUserStatusCache(userId);
+  } catch {
+    // Non-fatal if circular dependency in test runner
+  }
 }

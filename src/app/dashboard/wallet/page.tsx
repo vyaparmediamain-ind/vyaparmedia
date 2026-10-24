@@ -190,7 +190,7 @@ function TransactionReceiptModal({ transaction, isOpen, onClose }: Readonly<Rece
         <div className="space-y-2.5 text-xs">
           <div className="flex justify-between py-2 border-b border-border/60">
             <span className="text-muted-foreground">Description</span>
-            <span className="font-semibold text-foreground text-right max-w-[240px] truncate">
+            <span className="font-semibold text-foreground text-right max-w-[280px] break-words line-clamp-2">
               {transaction.description || transaction.type.replaceAll("_", " ")}
             </span>
           </div>
@@ -360,6 +360,30 @@ export default function WalletPage() {
       const resolvedOrderId = orderData.data?.orderId ?? orderData.orderId!;
       const resolvedAmount = orderData.data?.amount ?? orderData.amount!;
 
+      if (resolvedOrderId.startsWith("order_sim_")) {
+        const simPayId = `pay_sim_${resolvedOrderId.replace("order_sim_", "")}`;
+        try {
+          const verifyData = (await apiClient.wallet.verifyPayment({
+            razorpay_payment_id: simPayId,
+            razorpay_order_id: resolvedOrderId,
+            razorpay_signature: `sig_sim_${resolvedOrderId}`,
+          })) as { success?: boolean };
+          if (verifyData.success) {
+            showToast("success", `[DEV MODE] Successfully added ${formatCurrency(Math.round(amountRupees * 100))} to wallet.`);
+            handleRefreshAll();
+            setShowAddFundsModal(false);
+            setTopUpAmount("");
+          } else {
+            showToast("error", "Simulated payment verification pending.");
+          }
+        } catch (simErr) {
+          showToast("error", formatUserError(simErr, "Simulated payment failed."));
+        } finally {
+          setIsAddingFunds(false);
+        }
+        return;
+      }
+
       const rzp = new window.Razorpay({
         key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || "",
         amount: resolvedAmount,
@@ -444,7 +468,7 @@ export default function WalletPage() {
       <ToastContainer toasts={toasts} onClose={handleRemoveToast} />
 
       <PullToRefresh onRefresh={handleRefreshAll}>
-        <PageContainer maxWidth="5xl" className="space-y-6 pb-20 animate-fade-in py-4 sm:py-6">
+        <PageContainer maxWidth="5xl" className="space-y-6 animate-fade-in pt-4 pb-0 sm:py-6">
 
         {/* ── 1. HEADER & LIVE SYNC CHIP ──────────────────────────────────── */}
         <PageHeader
@@ -686,11 +710,11 @@ export default function WalletPage() {
         {/* ── 5. SEGMENTED TABS: TRANSACTIONS VS BANK ACCOUNTS ──────────────── */}
         <div className="space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-border pb-3 gap-2">
-            <div className="flex items-center gap-2 bg-muted/60 p-1 rounded-xl border border-border/60 w-full sm:w-auto">
+            <div className="flex items-center gap-2 bg-muted/60 p-1 rounded-xl border border-border/60 w-full sm:w-auto overflow-x-auto no-scrollbar max-w-full">
               <button
                 type="button"
                 onClick={() => setActiveTab("ledger")}
-                className={`flex-1 sm:flex-initial px-4 py-2.5 rounded-lg text-xs font-bold transition-all cursor-pointer min-h-[44px] flex items-center justify-center ${
+                className={`flex-1 sm:flex-initial px-4 py-2.5 rounded-lg text-xs font-bold transition-all cursor-pointer min-h-[44px] flex items-center justify-center shrink-0 whitespace-nowrap ${
                   activeTab === "ledger"
                     ? "bg-card text-foreground shadow-xs"
                     : "text-muted-foreground hover:text-foreground"
@@ -707,7 +731,7 @@ export default function WalletPage() {
               <button
                 type="button"
                 onClick={() => setActiveTab("accounts")}
-                className={`flex-1 sm:flex-initial px-4 py-2.5 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer min-h-[44px] ${
+                className={`flex-1 sm:flex-initial px-4 py-2.5 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer min-h-[44px] shrink-0 whitespace-nowrap ${
                   activeTab === "accounts"
                     ? "bg-card text-foreground shadow-xs"
                     : "text-muted-foreground hover:text-foreground"

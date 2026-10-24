@@ -86,8 +86,7 @@ filters: where,
 page,
 });
 
-const [applications, total] = await Promise.all([
-prisma.application.findMany({
+const applications = await prisma.application.findMany({
 where,
 include: {
 campaign: {
@@ -120,9 +119,12 @@ user: { select: { trustScore: true, xp: true } },
 orderBy: { createdAt: "desc" },
 skip: (page - 1) * limit,
 take: limit,
-}),
-prisma.application.count({ where }),
-]);
+});
+
+let total = applications.length;
+if (page > 1 || applications.length === limit) {
+  total = await prisma.application.count({ where });
+}
 
   const selectedApps = applications.filter((app) => app.status === "SELECTED");
   const deals = selectedApps.length > 0

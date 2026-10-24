@@ -73,15 +73,16 @@ return { success: true };
 */
 static async isBlocked(userA: string, userB: string, tx?: Prisma.TransactionClient): Promise<boolean> {
 const client = tx ?? prisma;
-const blockCount = await client.userBlock.count({
+const block = await client.userBlock.findFirst({
 where: {
 OR: [
 { blockingUserId: userA, blockedUserId: userB },
 { blockingUserId: userB, blockedUserId: userA },
 ],
 },
+select: { id: true },
 });
-return blockCount > 0;
+return Boolean(block);
 }
 
 /**

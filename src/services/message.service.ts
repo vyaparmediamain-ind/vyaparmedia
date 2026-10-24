@@ -28,6 +28,7 @@ type ConversationAccess = {
 isAdmin: boolean;
 participantIds: string[];
 conversationKey: string;
+dealStatus?: DealStatus;
 };
 
 function conversationKeyForDirect(userA: string, userB: string) {
@@ -49,12 +50,21 @@ fileUrl: message.isBlocked && !isAdmin ? null : message.fileUrl,
 };
 }
 
+const userRoleCache = new Map<string, { isAdmin: boolean; expiresAt: number }>();
+
 async function getUserRole(userId: string) {
-const user = await prisma.user.findUnique({
-where: { id: userId },
-select: { userType: true },
-});
-return { isAdmin: isAdmin(user?.userType) };
+  const now = Date.now();
+  const cached = userRoleCache.get(userId);
+  if (cached && cached.expiresAt > now) {
+    return { isAdmin: cached.isAdmin };
+  }
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { userType: true },
+  });
+  const res = { isAdmin: isAdmin(user?.userType) };
+  userRoleCache.set(userId, { isAdmin: res.isAdmin, expiresAt: now + 60_000 });
+  return res;
 }
 
 async function getConversationAccess(
@@ -66,9 +76,11 @@ const { isAdmin } = await getUserRole(userId);
 if (params.dealId) {
 const deal = await prisma.deal.findUnique({
 where: { id: params.dealId },
-include: {
-influencer: { select: { userId: true } },
-brand: { select: { userId: true } },
+select: {
+  id: true,
+  status: true,
+  influencer: { select: { userId: true } },
+  brand: { select: { userId: true } },
 },
 });
 
@@ -84,6 +96,7 @@ throw AppError.forbidden("Unauthorized");
 return {
 isAdmin,
 participantIds,
+dealStatus: deal.status,
 conversationKey: `deal:${params.dealId}`,
 };
 }
@@ -91,16 +104,20 @@ conversationKey: `deal:${params.dealId}`,
 if (!params.with) throw AppError.badRequest("Invalid parameters");
 if (params.with === userId) throw AppError.badRequest("Cannot message yourself");
 
-  const [existingMessageCount, sharedDeal] = await Promise.all([
-    prisma.message.count({
-      where: {
-        OR: [
-          { senderId: userId, receiverId: params.with },
-          { senderId: params.with, receiverId: userId },
-        ],
-      },
-    }),
-    prisma.deal.findFirst({
+if (!isAdmin) {
+  // Fast check: Have they already exchanged messages? Stops on first row instead of counting entire table
+  const existingMessage = await prisma.message.findFirst({
+    where: {
+      OR: [
+        { senderId: userId, receiverId: params.with },
+        { senderId: params.with, receiverId: userId },
+      ],
+    },
+    select: { id: true },
+  });
+
+  if (!existingMessage) {
+    const sharedDeal = await prisma.deal.findFirst({
       where: {
         OR: [
           { influencer: { userId }, brand: { userId: params.with } },
@@ -109,12 +126,12 @@ if (params.with === userId) throw AppError.badRequest("Cannot message yourself")
         deletedAt: null,
       },
       select: { id: true },
-    }),
-  ]);
-
-  if (!isAdmin && existingMessageCount === 0 && !sharedDeal) {
-    throw AppError.badRequest("You can only message users you have a deal with");
+    });
+    if (!sharedDeal) {
+      throw AppError.badRequest("You can only message users you have a deal with");
+    }
   }
+}
 
 return {
 isAdmin,
@@ -198,11 +215,32 @@ async function validateDealAccess(userId: string, receiverId: string, dealId?: s
   }
 }
 
+const canMessageCache = new Map<string, { canMessage: boolean; expiresAt: number }>();
+
+export function invalidateCanMessageCache(userA?: string, userB?: string): void {
+  if (userA && userB) {
+    canMessageCache.delete(`${userA}:${userB}`);
+    canMessageCache.delete(`${userB}:${userA}`);
+  } else {
+    canMessageCache.clear();
+  }
+}
+
 export class MessageService {
   static async canMessageUser(userId: string, targetUserId: string): Promise<boolean> {
     if (!userId || !targetUserId || userId === targetUserId) return false;
+    const cacheKey = `${userId}:${targetUserId}`;
+    const now = Date.now();
+    const cached = canMessageCache.get(cacheKey);
+    if (cached && cached.expiresAt > now) {
+      return cached.canMessage;
+    }
+
     const { isAdmin: senderIsAdmin } = await getUserRole(userId);
-    if (senderIsAdmin) return true;
+    if (senderIsAdmin) {
+      canMessageCache.set(cacheKey, { canMessage: true, expiresAt: now + 30_000 });
+      return true;
+    }
 
     const activeDeal = await prisma.deal.findFirst({
       where: {
@@ -218,7 +256,9 @@ export class MessageService {
       select: { id: true },
     });
 
-    return Boolean(activeDeal);
+    const result = Boolean(activeDeal);
+    canMessageCache.set(cacheKey, { canMessage: result, expiresAt: now + 15_000 });
+    return result;
   }
 
   static async listMessages(
@@ -269,12 +309,8 @@ take: params.limit,
 
   if (!access.isAdmin) {
     if (params.dealId) {
-      const deal = await prisma.deal.findUnique({
-        where: { id: params.dealId },
-        select: { status: true },
-      });
       hasActiveDeal = Boolean(
-        deal && ACTIVE_DEAL_STATUSES.includes(deal.status),
+        access.dealStatus && ACTIVE_DEAL_STATUSES.includes(access.dealStatus),
       );
     } else if (params.with) {
       const activeDeal = await prisma.deal.findFirst({

@@ -199,6 +199,7 @@ model LoginAttempt {
   @@index([email])
   @@index([ipAddress])
   @@index([createdAt])
+  @@index([userId, createdAt(sort: Desc)])
 }
 
 model DeviceFingerprint {

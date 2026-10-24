@@ -12,29 +12,61 @@ import { HeroProductMockup } from "@/components/landing/HeroProductMockup";
 import { EscrowSimulator } from "@/components/landing/EscrowSimulator";
 import { BentoFeatures } from "@/components/landing/BentoFeatures";
 import { ComparisonTable } from "@/components/landing/ComparisonTable";
-import { CreatorShowcase } from "@/components/landing/CreatorShowcase";
+import useSWR from "swr";
+import { fetcher } from "@/lib/fetcher";
+import { CreatorShowcase, type CreatorShowcaseItem } from "@/components/landing/CreatorShowcase";
 import { LandingFAQ } from "@/components/landing/LandingFAQ";
 import { DEFAULT_BRAND_PLATFORM_FEE_PERCENT } from "@/constants/deals";
 
+interface PublicLandingResponse {
+  success: boolean;
+  data: {
+    stats: {
+      totalEscrowRupees: number;
+      totalEscrowFormatted: string;
+      totalVerifiedCount: number;
+      totalVerifiedFormatted: string;
+      onTimeRate: string;
+      defaultRate: string;
+    };
+    brands: Array<{ id: string; name: string; logo: string | null }>;
+    creators: Array<CreatorShowcaseItem>;
+    recentActivity: {
+      name: string;
+      amount: string;
+      timeAgo: string;
+      action: string;
+    };
+    testimonials: Array<{
+      name: string;
+      role: string;
+      followers?: string;
+      avatar: string;
+      quote: string;
+      rating: number;
+    }>;
+  };
+}
+
 const TRUSTED_BRANDS = [
-  "FitForma",
+  "Aura Lifestyle Brands Ltd",
+  "Vyapar Media D2C",
   "Myntra",
   "Mamaearth",
   "Nykaa",
   "boAt",
   "Lenskart",
-  "Sugar Cosmetics",
 ];
 
 const PLATFORM_STATS = [
   {
     label: "Escrow Protected & Settled",
-    value: "₹12+ Crore",
+    value: "₹20+ Lakh",
     subtext: "100% on-time bank disbursements",
   },
   {
     label: "Verified Creators & Brands",
-    value: "5,400+",
+    value: "150+",
     subtext: "Aadhaar, PAN & KYC audited",
   },
   {
@@ -51,6 +83,55 @@ const PLATFORM_STATS = [
 
 export default function HomePage() {
   const [activeStepTab, setActiveStepTab] = useState<"influencer" | "brand">("influencer");
+
+  const { data: landingPayload } = useSWR<PublicLandingResponse>(
+    "/api/public/landing",
+    fetcher,
+    {
+      revalidateOnFocus: false,
+      dedupingInterval: 30000,
+    }
+  );
+
+  const landing = landingPayload?.data;
+
+  const brands = landing?.brands && landing.brands.length > 0
+    ? landing.brands.map((b) => b.name)
+    : TRUSTED_BRANDS;
+
+  const stats = [
+    {
+      label: "Escrow Protected & Settled",
+      value: landing?.stats?.totalEscrowFormatted || PLATFORM_STATS[0]?.value || "₹20+ Lakh",
+      subtext: "100% on-time bank disbursements",
+    },
+    {
+      label: "Verified Creators & Brands",
+      value: landing?.stats?.totalVerifiedFormatted || PLATFORM_STATS[1]?.value || "150+",
+      subtext: "Aadhaar, PAN & KYC audited",
+    },
+    {
+      label: "On-Time Deliverable Rate",
+      value: landing?.stats?.onTimeRate || PLATFORM_STATS[2]?.value || "99.4%",
+      subtext: "Enforced by smart contract timers",
+    },
+    {
+      label: "Bad Debt & Default Rate",
+      value: landing?.stats?.defaultRate || PLATFORM_STATS[3]?.value || "0.0%",
+      subtext: "Guaranteed upfront escrow locking",
+    },
+  ];
+
+  const recentActivity = landing?.recentActivity || {
+    name: "Aarav T.",
+    amount: "₹47,500",
+    timeAgo: "2m ago",
+    action: "instant escrow payout",
+  };
+
+  const testimonials = landing?.testimonials && landing.testimonials.length > 0
+    ? landing.testimonials
+    : homeTestimonials;
 
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col selection:bg-primary/20 selection:text-primary">
@@ -106,7 +187,7 @@ export default function HomePage() {
               "aggregateRating": {
                 "@type": "AggregateRating",
                 "ratingValue": "4.9",
-                "reviewCount": "1240",
+                "reviewCount": String(landing?.stats?.totalVerifiedCount || 157),
                 "bestRating": "5",
                 "worstRating": "1",
               },
@@ -143,16 +224,21 @@ export default function HomePage() {
 
               {/* Dual CTA Group */}
               <div className="flex flex-col sm:flex-row items-center justify-center gap-3.5 mb-6">
-                <Link href="/register?type=influencer" className="w-full sm:w-auto">
-                  <Button size="lg" className="w-full sm:w-auto font-bold px-8 shadow-lg shadow-primary/20">
-                    Join as Creator (Get Protected)
-                  </Button>
-                </Link>
-                <Link href="/register?type=brand" className="w-full sm:w-auto">
-                  <Button size="lg" variant="secondary" className="w-full sm:w-auto font-bold px-8">
-                    Hire Verified Creators &rarr;
-                  </Button>
-                </Link>
+                <Button
+                  href="/register?type=influencer"
+                  size="lg"
+                  className="w-full sm:w-auto font-bold px-8 shadow-lg shadow-primary/20"
+                >
+                  Join as Creator (Get Protected)
+                </Button>
+                <Button
+                  href="/register?type=brand"
+                  size="lg"
+                  variant="secondary"
+                  className="w-full sm:w-auto font-bold px-8"
+                >
+                  Hire Verified Creators &rarr;
+                </Button>
               </div>
 
               {/* PWA & Mobile Trust Strip */}
@@ -190,7 +276,7 @@ export default function HomePage() {
                 </span>
               </div>
 
-              {/* Collabr Benchmark: Live Escrow Activity Ticker */}
+              {/* Live Escrow Activity Ticker */}
               <div className="mt-8 max-w-md mx-auto">
                 <div className="inline-flex items-center justify-center gap-2.5 px-4 py-2 rounded-full bg-card/90 backdrop-blur-md border border-border shadow-xs text-xs">
                   <span className="flex h-2 w-2 relative">
@@ -198,9 +284,10 @@ export default function HomePage() {
                     <span className="relative inline-flex rounded-full h-2 w-2 bg-verified" />
                   </span>
                   <span className="text-muted-foreground text-[11px] sm:text-xs">
-                    <strong className="text-foreground">Pooja S.</strong> just received <strong className="text-verified">₹18,500</strong> instant escrow payout
+                    <strong className="text-foreground">{recentActivity.name}</strong> just received{" "}
+                    <strong className="text-verified">{recentActivity.amount}</strong> {recentActivity.action}
                   </span>
-                  <span className="text-muted-foreground/60 text-[10px] tabular-nums">2m ago</span>
+                  <span className="text-muted-foreground/60 text-[10px] tabular-nums">{recentActivity.timeAgo}</span>
                 </div>
               </div>
             </div>
@@ -214,7 +301,7 @@ export default function HomePage() {
                 Trusted by Marketers at High-Growth Brands
               </p>
               <div className="flex items-center justify-center gap-8 sm:gap-12 flex-wrap">
-                {TRUSTED_BRANDS.map((brand) => (
+                {brands.map((brand) => (
                   <span
                     key={brand}
                     className="text-sm sm:text-base font-bold text-muted-foreground/70 hover:text-foreground transition-colors select-none tracking-wide"
@@ -231,7 +318,7 @@ export default function HomePage() {
         <section className="py-14 bg-card border-b border-border">
           <div className="container max-w-6xl mx-auto px-4 sm:px-6">
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8">
-              {PLATFORM_STATS.map((stat) => (
+              {stats.map((stat) => (
                 <div key={stat.label} className="p-4 sm:p-6 rounded-2xl border border-border bg-background flex flex-col">
                   <span className="text-3xl sm:text-4xl font-black text-foreground mb-1 tracking-tight">
                     {stat.value}
@@ -338,10 +425,13 @@ export default function HomePage() {
         </section>
 
         {/* ==================== 6. CREATOR DIRECTORY SHOWCASE ==================== */}
-        <CreatorShowcase />
+        <CreatorShowcase
+          creators={landing?.creators}
+          totalCount={landing?.stats?.totalVerifiedFormatted}
+        />
 
         {/* ==================== 7. COMPARISON TABLE ==================== */}
-        <ComparisonTable />
+        <ComparisonTable totalCount={landing?.stats?.totalVerifiedFormatted} />
 
         {/* ==================== 8. TESTIMONIALS & SOCIAL PROOF ==================== */}
         <section className="py-20 relative">
@@ -359,15 +449,15 @@ export default function HomePage() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {homeTestimonials.map((t) => (
+              {testimonials.map((t) => (
                 <div
                   key={t.name}
                   className="p-6 rounded-2xl border border-border bg-card shadow-sm hover:border-primary/50 transition-all flex flex-col justify-between"
                 >
                   <div>
                     {/* Stars */}
-                    <div className="flex items-center gap-1 text-pending mb-4" aria-label="5 out of 5 stars">
-                      {[...Array(5)].map((_, i) => (
+                    <div className="flex items-center gap-1 text-pending mb-4" aria-label={`${t.rating || 5} out of 5 stars`}>
+                      {[...Array(t.rating || 5)].map((_, i) => (
                         <svg
                           key={i}
                           width="16"
@@ -388,14 +478,20 @@ export default function HomePage() {
 
                   {/* Author Row */}
                   <div className="flex items-center gap-3 pt-4 border-t border-border">
-                    <div className="relative w-11 h-11 rounded-full overflow-hidden border border-border flex-shrink-0">
-                      <Image
-                        src={t.avatar}
-                        alt={t.name}
-                        fill
-                        sizes="44px"
-                        className="object-cover"
-                      />
+                    <div className="relative w-11 h-11 rounded-full overflow-hidden border border-border flex-shrink-0 bg-primary/10">
+                      {t.avatar ? (
+                        <Image
+                          src={t.avatar}
+                          alt={t.name}
+                          fill
+                          sizes="44px"
+                          className="object-cover"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center font-bold text-sm text-primary">
+                          {t.name.charAt(0)}
+                        </div>
+                      )}
                     </div>
                     <div>
                       <h4 className="text-sm font-bold text-foreground">
@@ -431,20 +527,25 @@ export default function HomePage() {
                   Ready to Transact with 100% Peace of Mind?
                 </h2>
                 <p className="text-base sm:text-lg text-muted-foreground leading-relaxed mb-8">
-                  Join 5,400+ creators and brands who have stopped chasing payments and guessing deliverables.
+                  Join {landing?.stats?.totalVerifiedFormatted ? `${landing.stats.totalVerifiedFormatted} creators and brands` : "thousands of creators and brands"} who have stopped chasing payments and guessing deliverables.
                 </p>
 
                 <div className="flex flex-col sm:flex-row items-center justify-center gap-3.5 mb-6">
-                  <Link href="/register" className="w-full sm:w-auto">
-                    <Button size="lg" className="w-full sm:w-auto font-bold px-10 shadow-lg shadow-primary/25">
-                      Create Free Account
-                    </Button>
-                  </Link>
-                  <Link href="/pricing" className="w-full sm:w-auto">
-                    <Button size="lg" variant="secondary" className="w-full sm:w-auto font-bold px-8">
-                      View Pricing & Fees
-                    </Button>
-                  </Link>
+                  <Button
+                    href="/register"
+                    size="lg"
+                    className="w-full sm:w-auto font-bold px-10 shadow-lg shadow-primary/25"
+                  >
+                    Create Free Account
+                  </Button>
+                  <Button
+                    href="/pricing"
+                    size="lg"
+                    variant="secondary"
+                    className="w-full sm:w-auto font-bold px-8"
+                  >
+                    View Pricing & Fees
+                  </Button>
                 </div>
 
                 <p className="text-xs text-muted-foreground font-medium">

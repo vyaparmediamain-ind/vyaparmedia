@@ -69,19 +69,7 @@ export default function MobileBottomBar({
 
   return (
     <>
-      {/* Center-Elevated Context-Aware Action Button (Mobile) with 44px min hit-area */}
-      <div className="fixed bottom-[calc(68px+env(safe-area-inset-bottom,0px))] left-1/2 -translate-x-1/2 z-40 md:hidden pointer-events-auto">
-        <Link
-          href={createAction.href}
-          aria-label={createAction.ariaLabel}
-          className="group flex items-center gap-1.5 px-4 py-2.5 min-h-[44px] rounded-full bg-primary text-primary-foreground shadow-lg shadow-primary/30 font-semibold text-xs border border-primary/20 hover:scale-105 active:scale-95 transition-all focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 touch-target-44"
-        >
-          <div className="w-5 h-5 rounded-full bg-primary-foreground/20 flex items-center justify-center">
-            <Plus className="w-3.5 h-3.5 stroke-[3] text-primary-foreground" />
-          </div>
-          <span className="tracking-tight">{createAction.shortLabel}</span>
-        </Link>
-      </div>
+
 
       {/* Bottom Tab Bar Container */}
       <nav

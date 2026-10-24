@@ -163,14 +163,14 @@ export default async function AdminDisputeListPage({
       />
 
       {/* Tab toggle */}
-      <div className="flex gap-2" role="tablist" aria-label="Dispute queue filters">
+      <div className="flex gap-2 overflow-x-auto no-scrollbar flex-nowrap pb-1" role="tablist" aria-label="Dispute queue filters">
         <Button
           href="/admin/disputes"
           variant={showHistory ? "secondary" : "primary"}
           size="sm"
           aria-label="View active disputes"
           {...(!showHistory ? { "aria-current": "page" as const } : {})}
-          className="gap-1.5"
+          className="gap-1.5 shrink-0 whitespace-nowrap"
         >
           <Clock className="w-3.5 h-3.5" />
           Active Disputes
@@ -186,7 +186,7 @@ export default async function AdminDisputeListPage({
           size="sm"
           aria-label="View dispute history"
           {...(showHistory ? { "aria-current": "page" as const } : {})}
-          className="gap-1.5"
+          className="gap-1.5 shrink-0 whitespace-nowrap"
         >
           <CheckCircle2 className="w-3.5 h-3.5" />
           Dispute History

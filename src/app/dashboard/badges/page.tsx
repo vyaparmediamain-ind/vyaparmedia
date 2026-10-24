@@ -104,7 +104,7 @@ export default function BadgesPage() {
   if (!session) {
     return (
       <DashboardShell user={undefined}>
-        <PageContainer maxWidth="5xl" className="flex items-center justify-center h-48 py-4 sm:py-6">
+        <PageContainer maxWidth="5xl" className="flex items-center justify-center h-48 pt-4 pb-0 sm:py-6">
           <div className="w-8 h-8 rounded-full border-2 border-primary border-t-transparent animate-spin" />
         </PageContainer>
       </DashboardShell>
@@ -113,7 +113,7 @@ export default function BadgesPage() {
 
   return (
     <DashboardShell user={session.user}>
-      <PageContainer maxWidth="5xl" className="space-y-6 pb-12 py-4 sm:py-6">
+      <PageContainer maxWidth="5xl" className="space-y-6 pt-4 pb-0 sm:py-6">
 
         {/* ── Page Header ── */}
         <PageHeader
@@ -262,7 +262,7 @@ export default function BadgesPage() {
                 key={cat.id}
                 type="button"
                 onClick={() => setActiveCategory(cat.id)}
-                className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all shrink-0 border ${
+                className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all shrink-0 whitespace-nowrap cursor-pointer border ${
                   isActive
                     ? "bg-primary text-primary-foreground border-primary shadow-sm"
                     : "bg-card text-muted-foreground border-border hover:text-foreground hover:bg-muted/50"
@@ -280,7 +280,7 @@ export default function BadgesPage() {
 
         {/* ── Rarity Sub-filter Row ── */}
         <div className="flex items-center gap-2 flex-wrap">
-          <span className="flex items-center gap-1 text-xs font-bold text-muted-foreground uppercase tracking-wider">
+          <span className="flex items-center gap-1 text-xs font-bold text-muted-foreground uppercase tracking-wider shrink-0">
             <Filter className="w-3.5 h-3.5" />
             Rarity:
           </span>
@@ -291,7 +291,7 @@ export default function BadgesPage() {
                 key={r.id}
                 type="button"
                 onClick={() => setActiveRarity(r.id)}
-                className={`px-3 py-1 rounded-full text-xs font-semibold transition-all border ${
+                className={`px-3 py-1 rounded-full text-xs font-semibold transition-all border shrink-0 whitespace-nowrap cursor-pointer ${
                   isActive
                     ? r.accent + " shadow-sm ring-1 ring-inset ring-current/20"
                     : "bg-card text-muted-foreground border-border hover:bg-muted/50"

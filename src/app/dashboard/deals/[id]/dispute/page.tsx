@@ -241,7 +241,7 @@ export default function DealDisputePage({ params }: Readonly<DisputePageProps>) 
     <DashboardShell user={session?.user || undefined}>
       <ToastContainer toasts={toasts} onClose={removeToast} />
 
-      <PageContainer maxWidth="4xl" className="space-y-6 pb-20 animate-fade-in py-4 sm:py-6">
+      <PageContainer maxWidth="4xl" className="space-y-6 animate-fade-in pt-4 pb-0 sm:py-6">
         {/* Ineligibility Alert Banner (Single-Implementation Rule) */}
         {!isDealLoading && deal && !disputeEligibility.allowed && (
           <div className="bg-destructive/10 border border-destructive/20 text-destructive rounded-2xl p-4 flex items-start gap-3">
@@ -293,7 +293,7 @@ export default function DealDisputePage({ params }: Readonly<DisputePageProps>) 
                 {currentStep > 1 ? <Check className="w-3.5 h-3.5" /> : "1"}
               </div>
               <div className="min-w-0">
-                <div className="text-xs font-bold text-foreground truncate">
+                <div className="text-xs font-bold text-foreground whitespace-nowrap">
                   1. Issue Type
                 </div>
                 <div className="text-[11px] text-muted-foreground truncate hidden sm:block">
@@ -327,7 +327,7 @@ export default function DealDisputePage({ params }: Readonly<DisputePageProps>) 
                 {currentStep > 2 ? <Check className="w-3.5 h-3.5" /> : "2"}
               </div>
               <div className="min-w-0">
-                <div className="text-xs font-bold text-foreground truncate">
+                <div className="text-xs font-bold text-foreground whitespace-nowrap">
                   2. Evidence
                 </div>
                 <div className="text-[11px] text-muted-foreground truncate hidden sm:block">
@@ -361,7 +361,7 @@ export default function DealDisputePage({ params }: Readonly<DisputePageProps>) 
                 3
               </div>
               <div className="min-w-0">
-                <div className="text-xs font-bold text-foreground truncate">
+                <div className="text-xs font-bold text-foreground whitespace-nowrap">
                   3. Confirm
                 </div>
                 <div className="text-[11px] text-muted-foreground truncate hidden sm:block">
@@ -685,9 +685,11 @@ export default function DealDisputePage({ params }: Readonly<DisputePageProps>) 
               </div>
 
               {/* Terms Acknowledgment Checkbox */}
-              <label className="flex items-start gap-3 cursor-pointer pt-2 select-none">
+              <label htmlFor="dispute-terms-checkbox" className="flex items-start gap-3 cursor-pointer pt-2 select-none">
                 <input
+                  id="dispute-terms-checkbox"
                   type="checkbox"
+                  aria-label="Acknowledge formal escrow mediation terms"
                   checked={acceptedTerms}
                   onChange={(e) => setAcceptedTerms(e.target.checked)}
                   className="mt-0.5 w-4 h-4 rounded border-border text-primary focus:ring-primary/20 accent-primary"

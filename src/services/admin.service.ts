@@ -89,8 +89,7 @@ if (params.status) where.status = params.status as UserStatus;
 if (params.verificationLevel)
 where.verificationLevel = params.verificationLevel as VerificationLevel;
 
-const [users, total] = await Promise.all([
-prisma.user.findMany({
+const users = await prisma.user.findMany({
 where,
 select: {
 id: true,
@@ -143,9 +142,12 @@ createdAt: true,
 orderBy: { createdAt: "desc" },
 skip: (params.page - 1) * params.limit,
 take: params.limit,
-}),
-prisma.user.count({ where }),
-]);
+});
+
+let total = users.length;
+if (params.page > 1 || users.length === params.limit) {
+  total = await prisma.user.count({ where });
+}
 
 return { users, total };
 }
@@ -432,27 +434,40 @@ return null;
 }
 
 private static async fetchStats(field: string, profileId: string) {
-const [total, completed, active, cancelled] = await Promise.all([
-prisma.deal.count({ where: { [field]: profileId } }),
-prisma.deal.count({ where: { [field]: profileId, status: "COMPLETED" } }),
-prisma.deal.count({
-where: {
-[field]: profileId,
-status: {
-in: [
-"ACTIVE",
-"PAYMENT_PENDING",
-"PAYMENT_HELD",
-"CONTENT_SUBMITTED",
-"CONTENT_APPROVED",
-"VERIFIED",
-],
-},
-},
-}),
-prisma.deal.count({ where: { [field]: profileId, status: "CANCELLED" } }),
-]);
-return { total, completed, active, cancelled };
+  const where: Prisma.DealWhereInput = field === "influencerId" ? { influencerId: profileId } : { brandId: profileId };
+  const countsByStatus = await prisma.deal.groupBy({
+    by: ["status"],
+    where,
+    _count: { _all: true },
+  });
+
+  let total = 0;
+  let completed = 0;
+  let active = 0;
+  let cancelled = 0;
+
+  for (const row of countsByStatus) {
+    const count = row._count._all;
+    total += count;
+    if (row.status === "COMPLETED") {
+      completed += count;
+    } else if (row.status === "CANCELLED") {
+      cancelled += count;
+    } else if (
+      [
+        "ACTIVE",
+        "PAYMENT_PENDING",
+        "PAYMENT_HELD",
+        "CONTENT_SUBMITTED",
+        "CONTENT_APPROVED",
+        "VERIFIED",
+      ].includes(row.status)
+    ) {
+      active += count;
+    }
+  }
+
+  return { total, completed, active, cancelled };
 }
 
 static async getFlaggedApplications() {

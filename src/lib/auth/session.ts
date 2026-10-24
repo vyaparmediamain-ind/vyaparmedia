@@ -113,21 +113,46 @@ token.accessTokenExpires = Date.now() + ACCESS_TOKEN_EXPIRY;
 return token;
 }
 
+interface CachedUserStatus {
+  status: string;
+  expiresAt: number;
+}
+const userStatusCache = new Map<string, CachedUserStatus>();
+
+export function invalidateUserStatusCache(userId?: string): void {
+  if (userId) {
+    userStatusCache.delete(userId);
+  } else {
+    userStatusCache.clear();
+  }
+}
+
 async function verifyUserAccountStatus(userId: string, token: Record<string, unknown>, now: number): Promise<{ valid: boolean; status?: string }> {
-const dbUser = await prisma.user.findUnique({
-where: { id: userId },
-select: { status: true },
-});
-if (dbUser) {
-if (dbUser.status === "BANNED" || dbUser.status === "SUSPENDED" || dbUser.status === "DELETED") {
-return { valid: false, status: dbUser.status };
-}
-token.status = dbUser.status;
-} else {
-return { valid: false };
-}
-token.lastCheckedStatus = now;
-return { valid: true };
+  const cached = userStatusCache.get(userId);
+  if (cached && cached.expiresAt > now) {
+    if (cached.status === "BANNED" || cached.status === "SUSPENDED" || cached.status === "DELETED") {
+      return { valid: false, status: cached.status };
+    }
+    token.status = cached.status;
+    token.lastCheckedStatus = now;
+    return { valid: true };
+  }
+
+  const dbUser = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { status: true },
+  });
+  if (dbUser) {
+    userStatusCache.set(userId, { status: dbUser.status, expiresAt: now + 45_000 });
+    if (dbUser.status === "BANNED" || dbUser.status === "SUSPENDED" || dbUser.status === "DELETED") {
+      return { valid: false, status: dbUser.status };
+    }
+    token.status = dbUser.status;
+  } else {
+    return { valid: false };
+  }
+  token.lastCheckedStatus = now;
+  return { valid: true };
 }
 
 async function isSessionRevokedByJti(jti: unknown): Promise<boolean> {

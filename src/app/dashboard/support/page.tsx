@@ -135,7 +135,7 @@ export default function SupportPage() {
 
   return (
     <DashboardShell user={session?.user}>
-      <PageContainer maxWidth="3xl" className="space-y-6 pb-12 py-4 sm:py-6">
+      <PageContainer maxWidth="3xl" className="space-y-6 pt-4 pb-0 sm:py-6">
 
         {/* ── Page Header ── */}
         <PageHeader

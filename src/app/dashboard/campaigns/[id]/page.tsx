@@ -37,7 +37,7 @@ export default async function CampaignDetailPage() {
 
   return (
     <DashboardShell user={session.user}>
-      <PageContainer maxWidth="6xl" className="py-4 sm:py-6">
+      <PageContainer maxWidth="6xl" className="pt-4 pb-0 sm:py-6">
         <CampaignDetailClient
           user={session.user}
           influencerProfile={influencerProfile}

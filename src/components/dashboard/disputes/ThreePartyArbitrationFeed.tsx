@@ -309,8 +309,10 @@ export function ThreePartyArbitrationFeed({
         >
           <div className="flex-1">
             <input
+              id="dispute-statement-input"
               type="text"
               placeholder="Submit formal statement or counter-proposal to mediation room..."
+              aria-label="Submit formal statement or counter-proposal to mediation room"
               value={statementText}
               onChange={(e) => setStatementText(e.target.value)}
               className="w-full px-3.5 py-2 text-xs rounded-xl bg-background border border-border text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"

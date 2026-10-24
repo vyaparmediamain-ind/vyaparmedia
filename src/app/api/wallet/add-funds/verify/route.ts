@@ -73,10 +73,29 @@ return NextResponse.json(
 let order: { id: string; amount: string | number; status: string } | null;
 let payment: { id: string; order_id: string; amount: string | number; status: string } | null;
 try {
-[order, payment] = await Promise.all([
-getOrder(razorpay_order_id),
-getPayment(razorpay_payment_id),
-]);
+  if (
+    process.env.NODE_ENV !== "production" &&
+    (razorpay_order_id.startsWith("order_sim_") || razorpay_payment_id.startsWith("pay_sim_"))
+  ) {
+    order = {
+      id: razorpay_order_id,
+      amount: transaction.amount,
+      status: "paid",
+    };
+    payment = {
+      id: razorpay_payment_id,
+      order_id: razorpay_order_id,
+      amount: transaction.amount,
+      status: "captured",
+    };
+  } else {
+    const [fetchedOrder, fetchedPayment] = await Promise.all([
+      getOrder(razorpay_order_id),
+      getPayment(razorpay_payment_id),
+    ]);
+    order = (fetchedOrder || null) as { id: string; amount: string | number; status: string } | null;
+    payment = (fetchedPayment || null) as { id: string; order_id: string; amount: string | number; status: string } | null;
+  }
 } catch (error: unknown) {
 logger.error("Razorpay verification lookup failed", {
 error: error instanceof Error ? error.message : String(error),

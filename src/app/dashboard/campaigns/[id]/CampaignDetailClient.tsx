@@ -314,30 +314,26 @@ export default function CampaignDetailClient({
               )}
               {(campaign.status === "ACTIVE" || campaign.status === "COMPLETED") && (
                 <>
-                  <Link href={`/dashboard/campaigns/${campaign.id}/roi`}>
-                    <Button
-                      variant="primary"
-                      size="sm"
-                      className="inline-flex items-center gap-1.5 font-bold cursor-pointer shadow-xs"
-                    >
-                      <BarChart3 className="w-4 h-4" />
-                      ROI Report
-                    </Button>
-                  </Link>
-                  <a
+                  <Button
+                    href={`/dashboard/campaigns/${campaign.id}/roi`}
+                    variant="primary"
+                    size="sm"
+                    className="inline-flex items-center gap-1.5 font-bold cursor-pointer shadow-xs"
+                  >
+                    <BarChart3 className="w-4 h-4" />
+                    ROI Report
+                  </Button>
+                  <Button
                     href={`/api/reports/brand/campaign/${campaign.id}/roi?format=csv`}
                     target="_blank"
                     rel="noopener noreferrer"
+                    variant="secondary"
+                    size="sm"
+                    className="inline-flex items-center gap-1.5 font-medium cursor-pointer"
                   >
-                    <Button
-                      variant="secondary"
-                      size="sm"
-                      className="inline-flex items-center gap-1.5 font-medium cursor-pointer"
-                    >
-                      <Download className="w-4 h-4" />
-                      Export CSV
-                    </Button>
-                  </a>
+                    <Download className="w-4 h-4" />
+                    Export CSV
+                  </Button>
                 </>
               )}
             </div>

@@ -15,9 +15,19 @@ import {
 } from "lucide-react";
 
 export const metadata: Metadata = {
-  title: "About VyaparMedia — India's Trusted Influencer Marketplace",
+  title: "About Us — Mission & Escrow Infrastructure",
   description:
     "Learn how VyaparMedia is building India's most trusted creator economy with guaranteed escrow, verified KYC, smart contracts, and zero-fraud payouts.",
+  alternates: {
+    canonical: "/about",
+  },
+  openGraph: {
+    title: "About Us — Mission & Escrow Infrastructure | VyaparMedia",
+    description:
+      "Learn how VyaparMedia is building India's most trusted creator economy with guaranteed escrow, verified KYC, smart contracts, and zero-fraud payouts.",
+    url: "/about",
+    type: "website",
+  },
 };
 
 const stats = [
@@ -109,7 +119,7 @@ const timeline = [
   {
     year: "2026",
     title: "National Scale & DRS™",
-    body: "Surpassed 2,400+ verified creators and brands, rolling out DRS™ reputation scoring, anti-disintermediation shields, and mobile PWA.",
+    body: "Scaling verified creators and brands nationwide with DRS™ reputation scoring, anti-disintermediation shields, and mobile PWA.",
   },
 ];
 

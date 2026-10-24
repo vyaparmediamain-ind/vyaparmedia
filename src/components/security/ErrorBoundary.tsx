@@ -108,7 +108,7 @@ className="text-lg font-bold m-0 text-text-primary"
 Something went wrong
 </h3>
 <p
-className="text-sm leading-relaxed m-0 text-secondary max-w-360"
+className="text-sm leading-relaxed m-0 text-muted-foreground max-w-360"
 >
 An unexpected error occurred in this section.
 {this.state.errorId && (

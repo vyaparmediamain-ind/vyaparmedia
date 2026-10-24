@@ -61,15 +61,6 @@ export function DashboardStoriesBar({
       hasPulse: false,
       isAction: false,
     },
-    {
-      id: "quick-create",
-      label: isBrand ? "New Campaign" : "Media Kit",
-      subtext: isBrand ? "Launch 1-Click" : "Update Rates",
-      icon: <Plus className="w-5 h-5 text-primary" />,
-      href: isBrand ? "/dashboard/campaigns/create" : "/dashboard/creator-profile",
-      hasPulse: false,
-      isAction: true,
-    },
   ];
 
   return (
@@ -118,11 +109,11 @@ export function DashboardStoriesBar({
             )}
           </div>
 
-          <div className="text-center">
-            <span className="block text-[11px] sm:text-xs font-bold text-foreground group-hover:text-primary transition-colors max-w-[84px] sm:max-w-[92px] truncate">
+          <div className="text-center w-full px-0.5">
+            <span className="block text-[11px] sm:text-xs font-bold text-foreground group-hover:text-primary transition-colors max-w-[88px] sm:max-w-[96px] line-clamp-2 leading-tight break-words mx-auto">
               {story.label}
             </span>
-            <span className="block text-[10px] text-muted-foreground font-medium max-w-[84px] sm:max-w-[92px] truncate">
+            <span className="block text-[10px] text-muted-foreground font-medium max-w-[88px] sm:max-w-[96px] line-clamp-1 leading-tight break-words mx-auto mt-0.5">
               {story.subtext}
             </span>
           </div>

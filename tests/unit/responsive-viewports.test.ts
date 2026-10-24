@@ -47,6 +47,25 @@ describe("Mobile & Tablet Responsive Viewport Integrity (375px, 390px, 768px)", 
     expect(landingCss).not.toContain("right: -50px");
   });
 
+  it("should enforce non-shrinking horizontal tab bars on mobile viewports", () => {
+    const globalsCss = fs.readFileSync(path.join(process.cwd(), "src/app/globals.css"), "utf8");
+    expect(globalsCss).toContain(".settings-sidebar-nav");
+    expect(globalsCss).toContain("min-width: max-content");
+    expect(globalsCss).toContain("flex-shrink: 0");
+
+    const brandProfile = fs.readFileSync(path.join(process.cwd(), "src/components/brand/BrandProfileClient.tsx"), "utf8");
+    expect(brandProfile).toContain("overflow-x-auto");
+    expect(brandProfile).toContain("shrink-0 whitespace-nowrap");
+
+    const influencerProfile = fs.readFileSync(path.join(process.cwd(), "src/components/profile/InfluencerProfileClient.tsx"), "utf8");
+    expect(influencerProfile).toContain("overflow-x-auto");
+    expect(influencerProfile).toContain("shrink-0 whitespace-nowrap");
+
+    const dealContract = fs.readFileSync(path.join(process.cwd(), "src/components/dashboard/deals/DealContractCard.tsx"), "utf8");
+    expect(dealContract).toContain("overflow-x-auto");
+    expect(dealContract).toContain("shrink-0");
+  });
+
   it("should ensure all 52 user-facing route files exist and have no unconstrained fixed widths > 375px", () => {
     const routes = [
       "src/app/page.tsx",

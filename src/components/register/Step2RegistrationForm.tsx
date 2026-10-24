@@ -139,7 +139,7 @@ className="auth-checkbox"
 />
 <label
 htmlFor="agreeToTerms"
-className="text-sm text-secondary cursor-pointer"
+className="text-sm text-muted-foreground cursor-pointer"
 >
 I agree to the{" "}
 <Link

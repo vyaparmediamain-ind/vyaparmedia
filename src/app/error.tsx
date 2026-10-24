@@ -39,13 +39,13 @@ className="flex items-center justify-center mb-6 bg-rose-subtle rounded-full tex
 Something went wrong on this page
 </h1>
 
-<p className="text-sm text-secondary mb-6">
+<p className="text-sm text-muted-foreground mb-6">
 An unexpected issue occurred while loading this page. Please try refreshing or return home.
 </p>
 
 {error.digest && (
 <div
-className="text-xs text-muted mb-6 break-all px-3 py-2-5 font-mono bg-glass-light rounded-sm border-card"
+className="text-xs text-muted-foreground mb-6 break-all px-3 py-2-5 font-mono bg-glass-light rounded-sm border-card"
 >
 Ref: {error.digest}
 </div>

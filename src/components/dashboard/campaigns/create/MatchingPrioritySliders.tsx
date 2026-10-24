@@ -258,6 +258,7 @@ export function MatchingPrioritySliders({
                   <span className="font-mono font-bold text-foreground">{val}%</span>
                 </div>
                 <input
+                  id={`matching-slider-${pillar.key}`}
                   type="range"
                   min="0"
                   max="100"

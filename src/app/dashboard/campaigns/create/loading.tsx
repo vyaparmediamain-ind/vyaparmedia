@@ -3,7 +3,7 @@ import { PageContainer } from "@/components/ui";
 
 export default function CreateCampaignLoading() {
   return (
-    <PageContainer maxWidth="6xl" className="space-y-6 animate-pulse py-4 sm:py-6" aria-hidden="true">
+    <PageContainer maxWidth="6xl" className="space-y-6 animate-pulse pt-4 pb-0 sm:py-6" aria-hidden="true">
       {/* Header skeleton */}
       <div className="space-y-2">
         <div className="h-8 w-64 bg-muted rounded-xl" />

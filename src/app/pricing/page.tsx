@@ -194,11 +194,13 @@ export default function PricingPage() {
                   ))}
                 </ul>
 
-                <Link href="/register?type=influencer" className="w-full">
-                  <Button variant="secondary" className="w-full py-3 font-bold cursor-pointer">
-                    Join as a Creator →
-                  </Button>
-                </Link>
+                <Button
+                  href="/register?type=influencer"
+                  variant="secondary"
+                  className="w-full py-3 font-bold cursor-pointer"
+                >
+                  Join as a Creator →
+                </Button>
               </article>
 
               {/* Brand Card */}
@@ -244,11 +246,13 @@ export default function PricingPage() {
                   ))}
                 </ul>
 
-                <Link href="/register?type=brand" className="w-full">
-                  <Button variant="primary" className="w-full py-3 font-bold cursor-pointer">
-                    Start Brand Campaign →
-                  </Button>
-                </Link>
+                <Button
+                  href="/register?type=brand"
+                  variant="primary"
+                  className="w-full py-3 font-bold cursor-pointer"
+                >
+                  Start Brand Campaign →
+                </Button>
               </article>
             </div>
           </div>

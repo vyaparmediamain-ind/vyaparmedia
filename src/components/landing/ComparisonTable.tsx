@@ -49,7 +49,11 @@ const COMPARISON_ROWS = [
   },
 ];
 
-export function ComparisonTable() {
+interface ComparisonTableProps {
+  totalCount?: string | undefined;
+}
+
+export function ComparisonTable({ totalCount }: ComparisonTableProps) {
   return (
     <section className="py-20 bg-secondary/30 relative">
       <div className="container max-w-5xl mx-auto px-4 sm:px-6">
@@ -68,16 +72,28 @@ export function ComparisonTable() {
         {/* Comparison Table Card */}
         <div className="rounded-2xl border border-border bg-card shadow-md overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
+            <table
+              className="w-full text-left border-collapse"
+              aria-label="Comparison between Traditional Agencies and VyaparMedia Escrow Infrastructure"
+            >
               <thead>
                 <tr className="border-b border-border bg-muted/40">
-                  <th className="p-4 sm:p-5 text-xs font-bold uppercase tracking-wider text-muted-foreground w-1/3">
+                  <th
+                    scope="col"
+                    className="p-4 sm:p-5 text-xs font-bold uppercase tracking-wider text-muted-foreground w-1/3"
+                  >
                     Feature & Workflow
                   </th>
-                  <th className="p-4 sm:p-5 text-xs font-bold uppercase tracking-wider text-muted-foreground w-1/3">
+                  <th
+                    scope="col"
+                    className="p-4 sm:p-5 text-xs font-bold uppercase tracking-wider text-muted-foreground w-1/3"
+                  >
                     Traditional Agencies / DMs
                   </th>
-                  <th className="p-4 sm:p-5 text-xs font-bold uppercase tracking-wider text-primary w-1/3 bg-primary/5">
+                  <th
+                    scope="col"
+                    className="p-4 sm:p-5 text-xs font-bold uppercase tracking-wider text-primary w-1/3 bg-primary/5"
+                  >
                     <span className="flex items-center gap-1.5">
                       <span className="w-2 h-2 rounded-full bg-primary" />
                       VyaparMedia Escrow
@@ -118,7 +134,7 @@ export function ComparisonTable() {
                 Ready to eliminate agency markups and payment anxiety?
               </p>
               <p className="text-xs text-muted-foreground">
-                Join 5,400+ verified creators and brands transacting securely.
+                Join {totalCount ? `${totalCount} verified creators and brands` : "thousands of verified creators and brands"} transacting securely.
               </p>
             </div>
             <Link href="/register">

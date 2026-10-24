@@ -80,7 +80,7 @@ export function HeroProductMockup() {
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
                 <div>
                   <h4 className="text-sm font-bold text-foreground">
-                    Nike India: Air Max Launch Campaign
+                    Aura Lifestyle Brands Ltd: Product Launch Campaign
                   </h4>
                   <p className="text-xs text-muted-foreground">
                     Deliverable: 1 Dedicated Instagram Reel (60s) + 1 Story Link
@@ -161,10 +161,10 @@ export function HeroProductMockup() {
               <div className="flex flex-col sm:flex-row sm:items-center justify-between p-3.5 rounded-xl border border-border bg-background gap-3">
                 <div className="flex items-center gap-3">
                   <div className="w-9 h-9 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-xs">
-                    AM
+                    AT
                   </div>
                   <div>
-                    <span className="text-sm font-bold block text-foreground">Ananya Mehta (@stylewithananya)</span>
+                    <span className="text-sm font-bold block text-foreground">Aarav Tech Creator (@aarav_tech)</span>
                     <span className="text-xs text-muted-foreground">Draft Reel preview submitted &bull; 58s duration</span>
                   </div>
                 </div>

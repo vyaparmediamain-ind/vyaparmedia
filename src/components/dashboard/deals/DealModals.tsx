@@ -221,7 +221,7 @@ maxWidth="500px"
               />
             ) : (
               <div>
-                <div className="text-xs text-secondary">{label}</div>
+                <div className="text-xs text-muted-foreground">{label}</div>
                 <div className="font-semibold text-sm">
                   {typeof addressRecord?.[field] === "string" && addressRecord[field] ? String(addressRecord[field]) : "Not provided"}
                 </div>
@@ -304,12 +304,12 @@ className="text-xs text-primary font-bold hover:underline"
 View Submission
 </a>
 ) : (
-<span className="text-xs text-muted">No submission</span>
+<span className="text-xs text-muted-foreground">No submission</span>
 )}
 </div>
 
 <div className="flex justify-between items-center gap-3">
-<div className="text-xs text-secondary">Decision:</div>
+<div className="text-xs text-muted-foreground">Decision:</div>
 <div className="flex gap-2">
 <Button
 variant={
@@ -437,7 +437,7 @@ onChange={(e) => setPostUrl(e.target.value)}
 fullWidth
 />
 </div>
-<div className="p-3 mb-5 text-sm text-secondary bg-tertiary rounded-md">
+<div className="p-3 mb-5 text-sm text-muted-foreground bg-tertiary rounded-md">
 Ensure required hashtags are present.
 </div>
 <div className="flex gap-3">
@@ -546,6 +546,7 @@ className="flex-1"
                 <input
                   type="number"
                   placeholder="L"
+                  aria-label="Box Length in cm"
                   value={shiprocketForm.length}
                   onChange={(e) => setShiprocketForm({ ...shiprocketForm, length: parseInt(e.target.value, 10) || 10 })}
                   className="w-full text-xs p-2 rounded-lg border border-border bg-background text-foreground text-center"
@@ -553,6 +554,7 @@ className="flex-1"
                 <input
                   type="number"
                   placeholder="B"
+                  aria-label="Box Breadth in cm"
                   value={shiprocketForm.breadth}
                   onChange={(e) => setShiprocketForm({ ...shiprocketForm, breadth: parseInt(e.target.value, 10) || 10 })}
                   className="w-full text-xs p-2 rounded-lg border border-border bg-background text-foreground text-center"
@@ -560,6 +562,7 @@ className="flex-1"
                 <input
                   type="number"
                   placeholder="H"
+                  aria-label="Box Height in cm"
                   value={shiprocketForm.height}
                   onChange={(e) => setShiprocketForm({ ...shiprocketForm, height: parseInt(e.target.value, 10) || 10 })}
                   className="w-full text-xs p-2 rounded-lg border border-border bg-background text-foreground text-center"

@@ -47,7 +47,7 @@ export default function Loading() {
         </header>
 
         {/* Content area skeleton with canonical screen padding */}
-        <PageContainer maxWidth="7xl" className="py-4 sm:py-6 flex-1 w-full" aria-hidden="true">
+        <PageContainer maxWidth="7xl" className="pt-4 pb-0 sm:py-6 flex-1 w-full" aria-hidden="true">
           {/* Stat cards */}
           <div className="grid-4 mb-6">
             {[1, 2, 3, 4].map((i) => (

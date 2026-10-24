@@ -85,7 +85,7 @@ export function BrandProfileClient({
             {/* Title & Metas */}
             <div className="space-y-2 min-w-0">
               <div className="flex flex-wrap items-center gap-2.5">
-                <h1 className="text-2xl sm:text-3xl font-extrabold text-foreground tracking-tight truncate">
+                <h1 className="text-2xl sm:text-3xl font-extrabold text-foreground tracking-tight break-words">
                   {brand.companyName}
                 </h1>
                 {isVerified && (
@@ -214,11 +214,11 @@ export function BrandProfileClient({
       </section>
 
       {/* 3. NAVIGATION TABS */}
-      <div className="flex items-center gap-2 border-b border-border pb-px">
+      <div className="flex items-center gap-2 border-b border-border pb-px overflow-x-auto no-scrollbar flex-nowrap">
         <button
           type="button"
           onClick={() => setActiveTab("campaigns")}
-          className={`flex items-center gap-2 px-4 py-2.5 text-sm font-semibold border-b-2 transition-all ${
+          className={`flex items-center gap-2 px-4 py-2.5 text-sm font-semibold border-b-2 transition-all shrink-0 whitespace-nowrap cursor-pointer ${
             activeTab === "campaigns"
               ? "border-primary text-primary"
               : "border-transparent text-muted-foreground hover:text-foreground"
@@ -234,7 +234,7 @@ export function BrandProfileClient({
         <button
           type="button"
           onClick={() => setActiveTab("about")}
-          className={`flex items-center gap-2 px-4 py-2.5 text-sm font-semibold border-b-2 transition-all ${
+          className={`flex items-center gap-2 px-4 py-2.5 text-sm font-semibold border-b-2 transition-all shrink-0 whitespace-nowrap cursor-pointer ${
             activeTab === "about"
               ? "border-primary text-primary"
               : "border-transparent text-muted-foreground hover:text-foreground"
@@ -247,7 +247,7 @@ export function BrandProfileClient({
         <button
           type="button"
           onClick={() => setActiveTab("reviews")}
-          className={`flex items-center gap-2 px-4 py-2.5 text-sm font-semibold border-b-2 transition-all ${
+          className={`flex items-center gap-2 px-4 py-2.5 text-sm font-semibold border-b-2 transition-all shrink-0 whitespace-nowrap cursor-pointer ${
             activeTab === "reviews"
               ? "border-primary text-primary"
               : "border-transparent text-muted-foreground hover:text-foreground"

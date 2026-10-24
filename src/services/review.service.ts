@@ -8,6 +8,7 @@ import { getDealAndVerifyParticipant } from "@/lib/utils";
 import { NotificationService } from "@/services/notification.service";
 import { checkChallengeProgress } from "@/lib/weekly-challenges";
 import { logger } from "@/lib/logger";
+import { getCachedUserType } from "@/lib/cache";
 
 export class ReviewService {
 static async listReviews(
@@ -25,14 +26,9 @@ where.receiverId = targetId;
 where.receiverId = userId;
 }
 
-const viewer = await prisma.user.findUnique({
-where: { id: userId },
-select: { userType: true },
-});
-const viewerType = viewer?.userType;
+const viewerType = await getCachedUserType(userId);
 
-const [reviews, total] = await Promise.all([
-prisma.review.findMany({
+const reviews = await prisma.review.findMany({
 where,
 include: {
 reviewer: {
@@ -49,9 +45,12 @@ brandProfile: { select: { companyName: true, logo: true } },
 orderBy: { createdAt: "desc" },
 skip: (page - 1) * limit,
 take: limit,
-}),
-prisma.review.count({ where }),
-]);
+});
+
+let total = reviews.length;
+if (page > 1 || reviews.length === limit) {
+  total = await prisma.review.count({ where });
+}
 
 const sanitizedReviews = reviews.map((review) => {
 if (viewerType === "BRAND" && review.reviewerType === "BRAND" && review.reviewerId !== userId) {
@@ -138,27 +137,26 @@ if (existing)
 throw AppError.badRequest("You have already reviewed this user for this deal");
 
 // Review Authenticity Guard 2: Pairwise review velocity / anti-farming cooldown
-const recentReviewsCount = await prisma.review.count({
+const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+
+const recentReviews = await prisma.review.findMany({
 where: {
 reviewerId: reviewerId,
 receiverId: targetId,
-createdAt: { gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) },
+createdAt: { gte: thirtyDaysAgo },
 },
+select: { createdAt: true },
+orderBy: { createdAt: "desc" },
 });
-if (recentReviewsCount >= 3) {
+
+if (recentReviews.length >= 3) {
 throw AppError.badRequest(
 "Review farming limit reached: A brand-creator pair cannot submit more than 3 reviews within a 30-day window without manual moderation."
 );
 }
 
-const recentReviewWithinDay = await prisma.review.findFirst({
-where: {
-reviewerId: reviewerId,
-receiverId: targetId,
-createdAt: { gte: new Date(Date.now() - 24 * 60 * 60 * 1000) },
-},
-});
-if (recentReviewWithinDay) {
+if (recentReviews.some((r) => r.createdAt >= oneDayAgo)) {
 throw AppError.badRequest(
 "Review velocity cooldown: Please wait at least 24 hours before submitting another review for the same collaboration partner."
 );
@@ -171,6 +169,7 @@ where: {
 reviewerId: reviewerId,
 comment: data.comment.trim(),
 },
+select: { id: true },
 });
 if (duplicateComment) {
 throw AppError.badRequest(
@@ -181,12 +180,9 @@ throw AppError.badRequest(
 
 const receiverId = targetId; // ensure it's set for transaction usage
 
-// Fetch reviewer type
-const reviewerUser = await prisma.user.findUnique({
-where: { id: reviewerId },
-select: { userType: true },
-});
-if (!reviewerUser) throw AppError.notFound("Reviewer not found");
+// Fetch reviewer type (cached)
+const reviewerUserType = await getCachedUserType(reviewerId);
+if (!reviewerUserType) throw AppError.notFound("Reviewer not found");
 
 // Transaction: Create Review + Update Aggregates (averageRating) + Check Badges
 try {
@@ -210,7 +206,7 @@ try {
           dealId: data.dealId,
           reviewerId: reviewerId,
           receiverId: receiverId,
-          reviewerType: reviewerUser.userType,
+          reviewerType: reviewerUserType,
           rating: data.rating,
           comment: data.comment ?? null,
           influencerRevieweeId,

@@ -596,7 +596,7 @@ export default function CreateCampaignClient() {
                   {isCompleted ? <CheckCircle2 className="w-4 h-4" /> : step.num}
                 </div>
                 <div className="min-w-0 hidden sm:block">
-                  <p className="text-xs font-bold leading-tight truncate">
+                  <p className="text-xs font-bold leading-tight whitespace-nowrap">
                     {step.title}
                   </p>
                   <p className={`text-[10px] truncate ${isCurrent ? "text-primary-foreground/80" : "text-muted-foreground"}`}>

@@ -71,7 +71,7 @@ export function Footer() {
         <div className="site-footer-grid grid mb-10 grid-auto-180">
           <div>
             <Logo />
-            <p className="site-footer-copy text-secondary text-sm leading-relaxed mt-3">
+            <p className="site-footer-copy text-muted-foreground text-sm leading-relaxed mt-3">
               VyaparMedia helps Indian brands and influencers run trusted
               collaborations with verified profiles, protected payments, and
               clearer delivery workflows.
@@ -100,10 +100,10 @@ export function Footer() {
         <div className="divider" />
 
         <div className="flex justify-between items-center flex-wrap gap-3">
-          <p className="text-muted text-sm">
+          <p className="text-muted-foreground text-sm">
             © 2026 VyaparMedia Technologies Pvt Ltd. All rights reserved.
           </p>
-          <p className="text-muted text-xs">
+          <p className="text-muted-foreground text-xs">
             CIN: {PLATFORM_CONFIG.cin} • Registered Office: {PLATFORM_CONFIG.address}
           </p>
         </div>

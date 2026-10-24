@@ -38,7 +38,7 @@ export function RoiClient({ campaignId }: RoiClientProps) {
   }, [fetchRoi]);
 
   return (
-    <div className="space-y-6 pb-20 animate-fade-in">
+    <div className="space-y-6 animate-fade-in">
       {/* Navigation Breadcrumb & Page Header */}
       <PageHeader
         title="Campaign ROI & Telemetry"

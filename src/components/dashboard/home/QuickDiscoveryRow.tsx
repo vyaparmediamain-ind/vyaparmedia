@@ -84,7 +84,7 @@ export function QuickDiscoveryRow({ isBrand, isInfluencer }: Readonly<QuickDisco
                       Open Brief
                     </Badge>
                   </div>
-                  <h3 className="text-sm font-bold text-foreground line-clamp-1 group-hover:text-primary transition-colors">
+                  <h3 className="text-sm font-bold text-foreground line-clamp-2 leading-tight break-words group-hover:text-primary transition-colors">
                     {camp.title}
                   </h3>
                   <div className="text-base font-extrabold font-mono tabular-nums text-foreground">
@@ -133,7 +133,7 @@ export function QuickDiscoveryRow({ isBrand, isInfluencer }: Readonly<QuickDisco
                       <ShieldCheck className="w-3 h-3" /> DRS {inf.trustScore || 800}
                     </span>
                   </div>
-                  <h3 className="text-sm font-bold text-foreground line-clamp-1 group-hover:text-primary transition-colors">
+                  <h3 className="text-sm font-bold text-foreground line-clamp-2 leading-tight break-words group-hover:text-primary transition-colors">
                     {inf.displayName || "Verified Creator"}
                   </h3>
                   <div className="text-sm font-semibold text-muted-foreground">

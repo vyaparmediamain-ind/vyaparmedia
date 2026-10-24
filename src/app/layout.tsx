@@ -78,9 +78,9 @@ export const metadata: Metadata = {
     siteName: "VyaparMedia",
     images: [
       {
-        url: "/icon-512.png",
-        width: 512,
-        height: 512,
+        url: "/og-image.png",
+        width: 1200,
+        height: 630,
         alt: "VyaparMedia Influencer & Escrow Marketplace",
       },
     ],
@@ -92,7 +92,7 @@ export const metadata: Metadata = {
     title: "VyaparMedia — India's Premier Influencer Marketplace & Escrow Platform",
     description:
       "Scale brand deals with 100% escrow protection, verified DRS™ trust scores, and instant bank payouts.",
-    images: ["/icon-512.png"],
+    images: ["/og-image.png"],
   },
   robots: {
     index: true,

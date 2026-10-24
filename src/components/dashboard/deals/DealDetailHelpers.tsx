@@ -160,7 +160,7 @@ export const statusConfig: Record<DealStatus, { label: string; color: string }> 
   VERIFICATION_PENDING: { label: "Verification Pending", color: "var(--color-primary)" },
   VERIFIED: { label: "Verified (Settling)", color: "var(--color-accent-emerald)" },
   COMPLETED: { label: "Completed", color: "var(--color-success)" },
-  CANCELLED: { label: "Cancelled", color: "var(--color-text-muted)" },
+  CANCELLED: { label: "Cancelled", color: "var(--color-text-muted-foreground)" },
   DISPUTED: { label: "Disputed", color: "var(--color-accent-rose)" },
 };
 

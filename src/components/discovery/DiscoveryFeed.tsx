@@ -217,6 +217,7 @@ export default function DiscoveryFeed({
           <div className="relative flex-1">
             <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
             <input
+              id="discovery-search-input"
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
@@ -224,6 +225,11 @@ export default function DiscoveryFeed({
                 mode === "campaigns"
                   ? "Search briefs, brands, or niches..."
                   : "Search creators by name, handle, or style..."
+              }
+              aria-label={
+                mode === "campaigns"
+                  ? "Search briefs, brands, or niches"
+                  : "Search creators by name, handle, or style"
               }
               className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-border/80 bg-card text-foreground text-xs placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
             />

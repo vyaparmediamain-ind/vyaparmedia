@@ -71,7 +71,10 @@ export default function BankAccountManager({
     data,
     isLoading: loading,
     mutate: fetchAccounts,
-  } = useSWR<BankAccountsResponse>("/api/wallet/bank-accounts", fetcher);
+  } = useSWR<BankAccountsResponse>("/api/wallet/bank-accounts", fetcher, {
+    revalidateOnFocus: false,
+    dedupingInterval: 30000,
+  });
 
   const accounts: BankAccount[] = data?.accounts || [];
 

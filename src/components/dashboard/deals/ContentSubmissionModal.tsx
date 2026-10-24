@@ -347,7 +347,7 @@ export function ContentSubmissionModal({
               <button
                 type="button"
                 onClick={() => setStep(step === "review" ? "details" : "media")}
-                className="w-11 h-11 -ml-1 text-secondary hover:text-foreground rounded-xl hover:bg-secondary transition-colors flex items-center justify-center cursor-pointer"
+                className="w-11 h-11 -ml-1 text-muted-foreground hover:text-foreground rounded-xl hover:bg-secondary transition-colors flex items-center justify-center cursor-pointer"
                 aria-label="Previous step"
               >
                 <ArrowLeft className="w-5 h-5" />
@@ -366,7 +366,7 @@ export function ContentSubmissionModal({
                   {step === "success" ? `v${submittedVersion}` : `v${nextVersionNumber}`}
                 </span>
               </div>
-              <p className="text-xs text-secondary truncate max-w-[200px] sm:max-w-md">
+              <p className="text-xs text-muted-foreground truncate max-w-[200px] sm:max-w-md">
                 {deal?.campaign?.title || "Collaboration Deliverable"}
               </p>
             </div>
@@ -392,7 +392,7 @@ export function ContentSubmissionModal({
             <button
               type="button"
               onClick={handleModalClose}
-              className="w-11 h-11 text-secondary hover:text-foreground rounded-xl hover:bg-secondary transition-colors flex items-center justify-center cursor-pointer"
+              className="w-11 h-11 text-muted-foreground hover:text-foreground rounded-xl hover:bg-secondary transition-colors flex items-center justify-center cursor-pointer"
               aria-label="Close modal"
             >
               <X className="w-5 h-5" />
@@ -410,7 +410,7 @@ export function ContentSubmissionModal({
                 className={`flex items-center gap-1.5 font-medium min-h-[44px] px-2 rounded-lg transition-colors cursor-pointer ${
                   step === "media"
                     ? "text-primary font-bold"
-                    : "text-secondary hover:text-foreground"
+                    : "text-muted-foreground hover:text-foreground"
                 }`}
               >
                 <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold ${
@@ -431,7 +431,7 @@ export function ContentSubmissionModal({
                   step === "details"
                     ? "text-primary font-bold cursor-pointer"
                     : canProceedToDetails
-                    ? "text-secondary hover:text-foreground cursor-pointer"
+                    ? "text-muted-foreground hover:text-foreground cursor-pointer"
                     : "text-muted-foreground/50 cursor-not-allowed"
                 }`}
               >
@@ -453,7 +453,7 @@ export function ContentSubmissionModal({
                   step === "review"
                     ? "text-primary font-bold cursor-pointer"
                     : canProceedToDetails
-                    ? "text-secondary hover:text-foreground cursor-pointer"
+                    ? "text-muted-foreground hover:text-foreground cursor-pointer"
                     : "text-muted-foreground/50 cursor-not-allowed"
                 }`}
               >
@@ -488,7 +488,7 @@ export function ContentSubmissionModal({
                     &ldquo;{latestSubmission.feedback}&rdquo;
                   </p>
                 ) : (
-                  <p className="mt-1 text-secondary">
+                  <p className="mt-1 text-muted-foreground">
                     The brand requested revisions on your previous deliverable. Please address their notes below before resubmitting.
                   </p>
                 )}
@@ -522,11 +522,11 @@ export function ContentSubmissionModal({
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                 <div>
                   <h3 className="font-bold text-base">Select Deliverables to Submit</h3>
-                  <p className="text-xs text-secondary">
+                  <p className="text-xs text-muted-foreground">
                     Direct-to-storage uploads support high-res video (MP4/MOV up to 100MB) without UI freezing.
                   </p>
                 </div>
-                <span className="text-xs px-2.5 py-1 rounded-full bg-secondary font-medium text-secondary">
+                <span className="text-xs px-2.5 py-1 rounded-full bg-secondary font-medium text-muted-foreground">
                   {deliverableItems.filter((d) => Boolean(d.url)).length} / {deliverableItems.length} Ready
                 </span>
               </div>
@@ -621,7 +621,7 @@ export function ContentSubmissionModal({
                             }}
                             className="text-xs sm:text-sm"
                           />
-                          <p className="text-[11px] text-secondary">
+                          <p className="text-[11px] text-muted-foreground">
                             Ensure link permissions are set to &ldquo;Anyone with link can view&rdquo;.
                           </p>
                         </div>
@@ -638,7 +638,7 @@ export function ContentSubmissionModal({
                                     {item.file?.name || "Uploading..."}
                                   </span>
                                   {item.file && (
-                                    <span className="text-secondary text-[11px]">
+                                    <span className="text-muted-foreground text-[11px]">
                                       ({formatFileSize(item.file.size)})
                                     </span>
                                   )}
@@ -664,7 +664,7 @@ export function ContentSubmissionModal({
                                   style={{ width: `${item.uploadProgress}%` }}
                                 />
                               </div>
-                              <p className="text-[11px] text-secondary">
+                              <p className="text-[11px] text-muted-foreground">
                                 Direct upload to storage. UI stays responsive even with 100MB files.
                               </p>
                             </div>
@@ -686,7 +686,7 @@ export function ContentSubmissionModal({
                                     </span>
                                     <CheckCircle2 className="w-4 h-4 text-emerald-500 flex-shrink-0" />
                                   </div>
-                                  <p className="text-[11px] text-secondary">
+                                  <p className="text-[11px] text-muted-foreground">
                                     {item.file ? formatFileSize(item.file.size) : "Ready for review"}
                                   </p>
                                 </div>
@@ -707,7 +707,7 @@ export function ContentSubmissionModal({
                                     setActiveUploadType(item.type);
                                     fileInputRef.current?.click();
                                   }}
-                                  className="text-xs font-semibold px-3.5 py-2.5 min-h-[44px] rounded-xl border border-border hover:bg-secondary text-secondary hover:text-foreground inline-flex items-center justify-center"
+                                  className="text-xs font-semibold px-3.5 py-2.5 min-h-[44px] rounded-xl border border-border hover:bg-secondary text-muted-foreground hover:text-foreground inline-flex items-center justify-center"
                                 >
                                   Replace
                                 </button>
@@ -716,11 +716,11 @@ export function ContentSubmissionModal({
                           ) : (
                             /* DROPZONE EMPTY STATE */
                             <div className="border-2 border-dashed border-border rounded-xl p-6 text-center hover:border-primary/50 transition-colors bg-secondary/10">
-                              <UploadCloud className="w-8 h-8 text-secondary mx-auto mb-2" />
+                              <UploadCloud className="w-8 h-8 text-muted-foreground mx-auto mb-2" />
                               <p className="text-xs sm:text-sm font-semibold mb-1">
                                 Drag & drop your deliverable file here
                               </p>
-                              <p className="text-[11px] text-secondary mb-3">
+                              <p className="text-[11px] text-muted-foreground mb-3">
                                 MP4, MOV, WEBM, JPG, PNG or WEBP (up to 100 MB)
                               </p>
 
@@ -775,7 +775,7 @@ export function ContentSubmissionModal({
             <div className="space-y-6 max-w-2xl mx-auto">
               <div>
                 <h3 className="font-bold text-base">Deliverable Details & Notes</h3>
-                <p className="text-xs text-secondary">
+                <p className="text-xs text-muted-foreground">
                   Provide context for the brand reviewer (e.g. caption, hashtags used, scheduled publish dates).
                 </p>
               </div>
@@ -793,7 +793,7 @@ export function ContentSubmissionModal({
                   onChange={(e) => setPrimaryLink(e.target.value)}
                   className="text-xs sm:text-sm"
                 />
-                <p className="text-[11px] text-secondary mt-1">
+                <p className="text-[11px] text-muted-foreground mt-1">
                   If you have a cloud folder with raw footage or high-bitrate masters, add it here.
                 </p>
               </div>
@@ -804,7 +804,7 @@ export function ContentSubmissionModal({
                   <label className="label text-xs font-semibold mb-0" htmlFor="deliverable-notes-input">
                     Submission Notes & Caption Draft
                   </label>
-                  <span className={`text-[11px] ${notes.length > 500 ? "text-rose-500 font-bold" : "text-secondary"}`}>
+                  <span className={`text-[11px] ${notes.length > 500 ? "text-rose-500 font-bold" : "text-muted-foreground"}`}>
                     {notes.length} / 500
                   </span>
                 </div>
@@ -830,7 +830,7 @@ export function ContentSubmissionModal({
                     {contactLeak.warningMessage ||
                       "Sharing personal contact info (phone numbers, external emails, social IDs) removes your escrow protection."}
                   </p>
-                  <p className="text-[11px] text-secondary">
+                  <p className="text-[11px] text-muted-foreground">
                     Please remove contact information before submitting.
                   </p>
                 </div>
@@ -838,14 +838,14 @@ export function ContentSubmissionModal({
 
               {/* Deliverable Summary Cards */}
               <div className="p-4 rounded-xl bg-secondary/30 border border-border">
-                <h4 className="text-xs font-bold uppercase tracking-wider text-secondary mb-3">
+                <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-3">
                   Attached Deliverables ({deliverableItems.length})
                 </h4>
                 <div className="space-y-2">
                   {deliverableItems.map((d) => (
                     <div key={d.type} className="flex items-center justify-between text-xs py-1 border-b border-border/50 last:border-0">
                       <span className="font-medium capitalize">{d.label}</span>
-                      <span className="text-secondary font-mono truncate max-w-[200px]">
+                      <span className="text-muted-foreground font-mono truncate max-w-[200px]">
                         {d.file?.name || d.url.split("/").pop()}
                       </span>
                     </div>
@@ -860,7 +860,7 @@ export function ContentSubmissionModal({
             <div className="space-y-6 max-w-2xl mx-auto">
               <div>
                 <h3 className="font-bold text-base">Review Before Submitting</h3>
-                <p className="text-xs text-secondary">
+                <p className="text-xs text-muted-foreground">
                   Ensure all requested assets match brand requirements. Brand will be notified immediately upon submission.
                 </p>
               </div>
@@ -877,7 +877,7 @@ export function ContentSubmissionModal({
                       <span className="text-xs font-bold block leading-none">
                         {deal?.influencer?.displayName || "Creator Deliverable"}
                       </span>
-                      <span className="text-[10px] text-secondary">Draft Preview</span>
+                      <span className="text-[10px] text-muted-foreground">Draft Preview</span>
                     </div>
                   </div>
                   <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-primary/10 text-primary font-semibold">
@@ -916,9 +916,9 @@ export function ContentSubmissionModal({
                       {notes}
                     </p>
                   ) : (
-                    <p className="text-secondary italic">No caption notes attached.</p>
+                    <p className="text-muted-foreground italic">No caption notes attached.</p>
                   )}
-                  <div className="text-[10px] text-secondary font-mono">
+                  <div className="text-[10px] text-muted-foreground font-mono">
                     {deliverableItems.length} deliverable assets attached
                   </div>
                 </div>
@@ -930,7 +930,7 @@ export function ContentSubmissionModal({
                   <ShieldCheck className="w-4 h-4" />
                   <span>Escrow Safe: {formatCurrency(parseContractTerms(deal?.contractTerms)?.totalAmount ?? deal?.amount ?? 0)} Protected</span>
                 </div>
-                <p className="text-secondary">
+                <p className="text-muted-foreground">
                   Brand payment is already locked in escrow. Once submitted, the brand has 72 hours to review and approve your work.
                 </p>
               </div>
@@ -956,14 +956,14 @@ export function ContentSubmissionModal({
                 <h3 className="text-xl font-bold text-foreground">
                   Deliverable v{submittedVersion} Submitted!
                 </h3>
-                <p className="text-xs text-secondary mt-1">
+                <p className="text-xs text-muted-foreground mt-1">
                   Your work has been successfully recorded and sent for brand review.
                 </p>
               </div>
 
               {/* Next Steps Timeline */}
               <div className="text-left bg-secondary/30 border border-border rounded-xl p-4 space-y-4">
-                <h4 className="text-xs font-bold uppercase tracking-wider text-secondary">
+                <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
                   What Happens Next
                 </h4>
 
@@ -974,7 +974,7 @@ export function ContentSubmissionModal({
                     </span>
                     <div>
                       <strong className="block text-foreground">Brand Notified</strong>
-                      <span className="text-secondary text-[11px]">
+                      <span className="text-muted-foreground text-[11px]">
                         The brand receives an instant notification with preview access.
                       </span>
                     </div>
@@ -986,7 +986,7 @@ export function ContentSubmissionModal({
                     </span>
                     <div>
                       <strong className="block text-foreground">72-Hour Review SLA</strong>
-                      <span className="text-secondary text-[11px]">
+                      <span className="text-muted-foreground text-[11px]">
                         Brand reviews your deliverable. If they don&apos;t respond within 72 hours, auto-approval triggers.
                       </span>
                     </div>
@@ -998,7 +998,7 @@ export function ContentSubmissionModal({
                     </span>
                     <div>
                       <strong className="block text-foreground">Instant Escrow Payout</strong>
-                      <span className="text-secondary text-[11px]">
+                      <span className="text-muted-foreground text-[11px]">
                         Upon brand approval, funds are immediately unlocked and credited to your wallet.
                       </span>
                     </div>
@@ -1028,7 +1028,7 @@ export function ContentSubmissionModal({
                 <button
                   type="button"
                   onClick={() => setShowHistory(false)}
-                  className="p-1 text-secondary hover:text-foreground rounded"
+                  className="p-1 text-muted-foreground hover:text-foreground rounded"
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -1059,7 +1059,7 @@ export function ContentSubmissionModal({
                         </span>
                       </div>
 
-                      <div className="text-[11px] text-secondary">
+                      <div className="text-[11px] text-muted-foreground">
                         Submitted {formatContractDate(sub.submittedAt || sub.createdAt)}
                       </div>
 
@@ -1096,7 +1096,7 @@ export function ContentSubmissionModal({
         {/* ==================== MODAL FOOTER ==================== */}
         {step !== "success" && (
           <footer className="flex items-center justify-between px-4 sm:px-6 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom,0px))] border-t border-border bg-card/80 backdrop-blur-md sticky bottom-0 z-20 pl-[max(1rem,env(safe-area-inset-left,0px))] pr-[max(1rem,env(safe-area-inset-right,0px))]">
-            <div className="text-xs text-secondary">
+            <div className="text-xs text-muted-foreground">
               {step === "media" && missingItems.length > 0 && (
                 <span>{missingItems.length} deliverable(s) remaining</span>
               )}

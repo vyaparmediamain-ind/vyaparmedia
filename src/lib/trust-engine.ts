@@ -647,8 +647,7 @@ async function recalculateInfluencerDRSInternal(
     dealStats,
     disputeStats,
     referralStats,
-    termsViolationsCount,
-    fraudViolationsList,
+    userViolations,
   ] = await Promise.all([
     fetchInfluencerBasicStats(userId),
     fetchInfluencerDealStats(userId),
@@ -658,12 +657,14 @@ async function recalculateInfluencerDRSInternal(
       _count: true,
       _avg: { trustScore: true },
     }),
-    prisma.userViolation.count({ where: { userId, type: "TERMS_VIOLATION" } }),
     prisma.userViolation.findMany({
-      where: { userId, type: "FRAUD" },
-      select: { metadata: true, description: true },
+      where: { userId, type: { in: ["TERMS_VIOLATION", "FRAUD"] } },
+      select: { type: true, metadata: true, description: true },
     }),
   ]);
+
+  const termsViolationsCount = userViolations.filter((v) => v.type === "TERMS_VIOLATION").length;
+  const fraudViolationsList = userViolations.filter((v) => v.type === "FRAUD");
 
   const { profile, reviewBuckets, poorReviewBuckets, uniqueReviewersCount } = basicStats;
   const { dealBuckets, onTimeBuckets, lateDeliveryBuckets, contentRejectionBuckets } = dealStats;
@@ -728,132 +729,138 @@ where: { userId },
 select: { id: true, isGstVerified: true },
 });
 
-const profileId = brandProfile?.id;
-const isVerified = brandProfile?.isGstVerified || false;
+  const profileId = brandProfile?.id;
+  const isVerified = brandProfile?.isGstVerified || false;
+  const disputeWhere = { deal: { brand: { userId } } };
+  const dealWhereForBrand = brandProfile
+    ? { brandId: brandProfile.id }
+    : { brandId: "none" };
 
-// Count completed campaigns
-let completedCampaigns = 0;
-if (brandProfile) {
-completedCampaigns = await prisma.campaign.count({
-where: { brandId: brandProfile.id, status: "COMPLETED" },
-});
+  const [
+    completedCampaigns,
+    resolvedDisputes,
+    influencerReviews,
+    repeatInfluencers,
+    influencerComplaints,
+    termsViolations,
+    paymentGroups,
+    approvalStats,
+  ] = await Promise.all([
+    brandProfile
+      ? prisma.campaign.count({
+          where: { brandId: brandProfile.id, status: "COMPLETED" },
+        })
+      : Promise.resolve(0),
+    prisma.dispute.findMany({
+      where: {
+        ...disputeWhere,
+        status: "RESOLVED",
+      },
+      select: { resolution: true, brandOutcome: true },
+    }),
+    prisma.review.findMany({
+      where: {
+        deal: dealWhereForBrand,
+        reviewerType: "INFLUENCER",
+      },
+      select: { rating: true, reviewerId: true },
+    }),
+    profileId
+      ? prisma.deal.groupBy({
+          by: ["influencerId"],
+          where: {
+            ...dealWhereForBrand,
+            status: { in: ["COMPLETED", "VERIFIED"] },
+          },
+          _count: true,
+          having: {
+            influencerId: { _count: { gte: 3 } },
+          },
+        })
+      : Promise.resolve([]),
+    prisma.dispute.count({
+      where: {
+        ...disputeWhere,
+        raisedBy: { userType: "INFLUENCER" },
+      },
+    }),
+    prisma.userViolation.count({ where: { userId, type: "TERMS_VIOLATION" } }),
+    prisma.transaction.groupBy({
+      by: ["status"],
+      where: { wallet: { userId }, type: "CREDIT" },
+      _count: { _all: true },
+    }),
+    calculateApprovalStats(dealWhereForBrand),
+  ]);
+
+  const disputesLost = resolvedDisputes.filter((d) => {
+    try {
+      if (!d.brandOutcome) return false;
+      const outcome = typeof d.brandOutcome === "string"
+        ? JSON.parse(d.brandOutcome)
+        : d.brandOutcome;
+      return typeof outcome === "object" && outcome !== null && typeof outcome.trust_score_change === "number" && outcome.trust_score_change < 0;
+    } catch {
+      return false;
+    }
+  }).length;
+
+  const fairReviewList = influencerReviews.filter((r) => r.rating >= 4);
+  const fairReviews = fairReviewList.length;
+  const uniqueInfluencersCount = new Set(fairReviewList.map((r) => r.reviewerId)).size;
+  const longTermPartnerships = repeatInfluencers.length;
+
+  const unfairRejections = resolvedDisputes.filter((d) => {
+    try {
+      if (!d.brandOutcome) return false;
+      const outcome = typeof d.brandOutcome === "string"
+        ? JSON.parse(d.brandOutcome)
+        : d.brandOutcome;
+      return (
+        typeof outcome === "object" &&
+        outcome !== null &&
+        typeof outcome.trust_score_change === "number" &&
+        outcome.trust_score_change < 0 &&
+        typeof outcome.refund_percentage === "number" &&
+        outcome.refund_percentage < 100
+      );
+    } catch {
+      return false;
+    }
+  }).length;
+
+  let totalPayments = 0;
+  let failedPayments = 0;
+  for (const pg of paymentGroups) {
+    totalPayments += pg._count._all;
+    if (pg.status === "FAILED") {
+      failedPayments += pg._count._all;
+    }
+  }
+  const paymentReliability = totalPayments > 0 ? (totalPayments - failedPayments) / totalPayments : 1.0;
+  const { fastApprovals, lateApprovals } = approvalStats;
+
+  const factors: BrandDRSFactors = {
+    completedCampaigns,
+    fastApprovals,
+    lateApprovals,
+    fairReviews,
+    uniqueInfluencersCount,
+    disputesLost,
+    companyVerified: isVerified,
+    paymentReliability,
+    termsViolations,
+    longTermPartnerships,
+    unfairRejections,
+    influencerComplaints,
+  };
+
+  return calculateBrandDRS(factors);
 }
 
-// Disputes brand relations
-const disputeWhere = { deal: { brand: { userId } } };
-
-const resolvedDisputes = await prisma.dispute.findMany({
-where: {
-...disputeWhere,
-status: "RESOLVED",
-},
-select: { resolution: true, brandOutcome: true },
-});
-
-const disputesLost = resolvedDisputes.filter((d) => {
-try {
-if (!d.brandOutcome) return false;
-const outcome = typeof d.brandOutcome === "string"
-? JSON.parse(d.brandOutcome)
-: d.brandOutcome;
-return typeof outcome === "object" && outcome !== null && typeof outcome.trust_score_change === "number" && outcome.trust_score_change < 0;
-} catch {
-return false;
-}
-}).length;
-
-// Spec: Fair reviews from influencers (count reviews where influencer reviewed the brand)
-const dealWhereForBrand = brandProfile
-? { brandId: brandProfile.id }
-: { brandId: "none" };
-
-const influencerReviews = await prisma.review.findMany({
-where: {
-deal: dealWhereForBrand,
-reviewerType: "INFLUENCER",
-},
-select: { rating: true, reviewerId: true },
-});
-const fairReviewList = influencerReviews.filter(
-(r) => r.rating >= 4,
-);
-const fairReviews = fairReviewList.length;
-const uniqueInfluencersCount = new Set(fairReviewList.map((r) => r.reviewerId)).size;
-
-// Spec: Long-term partnerships count influencers worked with 3+ times
-const repeatInfluencers = profileId
-? await prisma.deal.groupBy({
-by: ["influencerId"],
-where: {
-...dealWhereForBrand,
-status: { in: ["COMPLETED", "VERIFIED"] },
-},
-_count: true,
-having: {
-influencerId: { _count: { gte: 3 } },
-},
-})
-: [];
-const longTermPartnerships = repeatInfluencers.length;
-
-// Spec: Unfair rejections deals rejected by brand then overturned
-const unfairRejections = resolvedDisputes.filter((d) => {
-try {
-if (!d.brandOutcome) return false;
-const outcome = typeof d.brandOutcome === "string"
-? JSON.parse(d.brandOutcome)
-: d.brandOutcome;
-return (
-typeof outcome === "object" &&
-outcome !== null &&
-typeof outcome.trust_score_change === "number" &&
-outcome.trust_score_change < 0 &&
-typeof outcome.refund_percentage === "number" &&
-outcome.refund_percentage < 100
-);
-} catch {
-return false;
-}
-}).length;
-
-// Spec: Influencer complaints open/resolved disputes raised by influencers against this brand
-const influencerComplaints = await prisma.dispute.count({
-  where: {
-    ...disputeWhere,
-    raisedBy: { userType: "INFLUENCER" },
-  },
-});
-
-const [termsViolations, totalPayments, failedPayments, fastApprovals] = await Promise.all([
-  prisma.userViolation.count({ where: { userId, type: "TERMS_VIOLATION" } }),
-  prisma.transaction.count({ where: { wallet: { userId }, type: "CREDIT" } }),
-  prisma.transaction.count({ where: { wallet: { userId }, type: "CREDIT", status: "FAILED" } }),
-  calculateFastApprovals(dealWhereForBrand),
-]);
-
-const paymentReliability = totalPayments > 0 ? (totalPayments - failedPayments) / totalPayments : 1.0;
-
-const factors: BrandDRSFactors = {
-  completedCampaigns: completedCampaigns,
-  fastApprovals: fastApprovals,
-  lateApprovals: await calculateLateApprovals(userId, dealWhereForBrand),
-  fairReviews,
-  uniqueInfluencersCount,
-  disputesLost,
-  companyVerified: isVerified,
-  paymentReliability,
-  termsViolations,
-  longTermPartnerships,
-  unfairRejections,
-  influencerComplaints,
-};
-
-return calculateBrandDRS(factors);
-}
-
-async function calculateFastApprovals(
+async function calculateApprovalStats(
   dealWhere: Prisma.DealWhereInput,
-): Promise<number> {
+): Promise<{ fastApprovals: number; lateApprovals: number }> {
   const deals = await prisma.deal.findMany({
     where: {
       ...dealWhere,
@@ -868,40 +875,36 @@ async function calculateFastApprovals(
     },
   });
 
-  return deals.filter((d) => {
-    if (!d.submittedAt || !d.approvedAt) return false;
+  let fastApprovals = 0;
+  let lateApprovals = 0;
+  for (const d of deals) {
+    if (!d.submittedAt || !d.approvedAt) continue;
     const submitted = new Date(d.submittedAt).getTime();
     const approved = new Date(d.approvedAt).getTime();
     const allowedDuration = (d.reviewPeriodHours ?? 48) * 3600 * 1000;
-    return approved - submitted <= allowedDuration;
-  }).length;
+    if (approved - submitted <= allowedDuration) {
+      fastApprovals++;
+    } else {
+      lateApprovals++;
+    }
+  }
+
+  return { fastApprovals, lateApprovals };
+}
+
+async function calculateFastApprovals(
+  dealWhere: Prisma.DealWhereInput,
+): Promise<number> {
+  const { fastApprovals } = await calculateApprovalStats(dealWhere);
+  return fastApprovals;
 }
 
 async function calculateLateApprovals(
-userId: string,
-dealWhere: Prisma.DealWhereInput,
+  _userId: string,
+  dealWhere: Prisma.DealWhereInput,
 ): Promise<number> {
-const deals = await prisma.deal.findMany({
-where: {
-...dealWhere,
-status: { in: ["COMPLETED", "VERIFIED", "CONTENT_APPROVED"] },
-submittedAt: { not: null },
-approvedAt: { not: null },
-},
-select: {
-submittedAt: true,
-approvedAt: true,
-reviewPeriodHours: true,
-},
-});
-
-return deals.filter((d) => {
-if (!d.submittedAt || !d.approvedAt) return false;
-const submitted = new Date(d.submittedAt).getTime();
-const approved = new Date(d.approvedAt).getTime();
-const allowedDuration = (d.reviewPeriodHours ?? 48) * 3600 * 1000;
-return approved - submitted > allowedDuration;
-}).length;
+  const { lateApprovals } = await calculateApprovalStats(dealWhere);
+  return lateApprovals;
 }
 
 /**
@@ -940,8 +943,7 @@ export async function getUserQualitativeReputation(
       dealStats,
       disputeStats,
       referralStats,
-      termsViolationsCount,
-      fraudViolationsList,
+      userViolations,
     ] = await Promise.all([
       fetchInfluencerBasicStats(userId),
       fetchInfluencerDealStats(userId),
@@ -951,12 +953,14 @@ export async function getUserQualitativeReputation(
         _count: true,
         _avg: { trustScore: true },
       }),
-      prisma.userViolation.count({ where: { userId, type: "TERMS_VIOLATION" } }),
       prisma.userViolation.findMany({
-        where: { userId, type: "FRAUD" },
-        select: { metadata: true, description: true },
+        where: { userId, type: { in: ["TERMS_VIOLATION", "FRAUD"] } },
+        select: { type: true, metadata: true, description: true },
       }),
     ]);
+
+    const termsViolationsCount = userViolations.filter((v) => v.type === "TERMS_VIOLATION").length;
+    const fraudViolationsList = userViolations.filter((v) => v.type === "FRAUD");
 
     const { profile, reviewBuckets, poorReviewBuckets, uniqueReviewersCount } = basicStats;
     const { dealBuckets, onTimeBuckets, lateDeliveryBuckets, contentRejectionBuckets } = dealStats;
@@ -1001,18 +1005,42 @@ export async function getUserQualitativeReputation(
     });
 
     const isVerified = brandProfile?.isGstVerified || false;
-    let completedCampaigns = 0;
-    if (brandProfile) {
-      completedCampaigns = await prisma.campaign.count({
-        where: { brandId: brandProfile.id, status: "COMPLETED" },
-      });
-    }
-
     const disputeWhere = { deal: { brand: { userId } } };
-    const resolvedDisputes = await prisma.dispute.findMany({
-      where: { ...disputeWhere, status: "RESOLVED" },
-      select: { brandOutcome: true },
-    });
+    const dealWhereForBrand = brandProfile ? { brandId: brandProfile.id } : {};
+
+    const [
+      completedCampaigns,
+      resolvedDisputes,
+      reviews,
+      influencerComplaints,
+      termsViolations,
+      paymentGroups,
+      approvalStats,
+    ] = await Promise.all([
+      brandProfile
+        ? prisma.campaign.count({
+            where: { brandId: brandProfile.id, status: "COMPLETED" },
+          })
+        : Promise.resolve(0),
+      prisma.dispute.findMany({
+        where: { ...disputeWhere, status: "RESOLVED" },
+        select: { brandOutcome: true },
+      }),
+      prisma.review.findMany({
+        where: { deal: dealWhereForBrand, reviewerType: "INFLUENCER" },
+        select: { rating: true, reviewerId: true },
+      }),
+      prisma.dispute.count({
+        where: { ...disputeWhere, raisedBy: { userType: "INFLUENCER" } },
+      }),
+      prisma.userViolation.count({ where: { userId, type: "TERMS_VIOLATION" } }),
+      prisma.transaction.groupBy({
+        by: ["status"],
+        where: { wallet: { userId }, type: "CREDIT" },
+        _count: { _all: true },
+      }),
+      calculateApprovalStats(dealWhereForBrand),
+    ]);
 
     const disputesLost = resolvedDisputes.filter((d) => {
       try {
@@ -1023,12 +1051,6 @@ export async function getUserQualitativeReputation(
         return false;
       }
     }).length;
-
-    const dealWhereForBrand = brandProfile ? { brandId: brandProfile.id } : {};
-    const reviews = await prisma.review.findMany({
-      where: { deal: dealWhereForBrand, reviewerType: "INFLUENCER" },
-      select: { rating: true, reviewerId: true },
-    });
 
     const fairReviews = reviews.filter((r) => r.rating >= 4).length;
     const uniqueInfluencersCount = new Set(reviews.map((r) => r.reviewerId)).size;
@@ -1050,19 +1072,16 @@ export async function getUserQualitativeReputation(
       }
     }).length;
 
-    const influencerComplaints = await prisma.dispute.count({
-      where: { ...disputeWhere, raisedBy: { userType: "INFLUENCER" } },
-    });
-
-    const [termsViolations, totalPayments, failedPayments, fastApprovals, lateApprovals] = await Promise.all([
-      prisma.userViolation.count({ where: { userId, type: "TERMS_VIOLATION" } }),
-      prisma.transaction.count({ where: { wallet: { userId }, type: "CREDIT" } }),
-      prisma.transaction.count({ where: { wallet: { userId }, type: "CREDIT", status: "FAILED" } }),
-      calculateFastApprovals(dealWhereForBrand),
-      calculateLateApprovals(userId, dealWhereForBrand),
-    ]);
-
+    let totalPayments = 0;
+    let failedPayments = 0;
+    for (const pg of paymentGroups) {
+      totalPayments += pg._count._all;
+      if (pg.status === "FAILED") {
+        failedPayments += pg._count._all;
+      }
+    }
     const paymentReliability = totalPayments > 0 ? (totalPayments - failedPayments) / totalPayments : 1.0;
+    const { fastApprovals, lateApprovals } = approvalStats;
 
     const factors: BrandDRSFactors = {
       completedCampaigns,

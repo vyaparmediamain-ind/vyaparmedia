@@ -57,36 +57,16 @@ throw AppError.notFound("Influencer profile not found");
 
   // 2. Parallelize all independent database queries via Promise.all
   const [
-    activeDeals,
     earningsHistory,
-    deliveryRate,
     recentActivity,
     referralStats,
     userBadges,
     topDeals,
     allDeals,
-    closedDealsGroupBy,
+    dealsByStatus,
   ] = await Promise.all([
-    // Active deals count
-    prisma.deal.count({
-      where: {
-        influencerId: profile.id,
-        status: {
-          in: [
-            "ACTIVE",
-            "CONTENT_SUBMITTED",
-            "REVISION_REQUESTED",
-            "CONTENT_APPROVED",
-            "POSTED",
-            "VERIFICATION_PENDING",
-          ],
-        },
-      },
-    }),
     // Earnings history
     getMonthlyEarnings(profile.id, fy),
-    // Performance delivery rate
-    calculateDeliveryRate(profile.id),
     // Recent activity log
     prisma.activityLog.findMany({
       where: { userId },
@@ -125,13 +105,10 @@ throw AppError.notFound("Influencer profile not found");
       },
       take: 1000,
     }),
-    // Success rate status counts in a single group query
+    // All deal status counts in a single group query
     prisma.deal.groupBy({
       by: ["status"],
-      where: {
-        influencerId: profile.id,
-        status: { in: ["COMPLETED", "CANCELLED"] },
-      },
+      where: { influencerId: profile.id },
       _count: { id: true },
     }),
   ]);
@@ -154,10 +131,23 @@ throw AppError.notFound("Influencer profile not found");
     }))
     .sort((a, b) => b.count - a.count);
 
-  const completedCount = closedDealsGroupBy.find((g) => g.status === "COMPLETED")?._count.id || 0;
-  const cancelledCount = closedDealsGroupBy.find((g) => g.status === "CANCELLED")?._count.id || 0;
+  const activeStatuses = new Set([
+    "ACTIVE",
+    "CONTENT_SUBMITTED",
+    "REVISION_REQUESTED",
+    "CONTENT_APPROVED",
+    "POSTED",
+    "VERIFICATION_PENDING",
+  ]);
+  const activeDeals = dealsByStatus
+    .filter((g) => activeStatuses.has(g.status))
+    .reduce((acc, g) => acc + g._count.id, 0);
+
+  const completedCount = dealsByStatus.find((g) => g.status === "COMPLETED")?._count.id || 0;
+  const cancelledCount = dealsByStatus.find((g) => g.status === "CANCELLED")?._count.id || 0;
   const totalClosed = completedCount + cancelledCount;
   const successRate = totalClosed > 0 ? Math.round((completedCount / totalClosed) * 100) : 100;
+  const deliveryRate = successRate;
 
 logger.debug("InfluencerAnalytics data fetched successfully", { userId });
 return {
@@ -258,17 +248,21 @@ return getMonthlyTransactions(wallet.id, "CREDIT", startDate, endDate);
 }
 
 async function calculateDeliveryRate(influencerId: string) {
-const totalDeals = await prisma.deal.count({
-where: { influencerId, status: { in: ["COMPLETED", "CANCELLED"] } },
-});
+  const groups = await prisma.deal.groupBy({
+    by: ["status"],
+    where: { influencerId, status: { in: ["COMPLETED", "CANCELLED"] } },
+    _count: { _all: true },
+  });
 
-if (totalDeals === 0) return 100;
+  let completed = 0;
+  let totalDeals = 0;
+  for (const g of groups) {
+    totalDeals += g._count._all;
+    if (g.status === "COMPLETED") completed += g._count._all;
+  }
 
-const completed = await prisma.deal.count({
-where: { influencerId, status: "COMPLETED" },
-});
-
-return Math.round((completed / totalDeals) * 100);
+  if (totalDeals === 0) return 100;
+  return Math.round((completed / totalDeals) * 100);
 }
 
 export async function getBrandAnalytics(userId: string, fy?: string) {
@@ -296,7 +290,6 @@ const totalCampaigns = profile.totalCampaigns;
 
 // 1. Parallelize all independent database queries via Promise.all
 const [
-  activeDeals,
   spendHistory,
   campaigns,
   aggregateResult,
@@ -304,13 +297,6 @@ const [
   influencerDeals,
   referralStats,
 ] = await Promise.all([
-  // Active deals
-  prisma.deal.count({
-    where: {
-      brandId: profile.id,
-      status: { notIn: ["COMPLETED", "CANCELLED", "DISPUTED"] },
-    },
-  }),
   // Spend History (Last 12 Months or FY)
   getMonthlySpend(userId, fy),
   // Campaign Performance
@@ -361,6 +347,10 @@ const [
   // Referrals
   getReferralStats(userId, { includeUsers: false }),
 ]);
+
+const activeDeals = categoryPerf
+  .filter((g) => !["COMPLETED", "CANCELLED", "DISPUTED"].includes(g.status))
+  .reduce((acc, g) => acc + g._count, 0);
 
 const totalDealSpend = aggregateResult._sum.totalAmount ?? 0;
 const avgDealCost =

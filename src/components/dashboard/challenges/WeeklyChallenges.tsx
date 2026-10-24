@@ -156,7 +156,10 @@ const renderChallengeIcon = (icon: string) => {
 };
 
 export default function WeeklyChallenges() {
-const { data, isLoading: loading } = useSWR<ChallengesResponse>("/api/gamification/challenges", fetcher);
+const { data, isLoading: loading } = useSWR<ChallengesResponse>("/api/gamification/challenges", fetcher, {
+  revalidateOnFocus: false,
+  dedupingInterval: 60000,
+});
 const challenges = data?.data || [];
 
 if (loading) {
@@ -209,7 +212,7 @@ return (
 <div className="space-y-4">
 <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-2">
 <h2 className="text-2xl font-bold">Weekly Challenges</h2>
-<span className="text-sm text-secondary">
+<span className="text-sm text-muted-foreground">
 Complete challenges to earn XP and rewards!
 </span>
 </div>
@@ -241,7 +244,7 @@ challenge.completed
 </span>
 )}
 </h3>
-<p className="text-secondary text-sm">
+<p className="text-muted-foreground text-sm">
 {challenge.description}
 </p>
 </div>
@@ -251,7 +254,7 @@ challenge.completed
 +{challenge.xpReward} XP
 </div>
 {challenge.bonusPerk && (
-<div className="text-xs text-secondary mt-1">
+<div className="text-xs text-muted-foreground mt-1">
 {challenge.bonusPerk}
 </div>
 )}
@@ -267,7 +270,7 @@ challenge.difficulty
 
 <div className="mb-2">
 <div className="flex justify-between text-sm mb-1">
-<span className="text-secondary">
+<span className="text-muted-foreground">
 Progress
 </span>
 <span className="font-medium">
@@ -299,7 +302,7 @@ Progress
 </div>
 
 {challenge.completed && challenge.completedAt && (
-<div className="text-xs text-muted mt-2">
+<div className="text-xs text-muted-foreground mt-2">
 Completed on {formatDate(challenge.completedAt)}
 </div>
 )}

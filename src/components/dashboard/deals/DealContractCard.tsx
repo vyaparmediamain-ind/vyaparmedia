@@ -178,11 +178,11 @@ export function DealContractCard({
               <div className="w-8 h-8 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary font-bold shrink-0">
                 <Building2 className="w-4 h-4" />
               </div>
-              <div className="min-w-0">
+              <div className="min-w-0 flex-1">
                 <span className="text-[10px] text-muted-foreground font-semibold uppercase tracking-wider block">
                   Client / Brand
                 </span>
-                <span className="font-bold text-foreground text-xs truncate block">
+                <span className="font-bold text-foreground text-xs line-clamp-1 break-words block">
                   {deal.brand?.companyName || "Brand Client"}
                 </span>
               </div>
@@ -197,11 +197,11 @@ export function DealContractCard({
               <div className="w-8 h-8 rounded-xl bg-escrow-muted border border-escrow-border flex items-center justify-center text-escrow font-bold shrink-0">
                 <User className="w-4 h-4" />
               </div>
-              <div className="min-w-0">
+              <div className="min-w-0 flex-1">
                 <span className="text-[10px] text-muted-foreground font-semibold uppercase tracking-wider block">
                   Creator / Freelancer
                 </span>
-                <span className="font-bold text-foreground text-xs truncate block">
+                <span className="font-bold text-foreground text-xs line-clamp-1 break-words block">
                   {deal.influencer?.displayName || "Influencer Creator"}
                 </span>
               </div>
@@ -218,7 +218,7 @@ export function DealContractCard({
             <button
               type="button"
               onClick={() => setActiveTab("scope")}
-              className={`pb-3 px-3 text-xs font-bold border-b-2 transition-all cursor-pointer whitespace-nowrap flex items-center gap-1.5 min-h-[44px] ${
+              className={`pb-3 px-3 text-xs font-bold border-b-2 transition-all cursor-pointer whitespace-nowrap shrink-0 flex items-center gap-1.5 min-h-[44px] ${
                 activeTab === "scope"
                   ? "border-primary text-primary"
                   : "border-transparent text-muted-foreground hover:text-foreground"
@@ -231,7 +231,7 @@ export function DealContractCard({
             <button
               type="button"
               onClick={() => setActiveTab("financials")}
-              className={`pb-3 px-3 text-xs font-bold border-b-2 transition-all cursor-pointer whitespace-nowrap flex items-center gap-1.5 min-h-[44px] ${
+              className={`pb-3 px-3 text-xs font-bold border-b-2 transition-all cursor-pointer whitespace-nowrap shrink-0 flex items-center gap-1.5 min-h-[44px] ${
                 activeTab === "financials"
                   ? "border-primary text-primary"
                   : "border-transparent text-muted-foreground hover:text-foreground"
@@ -244,7 +244,7 @@ export function DealContractCard({
             <button
               type="button"
               onClick={() => setActiveTab("terms")}
-              className={`pb-3 px-3 text-xs font-bold border-b-2 transition-all cursor-pointer whitespace-nowrap flex items-center gap-1.5 min-h-[44px] ${
+              className={`pb-3 px-3 text-xs font-bold border-b-2 transition-all cursor-pointer whitespace-nowrap shrink-0 flex items-center gap-1.5 min-h-[44px] ${
                 activeTab === "terms"
                   ? "border-primary text-primary"
                   : "border-transparent text-muted-foreground hover:text-foreground"
@@ -257,7 +257,7 @@ export function DealContractCard({
             <button
               type="button"
               onClick={() => setActiveTab("signatures")}
-              className={`pb-3 px-3 text-xs font-bold border-b-2 transition-all cursor-pointer whitespace-nowrap flex items-center gap-1.5 min-h-[44px] ${
+              className={`pb-3 px-3 text-xs font-bold border-b-2 transition-all cursor-pointer whitespace-nowrap shrink-0 flex items-center gap-1.5 min-h-[44px] ${
                 activeTab === "signatures"
                   ? "border-primary text-primary"
                   : "border-transparent text-muted-foreground hover:text-foreground"

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Contact & Enterprise Support | VyaparMedia",
+  title: "Contact & Enterprise Support",
   description:
     "Connect with the VyaparMedia team for brand partnerships, creator onboarding assistance, escrow verification, and dispute resolution.",
   alternates: {

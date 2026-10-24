@@ -59,10 +59,12 @@ export function DealsFilterToolbar({
         <div className="relative flex-1">
           <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
           <input
+            id="deals-search-input"
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search by campaign, brand name, or deliverable..."
+            aria-label="Search by campaign, brand name, or deliverable"
             className="w-full pl-10 pr-11 min-h-[44px] rounded-xl border border-input bg-card text-foreground placeholder:text-muted-foreground text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-ring transition-all"
           />
           {searchQuery && (

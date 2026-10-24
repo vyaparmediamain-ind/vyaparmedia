@@ -93,7 +93,7 @@ export default function NotificationToastBanner({
           {/* Text Content */}
           <div className="flex-1 min-w-0 pr-1">
             <div className="flex items-center justify-between gap-2">
-              <span className="text-xs font-bold tracking-tight text-foreground truncate">
+              <span className="text-xs font-bold tracking-tight text-foreground line-clamp-1 break-words">
                 {toast.title}
               </span>
               <span className="text-[10px] uppercase font-semibold tracking-wider text-muted-foreground shrink-0">

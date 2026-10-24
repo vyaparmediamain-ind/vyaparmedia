@@ -30,7 +30,10 @@ export default function TwoFactorAuthPanel({
   showToast,
 }: Readonly<TwoFactorAuthPanelProps>) {
   const { data: settingsData, mutate: refreshSettings } =
-    useSWR<SettingsResponse>("/api/settings", fetcher);
+    useSWR<SettingsResponse>("/api/settings", fetcher, {
+      revalidateOnFocus: false,
+      dedupingInterval: 30000,
+    });
   const [override2FA, setOverride2FA] = useState<boolean | null>(null);
   const [qrCodeData, setQrCodeData] = useState<{
     secret: string;

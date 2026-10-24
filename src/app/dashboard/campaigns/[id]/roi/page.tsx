@@ -42,7 +42,7 @@ export default async function CampaignRoiPage({ params }: CampaignRoiPageProps) 
 
   return (
     <DashboardShell user={session.user}>
-      <PageContainer maxWidth="6xl" className="py-4 sm:py-6">
+      <PageContainer maxWidth="6xl" className="pt-4 pb-0 sm:py-6">
         <RoiClient campaignId={campaignId} />
       </PageContainer>
     </DashboardShell>

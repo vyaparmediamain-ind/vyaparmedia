@@ -6,7 +6,7 @@ import { PageContainer } from "@/components/ui/PageContainer";
  */
 export default function WalletLoading() {
   return (
-    <PageContainer maxWidth="5xl" className="space-y-6 animate-pulse py-4 sm:py-6" aria-hidden="true">
+    <PageContainer maxWidth="5xl" className="space-y-6 animate-pulse pt-4 pb-0 sm:py-6" aria-hidden="true">
       {/* Balance hero card */}
       <div className="card p-8 mb-6 text-center">
         <div className="skeleton h-4 w-32 rounded-sm mb-3 mx-auto" />

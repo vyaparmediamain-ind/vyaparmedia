@@ -183,9 +183,9 @@ Financial Performance
 </div>
 </div>
 
-<div className="w-full mt-4 h-350">
-{chartsReady && (
-<ResponsiveContainer width="100%" height={350} minWidth={0}>
+<div className="w-full mt-4 h-[350px]">
+{chartsReady ? (
+<ResponsiveContainer width="100%" height={350} minWidth={100}>
 <BarChart data={data.financials.revenueHistory} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
 <CartesianGrid strokeDasharray="3 3" stroke="currentColor" className="text-border/40" vertical={false} />
 <XAxis dataKey="month" stroke="currentColor" className="text-muted-foreground text-xs" tickFormatter={(str) => str.slice(0, 3)} axisLine={false} tickLine={false} dy={10} />
@@ -210,6 +210,8 @@ formatter={(value: number | undefined) => [fmt(value ?? 0), ""]}
 </defs>
 </BarChart>
 </ResponsiveContainer>
+) : (
+<div className="w-full h-full rounded-2xl bg-muted/10 animate-pulse" />
 )}
 </div>
 </div>
@@ -223,9 +225,9 @@ formatter={(value: number | undefined) => [fmt(value ?? 0), ""]}
 <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-accent/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
 <div className="relative z-10">
 <h3 className="text-lg font-bold mb-6 text-foreground tracking-tight">User Growth (30 Days)</h3>
-<div className="w-full h-280">
-{chartsReady && (
-<ResponsiveContainer width="100%" height={280} minWidth={0}>
+<div className="w-full h-[280px]">
+{chartsReady ? (
+<ResponsiveContainer width="100%" height={280} minWidth={100}>
 <LineChart data={data.growth} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
 <defs>
 <linearGradient id="colorTotal" x1="0" y1="0" x2="0" y2="1">
@@ -242,6 +244,8 @@ formatter={(value: number | undefined) => [fmt(value ?? 0), ""]}
 <Line type="monotone" dataKey="influencer" stroke="hsl(var(--verified))" strokeWidth={3} dot={false} name="Influencers" />
 </LineChart>
 </ResponsiveContainer>
+) : (
+<div className="w-full h-full rounded-2xl bg-muted/10 animate-pulse" />
 )}
 </div>
 </div>

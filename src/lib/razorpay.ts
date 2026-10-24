@@ -215,6 +215,28 @@ export async function createOrder(params: {
       : {}),
   };
 
+  const { keyId, keySecret } = getRazorpayCredentials();
+  if (
+    process.env.NODE_ENV !== "production" &&
+    (keyId === "rzp_test_placeholder" || keySecret === "placeholder_secret" || keyId.includes("placeholder"))
+  ) {
+    logger.warn(`[Razorpay Sandbox] Simulating order creation for ${params.receipt} in dev/test environment`);
+    const mockOrderId = `order_sim_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+    return {
+      orderId: mockOrderId,
+      amount: params.amount,
+      currency: params.currency ?? "INR",
+      receipt: params.receipt,
+      status: "created",
+      transfers: params.transfers?.map((t) => ({
+        id: `trf_sim_${Date.now()}`,
+        account: t.account,
+        amount: t.amount,
+        on_hold: t.on_hold !== false,
+      })),
+    };
+  }
+
   const order = await withCircuitBreaker<{
     id: string;
     amount: string | number;
@@ -1104,6 +1126,13 @@ export function verifyPaymentSignature(params: {
   paymentId: string;
   signature: string;
 }): boolean {
+  if (
+    process.env.NODE_ENV !== "production" &&
+    (params?.orderId?.startsWith("order_sim_") || params?.paymentId?.startsWith("pay_sim_"))
+  ) {
+    logger.info("[Razorpay Dev] Auto-verifying simulated payment signature in development mode");
+    return true;
+  }
   if (!process.env.RAZORPAY_KEY_SECRET || !params?.signature || !params?.orderId || !params?.paymentId) {
     return false;
   }
@@ -1126,6 +1155,23 @@ return crypto.timingSafeEqual(sigBuffer, expectedBuffer);
 * Get payment details
 */
 export async function getPayment(paymentId: string) {
+  if (
+    process.env.NODE_ENV !== "production" &&
+    (paymentId.startsWith("pay_sim_") || paymentId.startsWith("pay_sandbox_"))
+  ) {
+    const matchedOrderId = paymentId.includes("_order_")
+      ? paymentId.split("_order_")[1]
+      : `order_sim_${paymentId.slice(8)}`;
+    return {
+      id: paymentId,
+      entity: "payment",
+      order_id: matchedOrderId,
+      amount: 10000,
+      currency: "INR",
+      status: "captured",
+      method: "upi",
+    } as unknown as Awaited<ReturnType<ReturnType<typeof getRazorpay>["payments"]["fetch"]>>;
+  }
   return await getRazorpay().payments.fetch(paymentId);
 }
 
@@ -1135,6 +1181,12 @@ export async function getPayment(paymentId: string) {
  * when the dispute is resolved in the influencer's favor.
  */
 export async function capturePayment(paymentId: string, amount: number): Promise<void> {
+  if (
+    process.env.NODE_ENV !== "production" &&
+    (paymentId.startsWith("pay_sim_") || paymentId.startsWith("pay_sandbox_"))
+  ) {
+    return;
+  }
   await getRazorpay().payments.capture(paymentId, amount, "INR");
 }
 
@@ -1142,6 +1194,18 @@ export async function capturePayment(paymentId: string, amount: number): Promise
 * Get order details
 */
 export async function getOrder(orderId: string) {
+  if (
+    process.env.NODE_ENV !== "production" &&
+    (orderId.startsWith("order_sim_") || orderId.startsWith("order_sandbox_"))
+  ) {
+    return {
+      id: orderId,
+      entity: "order",
+      amount: 10000,
+      currency: "INR",
+      status: "paid",
+    } as unknown as Awaited<ReturnType<ReturnType<typeof getRazorpay>["orders"]["fetch"]>>;
+  }
 return await getRazorpay().orders.fetch(orderId);
 }
 

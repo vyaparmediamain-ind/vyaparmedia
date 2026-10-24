@@ -189,7 +189,7 @@ export default async function InfluencerProfilePage({
 
   return (
     <DashboardShell user={session?.user}>
-      <PageContainer maxWidth="5xl" className="py-4 sm:py-6 space-y-4">
+      <PageContainer maxWidth="5xl" className="pt-4 pb-0 sm:py-6 space-y-4">
         <PageHeader
           backHref="/dashboard/influencers"
           backLabel="All Creators"

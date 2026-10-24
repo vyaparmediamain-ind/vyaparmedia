@@ -28,24 +28,45 @@ type NotificationType =
 | "verification_update";
 
 export class NotificationService {
-static async listNotifications(
-userId: string,
-page: number = 1,
-limit: number = 20,
-) {
-const [notifications, total, unreadCount] = await Promise.all([
-prisma.notification.findMany({
-where: { userId },
-orderBy: { createdAt: "desc" },
-skip: (page - 1) * limit,
-take: limit,
-}),
-prisma.notification.count({ where: { userId } }),
-prisma.notification.count({ where: { userId, isRead: false } }),
-]);
+  static async listNotifications(
+    userId: string,
+    page: number = 1,
+    limit: number = 20,
+  ) {
+    const safePage = Math.max(1, page);
+    const safeLimit = Math.max(1, Math.min(100, limit));
 
-return { notifications, total, unreadCount };
-}
+    const notifications = await prisma.notification.findMany({
+      where: { userId },
+      orderBy: { createdAt: "desc" },
+      skip: (safePage - 1) * safeLimit,
+      take: safeLimit,
+    });
+
+    // Fast-path: If on page 1 and count < limit, total and unreadCount are known in memory!
+    // This avoids 2 redundant remote DB network roundtrips.
+    if (safePage === 1 && notifications.length < safeLimit) {
+      const unreadCount = notifications.filter((n) => !n.isRead).length;
+      return { notifications, total: notifications.length, unreadCount };
+    }
+
+    const notificationGroups = await prisma.notification.groupBy({
+      by: ["isRead"],
+      where: { userId },
+      _count: { _all: true },
+    });
+
+    let total = 0;
+    let unreadCount = 0;
+    for (const g of notificationGroups) {
+      total += g._count._all;
+      if (!g.isRead) {
+        unreadCount += g._count._all;
+      }
+    }
+
+    return { notifications, total, unreadCount };
+  }
 
 static async markAsRead(userId: string, notificationIds?: string[]) {
 const where: Prisma.NotificationWhereInput = { userId, isRead: false };

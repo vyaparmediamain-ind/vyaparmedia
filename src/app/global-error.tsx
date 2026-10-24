@@ -52,12 +52,12 @@ className="flex items-center justify-center p-6 bg-primary text-primary min-h-sc
 Something went wrong
 </h1>
 
-<p className="text-secondary text-sm mb-8">
+<p className="text-muted-foreground text-sm mb-8">
 We encountered a temporary problem while loading the application. Our team has been notified. Please try refreshing or return home.
 </p>
 
 {error.digest && (
-<div className="text-xs text-muted mb-8 p-3 rounded-md border-card font-mono bg-glass-light">
+<div className="text-xs text-muted-foreground mb-8 p-3 rounded-md border-card font-mono bg-glass-light">
 Ref: {error.digest}
 </div>
 )}

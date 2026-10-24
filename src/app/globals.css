@@ -338,39 +338,92 @@
 @media (max-width: 768px) {
   .settings-page-layout {
     flex-direction: column;
+    width: 100%;
+    max-width: 100%;
+    min-height: auto;
   }
 
   .settings-sidebar {
     width: 100%;
     min-width: unset;
+    max-width: 100%;
     height: auto;
     position: static;
     border-right: none;
     border-bottom: 1px solid var(--color-border);
+    overflow: hidden;
   }
 
   .settings-sidebar-nav {
+    display: flex;
     flex-direction: row;
     overflow-x: auto;
-    padding: 8px;
-    gap: 4px;
+    overflow-y: hidden;
+    padding: 8px 12px 10px;
+    gap: 8px;
     flex-wrap: nowrap;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  .settings-sidebar-nav::-webkit-scrollbar {
+    display: none;
   }
 
   .settings-sidebar-item {
-    flex-direction: column;
-    gap: 4px;
-    padding: 8px 10px;
-    border-radius: 8px;
-    min-width: 72px;
-    font-size: 11px;
-    text-align: center;
+    flex: 0 0 auto;
+    flex-shrink: 0;
+    width: auto;
+    min-width: max-content;
+    display: inline-flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 14px;
+    border-radius: 9999px;
+    font-size: 12px;
+    font-weight: 600;
     white-space: nowrap;
+    text-align: left;
+    border: 1px solid var(--color-border);
+    background: var(--color-bg-card, transparent);
+    color: var(--color-muted-foreground);
+    transition: all 0.15s ease;
+  }
+
+  .settings-sidebar-item:hover {
+    background: var(--color-muted);
+    color: var(--color-foreground);
+  }
+
+  .settings-sidebar-item[data-active="true"] {
+    background: hsl(var(--primary) / 0.12);
+    border-color: hsl(var(--primary) / 0.4);
+    color: var(--color-primary);
+    font-weight: 600;
   }
 
   .settings-sidebar-item .settings-sidebar-item-icon {
-    width: 24px;
-    height: 24px;
+    width: 20px;
+    height: 20px;
+    border-radius: 6px;
+    background: transparent;
+    color: inherit;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .settings-sidebar-item[data-active="true"] .settings-sidebar-item-icon {
+    background: transparent;
+    color: var(--color-primary);
+  }
+
+  .settings-sidebar-item .settings-sidebar-item-label {
+    flex: initial;
+    white-space: nowrap;
   }
 
   .settings-sidebar-item > svg:last-child {
@@ -382,6 +435,6 @@
   }
 
   .settings-content-area {
-    padding: 20px 16px;
+    padding: 16px 16px 0;
   }
 }

@@ -5,6 +5,7 @@ import prisma from "@/lib/db";
 import { Prisma } from "@prisma/client";
 import { subDays } from "date-fns";
 import { logger } from "@/lib/logger";
+import { cache } from "@/lib/cache";
 
 async function getWeeklyLeaderboard(city: string, category: string, limit: number) {
   const weekAgo = subDays(new Date(), 7);
@@ -168,37 +169,44 @@ async function _handler_GET(request: NextRequest) {
     const parsedLimit = Number.parseInt(searchParams.get("limit") || "20", 10);
     const limit = Math.max(1, Math.min(Number.isNaN(parsedLimit) ? 20 : parsedLimit, 50));
 
-    if (filter === "weekly") {
-      const data = await getWeeklyLeaderboard(city, category, limit);
-      return NextResponse.json(data);
-    }
+    const cacheKey = `leaderboard:${filter}:${city}:${category}:${limit}`;
+    const data = await cache(
+      cacheKey,
+      async () => {
+        if (filter === "weekly") {
+          return await getWeeklyLeaderboard(city, category, limit);
+        }
 
-    const influencerWhere: Prisma.UserWhereInput = {
-      userType: "INFLUENCER",
-      status: "ACTIVE",
-      trustScore: { gte: 300 },
-      influencerProfile: { isNot: null },
-    };
+        const influencerWhere: Prisma.UserWhereInput = {
+          userType: "INFLUENCER",
+          status: "ACTIVE",
+          trustScore: { gte: 300 },
+          influencerProfile: { isNot: null },
+        };
 
-    if (city) {
-      influencerWhere.influencerProfile = {
-        is: {
-          city: { contains: city, mode: "insensitive" as const },
-        },
-      };
-    }
+        if (city) {
+          influencerWhere.influencerProfile = {
+            is: {
+              city: { contains: city, mode: "insensitive" as const },
+            },
+          };
+        }
 
-    if (category) {
-      influencerWhere.influencerProfile = {
-        is: {
-          ...(city ? { city: { contains: city, mode: "insensitive" as const } } : {}),
-          categories: { contains: category, mode: "insensitive" as const },
-        },
-      };
-    }
+        if (category) {
+          influencerWhere.influencerProfile = {
+            is: {
+              ...(city ? { city: { contains: city, mode: "insensitive" as const } } : {}),
+              categories: { contains: category, mode: "insensitive" as const },
+            },
+          };
+        }
 
-    const influencerOrderBy: Prisma.UserOrderByWithRelationInput = { xp: "desc" };
-    const data = await getAllTimeLeaderboard(influencerWhere, influencerOrderBy, limit, city);
+        const influencerOrderBy: Prisma.UserOrderByWithRelationInput = { xp: "desc" };
+        return await getAllTimeLeaderboard(influencerWhere, influencerOrderBy, limit, city);
+      },
+      60,
+    );
+
     return NextResponse.json(data);
   } catch (error) {
     logger.error("Leaderboard fetch error", error);

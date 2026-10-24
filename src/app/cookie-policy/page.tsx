@@ -4,9 +4,19 @@ import { CheckCircle2 } from "lucide-react";
 import { PLATFORM_CONFIG } from "@/lib/platform-config";
 
 export const metadata: Metadata = {
-  title: "Cookie Policy — VyaparMedia",
+  title: "Cookie Policy",
   description:
     "How VyaparMedia uses essential cookies, local storage, and service worker caches to secure authentication, facilitate payments, and power the PWA.",
+  alternates: {
+    canonical: "/cookie-policy",
+  },
+  openGraph: {
+    title: "Cookie Policy | VyaparMedia",
+    description:
+      "Details on essential authentication cookies, PWA storage, and user privacy safeguards.",
+    url: "/cookie-policy",
+    type: "website",
+  },
 };
 
 const SECTIONS = [

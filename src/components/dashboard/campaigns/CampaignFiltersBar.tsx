@@ -77,7 +77,7 @@ export function CampaignFiltersBar({
 
       {/* Brand Lifecycle Status Filter Tabs */}
       {isBrand && setSelectedStatus && (
-        <div className="flex items-center gap-1.5 p-1 bg-muted/60 rounded-xl border border-border overflow-x-auto scrollbar-none w-fit">
+        <div className="flex items-center gap-1.5 p-1 bg-muted/60 rounded-xl border border-border overflow-x-auto scrollbar-none w-fit max-w-full flex-nowrap">
           {[
             { key: "ALL", label: "All Briefs" },
             { key: "ACTIVE", label: "Active" },

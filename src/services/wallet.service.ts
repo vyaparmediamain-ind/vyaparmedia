@@ -34,21 +34,49 @@ select: { userType: true },
 },
 } as const;
 
+interface WalletMemoryEntry {
+  data: any;
+  expiresAt: number;
+}
+const walletMemoryCache = new Map<string, WalletMemoryEntry>();
+const brandEscrowMemoryCache = new Map<string, { value: number; expiresAt: number }>();
+
+export function invalidateWalletServiceCache(userId?: string): void {
+  if (userId) {
+    walletMemoryCache.delete(userId);
+    brandEscrowMemoryCache.delete(userId);
+  } else {
+    walletMemoryCache.clear();
+    brandEscrowMemoryCache.clear();
+  }
+}
+
 export class WalletService {
 private static async findOrCreateWallet(userId: string) {
+const now = Date.now();
+const cached = walletMemoryCache.get(userId);
+if (cached && cached.expiresAt > now) {
+  return cached.data;
+}
+
 const walletData = await prisma.wallet.findUnique({
 where: { userId },
 include: WALLET_INCLUDE,
 });
 
-if (walletData) return walletData;
+if (walletData) {
+  walletMemoryCache.set(userId, { data: walletData, expiresAt: now + 30_000 });
+  return walletData;
+}
 
 logger.warn("Wallet not found for user, auto-creating", { userId });
 try {
-return await prisma.wallet.create({
+const created = await prisma.wallet.create({
 data: { userId },
 include: WALLET_INCLUDE,
 });
+walletMemoryCache.set(userId, { data: created, expiresAt: Date.now() + 30_000 });
+return created;
 } catch (createError) {
 if (
 createError instanceof Prisma.PrismaClientKnownRequestError &&
@@ -62,6 +90,7 @@ include: WALLET_INCLUDE,
 if (!wallet) {
 throw AppError.internal("Failed to find wallet after creation conflict");
 }
+walletMemoryCache.set(userId, { data: wallet, expiresAt: Date.now() + 30_000 });
 return wallet;
 }
 throw createError;
@@ -100,6 +129,11 @@ throw createError;
 
 private static async getBrandEscrowHeld(userId: string, userType: string): Promise<number> {
 if (userType !== "BRAND") return 0;
+const now = Date.now();
+const cached = brandEscrowMemoryCache.get(userId);
+if (cached && cached.expiresAt > now) {
+  return cached.value;
+}
 
 const brandProfile = await prisma.brandProfile.findUnique({
 where: { userId },
@@ -118,7 +152,9 @@ in: ESCROW_HELD_STATUSES as DealStatus[],
 },
 },
 });
-return activeDealsAggregate._sum.totalAmount || 0;
+const totalHeld = activeDealsAggregate._sum.totalAmount || 0;
+brandEscrowMemoryCache.set(userId, { value: totalHeld, expiresAt: now + 30_000 });
+return totalHeld;
 }
 
   static async getWallet(
@@ -152,15 +188,17 @@ transactionWhere.createdAt = {
 };
 }
 
-const [transactions, totalTransactions] = await Promise.all([
-prisma.transaction.findMany({
+const transactions = await prisma.transaction.findMany({
 where: transactionWhere,
 orderBy: { createdAt: "desc" },
 skip: (safePage - 1) * safeLimit,
 take: safeLimit,
-}),
-prisma.transaction.count({ where: transactionWhere }),
-]);
+});
+
+let totalTransactions = transactions.length;
+if (safePage > 1 || transactions.length === safeLimit) {
+  totalTransactions = await prisma.transaction.count({ where: transactionWhere });
+}
 
 const totalHeld = await this.getBrandEscrowHeld(userId, walletData.user.userType);
 

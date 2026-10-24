@@ -147,6 +147,11 @@ function MiniSparkline({
 
 export default function BrandDashboard({ data, currentFY }: BrandDashboardProps) {
   const { toasts, showToast, removeToast } = useToasts();
+  const [isMounted, setIsMounted] = React.useState(false);
+
+  React.useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   if (!data || data.error || !data.overview) {
     return (
@@ -352,43 +357,47 @@ export default function BrandDashboard({ data, currentFY }: BrandDashboardProps)
 
         <div className="w-full h-72 sm:h-80 select-none">
           {spendHistory.length > 0 ? (
-            <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
-              <AreaChart data={spendHistory} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
-                <defs>
-                  <linearGradient id="spendGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#2563EB" stopOpacity={0.35} />
-                    <stop offset="95%" stopColor="#2563EB" stopOpacity={0.0} />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
-                <XAxis
-                  dataKey="month"
-                  tickLine={false}
-                  axisLine={false}
-                  tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }}
-                />
-                <YAxis
-                  tickLine={false}
-                  axisLine={false}
-                  tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }}
-                  tickFormatter={(val) => {
-                    const rs = val / 100;
-                    if (rs >= 100000) return `₹${(rs / 100000).toFixed(1).replace(/\.0$/, "")}L`;
-                    if (rs >= 1000) return `₹${(rs / 1000).toFixed(1).replace(/\.0$/, "")}K`;
-                    return `₹${rs}`;
-                  }}
-                />
-                <Tooltip content={<GlassmorphicTooltip />} />
-                <Area
-                  type="monotone"
-                  dataKey="amount"
-                  stroke="#2563EB"
-                  strokeWidth={2.5}
-                  fillOpacity={1}
-                  fill="url(#spendGradient)"
-                />
-              </AreaChart>
-            </ResponsiveContainer>
+            isMounted ? (
+              <ResponsiveContainer width="100%" height="100%" minWidth={100} minHeight={280}>
+                <AreaChart data={spendHistory} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
+                  <defs>
+                    <linearGradient id="spendGradient" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#2563EB" stopOpacity={0.35} />
+                      <stop offset="95%" stopColor="#2563EB" stopOpacity={0.0} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
+                  <XAxis
+                    dataKey="month"
+                    tickLine={false}
+                    axisLine={false}
+                    tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }}
+                  />
+                  <YAxis
+                    tickLine={false}
+                    axisLine={false}
+                    tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }}
+                    tickFormatter={(val) => {
+                      const rs = val / 100;
+                      if (rs >= 100000) return `₹${(rs / 100000).toFixed(1).replace(/\.0$/, "")}L`;
+                      if (rs >= 1000) return `₹${(rs / 1000).toFixed(1).replace(/\.0$/, "")}K`;
+                      return `₹${rs}`;
+                    }}
+                  />
+                  <Tooltip content={<GlassmorphicTooltip />} />
+                  <Area
+                    type="monotone"
+                    dataKey="amount"
+                    stroke="#2563EB"
+                    strokeWidth={2.5}
+                    fillOpacity={1}
+                    fill="url(#spendGradient)"
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="w-full h-full rounded-2xl bg-muted/10 animate-pulse" />
+            )
           ) : (
             <div className="flex items-center justify-center h-full">
               <EmptyState

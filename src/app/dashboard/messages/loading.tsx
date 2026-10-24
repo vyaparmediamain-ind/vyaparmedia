@@ -2,7 +2,7 @@ import { PageContainer } from "@/components/ui";
 
 export default function MessagesLoading() {
   return (
-    <PageContainer maxWidth="7xl" className="py-4 sm:py-6" aria-hidden="true">
+    <PageContainer maxWidth="7xl" className="pt-4 pb-0 sm:py-6" aria-hidden="true">
       <div
         className="flex overflow-hidden bg-card border border-border rounded-2xl shadow-sm h-[82vh] min-h-[560px] animate-pulse"
       >

@@ -208,7 +208,10 @@ function getStatusBadge(status: string) {
 /* ── Main Page ──────────────────────────────────────────────────────────── */
 export default function DisputesPage() {
   const { data: session } = useSession();
-  const { data, isLoading } = useSWR<DisputesResponse>("/api/disputes", fetcher);
+  const { data, isLoading } = useSWR<DisputesResponse>("/api/disputes", fetcher, {
+    revalidateOnFocus: false,
+    dedupingInterval: 30000,
+  });
   const disputes = useMemo(() => data?.disputes || [], [data?.disputes]);
 
   const [activeTab, setActiveTab] = useState<FilterTab>("all");
@@ -277,7 +280,7 @@ export default function DisputesPage() {
 
   return (
     <DashboardShell user={session?.user}>
-      <PageContainer maxWidth="6xl" className="space-y-6 animate-fade-in pb-12 py-4 sm:py-6">
+      <PageContainer maxWidth="6xl" className="space-y-6 animate-fade-in pt-4 pb-0 sm:py-6">
 
         {/* ── HEADER ──────────────────────────────────────────────────── */}
         <PageHeader
@@ -291,21 +294,13 @@ export default function DisputesPage() {
           title="Dispute & Resolution Center"
           subtitle="Escrow-backed dispute arbitration, evidence examination, and neutral mediation"
           actions={
-            <>
-              <Link
-                href="/help"
-                className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold bg-muted hover:bg-muted/80 text-foreground border border-border transition-colors"
-              >
-                <HelpCircle className="w-4 h-4 text-muted-foreground" />
-                Resolution Guide
-              </Link>
-              <Link
-                href="/dashboard/deals"
-                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold bg-primary hover:bg-primary/90 text-white shadow-xs transition-colors"
-              >
-                Active Deals
-              </Link>
-            </>
+            <Link
+              href="/help"
+              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold bg-muted hover:bg-muted/80 text-foreground border border-border transition-colors"
+            >
+              <HelpCircle className="w-4 h-4 text-muted-foreground" />
+              Resolution Guide
+            </Link>
           }
           border={false}
         />
@@ -374,11 +369,11 @@ export default function DisputesPage() {
         <div className="bg-card border border-border rounded-2xl p-3 sm:p-4 shadow-sm">
           <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-3">
             {/* Tabs */}
-            <div className="flex items-center gap-1 bg-muted/60 p-1 rounded-xl border border-border/50">
+            <div className="flex items-center gap-1 bg-muted/60 p-1 rounded-xl border border-border/50 overflow-x-auto no-scrollbar max-w-full flex-nowrap">
               <button
                 type="button"
                 onClick={() => setActiveTab("all")}
-                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all shrink-0 whitespace-nowrap cursor-pointer ${
                   activeTab === "all"
                     ? "bg-card text-foreground shadow-sm"
                     : "text-muted-foreground hover:text-foreground"
@@ -389,7 +384,7 @@ export default function DisputesPage() {
               <button
                 type="button"
                 onClick={() => setActiveTab("active")}
-                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 ${
+                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 shrink-0 whitespace-nowrap cursor-pointer ${
                   activeTab === "active"
                     ? "bg-card text-foreground shadow-sm"
                     : "text-muted-foreground hover:text-foreground"
@@ -405,7 +400,7 @@ export default function DisputesPage() {
               <button
                 type="button"
                 onClick={() => setActiveTab("resolved")}
-                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all shrink-0 whitespace-nowrap cursor-pointer ${
                   activeTab === "resolved"
                     ? "bg-card text-foreground shadow-sm"
                     : "text-muted-foreground hover:text-foreground"

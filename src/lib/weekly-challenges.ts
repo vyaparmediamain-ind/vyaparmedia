@@ -13,6 +13,7 @@ import { logger } from "./logger";
 import { NotificationService } from "@/services/notification.service";
 import { createActivityLog } from "./audit";
 import { registerDealCompletionHooks } from "./gamification-engine";
+import { getCachedUserType } from "./cache";
 
 type ChallengeType =
 | "DEALS"
@@ -567,38 +568,41 @@ challengeId: challenge.challengeId,
 xpReward: challenge.xpReward,
 });
 
-// Check if user has completed at least 10 challenges to award challenge_champion badge
-const completedCount = await prisma.userChallengeProgress.count({
-where: { userId, completed: true },
-});
-if (completedCount >= 10) {
-  const { awardBadgeIfNotExists } = await import("./gamification-engine");
-  await awardBadgeIfNotExists(userId, "challenge_champion");
-}
-} catch (error) {
-logger.error("Failed to award challenge reward", error, {
-userId,
-challengeId: challenge.challengeId,
-});
-}
+    // Check if user already has challenge_champion badge before running count query
+    const hasChampionBadge = await prisma.userBadge.findFirst({
+      where: { userId, badgeId: "challenge_champion" },
+      select: { id: true },
+    });
+    if (!hasChampionBadge) {
+      const completedCount = await prisma.userChallengeProgress.count({
+        where: { userId, completed: true },
+      });
+      if (completedCount >= 10) {
+        const { awardBadgeIfNotExists } = await import("./gamification-engine");
+        await awardBadgeIfNotExists(userId, "challenge_champion");
+      }
+    }
+  } catch (error) {
+    logger.error("Failed to award challenge reward", error, {
+      userId,
+      challengeId: challenge.challengeId,
+    });
+  }
 }
 
 /**
-* Get current week's challenges with user progress.
-*/
+ * Get current week's challenges with user progress.
+ */
 export async function getUserWeeklyChallenges(userId: string) {
   const now = new Date();
   const weekId = getWeekId(now);
 
-  const user = await prisma.user.findUnique({
-    where: { id: userId },
-    select: { userType: true }
-  });
-  if (!user) return [];
+  const userType = await getCachedUserType(userId);
+  if (!userType) return [];
 
   const [challenges, progressRecords] = await Promise.all([
     prisma.weeklyChallenge.findMany({
-      where: { weekId, target: user.userType },
+      where: { weekId, target: userType },
       orderBy: { difficulty: "asc" },
     }),
     prisma.userChallengeProgress.findMany({

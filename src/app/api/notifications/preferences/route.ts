@@ -23,7 +23,14 @@ export const GET = apiWrapper(async () => {
   const preferences = normalizeNotificationPreferences(rawPrefs);
   const quietHours = normalizeQuietHours(rawPrefs.quietHours);
 
-  return NextResponse.json({ preferences, quietHours });
+  return NextResponse.json(
+    { preferences, quietHours },
+    {
+      headers: {
+        "Cache-Control": "private, max-age=30, stale-while-revalidate=60",
+      },
+    }
+  );
 });
 
 export const PATCH = apiWrapper(async (req) => {

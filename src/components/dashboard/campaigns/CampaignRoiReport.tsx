@@ -698,10 +698,12 @@ export function CampaignRoiReport({ data, campaignId, onRefresh }: CampaignRoiRe
             <div className="relative w-full sm:w-64 no-print">
               <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
               <input
+                id="roi-creator-search"
                 type="text"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 placeholder="Search creator..."
+                aria-label="Search creator"
                 className="w-full pl-8 pr-3 py-1.5 rounded-xl text-xs bg-muted border border-border text-foreground placeholder:text-muted-foreground focus:outline-hidden focus:ring-1 focus:ring-primary"
               />
             </div>

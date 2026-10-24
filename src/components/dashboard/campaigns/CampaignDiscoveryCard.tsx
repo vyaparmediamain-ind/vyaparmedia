@@ -110,7 +110,7 @@ export function CampaignDiscoveryCard({
             <div className="flex items-center gap-1.5 mb-0.5">
               <Link
                 href={brandProfileHref}
-                className="text-xs font-semibold text-foreground/90 hover:text-primary transition-colors truncate max-w-[120px]"
+                className="text-xs font-semibold text-foreground/90 hover:text-primary transition-colors line-clamp-1 break-words max-w-[180px] sm:max-w-xs"
                 title={`View ${campaign.brand.companyName} profile`}
               >
                 {campaign.brand.companyName}
@@ -125,7 +125,7 @@ export function CampaignDiscoveryCard({
                 </span>
               )}
             </div>
-            <h3 className="text-sm font-bold text-foreground group-hover:text-primary transition-colors truncate">
+            <h3 className="text-sm font-bold text-foreground group-hover:text-primary transition-colors line-clamp-2 leading-tight break-words">
               {campaign.title}
             </h3>
             <div className="flex items-center gap-2 mt-0.5 flex-wrap">
@@ -264,7 +264,7 @@ export function CampaignDiscoveryCard({
               <div className="flex items-center gap-1.5 flex-wrap text-xs text-muted-foreground">
                 <Link
                   href={brandProfileHref}
-                  className="font-semibold text-foreground/90 hover:text-primary transition-colors truncate max-w-[110px]"
+                  className="font-semibold text-foreground/90 hover:text-primary transition-colors line-clamp-1 break-words max-w-[180px] sm:max-w-xs"
                   title={`View ${campaign.brand.companyName} profile`}
                 >
                   {campaign.brand.companyName}

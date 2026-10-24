@@ -109,7 +109,7 @@ export default function EscrowStoriesBar({
                 +
               </span>
             </div>
-            <span className="text-[11px] font-medium text-foreground text-center max-w-[72px] truncate">
+            <span className="text-[11px] font-medium text-foreground text-center max-w-[76px] sm:max-w-[88px] line-clamp-2 leading-tight break-words">
               {isBrand ? "New Brief" : "Submit"}
             </span>
             <span className="text-[10px] font-semibold text-primary">
@@ -146,7 +146,7 @@ export default function EscrowStoriesBar({
                       fill="transparent"
                       stroke="currentColor"
                       strokeWidth={strokeWidth}
-                      className="text-muted/60"
+                      className="text-muted-foreground/60"
                     />
                     {/* Animated Progress Ring */}
                     <circle
@@ -202,7 +202,7 @@ export default function EscrowStoriesBar({
                 </div>
 
                 {/* Deal / Counterparty Label */}
-                <span className="text-[11px] font-medium text-foreground text-center max-w-[72px] truncate group-hover/deal:text-primary transition-colors">
+                <span className="text-[11px] font-medium text-foreground text-center max-w-[76px] sm:max-w-[88px] line-clamp-2 leading-tight break-words group-hover/deal:text-primary transition-colors">
                   {deal.counterpartyName || deal.title}
                 </span>
 

@@ -21,7 +21,10 @@ function getFilterLabel(filterKey: string): string {
 
 export default function ReferralList({ onShareClick }: ReferralListProps) {
   const [filter, setFilter] = useState("ALL");
-  const { data, isLoading } = useSWR<ReferralsResponse>("/api/referrals/list", fetcher);
+  const { data, isLoading } = useSWR<ReferralsResponse>("/api/referrals/list", fetcher, {
+    revalidateOnFocus: false,
+    dedupingInterval: 60000,
+  });
 
   const referrals = data?.referrals || [];
 
@@ -32,7 +35,7 @@ export default function ReferralList({ onShareClick }: ReferralListProps) {
     return (
       <div className="card p-12 text-center flex flex-col items-center justify-center">
         <div className="loading mx-auto mb-3" />
-        <span className="text-xs text-secondary">Loading partner records...</span>
+        <span className="text-xs text-muted-foreground">Loading partner records...</span>
       </div>
     );
   }
@@ -42,7 +45,7 @@ export default function ReferralList({ onShareClick }: ReferralListProps) {
       <div className="card p-10 text-center flex flex-col items-center justify-center border border-card rounded-2xl bg-secondary">
         <div className="text-4xl mb-3">🎁</div>
         <h3 className="text-xl font-bold mb-2 text-white">No Partners Referred Yet</h3>
-        <p className="text-secondary text-sm max-w-400 mb-6 leading-relaxed">
+        <p className="text-muted-foreground text-sm max-w-400 mb-6 leading-relaxed">
           Share your unique invite code with creator friends and brands. Every time they complete a deal, you earn platform rewards!
         </p>
         {onShareClick && (
@@ -86,7 +89,7 @@ export default function ReferralList({ onShareClick }: ReferralListProps) {
       <div className="overflow-x-auto">
         <table className="w-full border-collapse">
           <thead>
-            <tr className="border-b border-card text-xs font-bold text-muted uppercase tracking-wider bg-tertiary">
+            <tr className="border-b border-card text-xs font-bold text-muted-foreground uppercase tracking-wider bg-tertiary">
               <th className="p-4 text-left">Partner</th>
               <th className="p-4 text-left">Account Type</th>
               <th className="hide-mobile p-4 text-left">Joined Date</th>
@@ -102,14 +105,14 @@ export default function ReferralList({ onShareClick }: ReferralListProps) {
               >
                 <td className="p-4">
                   <div className="flex items-center gap-3">
-                    <div className="flex items-center justify-center font-extrabold text-sm rounded-full text-white w-9 h-9 flex-shrink-0 referral-avatar">
+                    <div className="flex items-center justify-center font-extrabold text-sm rounded-full text-primary-foreground bg-primary w-9 h-9 flex-shrink-0 referral-avatar">
                       {ref.name ? ref.name.charAt(0).toUpperCase() : "?"}
                     </div>
                     <div className="min-w-0">
-                      <div className="font-semibold text-white truncate">
+                      <div className="font-semibold text-foreground truncate">
                         {ref.name || "Anonymous User"}
                       </div>
-                      <div className="text-xs text-secondary truncate font-mono">
+                      <div className="text-xs text-muted-foreground truncate font-mono">
                         {ref.email}
                       </div>
                     </div>
@@ -123,7 +126,7 @@ export default function ReferralList({ onShareClick }: ReferralListProps) {
                     {ref.type === "INFLUENCER" ? "Creator" : ref.type}
                   </span>
                 </td>
-                <td className="hide-mobile p-4 text-secondary text-xs">
+                <td className="hide-mobile p-4 text-muted-foreground text-xs">
                   {formatDate(ref.joinedAt)}
                 </td>
                 <td className="p-4 text-center">
@@ -145,7 +148,7 @@ export default function ReferralList({ onShareClick }: ReferralListProps) {
       </div>
 
       {filteredReferrals.length === 0 && (
-        <div className="p-8 text-center text-secondary text-sm">
+        <div className="p-8 text-center text-muted-foreground text-sm">
           No records matching the <strong className="text-white">{filter}</strong> filter.
         </div>
       )}

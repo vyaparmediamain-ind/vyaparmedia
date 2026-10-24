@@ -110,7 +110,7 @@ export default function AdminSuspiciousReviewsPage() {
       />
 
       {/* ── Status Tabs ── */}
-      <div className="flex border-b border-border gap-2" role="tablist" aria-label="Review pattern status filter">
+      <div className="flex border-b border-border gap-2 overflow-x-auto no-scrollbar flex-nowrap" role="tablist" aria-label="Review pattern status filter">
         {(["PENDING", "CONFIRMED", "DISMISSED"] as const).map((tab) => (
           <button
             key={tab}
@@ -118,7 +118,7 @@ export default function AdminSuspiciousReviewsPage() {
             role="tab"
             aria-selected={statusFilter === tab}
             onClick={() => setStatusFilter(tab)}
-            className={`px-4 py-2.5 text-xs font-bold border-b-2 transition-all cursor-pointer ${
+            className={`px-4 py-2.5 text-xs font-bold border-b-2 transition-all cursor-pointer shrink-0 whitespace-nowrap ${
               statusFilter === tab
                 ? "border-primary text-primary"
                 : "border-transparent text-muted-foreground hover:text-foreground hover:border-border"

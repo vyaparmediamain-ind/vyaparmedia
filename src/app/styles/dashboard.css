@@ -486,7 +486,7 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  color: var(--color-text-primary, #ffffff);
+  color: var(--color-text-primary, #18181b);
 }
 
 /* Sidebar nav scroll area */
@@ -1151,7 +1151,7 @@
   font-size: clamp(20px, 4vw, 30px);
   font-weight: 800;
   letter-spacing: 0.15em;
-  color: #fff;
+  color: var(--color-text-primary, #18181b);
 }
 
 .referral-code-copy {
@@ -1233,11 +1233,11 @@
 }
 
 .referral-tier-percent {
-  color: #fff;
+  color: var(--color-text-primary, #18181b);
 }
 
 .referral-tier-card[data-active="true"] .referral-tier-name {
-  color: #fff;
+  color: var(--color-text-primary, #18181b);
 }
 
 .referral-tier-card[data-active="true"][data-tier="bronze"] {
@@ -1806,6 +1806,14 @@
   gap: 4px;
   margin-bottom: 16px;
   overflow-x: auto;
+  max-width: 100%;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+.badges-tabs-container::-webkit-scrollbar {
+  display: none;
 }
 
 .badges-tab-button {
@@ -1867,8 +1875,8 @@
 }
 
 .settings-tab-button:hover {
-  color: #ffffff;
-  background: rgba(255, 255, 255, 0.05);
+  color: var(--color-text-primary, #18181b);
+  background: var(--color-surface-elevated, rgba(125, 125, 125, 0.1));
 }
 
 .settings-tab-button[data-active="true"] {
@@ -2184,7 +2192,7 @@
   background: var(--color-bg-tertiary);
   border: 1px solid var(--color-border);
   border-radius: 12px;
-  color: #ffffff;
+  color: var(--color-text-primary, #18181b);
   font-size: 13px;
   outline: none;
   transition: border-color var(--transition-fast), background var(--transition-fast);
@@ -2217,7 +2225,7 @@
 }
 
 .messages-search-clear:hover {
-  color: #ffffff;
+  color: var(--color-text-primary, #18181b);
 }
 
 .conversation-item {
@@ -3142,7 +3150,7 @@ button[data-loading="true"] {
   padding: 11px 14px;
   border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 12px;
-  color: var(--color-text-primary, #fff);
+  color: var(--color-text-primary, #18181b);
   background: rgba(255, 255, 255, 0.05);
   font-size: 14px;
   outline: none;

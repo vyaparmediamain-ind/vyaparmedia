@@ -225,14 +225,9 @@ export default function ApplicationsPage() {
             title="Campaign Submissions & Pitches"
             subtitle="As a brand, creators apply directly to your campaigns. Review, shortlist, and approve pitches from your campaign dashboard."
             actions={
-              <div className="flex items-center gap-3">
-                <Button href="/dashboard/campaigns" variant="primary">
-                  View Active Campaigns
-                </Button>
-                <Button href="/dashboard/campaigns/create" variant="secondary">
-                  Create New Campaign
-                </Button>
-              </div>
+              <Button href="/dashboard/campaigns/create" variant="primary">
+                Create New Campaign
+              </Button>
             }
           />
           <div className="py-12 text-center flex flex-col items-center border border-border rounded-2xl bg-card p-8">
@@ -360,7 +355,7 @@ export default function ApplicationsPage() {
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all flex items-center gap-2 whitespace-nowrap ${
+                  className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all flex items-center gap-2 shrink-0 whitespace-nowrap cursor-pointer ${
                     isActive
                       ? "bg-primary text-primary-foreground shadow-xs"
                       : "text-muted-foreground hover:text-foreground hover:bg-muted"
@@ -386,8 +381,10 @@ export default function ApplicationsPage() {
             <div className="relative flex-1 sm:w-64">
               <Search className="w-4 h-4 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
               <input
+                id="applications-search"
                 type="text"
                 placeholder="Search campaign or brand..."
+                aria-label="Search campaign or brand"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full bg-background border border-input rounded-xl pl-9 pr-8 py-1.5 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring transition-all"

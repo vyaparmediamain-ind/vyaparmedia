@@ -83,8 +83,8 @@ params?: z.ZodSchema;
 * Provides consistent response format across all API routes
 */
 export const ApiResponse = {
-  success: (data: unknown, message = "Success", status = 200) =>
-    NextResponse.json({ success: true, message, data }, { status }),
+  success: (data: unknown, message = "Success", status = 200, headers?: HeadersInit) =>
+    NextResponse.json({ success: true, message, data }, headers ? { status, headers } : { status }),
   error: (message: string, status = 400, errors?: unknown) => {
     const safeMessage = formatUserError(message, "Unable to complete request. Please try again.");
     return NextResponse.json(

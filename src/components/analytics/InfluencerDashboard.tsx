@@ -164,6 +164,11 @@ export default function InfluencerDashboard({
 }: InfluencerDashboardProps) {
   const { toasts, showToast, removeToast } = useToasts();
   const [showAllActivity, setShowAllActivity] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
+
+  React.useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   if (!data || data.error || !data.overview) {
     return (
@@ -405,9 +410,9 @@ export default function InfluencerDashboard({
               const style = colors[cat.category] || { bg: "bg-muted/40", text: "text-muted-foreground", bar: "#6366f1" };
               return (
                 <div key={cat.category} className={`rounded-xl border border-border p-3 space-y-2 ${style.bg}`}>
-                  <div className="flex items-center justify-between">
-                    <span className={`text-xs font-bold ${style.text} truncate max-w-[80px]`}>{cat.category}</span>
-                    <span className="text-[10px] font-bold text-muted-foreground tabular-nums">{cat.percentage}%</span>
+                  <div className="flex items-center justify-between gap-1.5">
+                    <span className={`text-xs font-bold ${style.text} truncate`}>{cat.category}</span>
+                    <span className="text-[10px] font-bold text-muted-foreground tabular-nums shrink-0">{cat.percentage}%</span>
                   </div>
                   <div className="w-full bg-muted/60 rounded-full h-1.5 overflow-hidden">
                     <div className="h-full rounded-full transition-all" style={{ width: `${cat.percentage}%`, backgroundColor: style.bar }} />
@@ -443,46 +448,50 @@ export default function InfluencerDashboard({
 
           <div className="w-full h-72 sm:h-80 select-none">
             {earningsHistory.length > 0 ? (
-              <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
-                <AreaChart
-                  data={earningsHistory}
-                  margin={{ top: 10, right: 10, left: -10, bottom: 0 }}
-                >
-                  <defs>
-                    <linearGradient id="earningsGradient" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#16A34A" stopOpacity={0.35} />
-                      <stop offset="95%" stopColor="#16A34A" stopOpacity={0.0} />
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
-                  <XAxis
-                    dataKey="month"
-                    tickLine={false}
-                    axisLine={false}
-                    tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }}
-                  />
-                  <YAxis
-                    tickLine={false}
-                    axisLine={false}
-                    tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }}
-                    tickFormatter={(val) => {
-                      const rs = val / 100;
-                      if (rs >= 100000) return `₹${(rs / 100000).toFixed(1).replace(/\.0$/, "")}L`;
-                      if (rs >= 1000) return `₹${(rs / 1000).toFixed(1).replace(/\.0$/, "")}K`;
-                      return `₹${rs}`;
-                    }}
-                  />
-                  <Tooltip content={<GlassmorphicTooltip />} />
-                  <Area
-                    type="monotone"
-                    dataKey="amount"
-                    stroke="#16A34A"
-                    strokeWidth={2.5}
-                    fillOpacity={1}
-                    fill="url(#earningsGradient)"
-                  />
-                </AreaChart>
-              </ResponsiveContainer>
+              isMounted ? (
+                <ResponsiveContainer width="100%" height="100%" minWidth={100} minHeight={280}>
+                  <AreaChart
+                    data={earningsHistory}
+                    margin={{ top: 10, right: 10, left: -10, bottom: 0 }}
+                  >
+                    <defs>
+                      <linearGradient id="earningsGradient" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#16A34A" stopOpacity={0.35} />
+                        <stop offset="95%" stopColor="#16A34A" stopOpacity={0.0} />
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
+                    <XAxis
+                      dataKey="month"
+                      tickLine={false}
+                      axisLine={false}
+                      tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }}
+                    />
+                    <YAxis
+                      tickLine={false}
+                      axisLine={false}
+                      tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }}
+                      tickFormatter={(val) => {
+                        const rs = val / 100;
+                        if (rs >= 100000) return `₹${(rs / 100000).toFixed(1).replace(/\.0$/, "")}L`;
+                        if (rs >= 1000) return `₹${(rs / 1000).toFixed(1).replace(/\.0$/, "")}K`;
+                        return `₹${rs}`;
+                      }}
+                    />
+                    <Tooltip content={<GlassmorphicTooltip />} />
+                    <Area
+                      type="monotone"
+                      dataKey="amount"
+                      stroke="#16A34A"
+                      strokeWidth={2.5}
+                      fillOpacity={1}
+                      fill="url(#earningsGradient)"
+                    />
+                  </AreaChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className="w-full h-full rounded-2xl bg-muted/10 animate-pulse" />
+              )
             ) : (
               <div className="flex items-center justify-center h-full">
                 <EmptyState
@@ -674,7 +683,7 @@ export default function InfluencerDashboard({
                   className="flex items-center justify-between p-3 rounded-xl bg-muted/20 border border-border hover:border-border/80 transition-all"
                 >
                   <div className="min-w-0 flex-1 pr-3">
-                    <h4 className="text-sm font-bold text-foreground truncate">
+                    <h4 className="text-sm font-bold text-foreground line-clamp-2 leading-tight break-words">
                       {deal.campaignTitle}
                     </h4>
                     <div className="flex items-center gap-2 text-xs text-muted-foreground mt-0.5">

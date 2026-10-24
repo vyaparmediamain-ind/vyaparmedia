@@ -214,7 +214,7 @@ export default function CampaignsClient({
   const remainingCampaigns = isDefaultView ? campaigns.slice(3) : campaigns;
 
   return (
-    <div className="space-y-6 pb-16 animate-fade-in">
+    <div className="space-y-6 animate-fade-in">
       {/* ── 1. HEADER ───────────────────────────────────────────────── */}
       <PageHeader
         title={canCreateCampaign ? "Campaign Management" : "Campaign Discovery"}

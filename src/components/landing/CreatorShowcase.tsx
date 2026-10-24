@@ -5,61 +5,94 @@ import Image from "next/image";
 import Link from "next/link";
 import { Button } from "@/components/ui/Button";
 
-const CREATORS = [
+export interface CreatorShowcaseItem {
+  id: string;
+  name: string;
+  username: string;
+  niche: string;
+  followers: string;
+  engagement: string;
+  drs: number;
+  startingRate: string;
+  avatar: string;
+  bio: string;
+  kycVerified: boolean;
+}
+
+interface CreatorShowcaseProps {
+  creators?: CreatorShowcaseItem[] | undefined;
+  totalCount?: string | undefined;
+}
+
+const DEFAULT_CREATORS: CreatorShowcaseItem[] = [
   {
-    name: "Rohan Sharma",
-    username: "techbyrohan",
+    id: "c1",
+    name: "Aarav Tech Creator",
+    username: "aarav_tech",
     niche: "Tech",
-    followers: "480K",
+    followers: "120K+",
     engagement: "4.8%",
-    drs: 99,
-    startingRate: "₹35,000",
+    drs: 92,
+    startingRate: "₹25,000",
     avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=200&auto=format&fit=crop",
-    bio: "Unboxing smartphones, smart home gear & consumer AI gadgets.",
+    bio: "Unboxing smartphones, smart home gear & consumer AI gadgets with verified escrow delivery.",
+    kycVerified: true,
   },
   {
+    id: "c2",
     name: "Ananya Mehta",
     username: "stylewithananya",
     niche: "Fashion",
-    followers: "240K",
-    engagement: "6.2%",
-    drs: 98,
+    followers: "140K+",
+    engagement: "5.6%",
+    drs: 95,
     startingRate: "₹25,000",
     avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=200&auto=format&fit=crop",
-    bio: "Sustainable luxury styling, ethnic fusion & bridal couture reels.",
+    bio: "Sustainable luxury styling, ethnic fusion & bridal couture reels with guaranteed delivery.",
+    kycVerified: true,
   },
   {
+    id: "c3",
     name: "Vikram Malhotra",
     username: "fitwithvikram",
     niche: "Fitness",
-    followers: "320K",
+    followers: "115K+",
     engagement: "5.1%",
-    drs: 97,
+    drs: 89,
     startingRate: "₹28,000",
     avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=200&auto=format&fit=crop",
-    bio: "High-protein nutrition, strength training & sports supplementation.",
+    bio: "High-protein nutrition, strength training & sports supplementation campaigns.",
+    kycVerified: true,
   },
   {
-    name: "Pooja Hegde",
-    username: "delhifoodchronicles",
+    id: "c4",
+    name: "Pooja Sharma",
+    username: "poojafoodvlogs",
     niche: "Food",
-    followers: "190K",
-    engagement: "7.4%",
-    drs: 99,
+    followers: "190K+",
+    engagement: "6.4%",
+    drs: 94,
     startingRate: "₹18,000",
     avatar: "https://images.unsplash.com/photo-1517841905240-472988babdf9?q=80&w=200&auto=format&fit=crop",
     bio: "Street food discoveries, restaurant openings & quick D2C cooking hacks.",
+    kycVerified: true,
   },
 ];
 
-const NICHES = ["All", "Tech", "Fashion", "Fitness", "Food"];
-
-export function CreatorShowcase() {
+export function CreatorShowcase({ creators, totalCount }: CreatorShowcaseProps) {
   const [activeNiche, setActiveNiche] = useState("All");
 
+  const activeCreators = creators && creators.length > 0 ? creators : DEFAULT_CREATORS;
+
+  // Derive unique niches dynamically from available creators
+  const niches = [
+    "All",
+    ...Array.from(new Set(activeCreators.map((c) => c.niche))).filter(Boolean),
+  ];
+
   const filtered = activeNiche === "All"
-    ? CREATORS
-    : CREATORS.filter((c) => c.niche === activeNiche);
+    ? activeCreators
+    : activeCreators.filter((c) => c.niche === activeNiche);
 
   return (
     <section className="py-20 relative">
@@ -73,13 +106,13 @@ export function CreatorShowcase() {
               Work with Top DRS-Rated Creators
             </h2>
             <p className="text-muted-foreground mt-2 text-sm sm:text-base">
-              Explore KYC-verified creators with certified delivery track records.
+              Explore KYC-verified creators with certified delivery track records on VyaparMedia.
             </p>
           </div>
 
           {/* Filter Pills */}
           <div className="flex flex-wrap gap-2">
-            {NICHES.map((niche) => (
+            {niches.map((niche) => (
               <button
                 key={niche}
                 type="button"
@@ -100,20 +133,26 @@ export function CreatorShowcase() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {filtered.map((creator) => (
             <div
-              key={creator.username}
+              key={creator.id || creator.username}
               className="rounded-2xl border border-border bg-card p-5 flex flex-col justify-between hover:border-primary/50 transition-all shadow-sm hover:shadow-md group"
             >
               <div>
                 {/* Header: Avatar + DRS Badge */}
                 <div className="flex items-start justify-between gap-3 mb-4">
-                  <div className="relative w-14 h-14 rounded-full overflow-hidden border-2 border-border group-hover:border-primary transition-colors flex-shrink-0">
-                    <Image
-                      src={creator.avatar}
-                      alt={creator.name}
-                      fill
-                      sizes="56px"
-                      className="object-cover"
-                    />
+                  <div className="relative w-14 h-14 rounded-full overflow-hidden border-2 border-border group-hover:border-primary transition-colors flex-shrink-0 bg-primary/10">
+                    {creator.avatar ? (
+                      <Image
+                        src={creator.avatar}
+                        alt={creator.name}
+                        fill
+                        sizes="56px"
+                        className="object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center font-bold text-lg text-primary">
+                        {creator.name.charAt(0)}
+                      </div>
+                    )}
                   </div>
                   <div className="flex flex-col items-end">
                     <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-bold bg-verified-muted text-verified border border-verified-border shrink-0 whitespace-nowrap">
@@ -123,7 +162,7 @@ export function CreatorShowcase() {
                       {creator.drs}% DRS
                     </span>
                     <span className="text-[10px] text-muted-foreground mt-0.5">
-                      KYC Verified
+                      {creator.kycVerified ? "KYC Verified" : "Active Creator"}
                     </span>
                   </div>
                 </div>
@@ -159,7 +198,7 @@ export function CreatorShowcase() {
                   <span className="block text-[10px] text-muted-foreground">Starts from</span>
                   <span className="font-bold text-xs sm:text-sm text-foreground">{creator.startingRate}</span>
                 </div>
-                <Link href={`/creator/${creator.username}`}>
+                <Link href={`/creator/${encodeURIComponent(creator.username || creator.id)}`}>
                   <Button size="sm" variant="secondary" className="text-xs font-semibold">
                     View Profile
                   </Button>
@@ -172,7 +211,7 @@ export function CreatorShowcase() {
         <div className="mt-12 text-center">
           <Link href="/register?type=brand">
             <Button size="lg" className="font-bold">
-              Browse All 5,400+ Creators &rarr;
+              Browse All {totalCount ? `${totalCount} Creators` : "Verified Creators"} &rarr;
             </Button>
           </Link>
         </div>

@@ -103,7 +103,7 @@ export function DealContextMiniCard({ deal }: Readonly<DealContextMiniCardProps>
         </span>
 
         {/* Title */}
-        <span className="font-semibold text-xs text-foreground truncate max-w-[120px] sm:max-w-[220px]">
+        <span className="font-semibold text-xs text-foreground truncate max-w-[170px] sm:max-w-xs">
           {deal.title}
         </span>
 

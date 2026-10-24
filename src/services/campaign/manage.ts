@@ -66,24 +66,25 @@ return null;
 }
 }
 
-  const [openDealCount, disputedDealCount] = await Promise.all([
-    prisma.deal.count({
-      where: {
-        campaignId: campaign.id,
-        deletedAt: null,
-        status: {
-          notIn: ["CANCELLED", "COMPLETED"],
-        },
-      },
-    }),
-    prisma.deal.count({
-      where: {
-        campaignId: campaign.id,
-        deletedAt: null,
-        status: "DISPUTED",
-      },
-    }),
-  ]);
+  const dealGroups = await prisma.deal.groupBy({
+    by: ["status"],
+    where: {
+      campaignId: campaign.id,
+      deletedAt: null,
+    },
+    _count: { _all: true },
+  });
+
+  let openDealCount = 0;
+  let disputedDealCount = 0;
+  for (const g of dealGroups) {
+    if (g.status !== "CANCELLED" && g.status !== "COMPLETED") {
+      openDealCount += g._count._all;
+    }
+    if (g.status === "DISPUTED") {
+      disputedDealCount += g._count._all;
+    }
+  }
 
   return {
     ...campaign,
@@ -473,24 +474,25 @@ if (!campaign || campaign.deletedAt || campaign.brand?.userId !== userId) {
 throw AppError.notFound("Campaign not found or unauthorized");
 }
 
-const [openDealCount, disputedDealCount] = await Promise.all([
-  tx.deal.count({
+  const dealGroups = await tx.deal.groupBy({
+    by: ["status"],
     where: {
       campaignId,
       deletedAt: null,
-      status: {
-        notIn: ["CANCELLED", "COMPLETED"],
-      },
     },
-  }),
-  tx.deal.count({
-    where: {
-      campaignId,
-      deletedAt: null,
-      status: "DISPUTED",
-    },
-  }),
-]);
+    _count: { _all: true },
+  });
+
+  let openDealCount = 0;
+  let disputedDealCount = 0;
+  for (const g of dealGroups) {
+    if (g.status !== "CANCELLED" && g.status !== "COMPLETED") {
+      openDealCount += g._count._all;
+    }
+    if (g.status === "DISPUTED") {
+      disputedDealCount += g._count._all;
+    }
+  }
 
 const wallet = await tx.wallet.findUnique({ where: { userId } });
 

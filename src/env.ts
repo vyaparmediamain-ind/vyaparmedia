@@ -74,8 +74,8 @@ export const envSchema = z.object({
   // Database Read Replica & Tuning
   DATABASE_READ_REPLICA_URL: emptyAsUndefined(z.string().min(1).optional()),
   ALLOW_INSECURE_DATABASE: z.enum(["true", "false"]).optional().default("false"),
-  DB_SLOW_QUERY_THRESHOLD_MS: z.coerce.number().optional().default(500),
-  SLOW_QUERY_THRESHOLD_MS: z.coerce.number().optional().default(500),
+  DB_SLOW_QUERY_THRESHOLD_MS: z.coerce.number().optional().default(process.env.NODE_ENV === "production" ? 1000 : 2500),
+  SLOW_QUERY_THRESHOLD_MS: z.coerce.number().optional().default(process.env.NODE_ENV === "production" ? 1000 : 2500),
   AWS_LAMBDA_FUNCTION_NAME: emptyAsUndefined(z.string().optional()),
 
   // Third-party APIs & Realtime

@@ -212,7 +212,7 @@ export function MatchScoreBadge({
                 <div className="flex items-center justify-between text-xs">
                   <div className="flex items-center gap-1.5 text-foreground font-semibold">
                     <span className="text-muted-foreground">{pillar.icon}</span>
-                    <span className="truncate max-w-[190px]">{pillar.label}</span>
+                    <span className="truncate max-w-[240px] sm:max-w-xs">{pillar.label}</span>
                   </div>
                   <div className="flex items-center gap-1.5 tabular-nums shrink-0">
                     <span className="text-2xs text-muted-foreground font-medium">

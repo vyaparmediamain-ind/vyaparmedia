@@ -12,7 +12,7 @@ export default function RatesTab({ profile, setProfile }: Readonly<RatesTabProps
   return (
     <div className="card max-w-600">
       <h2 className="text-base font-bold mb-5">Your Rate Card</h2>
-      <p className="text-sm text-secondary mb-6">
+      <p className="text-sm text-muted-foreground mb-6">
         Set your baseline rates for brand collaborations. This helps match you with relevant campaigns.
       </p>
 
@@ -116,7 +116,7 @@ export default function RatesTab({ profile, setProfile }: Readonly<RatesTabProps
       </div>
 
       <div className="p-4 bg-tertiary rounded-md">
-        <p className="text-sm text-secondary flex items-start gap-2">
+        <p className="text-sm text-muted-foreground flex items-start gap-2">
           <svg
             width={16}
             height={16}

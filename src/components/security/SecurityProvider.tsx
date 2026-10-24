@@ -61,7 +61,7 @@ Session Expiring Soon
 </h2>
 
 <p
-className="text-sm mb-2 leading-relaxed text-secondary"
+className="text-sm mb-2 leading-relaxed text-muted-foreground"
 >
 For your security, you&apos;ll be automatically signed out due to
 inactivity in:
@@ -162,13 +162,23 @@ link.rel = "noopener noreferrer";
 });
 };
 
-// Run immediately and observe DOM mutations for dynamically rendered links
-patchExternalLinks();
-const observer = new MutationObserver(patchExternalLinks);
-observer.observe(document.body, { childList: true, subtree: true });
+    // Run immediately and observe DOM mutations for dynamically rendered links
+    patchExternalLinks();
+    let debounceTimer: NodeJS.Timeout | null = null;
+    const observer = new MutationObserver(() => {
+      if (debounceTimer) return;
+      debounceTimer = setTimeout(() => {
+        debounceTimer = null;
+        patchExternalLinks();
+      }, 300);
+    });
+    observer.observe(document.body, { childList: true, subtree: true });
 
-return () => observer.disconnect();
-}, [pathname]); // Re-run on route change
+    return () => {
+      if (debounceTimer) clearTimeout(debounceTimer);
+      observer.disconnect();
+    };
+  }, [pathname]); // Re-run on route change
 
 // Visibility change: re-validate session when tab refocuses and run periodic heartbeat checks.
 useEffect(() => {

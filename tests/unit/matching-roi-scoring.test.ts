@@ -9,6 +9,7 @@ import {
   calculateRoiScoreAsync,
   getAllCategoryBenchmarks,
   resetCategoryBaselineCpv,
+  invalidateCategoryBenchmarkMemoryCache,
   MatchingService,
   encodeMatchingPriority,
   decodeMatchingPriority,
@@ -63,6 +64,7 @@ vi.mock("@/lib/db", () => ({
 describe("Unit Tests: Category-Specific ROI & Relative CPV Scoring", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    invalidateCategoryBenchmarkMemoryCache();
   });
 
   describe("Category Baseline CPV Thresholds", () => {

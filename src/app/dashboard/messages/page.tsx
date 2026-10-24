@@ -68,7 +68,7 @@ function MessagesContent() {
   if (status === "loading" || !session) {
     return (
       <DashboardShell user={session?.user}>
-        <PageContainer maxWidth="7xl" className="py-4 sm:py-6">
+        <PageContainer maxWidth="7xl" className="pt-4 pb-0 sm:py-6">
           <MessagesSkeleton />
         </PageContainer>
       </DashboardShell>
@@ -78,7 +78,7 @@ function MessagesContent() {
   return (
     <DashboardShell user={session.user}>
       <ToastContainer toasts={toasts} onClose={removeToast} />
-      <PageContainer maxWidth="7xl" className="py-4 sm:py-6 space-y-4">
+      <PageContainer maxWidth="7xl" className="pt-4 pb-0 sm:py-6 space-y-4">
         <PageHeader
           title="Direct Messages"
           subtitle="Collaborate in real-time, negotiate campaign contracts, and share deliverable links securely."
@@ -100,7 +100,7 @@ export default function MessagesPage() {
     <Suspense
       fallback={
         <DashboardShell>
-          <PageContainer maxWidth="7xl" className="py-4 sm:py-6">
+          <PageContainer maxWidth="7xl" className="pt-4 pb-0 sm:py-6">
             <MessagesSkeleton />
           </PageContainer>
         </DashboardShell>

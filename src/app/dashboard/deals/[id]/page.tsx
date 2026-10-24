@@ -128,7 +128,7 @@ function DealStatusBadge({ status }: { status: string }) {
 function DealRoomSkeleton({ user }: { user?: unknown }) {
   return (
     <DashboardShell user={user as Parameters<typeof DashboardShell>[0]["user"]}>
-      <PageContainer maxWidth="6xl" className="space-y-6 pb-16 animate-pulse py-4 sm:py-6">
+      <PageContainer maxWidth="6xl" className="space-y-6 animate-pulse pt-4 pb-0 sm:py-6">
         {/* Header skeleton */}
         <div className="space-y-3">
           <Skeleton className="h-4 w-28 rounded-lg" />
@@ -302,7 +302,7 @@ export default function DealDetailPage() {
     <DashboardShell user={session?.user || undefined}>
       <ToastContainer toasts={toasts} onClose={removeToast} />
 
-      <PageContainer maxWidth="6xl" className="space-y-6 pb-20 animate-fade-in py-4 sm:py-6">
+      <PageContainer maxWidth="6xl" className="space-y-6 animate-fade-in pt-4 pb-0 sm:py-6">
 
         {/* ── 1. WORKROOM HERO HEADER ─────────── */}
         <PageHeader
@@ -344,12 +344,12 @@ export default function DealDetailPage() {
                 <div className="w-9 h-9 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary font-bold text-sm shrink-0 group-hover:scale-105 transition-transform">
                   {isClient ? <User className="w-4 h-4" /> : <Building2 className="w-4 h-4" />}
                 </div>
-                <div className="min-w-0">
+                <div className="min-w-0 flex-1">
                   <span className="text-[11px] text-muted-foreground flex items-center gap-1">
                     <span>{isClient ? "Counterparty Creator" : "Counterparty Brand"}</span>
                     <span className="text-[10px] text-primary opacity-0 group-hover:opacity-100 transition-opacity">↗</span>
                   </span>
-                  <span className="font-bold text-foreground group-hover:text-primary transition-colors text-sm truncate block max-w-[160px]">
+                  <span className="font-bold text-foreground group-hover:text-primary transition-colors text-sm break-words line-clamp-1 block max-w-[240px]">
                     {counterpartyName}
                   </span>
                 </div>

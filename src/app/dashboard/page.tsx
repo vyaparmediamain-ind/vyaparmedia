@@ -40,7 +40,7 @@ async function fetchDashboardData(userId: string, userType: string, fy?: string)
 function DashboardErrorFallback({ user }: Readonly<{ user: Session["user"] }>) {
   return (
     <DashboardShell user={user}>
-      <PageContainer maxWidth="7xl" className="py-4 sm:py-6">
+      <PageContainer maxWidth="7xl" className="pt-4 pb-0 sm:py-6">
         <div className="text-center rounded-2xl max-w-lg mx-auto p-8 border border-disputed-border bg-card mt-12 shadow-sm">
           <div className="mb-4 text-3xl" aria-hidden="true">
             ⚠️
@@ -186,7 +186,7 @@ export default async function DashboardPage({
 
   return (
     <DashboardShell user={session.user}>
-      <PageContainer maxWidth="7xl" className="py-4 sm:py-6">
+      <PageContainer maxWidth="7xl" className="pt-4 pb-0 sm:py-6">
         {renderDashboardContent()}
       </PageContainer>
     </DashboardShell>

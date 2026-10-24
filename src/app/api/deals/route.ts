@@ -42,17 +42,21 @@ limit,
 );
 
 return ApiResponse.success(
-{
-deals: result.deals,
-pagination: {
-page,
-limit,
-total: result.total,
-totalPages: Math.ceil(result.total / (limit || 1)),
-},
-stats: result.stats,
-},
-"Deals retrieved successfully",
+  {
+    deals: result.deals,
+    pagination: {
+      page,
+      limit,
+      total: result.total,
+      totalPages: Math.ceil(result.total / (limit || 1)),
+    },
+    stats: result.stats,
+  },
+  "Deals retrieved successfully",
+  200,
+  {
+    "Cache-Control": "private, max-age=10, stale-while-revalidate=30",
+  }
 );
 });
 

@@ -205,7 +205,7 @@ export default function InfluencerProfileClient({
   return (
     <PageContainer
       maxWidth="4xl"
-      className="py-4 md:py-8 space-y-6 pb-28 md:pb-12"
+      className="py-4 md:py-8 space-y-6"
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
     >
@@ -392,7 +392,7 @@ export default function InfluencerProfileClient({
                       <span>Send Message</span>
                     </Link>
                   ) : (
-                    <div className="relative group inline-flex flex-col sm:flex-row items-start sm:items-center gap-1.5">
+                    <div className="relative group inline-flex items-center">
                       <button
                         type="button"
                         disabled
@@ -402,14 +402,6 @@ export default function InfluencerProfileClient({
                       >
                         <Send className="w-3.5 h-3.5 opacity-50" />
                         <span>Send Message</span>
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setShowInviteModal(true)}
-                        className="inline-flex items-center gap-1 text-[11px] font-semibold text-primary hover:underline px-1 py-0.5"
-                        title="Start a deal first to message this creator"
-                      >
-                        <span>Start Deal to Chat →</span>
                       </button>
                     </div>
                   )}
@@ -536,7 +528,7 @@ export default function InfluencerProfileClient({
 
       {/* ==================== 3. SWIPEABLE TAB NAVIGATION ==================== */}
       <nav aria-label="Profile Sections" className="border-b border-border">
-        <div className="flex items-center justify-around" role="tablist">
+        <div className="flex items-center justify-start sm:justify-around overflow-x-auto no-scrollbar flex-nowrap" role="tablist">
           {[
             {
               id: "portfolio",
@@ -570,7 +562,7 @@ export default function InfluencerProfileClient({
                 role="tab"
                 aria-selected={active}
                 onClick={() => setActiveTab(tab.id as TabKey)}
-                className={`relative flex items-center gap-1.5 py-3 px-2 sm:px-4 text-xs sm:text-sm font-bold transition-colors focus:outline-none ${
+                className={`relative flex items-center gap-1.5 py-3 px-3 sm:px-4 text-xs sm:text-sm font-bold transition-colors focus:outline-none shrink-0 whitespace-nowrap ${
                   active ? "text-primary" : "text-muted-foreground hover:text-foreground"
                 }`}
               >

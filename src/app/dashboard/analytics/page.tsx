@@ -10,6 +10,7 @@ import { logger } from "@/lib/logger";
 import { isAdmin as rbacIsAdmin, isBrand, isInfluencer } from "@/lib/rbac";
 import { Button, PageContainer, PageHeader } from "@/components/ui";
 import prisma from "@/lib/db";
+import { cache } from "@/lib/cache";
 import AnalyticsPageClient from "./AnalyticsPageClient";
 import { BarChart3, ChevronRight, Wallet, ArrowLeft } from "lucide-react";
 
@@ -19,6 +20,32 @@ export const metadata = {
   title: "Analytics & FY Reports | VyaparMedia",
   description: "Performance metrics, revenue analytics, escrow ledger history, and Indian Financial Year compliance reports.",
 };
+
+async function checkUserOnboardingCompleted(userId: string): Promise<boolean> {
+  try {
+    const user = await cache(
+      `user:onboarding:${userId}`,
+      () =>
+        prisma.user.findUnique({
+          where: { id: userId },
+          select: {
+            userType: true,
+            influencerProfile: { select: { city: true, categories: true } },
+            brandProfile: { select: { companyName: true, city: true } },
+          },
+        }),
+      300,
+    );
+
+    const isInfluencerUser = user?.userType === "INFLUENCER";
+    return isInfluencerUser
+      ? Boolean(user?.influencerProfile?.city && user?.influencerProfile?.categories && user?.influencerProfile?.categories !== "General")
+      : Boolean(user?.brandProfile?.companyName && user?.brandProfile?.city);
+  } catch (err) {
+    logger.error("Failed to verify user onboarding status", err, { userId });
+    return true;
+  }
+}
 
 async function fetchAnalyticsData(userId: string, userType: string, fy?: string) {
   let influencerData = null;
@@ -62,24 +89,7 @@ export default async function AnalyticsPage({
   }
 
   // Guard: Newly registered users must complete onboarding before entering the dashboard
-  let isCompleted = true;
-  try {
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
-      select: {
-        userType: true,
-        influencerProfile: { select: { city: true, categories: true } },
-        brandProfile: { select: { companyName: true, city: true } },
-      },
-    });
-
-    const isInfluencerUser = user?.userType === "INFLUENCER";
-    isCompleted = isInfluencerUser
-      ? Boolean(user?.influencerProfile?.city && user?.influencerProfile?.categories && user?.influencerProfile?.categories !== "General")
-      : Boolean(user?.brandProfile?.companyName && user?.brandProfile?.city);
-  } catch (err) {
-    logger.error("Failed to verify user onboarding status", err, { userId });
-  }
+  const isCompleted = await checkUserOnboardingCompleted(userId);
 
   if (!isCompleted) {
     redirect("/onboarding");
@@ -101,7 +111,7 @@ export default async function AnalyticsPage({
 
   return (
     <DashboardShell user={session.user}>
-      <PageContainer maxWidth="7xl" className="space-y-6 sm:space-y-8 pb-12 py-4 sm:py-6">
+      <PageContainer maxWidth="7xl" className="space-y-6 sm:space-y-8 pt-4 pb-0 sm:py-6">
         {/* Navigation Breadcrumb & Quick Actions Header */}
         <PageHeader
           breadcrumbs={

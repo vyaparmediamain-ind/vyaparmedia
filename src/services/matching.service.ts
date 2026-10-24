@@ -45,6 +45,31 @@ export {
   DEFAULT_BASELINE_CPV_PAISE,
 };
 
+interface MemoryBenchmarkEntry<T> {
+  data: T;
+  expiresAt: number;
+}
+
+// In-process memory caches to prevent slow query waterfalls (Deal.findMany / TrustRuleConfig.findUnique)
+const categoryBaselineMemoryCache = new Map<string, MemoryBenchmarkEntry<{ baselinePaise: number; source: CategoryBenchmarkSource }>>();
+const dynamicBaselineMemoryCache = new Map<string, MemoryBenchmarkEntry<{ baselinePaise: number; dealCount: number } | null>>();
+const dbConfiguredMemoryCache = new Map<string, MemoryBenchmarkEntry<number | null>>();
+let platformAvgMemoryCache: MemoryBenchmarkEntry<number> | null = null;
+
+export function invalidateCategoryBenchmarkMemoryCache(category?: string): void {
+  if (category) {
+    const normalized = category.trim().toLowerCase();
+    categoryBaselineMemoryCache.delete(normalized);
+    dynamicBaselineMemoryCache.delete(normalized);
+    dbConfiguredMemoryCache.delete(normalized);
+  } else {
+    categoryBaselineMemoryCache.clear();
+    dynamicBaselineMemoryCache.clear();
+    dbConfiguredMemoryCache.clear();
+    platformAvgMemoryCache = null;
+  }
+}
+
 export class MatchingService {
   /**
    * Resolves dynamic CPV from completed deals in past 30 days.
@@ -54,9 +79,15 @@ export class MatchingService {
     category: string,
     minSampleDeals: number = 5
   ): Promise<{ baselinePaise: number; dealCount: number } | null> {
+    const normalized = category.trim().toLowerCase();
+    const now = Date.now();
+    const cached = dynamicBaselineMemoryCache.get(normalized);
+    if (cached && cached.expiresAt > now) {
+      return cached.data;
+    }
+
     try {
       const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
-      const normalized = category.trim().toLowerCase();
 
       const deals = await prisma.deal.findMany({
         where: {
@@ -97,6 +128,7 @@ export class MatchingService {
       }
 
       if (validCpvs.length < minSampleDeals) {
+        dynamicBaselineMemoryCache.set(normalized, { data: null, expiresAt: now + 10 * 60 * 1000 });
         return null;
       }
 
@@ -106,10 +138,12 @@ export class MatchingService {
       const prevVal = validCpvs[mid - 1] ?? midVal;
       const medianCpv = validCpvs.length % 2 === 0 ? (prevVal + midVal) / 2 : midVal;
 
-      return {
+      const result = {
         baselinePaise: Math.max(1, Math.round(medianCpv)),
         dealCount: validCpvs.length,
       };
+      dynamicBaselineMemoryCache.set(normalized, { data: result, expiresAt: now + 10 * 60 * 1000 });
+      return result;
     } catch (err) {
       logger.debug("Failed to calculate dynamic 30-day CPV benchmark", { category, error: err });
       return null;
@@ -121,15 +155,21 @@ export class MatchingService {
    * This is DB-driven: admins can tune it without code deployment.
    */
   private static async getDbConfiguredCategoryBaselineCpv(category: string): Promise<number | null> {
+    const normalized = category.trim().toLowerCase();
+    const now = Date.now();
+    const cached = dbConfiguredMemoryCache.get(normalized);
+    if (cached && cached.expiresAt > now) {
+      return cached.data;
+    }
+
     try {
-      const key = `CPV_BENCHMARK_${category.trim().toUpperCase().replace(/[\s-]+/g, "_")}`;
+      const key = `CPV_BENCHMARK_${normalized.toUpperCase().replace(/[\s-]+/g, "_")}`;
       const rule = await prisma.trustRuleConfig.findUnique({
         where: { ruleKey: key },
       });
-      if (rule && rule.isActive && rule.weight > 0) {
-        return Math.round(rule.weight);
-      }
-      return null;
+      const result = (rule && rule.isActive && rule.weight > 0) ? Math.round(rule.weight) : null;
+      dbConfiguredMemoryCache.set(normalized, { data: result, expiresAt: now + 10 * 60 * 1000 });
+      return result;
     } catch (err) {
       logger.debug("Failed to fetch DB-configured CPV benchmark", { category, error: err });
       return null;
@@ -141,6 +181,11 @@ export class MatchingService {
    * Used as sensible fallback for new/low-data categories.
    */
   public static async getOverallPlatformAverageCpv(): Promise<number> {
+    const now = Date.now();
+    if (platformAvgMemoryCache && platformAvgMemoryCache.expiresAt > now) {
+      return platformAvgMemoryCache.data;
+    }
+
     try {
       const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
       const deals = await prisma.deal.findMany({
@@ -174,13 +219,17 @@ export class MatchingService {
       if (validCpvs.length >= 5) {
         validCpvs.sort((a, b) => a - b);
         const mid = Math.floor(validCpvs.length / 2);
-        return Math.round(validCpvs[mid] ?? DEFAULT_BASELINE_CPV_PAISE);
+        const result = Math.round(validCpvs[mid] ?? DEFAULT_BASELINE_CPV_PAISE);
+        platformAvgMemoryCache = { data: result, expiresAt: now + 15 * 60 * 1000 };
+        return result;
       }
     } catch (err) {
       logger.debug("Failed to calculate overall platform average CPV", { error: err });
     }
 
-    return DEFAULT_BASELINE_CPV_PAISE;
+    const fallback = DEFAULT_BASELINE_CPV_PAISE;
+    platformAvgMemoryCache = { data: fallback, expiresAt: now + 15 * 60 * 1000 };
+    return fallback;
   }
 
   /**
@@ -202,13 +251,23 @@ export class MatchingService {
     category: string
   ): Promise<{ baselinePaise: number; source: CategoryBenchmarkSource }> {
     const normalized = category.trim().toLowerCase();
+    const now = Date.now();
+
+    // 0. In-Memory Cache Check (10-min TTL) -> Instant 0ms response
+    const memCached = categoryBaselineMemoryCache.get(normalized);
+    if (memCached && memCached.expiresAt > now) {
+      return memCached.data;
+    }
+
     const cacheKey = `category_cpv:resolved:${normalized}`;
 
-    // 0. Redis Cache Check (5-min TTL)
+    // 1. Redis Cache Check (5-min TTL)
     try {
       const cached = await redis.get(cacheKey);
       if (cached) {
-        return JSON.parse(cached);
+        const parsed = JSON.parse(cached);
+        categoryBaselineMemoryCache.set(normalized, { data: parsed, expiresAt: now + 10 * 60 * 1000 });
+        return parsed;
       }
     } catch (err) {
       logger.debug("Redis category benchmark read failed", { error: err });
@@ -218,6 +277,7 @@ export class MatchingService {
     const dynamicResult = await MatchingService.getDynamicCategoryBaselineCpv(normalized);
     if (dynamicResult && dynamicResult.dealCount >= 5) {
       const result = { baselinePaise: dynamicResult.baselinePaise, source: "DYNAMIC_30D" as const };
+      categoryBaselineMemoryCache.set(normalized, { data: result, expiresAt: now + 10 * 60 * 1000 });
       await MatchingService.safeCacheResult(cacheKey, 300, result);
       return result;
     }
@@ -226,6 +286,7 @@ export class MatchingService {
     const dbConfigured = await MatchingService.getDbConfiguredCategoryBaselineCpv(normalized);
     if (dbConfigured !== null && dbConfigured > 0) {
       const result = { baselinePaise: dbConfigured, source: "CONFIG_DB" as const };
+      categoryBaselineMemoryCache.set(normalized, { data: result, expiresAt: now + 10 * 60 * 1000 });
       await MatchingService.safeCacheResult(cacheKey, 300, result);
       return result;
     }
@@ -233,6 +294,7 @@ export class MatchingService {
     // Tier 3: Pre-seeded Industry Reference
     if (CATEGORY_BASELINE_CPV_PAISE[normalized] !== undefined) {
       const result = { baselinePaise: CATEGORY_BASELINE_CPV_PAISE[normalized], source: "INDUSTRY_SEEDED" as const };
+      categoryBaselineMemoryCache.set(normalized, { data: result, expiresAt: now + 10 * 60 * 1000 });
       await MatchingService.safeCacheResult(cacheKey, 300, result);
       return result;
     }
@@ -243,6 +305,7 @@ export class MatchingService {
     );
     if (foundKey && CATEGORY_BASELINE_CPV_PAISE[foundKey] !== undefined) {
       const result = { baselinePaise: CATEGORY_BASELINE_CPV_PAISE[foundKey], source: "INDUSTRY_SEEDED" as const };
+      categoryBaselineMemoryCache.set(normalized, { data: result, expiresAt: now + 10 * 60 * 1000 });
       await MatchingService.safeCacheResult(cacheKey, 300, result);
       return result;
     }
@@ -250,6 +313,7 @@ export class MatchingService {
     // Tier 4: Low-data / New-category Fallback: Overall platform 30-day average
     const platformAvg = await MatchingService.getOverallPlatformAverageCpv();
     const result = { baselinePaise: platformAvg, source: "PLATFORM_DEFAULT" as const };
+    categoryBaselineMemoryCache.set(normalized, { data: result, expiresAt: now + 10 * 60 * 1000 });
     await MatchingService.safeCacheResult(cacheKey, 300, result);
     return result;
   }
@@ -267,11 +331,9 @@ export class MatchingService {
       };
     }
 
-    const resolvedList: { baselinePaise: number; source: CategoryBenchmarkSource }[] = [];
-    for (const cat of targetCategories) {
-      const resolved = await MatchingService.resolveSingleCategoryBaseline(cat);
-      resolvedList.push(resolved);
-    }
+    const resolvedList = await Promise.all(
+      targetCategories.map((cat) => MatchingService.resolveSingleCategoryBaseline(cat))
+    );
 
     if (resolvedList.length === 0) {
       return {
@@ -343,6 +405,8 @@ export class MatchingService {
       },
     });
 
+    invalidateCategoryBenchmarkMemoryCache(category);
+
     try {
       await redis.del(`category_cpv:resolved:${normalized}`);
     } catch (err) {
@@ -404,6 +468,8 @@ export class MatchingService {
     await prisma.trustRuleConfig.deleteMany({
       where: { ruleKey },
     });
+
+    invalidateCategoryBenchmarkMemoryCache(category);
 
     try {
       await redis.del(`category_cpv:resolved:${normalized}`);

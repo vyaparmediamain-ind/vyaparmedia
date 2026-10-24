@@ -7,6 +7,7 @@ import { copyToClipboard } from "@/lib/clipboard";
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import useSWR from "swr";
 import Link from "next/link";
+import Image from "next/image";
 import { fetcher } from "@/lib/fetcher";
 import { useSession, signOut } from "next-auth/react";
 import DashboardShell from "@/components/dashboard/DashboardShell";
@@ -160,7 +161,10 @@ export default function SettingsPage() {
     user?: Partial<User> & { referralCode?: string };
     badges?: unknown[];
     socialConnections?: Partial<SocialConnections>;
-  }>("/api/settings", fetcher);
+  }>("/api/settings", fetcher, {
+    revalidateOnFocus: false,
+    dedupingInterval: 30000,
+  });
 
   useEffect(() => {
     if (!settingsData) return;
@@ -264,7 +268,7 @@ export default function SettingsPage() {
   if (loading) {
     return (
       <DashboardShell user={session?.user || user}>
-        <PageContainer maxWidth="7xl" className="py-4 sm:py-6">
+        <PageContainer maxWidth="7xl" className="pt-4 pb-0 sm:py-6">
           <div className="settings-page-layout">
             <div className="settings-sidebar">
               <div className="settings-sidebar-header">
@@ -272,7 +276,7 @@ export default function SettingsPage() {
               </div>
               <div className="settings-sidebar-nav">
                 {[1, 2, 3, 4, 5, 6].map((i) => (
-                  <Skeleton key={i} className="h-10 w-full rounded-xl mb-1" />
+                  <Skeleton key={i} className="h-8 w-28 shrink-0 rounded-full md:rounded-xl md:w-full md:h-10 md:mb-1" />
                 ))}
               </div>
             </div>
@@ -292,7 +296,7 @@ export default function SettingsPage() {
   if (!profile || !user) {
     return (
       <DashboardShell user={session?.user || user}>
-        <PageContainer maxWidth="7xl" className="py-4 sm:py-6">
+        <PageContainer maxWidth="7xl" className="pt-4 pb-0 sm:py-6">
           <div className="settings-error-state">
             <Settings className="w-10 h-10 text-muted-foreground mb-3" />
             <p className="text-base font-semibold text-foreground">Failed to load settings</p>
@@ -307,50 +311,18 @@ export default function SettingsPage() {
     <DashboardShell user={session?.user || user}>
       <ToastContainer toasts={toasts} onClose={handleRemoveToast} />
 
-      <PageContainer maxWidth="7xl" className="space-y-6 pb-16 animate-fade-in py-4 sm:py-6">
+      <PageContainer maxWidth="7xl" className="space-y-6 animate-fade-in pt-4 pb-0 sm:py-6">
         {/* ── Page Header ── */}
         <PageHeader
           title="Account Settings"
           subtitle="Manage your profile, banking credentials, compliance, notifications, and security."
-          actions={
-            publicProfileUrl ? (
-              <div className="flex items-center gap-2">
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  onClick={async () => {
-                    if (typeof window !== "undefined") {
-                      const fullUrl = `${window.location.origin}${publicProfileUrl}`;
-                      await copyToClipboard(fullUrl);
-                      showToast("Public profile link copied to clipboard!", "success");
-                    }
-                  }}
-                  className="gap-1.5 text-xs font-semibold shadow-2xs"
-                >
-                  <Copy className="w-3.5 h-3.5 text-muted-foreground" />
-                  <span>Copy Profile URL</span>
-                </Button>
-                <Button
-                  href={publicProfileUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  variant="secondary"
-                  size="sm"
-                  className="gap-1.5 text-xs font-semibold shadow-2xs"
-                >
-                  <span>Public View</span>
-                  <ExternalLink className="w-3.5 h-3.5" />
-                </Button>
-              </div>
-            ) : undefined
-          }
           border={false}
         />
 
         {/* ── 1. ACCOUNT HEALTH SUMMARY BANNER ─────────── */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 p-4 rounded-2xl bg-card border border-border shadow-xs text-xs">
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3 p-4 rounded-2xl bg-card border border-border shadow-xs text-xs">
           {/* KYC Status Tile */}
-          <div className="p-3 rounded-xl bg-muted/40 flex items-center justify-between gap-2">
+          <div className="p-3 rounded-xl bg-muted/40 flex items-center justify-between gap-2 min-w-0">
             <div className="flex items-center gap-2.5 min-w-0">
               <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${
                 isKycVerified ? "bg-verified-muted text-verified" : "bg-pending-muted text-pending"
@@ -358,10 +330,10 @@ export default function SettingsPage() {
                 {isKycVerified ? <ShieldCheck className="w-4 h-4" /> : <AlertCircle className="w-4 h-4" />}
               </div>
               <div className="min-w-0">
-                <span className="font-bold text-foreground block truncate">
+                <span className="font-bold text-foreground block whitespace-nowrap">
                   {isKycVerified ? "KYC Verified" : "KYC Pending"}
                 </span>
-                <span className="text-[11px] text-muted-foreground block truncate">
+                <span className="text-[11px] text-muted-foreground block whitespace-nowrap">
                   {isKycVerified ? "Full payout access" : "Action required"}
                 </span>
               </div>
@@ -378,16 +350,16 @@ export default function SettingsPage() {
           </div>
 
           {/* DRS Trust Score Tile */}
-          <div className="p-3 rounded-xl bg-muted/40 flex items-center justify-between gap-2">
+          <div className="p-3 rounded-xl bg-muted/40 flex items-center justify-between gap-2 min-w-0">
             <div className="flex items-center gap-2.5 min-w-0">
               <div className="w-8 h-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0">
                 <Sparkles className="w-4 h-4" />
               </div>
               <div className="min-w-0">
-                <span className="font-bold text-foreground block truncate">
+                <span className="font-bold text-foreground block whitespace-nowrap">
                   DRS Trust: {trustScore} / 900
                 </span>
-                <span className="text-[11px] text-muted-foreground block truncate">
+                <span className="text-[11px] text-muted-foreground block whitespace-nowrap">
                   Reputation index (300-900)
                 </span>
               </div>
@@ -398,16 +370,16 @@ export default function SettingsPage() {
           </div>
 
           {/* Profile Completeness Tile */}
-          <div className="p-3 rounded-xl bg-muted/40 flex items-center justify-between gap-2">
+          <div className="p-3 rounded-xl bg-muted/40 flex items-center justify-between gap-2 min-w-0">
             <div className="flex items-center gap-2.5 min-w-0">
               <div className="w-8 h-8 rounded-lg bg-escrow-muted text-escrow flex items-center justify-center shrink-0">
                 <TrendingUp className="w-4 h-4" />
               </div>
               <div className="min-w-0">
-                <span className="font-bold text-foreground block truncate">
+                <span className="font-bold text-foreground block whitespace-nowrap">
                   {healthScore}% Complete
                 </span>
-                <span className="text-[11px] text-muted-foreground block truncate">
+                <span className="text-[11px] text-muted-foreground block whitespace-nowrap">
                   Dossier strength
                 </span>
               </div>
@@ -422,15 +394,15 @@ export default function SettingsPage() {
 
           {/* Public Profile View (Live on Web) */}
           <div className="p-3 rounded-xl bg-muted/40 flex items-center justify-between gap-2 min-w-0">
-            <div className="flex items-center gap-2 min-w-0 flex-1">
+            <div className="flex items-center gap-2 min-w-0">
               <div className="w-8 h-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0">
                 <Globe className="w-4 h-4" />
               </div>
-              <div className="min-w-0 flex-1">
-                <span className="font-bold text-foreground block text-xs truncate">
+              <div className="min-w-0">
+                <span className="font-bold text-foreground block text-xs whitespace-nowrap">
                   Public Profile
                 </span>
-                <span className="text-[11px] text-muted-foreground block truncate">
+                <span className="text-[11px] text-muted-foreground block whitespace-nowrap">
                   Live on web
                 </span>
               </div>
@@ -449,16 +421,18 @@ export default function SettingsPage() {
                     }}
                     className="inline-flex items-center justify-center gap-1 px-2.5 py-1.5 rounded-lg bg-card border border-border text-foreground font-semibold text-xs hover:bg-muted transition-all cursor-pointer shadow-2xs shrink-0"
                     title="Copy public profile link to clipboard"
+                    aria-label="Copy public profile link to clipboard"
                   >
                     <Copy className="w-3.5 h-3.5 text-muted-foreground" />
-                    <span>Copy Link</span>
+                    <span className="hidden sm:inline">Copy Link</span>
                   </button>
                   <Link
                     href={publicProfileUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center justify-center gap-1 px-3 py-1.5 rounded-lg bg-card border border-border text-foreground font-bold text-xs hover:bg-primary hover:text-primary-foreground hover:border-primary transition-all cursor-pointer shadow-2xs shrink-0 whitespace-nowrap"
+                    className="inline-flex items-center justify-center gap-1 px-2.5 py-1.5 rounded-lg bg-card border border-border text-foreground font-bold text-xs hover:bg-primary hover:text-primary-foreground hover:border-primary transition-all cursor-pointer shadow-2xs shrink-0 whitespace-nowrap"
                     title="View public profile on web"
+                    aria-label="View public profile on web"
                   >
                     <span>View</span>
                     <ExternalLink className="w-3.5 h-3.5" />
@@ -530,7 +504,14 @@ export default function SettingsPage() {
             <div className="settings-sidebar-profile">
               <div className="settings-sidebar-avatar">
                 {profile.profileImage ? (
-                  <img src={profile.profileImage} alt="Profile" className="w-full h-full object-cover rounded-full" />
+                  <Image
+                    src={profile.profileImage}
+                    alt={profile.displayName || "User profile photo"}
+                    width={40}
+                    height={40}
+                    className="w-full h-full object-cover rounded-full"
+                    unoptimized={profile.profileImage.startsWith("data:")}
+                  />
                 ) : (
                   <UserIcon className="w-5 h-5 text-muted-foreground" />
                 )}

@@ -226,16 +226,19 @@ export async function listCampaigns(
       filters: where,
     });
 
-    const [campaigns, total] = await Promise.all([
-      prisma.campaign.findMany({
-        where,
-        include: CAMPAIGN_INCLUDE,
-        orderBy: { [sortBy]: sortOrder },
-        skip: (page - 1) * limit,
-        take: limit,
-      }),
-      prisma.campaign.count({ where }),
-    ]);
+    const campaigns = await prisma.campaign.findMany({
+      where,
+      include: CAMPAIGN_INCLUDE,
+      orderBy: { [sortBy]: sortOrder },
+      skip: (page - 1) * limit,
+      take: limit,
+    });
+
+    // Fast-path: On page 1 when fewer than limit campaigns exist, total is known in memory
+    let total = campaigns.length;
+    if (page > 1 || campaigns.length === limit) {
+      total = await prisma.campaign.count({ where });
+    }
 
     return {
       campaigns,

@@ -252,7 +252,13 @@ socialConnections: {
     handle: profileData.youtubeHandle || null,
   },
 },
-});
+},
+{
+  headers: {
+    "Cache-Control": "private, max-age=15, stale-while-revalidate=30",
+  },
+}
+);
 } catch (error: unknown) {
 logger.error("Settings fetch error", error);
 return NextResponse.json(

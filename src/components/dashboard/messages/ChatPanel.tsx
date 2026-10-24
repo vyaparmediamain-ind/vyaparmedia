@@ -118,11 +118,11 @@ function ChatHeader({ state }: Readonly<ChatPanelProps>) {
           </Link>
 
           {/* Name + status row */}
-          <div className="min-w-0">
+          <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2">
               <Link
                 href={profileHref}
-                className="font-bold text-sm sm:text-base text-foreground hover:text-primary transition-colors truncate max-w-[160px] sm:max-w-xs"
+                className="font-bold text-sm sm:text-base text-foreground hover:text-primary transition-colors line-clamp-1 break-words max-w-[220px] sm:max-w-sm"
                 title={`View ${isBrand ? "Brand" : "Creator"} Profile`}
               >
                 {selectedChat.name}
@@ -425,6 +425,7 @@ function ChatInputArea({ state }: Readonly<ChatPanelProps>) {
         >
           {/* Text input */}
           <input
+            id="chat-message-input"
             type="text"
             value={newMessage}
             onChange={(e) => handleInputChange(e.target.value)}

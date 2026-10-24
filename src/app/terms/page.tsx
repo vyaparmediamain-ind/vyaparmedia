@@ -9,9 +9,19 @@ import {
 import { PLATFORM_CONFIG } from "@/lib/platform-config";
 
 export const metadata: Metadata = {
-  title: "Terms of Service — VyaparMedia",
+  title: "Terms of Service",
   description:
     "The legally binding Terms of Service governing brand campaigns, creator deliverables, automated escrow, and dispute arbitration on VyaparMedia.",
+  alternates: {
+    canonical: "/terms",
+  },
+  openGraph: {
+    title: "Terms of Service | VyaparMedia",
+    description:
+      "Legally binding terms governing escrow contracts, creator milestones, TDS deductions, and dispute resolution.",
+    url: "/terms",
+    type: "website",
+  },
 };
 
 const SECTIONS = [

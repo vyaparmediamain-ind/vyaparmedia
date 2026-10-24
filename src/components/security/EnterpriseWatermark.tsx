@@ -12,70 +12,76 @@ import { logger } from "@/lib/logger-client";
 * like brand wallets, pending deals, or influencer PII.
 * - Tamper Detection observes if the watermark node is deleted or display:none is applied via DevTools.
 */
-function checkRemovedNodes(removedNodes: NodeList, watermarkId: string) {
-for (const node of Array.from(removedNodes)) {
-if ((node as HTMLElement).id === watermarkId) {
-logger.warn("[SECURITY] Tampering detected: Watermark removed.");
-}
-}
+function isSensitivePath(): boolean {
+  if (typeof window === "undefined") return false;
+  const p = window.location.pathname;
+  return p.startsWith("/dashboard/wallet") || p.startsWith("/dashboard/deals") || p.startsWith("/admin");
 }
 
-function checkStyleChanges(mutation: MutationRecord, watermarkId: string) {
-if (mutation.type === "attributes" && mutation.attributeName === "style") {
-const el = mutation.target as HTMLElement;
-if (el.id === watermarkId) {
-if (el.style.opacity === "0" || el.style.display === "none" || el.style.visibility === "hidden") {
-logger.warn("[SECURITY] Tampering detected: Watermark hidden.");
+function checkRemovedNodes(removedNodes: NodeList, watermarkId: string, isTearingDown: boolean) {
+  if (isTearingDown || !isSensitivePath()) return;
+  for (const node of Array.from(removedNodes)) {
+    if ((node as HTMLElement).id === watermarkId && !isTearingDown && isSensitivePath()) {
+      logger.warn("[SECURITY] Tampering detected: Watermark removed.");
+    }
+  }
 }
-}
-}
+
+function checkStyleChanges(mutation: MutationRecord, watermarkId: string, isTearingDown: boolean) {
+  if (isTearingDown || !isSensitivePath()) return;
+  if (mutation.type === "attributes" && mutation.attributeName === "style") {
+    const el = mutation.target as HTMLElement;
+    if (el.id === watermarkId) {
+      if (el.style.opacity === "0" || el.style.display === "none" || el.style.visibility === "hidden") {
+        logger.warn("[SECURITY] Tampering detected: Watermark hidden.");
+      }
+    }
+  }
 }
 
 export function EnterpriseWatermark() {
-const { data: session } = useSession();
-const pathname = usePathname();
-const [mounted, setMounted] = useState(false);
+  const { data: session } = useSession();
+  const pathname = usePathname();
+  const [mounted, setMounted] = useState(false);
 
-useEffect(() => {
-setTimeout(() => setMounted(true), 0);
-}, []);
+  useEffect(() => {
+    setTimeout(() => setMounted(true), 0);
+  }, []);
 
-// Only show on protected routes where data leaks matter most
-const isSensitiveRoute =
-pathname?.startsWith("/dashboard/wallet") ||
-pathname?.startsWith("/dashboard/deals") ||
-pathname?.startsWith("/admin");
+  // Only show on protected routes where data leaks matter most
+  const isSensitiveRoute =
+    pathname?.startsWith("/dashboard/wallet") ||
+    pathname?.startsWith("/dashboard/deals") ||
+    pathname?.startsWith("/admin");
 
-useEffect(() => {
-if (!mounted || !isSensitiveRoute || !session?.user) return;
+  useEffect(() => {
+    if (!mounted || !isSensitiveRoute || !session?.user) return;
 
-  // DOM tamper detection
-  const watermarkId = "enterprise-security-watermark";
+    // DOM tamper detection
+    const watermarkId = "enterprise-security-watermark";
+    let isTearingDown = false;
 
-let isUpdating = false;
-// MutationObserver detects if someone tries to delete the watermark from DOM
-const observer = new MutationObserver((mutations) => {
-if (isUpdating) return;
-isUpdating = true;
-try {
-for (const mutation of mutations) {
-checkRemovedNodes(mutation.removedNodes, watermarkId);
-checkStyleChanges(mutation, watermarkId);
-}
-} finally {
-isUpdating = false;
-}
-});
+    // MutationObserver detects if someone tries to delete the watermark from DOM
+    const observer = new MutationObserver((mutations) => {
+      if (isTearingDown || !isSensitivePath()) return;
+      for (const mutation of mutations) {
+        checkRemovedNodes(mutation.removedNodes, watermarkId, isTearingDown);
+        checkStyleChanges(mutation, watermarkId, isTearingDown);
+      }
+    });
 
-observer.observe(document.body, {
-childList: true,
-subtree: true,
-attributes: true,
-attributeFilter: ["style"]
-});
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true,
+      attributes: true,
+      attributeFilter: ["style"],
+    });
 
-return () => observer.disconnect();
-}, [mounted, isSensitiveRoute, session]);
+    return () => {
+      isTearingDown = true;
+      observer.disconnect();
+    };
+  }, [mounted, isSensitiveRoute, session]);
 
 if (!mounted || !isSensitiveRoute || !session?.user) return null;
 

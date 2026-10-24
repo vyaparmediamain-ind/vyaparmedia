@@ -93,12 +93,14 @@ export default async function PublicBrandProfilePage({
     session?.user?.id === brand.userId ||
     (session?.user?.userType === "BRAND" && session?.user?.name === brand.companyName);
 
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://vyaparmedia-nine.vercel.app";
+
   // Schema.org structured data
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "Organization",
     name: brand.companyName,
-    url: brand.website || `https://vyaparmedia.ind.in/brand/${encodeURIComponent(id)}`,
+    url: brand.website || `${baseUrl}/brand/${encodeURIComponent(targetId || id)}`,
     logo: brand.logo || undefined,
     description: brand.description || undefined,
     address: brand.city || brand.state ? {

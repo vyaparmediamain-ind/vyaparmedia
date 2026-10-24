@@ -27,7 +27,10 @@ export default function LoginActivityPanel({
 }: Readonly<LoginActivityPanelProps>) {
   const [showAllLogins, setShowAllLogins] = useState(false);
 
-  const { data } = useSWR<ActivityResponse>("/api/user/activity", fetcher);
+  const { data } = useSWR<ActivityResponse>("/api/user/activity", fetcher, {
+    revalidateOnFocus: false,
+    dedupingInterval: 60000,
+  });
 
   const loginActivity = useMemo(() => {
     if (!data?.activity) return [];

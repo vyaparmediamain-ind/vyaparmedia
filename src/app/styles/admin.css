@@ -756,12 +756,20 @@
     height: 18px;
   }
 
-  .dashboard-mobile-logo a > div:last-child span:first-child {
+  .dashboard-mobile-logo a > div:last-child > span:first-child,
+  .dashboard-mobile-logo .logo-title {
     font-size: 18px !important;
     letter-spacing: 0 !important;
+    display: inline-flex !important;
+    align-items: center !important;
   }
 
-  .dashboard-mobile-logo a > div:last-child span:last-child,
+  .dashboard-mobile-logo .logo-media,
+  .dashboard-mobile-logo span.logo-media {
+    display: inline !important;
+  }
+
+  .dashboard-mobile-logo .logo-tagline,
   .dashboard-topbar-title,
   .dashboard-topbar-subtitle {
     display: none !important;

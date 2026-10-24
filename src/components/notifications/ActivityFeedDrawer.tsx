@@ -176,7 +176,7 @@ export default function ActivityFeedDrawer({
                 key={tab.key}
                 type="button"
                 onClick={() => setActiveFilter(tab.key)}
-                className={`px-3.5 py-1.5 min-h-[44px] rounded-full text-xs font-medium transition-all flex items-center justify-center ${
+                className={`px-3.5 py-1.5 min-h-[44px] rounded-full text-xs font-medium transition-all flex items-center justify-center shrink-0 whitespace-nowrap cursor-pointer ${
                   active
                     ? "bg-primary text-primary-foreground font-semibold shadow-sm"
                     : "text-muted-foreground hover:text-foreground hover:bg-muted"

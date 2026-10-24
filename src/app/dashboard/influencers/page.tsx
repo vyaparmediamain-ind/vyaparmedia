@@ -210,7 +210,7 @@ export default function DiscoverInfluencersPage() {
   if (!isBrandOrAdmin) {
     return (
       <DashboardShell user={session.user}>
-        <PageContainer maxWidth="4xl" className="py-4 sm:py-6">
+        <PageContainer maxWidth="4xl" className="pt-4 pb-0 sm:py-6">
           <div className="max-w-lg mx-auto p-8 rounded-2xl bg-card border border-border text-center mt-12 shadow-sm space-y-4">
             <div className="w-12 h-12 rounded-2xl bg-primary/10 text-primary flex items-center justify-center mx-auto">
               <Sparkles className="w-6 h-6" />
@@ -232,7 +232,7 @@ export default function DiscoverInfluencersPage() {
 
   return (
     <DashboardShell user={session.user}>
-      <PageContainer maxWidth="7xl" className="space-y-6 pb-16 animate-fade-in py-4 sm:py-6">
+      <PageContainer maxWidth="7xl" className="space-y-6 animate-fade-in pt-4 pb-0 sm:py-6">
         {/* ── 1. HEADER (INSTAGRAM + COLLABR BENCHMARK) ───────────────────── */}
         <PageHeader
           title="Creator Discovery"

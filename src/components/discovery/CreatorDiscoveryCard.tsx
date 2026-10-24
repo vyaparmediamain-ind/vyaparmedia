@@ -141,9 +141,9 @@ export default function CreatorDiscoveryCard({
               </span>
             )}
           </div>
-          <div className="min-w-0">
+          <div className="min-w-0 flex-1">
             <div className="flex items-center gap-1.5">
-              <h4 className="text-sm font-heading font-bold text-foreground truncate group-hover:text-primary transition-colors">
+              <h4 className="text-sm font-heading font-bold text-foreground line-clamp-1 break-words group-hover:text-primary transition-colors">
                 {creator.name}
               </h4>
               {creator.isKycVerified && (
