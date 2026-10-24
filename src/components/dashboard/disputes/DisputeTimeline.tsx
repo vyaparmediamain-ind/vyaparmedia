@@ -47,7 +47,7 @@ export function DisputeTimeline({ dispute }: Readonly<DisputeTimelineProps>) {
       <div className="relative pl-6 space-y-5 before:absolute before:left-2.5 before:top-2 before:bottom-2 before:w-0.5 before:bg-border">
         {/* Step 1: Dispute Filed */}
         <div className="relative">
-          <div className="absolute -left-6 top-0.5 w-5 h-5 rounded-full bg-verified text-white flex items-center justify-center">
+          <div className="absolute -left-6 top-0.5 z-10 w-5 h-5 rounded-full bg-verified text-primary-foreground flex items-center justify-center">
             <CheckCircle2 className="w-3.5 h-3.5" />
           </div>
           <div>
@@ -136,7 +136,7 @@ export function DisputeTimeline({ dispute }: Readonly<DisputeTimelineProps>) {
         {/* Step 5: Resolved */}
         {isResolved && (
           <div className="relative">
-            <div className="absolute -left-6 top-0.5 w-5 h-5 rounded-full bg-verified text-white flex items-center justify-center">
+            <div className="absolute -left-6 top-0.5 z-10 w-5 h-5 rounded-full bg-verified text-primary-foreground flex items-center justify-center">
               <ShieldCheck className="w-3.5 h-3.5" />
             </div>
             <div>

@@ -720,6 +720,7 @@
 .flex-shrink-0 { flex-shrink: 0; }
 .text-capitalize { text-transform: capitalize; }
 .overflow-hidden { overflow: hidden; }
+.overflow-visible { overflow: visible !important; }
 .text-ellipsis { text-overflow: ellipsis; }
 .whitespace-nowrap { white-space: nowrap; }
 .min-h-screen { min-height: 100vh; }

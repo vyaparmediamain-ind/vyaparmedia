@@ -150,7 +150,7 @@ export default function PricingPage() {
                   }`}
                 >
                   <span>Agency & Volume Plan</span>
-                  <span className="text-[10px] bg-verified text-white px-1.5 py-0.2 rounded-full font-black uppercase tracking-wider shrink-0 whitespace-nowrap">
+                  <span className="text-[10px] bg-verified text-primary-foreground px-1.5 py-0.5 rounded-full font-black uppercase tracking-wider shrink-0 whitespace-nowrap">
                     Save 25%
                   </span>
                 </button>
@@ -162,7 +162,7 @@ export default function PricingPage() {
               </p>
             </div>
 
-            <div className="pricing-cards-grid grid gap-6 max-w-4xl mx-auto">
+            <div className="pricing-cards-grid grid gap-6 max-w-4xl mx-auto pt-4">
 
               {/* Creator Card */}
               <article className="pricing-card pricing-card--creator card rounded-2xl p-8 flex flex-col border border-border">
@@ -204,8 +204,8 @@ export default function PricingPage() {
               </article>
 
               {/* Brand Card */}
-              <article className="pricing-card pricing-card--brand card rounded-2xl p-8 flex flex-col relative border-2 border-primary shadow-lg bg-card">
-                <div className="absolute -top-3.5 right-6 px-3 py-1 rounded-full bg-primary text-primary-foreground text-[11px] font-black uppercase tracking-wider shadow-md shrink-0 whitespace-nowrap">
+              <article className="pricing-card pricing-card--brand card rounded-2xl p-8 flex flex-col relative border-2 border-primary shadow-lg bg-card overflow-visible">
+                <div className="absolute -top-3.5 right-6 z-10 px-3.5 py-1 rounded-full bg-primary text-primary-foreground text-[11px] font-black uppercase tracking-wider shadow-md shrink-0 whitespace-nowrap">
                   Most Popular
                 </div>
 

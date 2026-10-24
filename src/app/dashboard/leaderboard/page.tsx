@@ -301,7 +301,7 @@ export default function LeaderboardPage() {
                         </div>
                       )}
                     </div>
-                    <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-6 h-6 rounded-full bg-muted text-foreground border border-border flex items-center justify-center font-black text-xs shadow-xs">
+                    <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 z-10 w-6 h-6 rounded-full bg-muted text-foreground border border-border flex items-center justify-center font-black text-xs shadow-xs">
                       2
                     </div>
                   </div>
@@ -348,7 +348,7 @@ export default function LeaderboardPage() {
                         </div>
                       )}
                     </div>
-                    <div className="absolute -bottom-2.5 left-1/2 -translate-x-1/2 w-7 h-7 rounded-full bg-amber-500 text-primary-foreground flex items-center justify-center font-black text-sm shadow-xs">
+                    <div className="absolute -bottom-2.5 left-1/2 -translate-x-1/2 z-10 w-7 h-7 rounded-full bg-amber-500 text-primary-foreground flex items-center justify-center font-black text-sm shadow-xs">
                       1
                     </div>
                   </div>
@@ -394,7 +394,7 @@ export default function LeaderboardPage() {
                         </div>
                       )}
                     </div>
-                    <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-6 h-6 rounded-full bg-amber-700 text-primary-foreground flex items-center justify-center font-black text-xs shadow-xs">
+                    <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 z-10 w-6 h-6 rounded-full bg-amber-700 text-primary-foreground flex items-center justify-center font-black text-xs shadow-xs">
                       3
                     </div>
                   </div>

@@ -178,7 +178,7 @@ export default function EscrowStoriesBar({
 
                   {/* Tiny Status Icon Indicator badge */}
                   <span
-                    className={`absolute bottom-0.5 right-0.5 w-4 h-4 rounded-full border border-card flex items-center justify-center shadow text-white ${
+                    className={`absolute bottom-0.5 right-0.5 z-10 w-4 h-4 rounded-full border border-card flex items-center justify-center shadow text-primary-foreground ${
                       progress.isDisputed
                         ? "bg-disputed"
                         : progress.percentage >= 90
