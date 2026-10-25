@@ -78,7 +78,7 @@
     "@types/web-push": "^3.6.4",
     "@vitest/coverage-v8": "^5.0.0",
     "eslint": "^10",
-    "eslint-config-next": "^16.2.6",
+    "eslint-config-next": "^16.4.2",
     "prisma": "^7.10.0",
     "typescript": "^5",
     "vite": "^6.4.0",
