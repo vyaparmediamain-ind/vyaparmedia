@@ -1,6 +1,7 @@
 import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import Link from "next/link";
+import { Suspense } from "react";
 import DashboardShell from "@/components/dashboard/DashboardShell";
 import {
   getInfluencerAnalytics,
@@ -148,21 +149,34 @@ export default async function AnalyticsPage({
         />
 
         {/* Dynamic Analytics Client View */}
-        {isInfluencerUser && influencerData && (
-          <AnalyticsPageClient
-            userType="INFLUENCER"
-            initialData={influencerData}
-            currentFY={fy}
-          />
-        )}
+        <Suspense
+          fallback={
+            <div className="space-y-6 animate-pulse py-8">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                {[1, 2, 3, 4].map((i) => (
+                  <div key={i} className="h-28 rounded-2xl bg-muted/60 border border-border" />
+                ))}
+              </div>
+              <div className="h-80 rounded-2xl bg-muted/40 border border-border" />
+            </div>
+          }
+        >
+          {isInfluencerUser && influencerData && (
+            <AnalyticsPageClient
+              userType="INFLUENCER"
+              initialData={influencerData}
+              currentFY={fy}
+            />
+          )}
 
-        {isBrandUser && brandData && (
-          <AnalyticsPageClient
-            userType="BRAND"
-            initialData={brandData}
-            currentFY={fy}
-          />
-        )}
+          {isBrandUser && brandData && (
+            <AnalyticsPageClient
+              userType="BRAND"
+              initialData={brandData}
+              currentFY={fy}
+            />
+          )}
+        </Suspense>
 
         {!influencerData && !brandData && (
           <div className="text-center py-16 px-4 rounded-2xl border border-border bg-card shadow-sm max-w-lg mx-auto">

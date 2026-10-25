@@ -23,6 +23,7 @@ import {
   Lock,
 } from "lucide-react";
 import { formatUserError } from "@/lib/user-messages";
+import { logger } from "@/lib/logger-client";
 import Logo from "@/components/Logo";
 import { BackButton } from "@/components/ui/BackButton";
 
@@ -121,8 +122,10 @@ export default function OnboardingPage() {
             }
           }
         }
-      } catch {
-        // Non-blocking fallback
+      } catch (err: unknown) {
+        logger.warn("Non-fatal initial profile fetch error during onboarding", {
+          error: err instanceof Error ? err.message : String(err),
+        });
       } finally {
         setIsFetching(false);
       }

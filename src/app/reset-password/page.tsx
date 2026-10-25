@@ -166,7 +166,7 @@ function ResetPasswordForm() {
           <span className="font-bold text-foreground block text-[11px] uppercase tracking-wider">
             Password Guidelines
           </span>
-          <div className="grid grid-cols-2 gap-1 text-[11px] text-muted-foreground">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-1 text-[11px] text-muted-foreground">
             <span className={password.length >= 8 ? "text-verified font-medium" : ""}>
               &bull; 8+ characters
             </span>

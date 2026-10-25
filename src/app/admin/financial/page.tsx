@@ -13,6 +13,7 @@ import {
   Download,
   FileSpreadsheet,
   BookOpen,
+  Receipt,
 } from "lucide-react";
 
 export const dynamic = "force-dynamic";
@@ -267,6 +268,16 @@ export default async function AdminFinancialPage() {
           >
             <BookOpen className="w-3.5 h-3.5" />
             General Ledger (CSV)
+          </Button>
+          <Button
+            href="/api/admin/reports/gst-tcs?format=csv"
+            variant="secondary"
+            size="sm"
+            className="gap-1.5"
+            aria-label="Download GST TCS GSTR-8 report as CSV"
+          >
+            <Receipt className="w-3.5 h-3.5" />
+            GST TCS / GSTR-8 (CSV)
           </Button>
         </div>
       </div>

@@ -138,6 +138,7 @@ export function AuthenticityAppealBanner() {
         </div>
 
         <button
+          type="button"
           onClick={() => setIsExpanded((prev) => !prev)}
           className="self-start sm:self-center inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-card border border-border text-xs font-bold text-foreground hover:bg-muted transition-colors cursor-pointer"
           aria-expanded={isExpanded}

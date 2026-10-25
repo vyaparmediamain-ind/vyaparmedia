@@ -130,11 +130,9 @@ export function EscrowSimulator() {
             </div>
           </div>
 
-          <Link href="/register" className="w-full">
-            <Button className="w-full font-bold shadow-md">
-              Lock This Deal in Escrow
-            </Button>
-          </Link>
+          <Button href="/register" className="w-full font-bold shadow-md">
+            Lock This Deal in Escrow
+          </Button>
         </div>
 
         {/* Right Column: 3 Milestone Protection Cards */}

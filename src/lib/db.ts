@@ -515,4 +515,49 @@ export async function ensureTdsTreasury(tx?: Prisma.TransactionClient) {
   return wallet;
 }
 
+/**
+ * Ensures that the GST_TCS_TREASURY user and wallet exist in the database.
+ * Used for strict double-entry tracking of tax liabilities (GST TCS withheld under Section 52 of CGST Act, 2017).
+ */
+export async function ensureGstTcsTreasury(tx?: Prisma.TransactionClient) {
+  const client = tx || prisma;
+
+  const user = await client.user.findUnique({
+    where: { id: "GST_TCS_TREASURY" },
+  });
+
+  if (!user) {
+    await client.user.create({
+      data: {
+        id: "GST_TCS_TREASURY",
+        email: "gst-tcs-treasury@platform.local",
+        phone: "+919999999997",
+        passwordHash: `sys:${randomBytes(32).toString("hex")}`,
+        userType: "BRAND",
+        status: "ACTIVE",
+        verificationLevel: "FULL",
+        emailVerified: true,
+        phoneVerified: true,
+      },
+    });
+  }
+
+  let wallet = await client.wallet.findUnique({
+    where: { userId: "GST_TCS_TREASURY" },
+  });
+
+  if (!wallet) {
+    wallet = await client.wallet.create({
+      data: {
+        userId: "GST_TCS_TREASURY",
+        balance: 0,
+        pendingBalance: 0,
+      },
+    });
+  }
+
+  return wallet;
+}
+
 export default prisma;
+

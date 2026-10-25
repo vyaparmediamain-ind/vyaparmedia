@@ -106,6 +106,7 @@ function AuthenticityAuditModal({
             </p>
           </div>
           <button
+            type="button"
             onClick={onClose}
             className="text-muted-foreground hover:text-foreground text-sm font-bold p-1 rounded-lg hover:bg-muted"
             aria-label="Close modal"

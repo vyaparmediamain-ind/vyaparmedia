@@ -141,16 +141,18 @@ export async function savePushSubscription(
 
   try {
     // 1. Enforce max 5 subscriptions per user (FIFO prune oldest if >= 5)
-    const existingSubs = await prisma.pushSubscription.findMany({
-      where: { userId },
-      select: { id: true },
-      orderBy: { createdAt: "asc" },
-    });
-    if (existingSubs.length >= 5) {
-      const toDelete = existingSubs.slice(0, existingSubs.length - 4);
-      if (toDelete.length > 0) {
+    const count = await prisma.pushSubscription.count({ where: { userId } });
+    if (count >= 5) {
+      const excess = count - 4;
+      const oldest = await prisma.pushSubscription.findMany({
+        where: { userId },
+        orderBy: { createdAt: "asc" },
+        take: excess,
+        select: { id: true },
+      });
+      if (oldest.length > 0) {
         await prisma.pushSubscription.deleteMany({
-          where: { id: { in: toDelete.map((s) => s.id) } },
+          where: { id: { in: oldest.map((s) => s.id) } },
         });
       }
     }

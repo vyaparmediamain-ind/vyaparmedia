@@ -4,6 +4,7 @@ import { apiWrapper } from "@/lib/api-wrapper";
 import { DisputeService } from "@/services/dispute.service";
 import { AdminService } from "@/services/admin.service";
 import { analyzeDispute } from "@/lib/dispute-mediator";
+import { logger } from "@/lib/logger";
 
 export const GET = apiWrapper(async (_req, { params }) => {
 const session = await auth();
@@ -40,8 +41,8 @@ let analysis = null;
 if (dispute.status === "TIER1_AUTO" || dispute.status === "OPEN") {
 try {
 analysis = await analyzeDispute(dispute.id);
-} catch {
-// ignore
+} catch (err) {
+logger.warn("Dispute auto-analysis failed to compute", { disputeId: dispute.id, error: err });
 }
 }
 

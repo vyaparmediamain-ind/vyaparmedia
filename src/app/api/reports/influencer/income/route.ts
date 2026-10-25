@@ -77,6 +77,7 @@ const totalGross = deals.reduce((s, d) => s + (d.grossPayout || d.amount), 0);
 const totalPlatformFee = deals.reduce((s, d) => s + d.platformFee, 0);
 const totalTDS = deals.reduce((s, d) => s + (d.tdsDeducted || 0), 0);
 const totalNet = deals.reduce((s, d) => s + (d.netPayout ?? Math.max(0, (d.grossPayout || d.amount) - (d.tdsDeducted || 0))), 0);
+const totalGSTTCS = Math.max(0, totalGross - totalTDS - totalNet);
 
 // Month-wise breakdown
 const monthMap = new Map<string, { gross: number; tds: number; net: number; count: number }>();
@@ -115,18 +116,23 @@ csv += csvSep();
 
 // Deal-wise table
 csv += csvTitle("DEAL-WISE INCOME DETAILS");
-csv += "Sr.,Completed Date,Brand,Campaign,Category,Gross Amount (INR),Brand Platform Fee (INR),TDS 194-O (INR),Net Received (INR)\r\n";
+csv += "Sr.,Completed Date,Brand,Campaign,Category,Gross Amount (INR),Brand Platform Fee (INR),TDS 194-O (INR),GST TCS Sec 52 (INR),Net Received (INR)\r\n";
 deals.forEach((d, i) => {
+const gross = d.grossPayout || d.amount;
+const tds = d.tdsDeducted || 0;
+const net = d.netPayout ?? Math.max(0, gross - tds);
+const tcs = Math.max(0, gross - tds - net);
 csv += [
 i + 1,
 d.completedAt ? format(d.completedAt, "dd/MM/yyyy") : "",
 csvEsc(d.brand?.companyName ?? ""),
 csvEsc(d.campaign?.title ?? ""),
 csvEsc(String(d.campaign?.targetCategories?.[0] ?? "")),
-paiseToRupees(d.grossPayout || d.amount),
+paiseToRupees(gross),
 paiseToRupees(d.platformFee),
-paiseToRupees(d.tdsDeducted || 0),
-paiseToRupees(d.netPayout ?? Math.max(0, (d.grossPayout || d.amount) - (d.tdsDeducted || 0))),
+paiseToRupees(tds),
+paiseToRupees(tcs),
+paiseToRupees(net),
 ].join(",") + "\r\n";
 });
 csv += csvSep();
@@ -157,8 +163,10 @@ csv += csvRow("Total Gross Earnings (INR)", paiseToRupees(totalGross));
 csv += csvRow("Platform Fee Deducted from Creator (INR)", "0.00 (Zero Fee for Creators)");
 csv += csvRow("Total Brand Platform Fee Paid (INR)", paiseToRupees(totalPlatformFee));
 csv += csvRow("Total TDS Deducted (INR)", paiseToRupees(totalTDS));
+csv += csvRow("Total GST TCS Deducted (Sec 52) (INR)", paiseToRupees(totalGSTTCS));
 csv += csvRow("Total Net Bank Disbursements (INR)", paiseToRupees(totalNet));
 csv += csvSep();
+
 
 // Quarterly TDS Schedule (Cleartax & Form 16A Benchmark)
 csv += csvTitle("QUARTERLY TDS SCHEDULE (FORM 16A / 26AS RECONCILIATION)");
@@ -203,6 +211,7 @@ totalGrossRupees: paiseToRupees(totalGross),
 creatorPlatformFeeRupees: "0.00",
 brandPlatformFeeRupees: paiseToRupees(totalPlatformFee),
 totalTDSRupees: paiseToRupees(totalTDS),
+totalGstTcsRupees: paiseToRupees(totalGSTTCS),
 totalNetRupees: paiseToRupees(totalNet),
 dealCount: deals.length,
 tdsSection: `194-O (${TDS_194O_RATE_PERCENT_STRING} above ₹${Math.round(TDS_194O_THRESHOLD_RUPEES / 100000)} Lakh threshold)`,
@@ -214,16 +223,23 @@ grossRupees: paiseToRupees(data.gross),
 netRupees: paiseToRupees(data.net),
 tdsRupees: paiseToRupees(data.tds),
 })),
-deals: deals.map((d) => ({
+deals: deals.map((d) => {
+const gross = d.grossPayout || d.amount;
+const tds = d.tdsDeducted || 0;
+const net = d.netPayout ?? Math.max(0, gross - tds);
+const tcs = Math.max(0, gross - tds - net);
+return {
 id: d.id,
 brand: d.brand?.companyName,
 campaign: d.campaign?.title,
 completedAt: d.completedAt,
-grossRupees: paiseToRupees(d.grossPayout || d.amount),
+grossRupees: paiseToRupees(gross),
 platformFeeRupees: paiseToRupees(d.platformFee),
-tdsRupees: paiseToRupees(d.tdsDeducted || 0),
-netRupees: paiseToRupees(d.netPayout ?? Math.max(0, (d.grossPayout || d.amount) - (d.tdsDeducted || 0))),
-})),
+tdsRupees: paiseToRupees(tds),
+gstTcsRupees: paiseToRupees(tcs),
+netRupees: paiseToRupees(net),
+};
+}),
 }, "Income report generated");
 }
 

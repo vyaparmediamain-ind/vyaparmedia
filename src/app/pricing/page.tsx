@@ -302,6 +302,7 @@ export default function PricingPage() {
               {FAQS.map((faq, i) => (
                 <div key={i} className="card rounded-xl overflow-hidden border border-border">
                   <button
+                    type="button"
                     className="w-full text-left px-5 py-4 flex items-center justify-between gap-4 text-sm font-semibold text-foreground hover:bg-muted/40 transition-colors cursor-pointer"
                     onClick={() => setOpenFaq(openFaq === i ? null : i)}
                     aria-expanded={openFaq === i}

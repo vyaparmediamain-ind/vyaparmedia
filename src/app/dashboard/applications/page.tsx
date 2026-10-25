@@ -354,6 +354,7 @@ export default function ApplicationsPage() {
               return (
                 <button
                   key={tab.id}
+                  type="button"
                   onClick={() => setActiveTab(tab.id)}
                   className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all flex items-center gap-2 shrink-0 whitespace-nowrap cursor-pointer ${
                     isActive
@@ -391,6 +392,7 @@ export default function ApplicationsPage() {
               />
               {searchQuery && (
                 <button
+                  type="button"
                   onClick={() => setSearchQuery("")}
                   className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground p-0.5"
                   aria-label="Clear search"
@@ -403,6 +405,7 @@ export default function ApplicationsPage() {
             {/* View Mode Switcher */}
             <div className="hidden md:flex items-center bg-muted p-1 rounded-xl border border-border">
               <button
+                type="button"
                 onClick={() => setViewMode("cards")}
                 aria-label="Card grid view"
                 className={`p-1.5 rounded-lg transition-all ${
@@ -414,6 +417,7 @@ export default function ApplicationsPage() {
                 <LayoutGrid className="w-4 h-4" />
               </button>
               <button
+                type="button"
                 onClick={() => setViewMode("table")}
                 aria-label="Table pipeline view"
                 className={`p-1.5 rounded-lg transition-all ${

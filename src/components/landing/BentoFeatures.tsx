@@ -162,10 +162,11 @@ export function BentoFeatures() {
               </p>
             </div>
           </div>
-          <Link href="/register" className="flex-shrink-0">
-            <button className="px-5 py-2.5 rounded-lg text-sm font-bold bg-primary text-primary-foreground hover:bg-primary/90 transition-colors shadow-sm whitespace-nowrap">
-              Get Protected Today
-            </button>
+          <Link
+            href="/register"
+            className="flex-shrink-0 px-5 py-2.5 rounded-lg text-sm font-bold bg-primary text-primary-foreground hover:bg-primary/90 transition-colors shadow-sm whitespace-nowrap inline-flex items-center justify-center"
+          >
+            Get Protected Today
           </Link>
         </div>
 

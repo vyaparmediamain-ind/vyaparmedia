@@ -137,11 +137,9 @@ export function ComparisonTable({ totalCount }: ComparisonTableProps) {
                 Join {totalCount ? `${totalCount} verified creators and brands` : "thousands of verified creators and brands"} transacting securely.
               </p>
             </div>
-            <Link href="/register">
-              <Button size="sm" className="font-bold">
-                Start Free Trial
-              </Button>
-            </Link>
+            <Button href="/register" size="sm" className="font-bold">
+              Start Free Trial
+            </Button>
           </div>
         </div>
       </div>

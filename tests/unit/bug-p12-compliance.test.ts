@@ -204,7 +204,130 @@ describe("P12 Compliance End-to-End Bug Regression Suite", () => {
       const tcsAdvisory = summary.advisories.some((a) => a.includes("Section 52 TCS"));
       expect(tcsAdvisory).toBe(true);
     });
+
+    it("does NOT deduct GST TCS for unregistered creators under 20 Lakhs", async () => {
+      const updatedMockWallet = { id: "wallet-creator-unreg", balance: 100000, totalEarned: 100000, debt: 0 };
+      const createTxMock = vi.fn().mockResolvedValue({ id: "tx-payout-unreg" });
+      const dealUpdateMock = vi.fn().mockResolvedValue({ id: "deal-unreg-1" });
+
+      const mockTx = {
+        $queryRaw: vi.fn().mockResolvedValue([{ id: "wallet-creator-unreg", debt: 0 }]),
+        indiaTaxCompliance: {
+          findUnique: vi.fn().mockResolvedValue({
+            panLast4: "1234",
+            tdsSection: "194O",
+            gstRegistrationType: "UNREGISTERED",
+            gstTurnoverSlab: "BELOW_20L",
+            gstinLast4: null,
+          }),
+        },
+        deal: {
+          findUnique: vi.fn().mockResolvedValue({ grossPayout: 0, tdsDeducted: 0 }),
+          findMany: vi.fn().mockResolvedValue([]),
+          update: dealUpdateMock,
+        },
+        wallet: {
+          update: vi.fn().mockResolvedValue(updatedMockWallet),
+        },
+        transaction: {
+          create: createTxMock,
+        },
+      } as unknown as Prisma.TransactionClient;
+
+      const result = await creditInfluencerPayoutWithTax(mockTx, {
+        userId: "user-creator-unreg",
+        dealId: "deal-unreg-1",
+        grossPayout: 100000, // Rs 1000
+        description: "Payout for deal: deal-unreg-1",
+      });
+
+      // No TCS and no TDS (< 5 Lakh)
+      expect(result.grossPayout).toBe(100000);
+      expect(result.tdsAmount).toBe(0);
+      expect(result.gstTcsAmount).toBe(0);
+      expect(result.netPayout).toBe(100000); // Creator receives full Rs 1000
+    });
+
+    it("automatically deducts 1% GST TCS and credits GST_TCS_TREASURY for registered / 20L+ creators", async () => {
+      const updatedMockWallet = { id: "wallet-creator-reg", balance: 99000, totalEarned: 100000, debt: 0 };
+      const createTxMock = vi.fn().mockResolvedValue({ id: "tx-payout-reg" });
+      const dealUpdateMock = vi.fn().mockResolvedValue({ id: "deal-reg-1" });
+      const userFindMock = vi.fn().mockResolvedValue({ id: "GST_TCS_TREASURY" });
+      const walletFindMock = vi.fn().mockResolvedValue({ id: "wallet-gst-tcs-treasury", userId: "GST_TCS_TREASURY" });
+      const walletUpdateMock = vi.fn().mockResolvedValue(updatedMockWallet);
+
+      const mockTx = {
+        $queryRaw: vi.fn().mockResolvedValue([{ id: "wallet-creator-reg", debt: 0 }]),
+        user: {
+          findUnique: userFindMock,
+        },
+        indiaTaxCompliance: {
+          findUnique: vi.fn().mockResolvedValue({
+            panLast4: "1234",
+            tdsSection: "194O",
+            gstRegistrationType: "REGISTERED",
+            gstTurnoverSlab: "BETWEEN_20L_AND_5CR",
+            gstinLast4: "1Z5",
+            gstStateCode: "29", // Karnataka
+          }),
+        },
+        deal: {
+          findUnique: vi.fn().mockResolvedValue({ grossPayout: 0, tdsDeducted: 0 }),
+          findMany: vi.fn().mockResolvedValue([]),
+          update: dealUpdateMock,
+        },
+        wallet: {
+          findUnique: walletFindMock,
+          update: walletUpdateMock,
+        },
+        transaction: {
+          create: createTxMock,
+        },
+      } as unknown as Prisma.TransactionClient;
+
+      const result = await creditInfluencerPayoutWithTax(mockTx, {
+        userId: "user-creator-reg",
+        dealId: "deal-reg-1",
+        grossPayout: 100000, // Rs 1000
+        description: "Payout for deal: deal-reg-1",
+      });
+
+      // Rs 10 (1000 paise) deducted as GST TCS under Section 52
+      expect(result.grossPayout).toBe(100000);
+      expect(result.gstTcsAmount).toBe(1000);
+      expect(result.netPayout).toBe(99000); // Creator receives Rs 990
+
+      // Verify double-entry credit to GST_TCS_TREASURY
+      expect(walletUpdateMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { id: "wallet-gst-tcs-treasury" },
+          data: { balance: { increment: 1000 } },
+        }),
+      );
+
+      // Verify transaction records created
+      expect(createTxMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            type: "DEBIT",
+            amount: 1000,
+            description: expect.stringContaining("GST TCS deduction (Section 52"),
+          }),
+        }),
+      );
+
+      expect(createTxMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            type: "CREDIT",
+            amount: 1000,
+            description: expect.stringContaining("GST TCS liability credited to tax treasury"),
+          }),
+        }),
+      );
+    });
   });
+
 
   describe("P1-COMP-07: ASCI & CCPA Advertising Disclosure Validation", () => {
     it("detects valid ASCI tags in captions (#ad, #sponsored, #collab, etc.)", () => {

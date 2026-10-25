@@ -1,6 +1,8 @@
 import { Prisma } from "@prisma/client";
-import { ensurePlatformTreasury, ensureTdsTreasury } from "./db";
+import { ensurePlatformTreasury, ensureTdsTreasury, ensureGstTcsTreasury } from "./db";
 import { creditWalletWithDebtAdjustment } from "./wallet-debt";
+import { calculateGstTcs, getGstinStateCode } from "./india-compliance";
+import { PLATFORM_CONFIG } from "./platform-config";
 
 type DealFeeInput = {
 id: string;
@@ -13,8 +15,10 @@ influencerPayout: number | null;
 type PayoutWithTaxResult = {
 grossPayout: number;
 tdsAmount: number;
+gstTcsAmount: number;
 netPayout: number;
 };
+
 
 import {
   TDS_194O_RATE,
@@ -143,7 +147,43 @@ export async function creditInfluencerPayoutWithTax(
     grossPayout,
   );
   const tdsAmount = Math.min(grossPayout, calculatedTds);
-  const netPayout = Math.max(0, grossPayout - tdsAmount);
+
+  // Fetch creator's tax compliance status
+  const taxCompliance = await tx.indiaTaxCompliance.findUnique({
+    where: { userId: params.userId },
+    select: {
+      panLast4: true,
+      tdsSection: true,
+      gstRegistrationType: true,
+      gstTurnoverSlab: true,
+      gstStateCode: true,
+      gstinLast4: true,
+      gstin: true,
+    },
+  });
+
+  // GST TCS under Section 52 of CGST Act only applies if supplier is registered for GST (e.g. turnover above 20 Lakhs)
+  const isGstRegistered =
+    taxCompliance?.gstRegistrationType === "REGISTERED" ||
+    Boolean(taxCompliance?.gstinLast4 || taxCompliance?.gstin) ||
+    Boolean(taxCompliance?.gstTurnoverSlab && taxCompliance.gstTurnoverSlab !== "BELOW_20L");
+
+
+  let gstTcsResult: ReturnType<typeof calculateGstTcs> | null = null;
+  let gstTcsAmount = 0;
+
+  if (isGstRegistered && grossPayout > 0) {
+    const supplierStateCode =
+      taxCompliance?.gstStateCode ||
+      (taxCompliance?.gstin ? getGstinStateCode(taxCompliance.gstin) : null);
+    const operatorStateCode = PLATFORM_CONFIG.gstin ? PLATFORM_CONFIG.gstin.slice(0, 2) : "29";
+    gstTcsResult = calculateGstTcs(grossPayout, supplierStateCode, operatorStateCode);
+    gstTcsAmount = gstTcsResult.tcsAmountPaise;
+  }
+
+  const remainingAfterTds = Math.max(0, grossPayout - tdsAmount);
+  const actualGstTcsAmount = Math.min(remainingAfterTds, gstTcsAmount);
+  const netPayout = Math.max(0, remainingAfterTds - actualGstTcsAmount);
 
   const rawMeta =
     params.metadata && typeof params.metadata === "object" && !Array.isArray(params.metadata)
@@ -170,11 +210,8 @@ export async function creditInfluencerPayoutWithTax(
     metadata,
   );
 
+  // 1. Withhold Income Tax TDS if applicable
   if (tdsAmount > 0) {
-    const taxCompliance = await tx.indiaTaxCompliance.findUnique({
-      where: { userId: params.userId },
-      select: { panLast4: true, tdsSection: true },
-    });
     const is194J = taxCompliance?.tdsSection?.startsWith("194J") ?? false;
     const appliedSection = is194J ? "194J" : "393(1) (Income-tax Act, 2025 / 194-O)";
     const appliedRatePercent = getAppliedTdsRatePercent(Boolean(taxCompliance?.panLast4), is194J);
@@ -226,6 +263,63 @@ export async function creditInfluencerPayoutWithTax(
     });
   }
 
+  // 2. Withhold GST TCS (Section 52 CGST Act) if applicable
+  if (actualGstTcsAmount > 0 && gstTcsResult) {
+    const tcsLabel = gstTcsResult.isInterState ? "1% IGST" : "0.5% CGST + 0.5% SGST";
+    await tx.transaction.create({
+      data: {
+        walletId: wallet.id,
+        dealId: params.dealId,
+        type: "DEBIT",
+        amount: actualGstTcsAmount,
+        status: "COMPLETED",
+        description: `GST TCS deduction (Section 52, ${tcsLabel}) for deal: ${params.dealId}`,
+        metadata: {
+          balanceImpact: false,
+          source: "gst_tcs_withholding",
+          grossPayout,
+          netPayout,
+          gstTcsAmount: actualGstTcsAmount,
+          cgstPaise: gstTcsResult.cgstPaise,
+          sgstPaise: gstTcsResult.sgstPaise,
+          igstPaise: gstTcsResult.igstPaise,
+          isInterState: gstTcsResult.isInterState,
+          supplierGstinLast4: taxCompliance?.gstinLast4 ?? null,
+        },
+      },
+    });
+
+    // Double-entry accounting: credit the dedicated GST TCS treasury wallet
+    const gstTcsTreasuryWallet = await ensureGstTcsTreasury(tx);
+    await tx.wallet.update({
+      where: { id: gstTcsTreasuryWallet.id },
+      data: { balance: { increment: actualGstTcsAmount } },
+    });
+
+    await tx.transaction.create({
+      data: {
+        walletId: gstTcsTreasuryWallet.id,
+        dealId: params.dealId,
+        type: "CREDIT",
+        amount: actualGstTcsAmount,
+        status: "COMPLETED",
+        description: `GST TCS liability credited to tax treasury (Section 52, ${tcsLabel}) for deal: ${params.dealId}`,
+        metadata: {
+          source: "gst_tcs_withholding",
+          grossPayout,
+          netPayout,
+          gstTcsAmount: actualGstTcsAmount,
+          cgstPaise: gstTcsResult.cgstPaise,
+          sgstPaise: gstTcsResult.sgstPaise,
+          igstPaise: gstTcsResult.igstPaise,
+          isInterState: gstTcsResult.isInterState,
+          influencerUserId: params.userId,
+          supplierGstinLast4: taxCompliance?.gstinLast4 ?? null,
+        },
+      },
+    });
+  }
+
   // Lock the deal row to serialize concurrent milestone payouts or settlements
   await tx.$queryRaw`SELECT id FROM "Deal" WHERE id = ${params.dealId} FOR UPDATE`;
 
@@ -239,8 +333,9 @@ export async function creditInfluencerPayoutWithTax(
     },
   });
 
-return { grossPayout, tdsAmount, netPayout };
+  return { grossPayout, tdsAmount, gstTcsAmount: actualGstTcsAmount, netPayout };
 }
+
 
 export async function recordPlatformFeeRevenue(
 tx: Prisma.TransactionClient,

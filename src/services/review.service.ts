@@ -140,26 +140,33 @@ throw AppError.badRequest("You have already reviewed this user for this deal");
 const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
 const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
 
-const recentReviews = await prisma.review.findMany({
-where: {
-reviewerId: reviewerId,
-receiverId: targetId,
-createdAt: { gte: thirtyDaysAgo },
-},
-select: { createdAt: true },
-orderBy: { createdAt: "desc" },
+const recent30dCount = await prisma.review.count({
+  where: {
+    reviewerId: reviewerId,
+    receiverId: targetId,
+    createdAt: { gte: thirtyDaysAgo },
+  },
 });
 
-if (recentReviews.length >= 3) {
-throw AppError.badRequest(
-"Review farming limit reached: A brand-creator pair cannot submit more than 3 reviews within a 30-day window without manual moderation."
-);
+if (recent30dCount >= 3) {
+  throw AppError.badRequest(
+    "Review farming limit reached: A brand-creator pair cannot submit more than 3 reviews within a 30-day window without manual moderation."
+  );
 }
 
-if (recentReviews.some((r) => r.createdAt >= oneDayAgo)) {
-throw AppError.badRequest(
-"Review velocity cooldown: Please wait at least 24 hours before submitting another review for the same collaboration partner."
-);
+const recent24hReview = await prisma.review.findFirst({
+  where: {
+    reviewerId: reviewerId,
+    receiverId: targetId,
+    createdAt: { gte: oneDayAgo },
+  },
+  select: { id: true, createdAt: true },
+});
+
+if (recent24hReview) {
+  throw AppError.badRequest(
+    "Review velocity cooldown: Please wait at least 24 hours before submitting another review for the same collaboration partner."
+  );
 }
 
 // Review Authenticity Guard 3: Duplicate/canned review comment prevention

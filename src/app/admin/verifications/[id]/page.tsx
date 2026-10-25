@@ -101,8 +101,13 @@ export default async function VerificationDetailPage({
           documentsCount: user.verificationDocs.length,
         },
       });
-    } catch {
-      // Non-fatal audit log failure
+    } catch (err: unknown) {
+      const { logger } = await import("@/lib/logger");
+      logger.warn("Non-fatal audit log failure when viewing KYC docs", {
+        userId: session.user.id,
+        targetUserId: user.id,
+        error: err instanceof Error ? err.message : String(err),
+      });
     }
   }
 

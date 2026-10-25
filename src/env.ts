@@ -176,17 +176,17 @@ export const envSchema = z.object({
 
   // Security
   AUTH_SECRET: emptyAsUndefined(z.string().min(32).optional()),
-  CRON_SECRET: z.string().min(32).optional(),
-  CONTRACT_SIGNING_SECRET: z.string().min(32).optional(),
+  CRON_SECRET: emptyAsUndefined(z.string().min(32).optional()),
+  CONTRACT_SIGNING_SECRET: emptyAsUndefined(z.string().min(32).optional()),
   HMAC_KEY: emptyAsUndefined(z.string().min(32).optional()),
   ENCRYPTION_KEYS: z.preprocess(
     (val) => (typeof val === "string" && val.trim() !== "" ? val : "v1:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"),
     z.string().min(67)
   ), // Format: v1:<64hex> = minimum 67 chars
-  ENCRYPTION_KEY: z.string().min(32).optional(),
+  ENCRYPTION_KEY: emptyAsUndefined(z.string().min(32).optional()),
   KYC_PROVIDER: z.enum(["manual", "surepass", "mock"]).default("manual"),
-  KYC_API_KEY: z.string().min(1).optional(),
-  MSG91_TEMPLATE_ID: z.string().min(1).optional(),
+  KYC_API_KEY: emptyAsUndefined(z.string().min(1).optional()),
+  MSG91_TEMPLATE_ID: emptyAsUndefined(z.string().min(1).optional()),
   OTP_HASH_SECRET: emptyAsUndefined(z.string().min(16).optional()),
 
   // Platform Corporate & Tax Compliance Details (Used in CSV/PDF statement exports)
@@ -208,19 +208,19 @@ export const envSchema = z.object({
   MAX_WITHDRAWAL_AMOUNT: z.coerce.number().default(50000000),
   NEXT_PUBLIC_MIN_WITHDRAWAL_AMOUNT: z.coerce.number().optional().default(50000),
   NEXT_PUBLIC_MAX_WITHDRAWAL_AMOUNT: z.coerce.number().optional().default(50000000),
-  E2E_MAGIC_OTP: z.string().optional(),
+  E2E_MAGIC_OTP: emptyAsUndefined(z.string().optional()),
 
   // Storage
   STORAGE_PROVIDER: z
     .enum(["local", "s3", "r2"])
     .default("local"),
-  S3_BUCKET: z.string().optional(),
-  S3_REGION: z.string().optional(),
-  S3_ACCESS_KEY: z.string().optional(),
-  S3_SECRET_KEY: z.string().optional(),
-  S3_ENDPOINT: z.string().optional(),
-  STORAGE_PUBLIC_URL: z.string().optional(),
-  R2_PUBLIC_URL: z.string().optional(),
+  S3_BUCKET: emptyAsUndefined(z.string().optional()),
+  S3_REGION: emptyAsUndefined(z.string().optional()),
+  S3_ACCESS_KEY: emptyAsUndefined(z.string().optional()),
+  S3_SECRET_KEY: emptyAsUndefined(z.string().optional()),
+  S3_ENDPOINT: emptyAsUndefined(z.string().optional()),
+  STORAGE_PUBLIC_URL: emptyAsUndefined(z.string().optional()),
+  R2_PUBLIC_URL: emptyAsUndefined(z.string().optional()),
 
   // Runtime environment metadata
   VERCEL: emptyAsUndefined(z.string().optional()),
@@ -315,7 +315,7 @@ function validateGeneralAndApi(env: Record<string, unknown>, ctx: z.RefinementCt
 
   // P1-REL-12 / RZP-KEY-01: Enforce critical payment and cron secrets in production
   const rzpKeyId = env.RAZORPAY_KEY_ID as string | undefined;
-  const allowRzpTest = env.ALLOW_RZP_TEST === "true" || process.env.ALLOW_RZP_TEST === "true";
+  const allowRzpTest = env.ALLOW_RZP_TEST === "true";
   if (!rzpKeyId || rzpKeyId === "rzp_test_placeholder" || rzpKeyId.trim() === "") {
     ctx.addIssue({
       code: z.ZodIssueCode.custom,

@@ -312,6 +312,7 @@ export default function BlogPage() {
                   {categories.map((cat) => (
                     <button
                       key={cat}
+                      type="button"
                       onClick={() => setActiveCategory(cat)}
                       className={`px-4 py-2 rounded-full text-xs font-semibold transition-all duration-200 cursor-pointer ${
                         activeCategory === cat
@@ -431,6 +432,7 @@ export default function BlogPage() {
             <div className="container max-w-3xl mx-auto px-4 sm:px-6">
               {/* Breadcrumb / Back Button */}
               <button
+                type="button"
                 onClick={() => setSelectedPostId(null)}
                 className="inline-flex items-center gap-2 text-sm font-semibold text-muted-foreground hover:text-foreground mb-8 transition-colors cursor-pointer group"
               >

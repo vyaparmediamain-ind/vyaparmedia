@@ -146,12 +146,10 @@ export default function RefundPage() {
           To initiate a refund or dispute a milestone deliverable, navigate to your active deal room or access the Resolution Center:
         </p>
         <div className="flex flex-wrap items-center gap-3">
-          <Link href="/dashboard/disputes">
-            <Button variant="primary" className="cursor-pointer inline-flex items-center gap-2">
-              <span>Open Dispute Center</span>
-              <ArrowRight className="w-4 h-4" />
-            </Button>
-          </Link>
+          <Button href="/dashboard/disputes" variant="primary" className="cursor-pointer inline-flex items-center gap-2">
+            <span>Open Dispute Center</span>
+            <ArrowRight className="w-4 h-4" />
+          </Button>
           <a
             href="mailto:support@vyaparmedia.in"
             className="text-xs font-bold text-muted-foreground hover:text-foreground transition-colors"

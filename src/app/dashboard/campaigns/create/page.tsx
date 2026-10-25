@@ -2,7 +2,7 @@ import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import DashboardShell from "@/components/dashboard/DashboardShell";
 import { PageContainer } from "@/components/ui";
-// PageHeader is rendered inside CreateCampaignClient for interactive step navigation and draft actions
+import { Suspense } from "react";
 import CreateCampaignClient from "./CreateCampaignClient";
 
 export default async function CreateCampaignPage() {
@@ -22,7 +22,16 @@ export default async function CreateCampaignPage() {
   return (
     <DashboardShell user={session.user}>
       <PageContainer maxWidth="6xl" className="pt-4 pb-0 sm:py-6">
-        <CreateCampaignClient />
+        <Suspense
+          fallback={
+            <div className="space-y-6 animate-pulse py-8">
+              <div className="h-10 w-64 bg-muted/60 rounded-xl" />
+              <div className="h-64 bg-muted/40 rounded-2xl border border-border" />
+            </div>
+          }
+        >
+          <CreateCampaignClient />
+        </Suspense>
       </PageContainer>
     </DashboardShell>
   );

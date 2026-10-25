@@ -50,6 +50,7 @@ type ApiResponseData = {
 export default function AdminSuspiciousReviewsPage() {
   const [statusFilter, setStatusFilter] = useState<"PENDING" | "CONFIRMED" | "DISMISSED">("PENDING");
   const [resolvingId, setResolvingId] = useState<string | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
 
   const { data, error, isLoading, mutate } = useSWR<ApiResponseData>(
     `/api/admin/reports/suspicious-reviews?status=${statusFilter}`,
@@ -59,6 +60,7 @@ export default function AdminSuspiciousReviewsPage() {
   const flags = data?.data || [];
 
   const handleResolve = async (flagId: string, resolution: "CONFIRMED" | "DISMISSED") => {
+    setActionError(null);
     setResolvingId(flagId);
     try {
       const res = await fetch("/api/admin/reports/suspicious-reviews", {
@@ -72,9 +74,13 @@ export default function AdminSuspiciousReviewsPage() {
             : "Reviewed by admin and verified as legitimate collaboration.",
         }),
       });
-      if (res.ok) {
-        await mutate();
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error(body?.error || body?.message || "Failed to resolve flag. Please try again.");
       }
+      await mutate();
+    } catch (err: unknown) {
+      setActionError(err instanceof Error ? err.message : "Failed to resolve flag. Please try again.");
     } finally {
       setResolvingId(null);
     }
@@ -128,6 +134,19 @@ export default function AdminSuspiciousReviewsPage() {
           </button>
         ))}
       </div>
+
+      {actionError && (
+        <div className="p-4 rounded-xl bg-disputed-muted border border-disputed-border text-disputed text-sm font-semibold flex items-center justify-between gap-3">
+          <span>{actionError}</span>
+          <button
+            type="button"
+            onClick={() => setActionError(null)}
+            className="text-xs font-bold underline hover:no-underline cursor-pointer shrink-0"
+          >
+            Dismiss
+          </button>
+        </div>
+      )}
 
       {/* ── Content List ── */}
       {isLoading ? (

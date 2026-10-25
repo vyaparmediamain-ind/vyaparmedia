@@ -34,41 +34,79 @@ return cleaned || `export-${Date.now()}.csv`;
 * Handles commas, quotes, newlines in values automatically.
 */
 export function toCsv(rows: CsvRow[], headers?: string[]): string {
-if (rows.length === 0) return "";
+  if (rows.length === 0) return "";
 
-const keys = headers ?? Object.keys(rows[0]!);
+  const escape = (val: unknown): string => {
+    if (val === null || val === undefined) return "";
+    let str: string;
+    if (typeof val === "string") {
+      str = val;
+    } else if (typeof val === "number" || typeof val === "boolean" || typeof val === "bigint") {
+      str = String(val);
+    } else if (val instanceof Date) {
+      str = val.toISOString();
+    } else if (typeof val === "object") {
+      // Explicitly JSON-stringify objects rather than falling through to String()
+      // which would produce the unhelpful "[object Object]" representation.
+      str = JSON.stringify(val);
+    } else {
+      str = "";
+    }
+    str = neutralizeCsvFormula(str);
 
-const escape = (val: unknown): string => {
-if (val === null || val === undefined) return "";
-let str: string;
-if (typeof val === "string") {
-str = val;
-} else if (typeof val === "number" || typeof val === "boolean" || typeof val === "bigint") {
-str = String(val);
-} else if (val instanceof Date) {
-str = val.toISOString();
-} else if (typeof val === "object") {
-// Explicitly JSON-stringify objects rather than falling through to String()
-// which would produce the unhelpful "[object Object]" representation.
-str = JSON.stringify(val);
-} else {
-str = "";
-}
-str = neutralizeCsvFormula(str);
+    // Wrap in quotes if contains comma, quote, or newline
+    if (str.includes(",") || str.includes('"') || str.includes("\n")) {
+      return `"${str.replaceAll('"', '""')}"`;
+    }
+    return str;
+  };
 
-// Wrap in quotes if contains comma, quote, or newline
-if (str.includes(",") || str.includes('"') || str.includes("\n")) {
-return `"${str.replaceAll('"', '""')}"`;
-}
-return str;
-};
+  // Determine main table column keys
+  let keys = headers;
+  if (!keys) {
+    const primaryRow = rows.find((r) => {
+      const rowKeys = Object.keys(r);
+      return rowKeys.length > 1 || (rowKeys.length === 1 && !rowKeys.includes("Platform Info"));
+    });
 
-const headerRow = keys.map(escape).join(",");
-const dataRows = rows.map((row) =>
-keys.map((k) => escape(row[k])).join(",")
-);
+    if (primaryRow) {
+      const keySet = new Set<string>(Object.keys(primaryRow));
+      for (const row of rows) {
+        for (const k of Object.keys(row)) {
+          if (k !== "Platform Info") {
+            keySet.add(k);
+          }
+        }
+      }
+      keys = Array.from(keySet);
+    } else {
+      keys = Object.keys(rows[0]!);
+    }
+  }
 
-return [headerRow, ...dataRows].join("\r\n");
+  const outputLines: string[] = [];
+  let headerRendered = false;
+
+  for (const row of rows) {
+    const rowKeys = Object.keys(row);
+    const isPlatformInfoOnly = rowKeys.length === 1 && rowKeys[0] === "Platform Info";
+
+    if (isPlatformInfoOnly) {
+      outputLines.push(escape(row["Platform Info"]));
+    } else {
+      if (!headerRendered && keys.length > 0) {
+        outputLines.push(keys.map(escape).join(","));
+        headerRendered = true;
+      }
+      outputLines.push(keys.map((k) => escape(row[k])).join(","));
+    }
+  }
+
+  if (!headerRendered && keys.length > 0) {
+    outputLines.unshift(keys.map(escape).join(","));
+  }
+
+  return outputLines.join("\r\n");
 }
 
 /**

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, Suspense } from "react";
 import useSWR from "swr";
 import { createSchemaFetcher } from "@/lib/fetcher";
 import {
@@ -77,7 +77,7 @@ function DealsLoadingSkeleton() {
   );
 }
 
-export default function DealsPage() {
+function DealsContent() {
   const { data: session } = useSession();
   const [statusFilter, setStatusFilter] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
@@ -300,5 +300,13 @@ export default function DealsPage() {
         </PageContainer>
     </PullToRefresh>
   </DashboardShell>
+  );
+}
+
+export default function DealsPage() {
+  return (
+    <Suspense fallback={<DealsLoadingSkeleton />}>
+      <DealsContent />
+    </Suspense>
   );
 }

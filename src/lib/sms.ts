@@ -338,20 +338,7 @@ async function sendSmsOtp(phone: string, otp: string) {
     return false;
   }
 
-  const hasSmsConfig = Boolean(process.env.MSG91_AUTH_KEY || env.MSG91_AUTH_KEY || env.SMS_API_KEY);
-  if (hasSmsConfig) {
-    return await sendSMS(phone, otpMessage(otp));
-  }
-
-  const sent = await sendSMS(phone, otpMessage(otp));
-  if (sent) return true;
-
-  if (isDevLike() && !hasSmsConfig) {
-    logger.info("DEV SMS OTP", { phone, otp });
-    return true;
-  }
-
-  return false;
+  return await sendSMS(phone, otpMessage(otp), { category: "otp" });
 }
 
 async function storeOtp(

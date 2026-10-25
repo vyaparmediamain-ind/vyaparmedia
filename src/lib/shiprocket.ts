@@ -165,7 +165,9 @@ export async function getShiprocketToken(): Promise<string> {
             return cachedToken;
           }
         }
-      } catch {}
+      } catch (err) {
+        logger.debug("Failed to read Shiprocket token from Redis cache, falling back to direct login", { error: err });
+      }
 
       const response = await shiprocketFetch(`${SHIPROCKET_API_BASE}/auth/login`, {
         method: "POST",

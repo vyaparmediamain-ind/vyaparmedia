@@ -198,22 +198,18 @@ export function CreatorShowcase({ creators, totalCount }: CreatorShowcaseProps) 
                   <span className="block text-[10px] text-muted-foreground">Starts from</span>
                   <span className="font-bold text-xs sm:text-sm text-foreground">{creator.startingRate}</span>
                 </div>
-                <Link href={`/creator/${encodeURIComponent(creator.username || creator.id)}`}>
-                  <Button size="sm" variant="secondary" className="text-xs font-semibold">
-                    View Profile
-                  </Button>
-                </Link>
+                <Button href={`/creator/${encodeURIComponent(creator.username || creator.id)}`} size="sm" variant="secondary" className="text-xs font-semibold">
+                  View Profile
+                </Button>
               </div>
             </div>
           ))}
         </div>
 
         <div className="mt-12 text-center">
-          <Link href="/register?type=brand">
-            <Button size="lg" className="font-bold">
-              Browse All {totalCount ? `${totalCount} Creators` : "Verified Creators"} &rarr;
-            </Button>
-          </Link>
+          <Button href="/register?type=brand" size="lg" className="font-bold">
+            Browse All {totalCount ? `${totalCount} Creators` : "Verified Creators"} &rarr;
+          </Button>
         </div>
       </div>
     </section>
