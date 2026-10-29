@@ -1,0 +1,362 @@
+import { apiWrapper, ValidatedNextRequest } from "@/lib/api-wrapper";
+import { NextResponse } from "next/server";
+import prisma, { ensurePlatformTreasury } from "@/lib/db";
+import { logger } from "@/lib/logger";
+import { checkRateLimit } from "@/lib/rate-limit";
+import { calculateCancellation } from "@/lib/contract-engine";
+import { creditInfluencerPayoutWithTax } from "@/lib/deal-settlement";
+import { Prisma } from "@prisma/client";
+import { getDealTotalAmount } from "@/lib/utils";
+import { createActivityLog } from "@/lib/audit";
+import { AppError, toError, getErrorMessage } from "@/lib/errors";
+import { transitionDealState } from "@/lib/deal-state-machine";
+import { PaymentService } from "@/services/payment.service";
+
+interface CancellationSummary {
+refundAmount: number;
+payoutAmount: number;
+platformFeeKept: number;
+reason: string;
+}
+
+type DealWithProfile = Prisma.DealGetPayload<{
+include: { influencer: true; brand: true };
+}>;
+
+
+async function _handler_POST(
+  _request: ValidatedNextRequest,
+  context: { params: Promise<Record<string, string | string[]>> }
+) {
+try {
+const session = _request.session;
+if (!session?.user?.id) {
+return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
+}
+
+const limit = await checkRateLimit(session.user.id, "DEAL_UPDATES");
+if (!limit.success) {
+return NextResponse.json({ success: false, message: "Too many requests" }, { status: 429 });
+}
+
+const resolvedParams = await context.params;
+const dealId = String(resolvedParams.id ?? '');
+
+// NOTE: Do NOT load deal here. It must be fetched inside the serializable
+// transaction under a row lock to avoid TOCTOU races (cancel vs. content submission,
+// cancel vs. auto-approval, etc.).
+const MAX_RETRIES = 5;
+let lastError: unknown;
+
+for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+  try {
+    await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
+      // CRITICAL: Acquire FOR UPDATE row lock FIRST so concurrent content submission
+      // or milestone release cannot change deal status between our read and write.
+      const lockedRows = await tx.$queryRaw<Array<{ id: string; status: string }>>`
+        SELECT id, status FROM "Deal" WHERE id = ${dealId} FOR UPDATE
+      `;
+      if (!lockedRows.length) {
+        throw AppError.notFound("Deal not found");
+      }
+
+      const lockedStatus = lockedRows[0]!.status;
+      if (["COMPLETED", "CANCELLED", "DISPUTED"].includes(lockedStatus)) {
+        throw AppError.badRequest(`Deal cannot be cancelled in status ${lockedStatus}`);
+      }
+
+      const deal = await tx.deal.findUnique({
+        where: { id: dealId },
+        include: { influencer: true, brand: true },
+      });
+
+      if (!deal) {
+        throw AppError.notFound("Deal not found");
+      }
+
+      // Only the brand owner who created the deal can cancel it
+      if (deal.brand?.userId !== session.user.id) {
+        throw AppError.forbidden("Forbidden. Only the brand can cancel this deal.");
+      }
+
+      const cancelSummary = await calculateCancellation(dealId, tx);
+      const { refundAmount, payoutAmount, platformFeeKept, reason } = cancelSummary;
+
+      await executeCancellationTransaction(tx, deal, cancelSummary, session.user.id);
+
+      await createActivityLog({
+        userId: session.user.id,
+        action: "CANCEL_DEAL",
+        entityType: "Deal",
+        entityId: dealId,
+        metadata: {
+          payoutAmount,
+          refundAmount,
+          platformFeeKept,
+          reason,
+        },
+      }, tx);
+    }, {
+      isolationLevel: Prisma.TransactionIsolationLevel.Serializable,
+      maxWait: 10000,
+      timeout: 15000,
+    });
+
+    // Reconcile and reverse any active Razorpay Route escrow hold
+    try {
+      await PaymentService.cancelDealWithRouteRefund(dealId, "Brand requested cancellation");
+    } catch (routeErr: unknown) {
+      logger.error("Failed to cancel Route escrow hold during deal cancellation", toError(routeErr), {
+        dealId,
+      });
+
+      // P5-LOGIC-09 FIX: Enqueue to DeadLetterJob so automated worker retries the Route refund
+      await prisma.deadLetterJob.create({
+        data: {
+          category: "TIME_CRITICAL",
+          topic: "payment.route_cancel_refund_failed",
+          deduplicationId: `route_cancel_refund_${dealId}`,
+          endpoint: `/api/deals/${dealId}/cancel`,
+          payload: {
+            dealId,
+            reason: "Brand requested cancellation",
+          },
+          errorMessage: getErrorMessage(routeErr) || "Route refund failed during cancellation",
+          attempts: 1,
+          maxRetries: 5,
+          status: "FAILED",
+        },
+      }).catch((dlqErr: unknown) => {
+        logger.error("Failed to persist DeadLetterJob for failed Route cancellation refund", toError(dlqErr), { dealId });
+      });
+    }
+
+    return NextResponse.json({ success: true, message: `Deal cancelled successfully.` });
+
+  } catch (txError: unknown) {
+    const isSerializationFailure =
+      txError instanceof Prisma.PrismaClientKnownRequestError && txError.code === "P2034";
+
+    if (isSerializationFailure && attempt < MAX_RETRIES) {
+      // Jittered exponential backoff: 50-150ms per attempt
+      const backoffMs = 50 + Math.floor(Math.random() * 100);
+      await new Promise((r) => setTimeout(r, backoffMs));
+      lastError = txError;
+      continue;
+    }
+
+    if (txError instanceof AppError) throw txError;
+    logger.error("Database transaction failed during cancellation", toError(txError));
+    return NextResponse.json({ success: false, message: "Database transaction failed during cancellation" }, { status: 500 });
+  }
+}
+
+logger.error("All serializable retries exhausted during deal cancellation", toError(lastError));
+return NextResponse.json({ success: false, message: "Deal is temporarily being modified. Please try again in a moment." }, { status: 409 });
+
+} catch (error: unknown) {
+if (error instanceof AppError) throw error;
+logger.error("POST /api/deals/[id]/cancel error", toError(error));
+return NextResponse.json({ success: false, message: "Internal server error" }, { status: 500 });
+}
+}
+
+
+// Wrapped handlers via apiWrapper
+export const POST = apiWrapper(_handler_POST, { requireAuth: true });
+
+async function processPayoutAndPlatformFees(
+  tx: Prisma.TransactionClient,
+  deal: DealWithProfile,
+  cancelSummary: CancellationSummary,
+) {
+  const { payoutAmount, platformFeeKept, reason } = cancelSummary;
+  if (payoutAmount <= 0) return;
+
+  const grossPayout = payoutAmount;
+  if (grossPayout > 0) {
+// Credit influencer payout
+await creditInfluencerPayoutWithTax(tx, {
+userId: deal.influencer.userId,
+dealId: deal.id,
+grossPayout,
+description: `Cancellation payout: ${reason}`,
+metadata: {
+source: "wallet_cancellation_payout",
+},
+});
+} else {
+logger.warn("Cancellation payout resulted in zero or negative gross payout for influencer", {
+dealId: deal.id,
+influencerId: deal.influencer.userId,
+payoutAmount,
+platformFeeKept,
+grossPayout,
+});
+}
+
+if (platformFeeKept > 0) {
+if (deal.brand?.userId) {
+const brandWallet = await tx.wallet.upsert({
+where: { userId: deal.brand.userId },
+create: { userId: deal.brand.userId, balance: 0, pendingBalance: 0 },
+update: {},
+});
+
+await tx.transaction.create({
+data: {
+walletId: brandWallet.id,
+dealId: deal.id,
+type: "PLATFORM_FEE",
+amount: platformFeeKept,
+status: "COMPLETED",
+description: `Platform cancellation fee for deal: ${deal.id}`,
+metadata: {
+balanceImpact: false,
+source: "wallet_cancellation_fee",
+grossDealAmount: deal.amount,
+payoutAmount,
+platformFeeKept,
+},
+},
+});
+}
+
+// Credit the PLATFORM_TREASURY wallet
+await ensurePlatformTreasury(tx);
+const treasuryWallet = await tx.wallet.update({
+where: { userId: "PLATFORM_TREASURY" },
+data: { balance: { increment: platformFeeKept } },
+});
+
+await tx.transaction.create({
+data: {
+walletId: treasuryWallet.id,
+dealId: deal.id,
+type: "CREDIT",
+amount: platformFeeKept,
+status: "COMPLETED",
+description: `Platform fee income from cancellation credited to treasury for deal: ${deal.id}`,
+metadata: {
+source: "wallet_cancellation_fee",
+brandUserId: deal.brand?.userId,
+},
+},
+});
+}
+}
+
+async function processBrandCancellationRefund(
+  tx: Prisma.TransactionClient,
+  deal: DealWithProfile,
+  cancelSummary: CancellationSummary,
+) {
+  const { refundAmount, reason } = cancelSummary;
+  if (!deal.brand?.userId) return;
+
+  if (deal.reservedFromWallet) {
+    // Wallet-reserved deal: refund returns to brand's withdrawable balance.
+    // pendingBalance was already decremented in executeCancellationTransaction via campaign.reservedTotalAmount,
+    // so only increment balance here.
+    let brandWallet = await tx.wallet.findUnique({ where: { userId: deal.brand.userId } });
+
+    if (brandWallet) {
+      brandWallet = await tx.wallet.update({
+        where: { id: brandWallet.id },
+        data: { balance: { increment: refundAmount } },
+      });
+    } else {
+      brandWallet = await tx.wallet.create({
+        data: { userId: deal.brand.userId, balance: refundAmount, pendingBalance: 0 },
+      });
+    }
+
+    if (refundAmount > 0) {
+      await tx.transaction.create({
+        data: {
+          walletId: brandWallet.id,
+          dealId: deal.id,
+          type: "REFUND",
+          amount: refundAmount,
+          status: "COMPLETED",
+          description: `Cancellation refund (wallet): ${reason}`,
+          metadata: { balanceImpact: true, source: "wallet_cancellation_refund" },
+        },
+      });
+    }
+  } else {
+    // Campaign-funded deal: funds were held in brand's wallet pendingBalance.
+    // Deduct platform fees / creator compensation consumed from campaign's fundedAmount AND brand's wallet pendingBalance
+    // so the brand's wallet pendingBalance strictly matches active campaign funded escrow.
+    const dealTotal = getDealTotalAmount(deal);
+    const feesConsumed = dealTotal - refundAmount;
+    if (feesConsumed > 0) {
+      await tx.campaign.update({
+        where: { id: deal.campaignId },
+        data: { fundedAmount: { decrement: feesConsumed } },
+      });
+      await tx.wallet.updateMany({
+        where: { userId: deal.brand.userId, pendingBalance: { gte: feesConsumed } },
+        data: { pendingBalance: { decrement: feesConsumed } },
+      });
+    }
+    // No balance change on brand wallet — refund amount stays in campaign pool
+    // (it was already freed up via reservedTotalAmount decrement above).
+  }
+}
+
+async function executeCancellationTransaction(
+  tx: Prisma.TransactionClient,
+  deal: DealWithProfile,
+  cancelSummary: CancellationSummary,
+  sessionUserId: string,
+) {
+  await transitionDealState({
+    dealId: deal.id,
+    fromState: deal.status,
+    toState: "CANCELLED",
+    actor: { userId: sessionUserId, role: "BRAND" },
+    reason: cancelSummary.reason || "Brand requested cancellation",
+    financialHandler: async (t) => {
+      // Release application status from SELECTED to WITHDRAWN so slot is freed up
+      await t.application.updateMany({
+        where: {
+          campaignId: deal.campaignId,
+          influencerId: deal.influencerId,
+          status: "SELECTED",
+        },
+        data: {
+          status: "WITHDRAWN",
+          rejectionReason: "Deal was cancelled by brand",
+        },
+      });
+
+      // Fetch campaign to safely decrement selectedInfluencers and reserved amounts
+      const campaignForRelease = await t.campaign.findUnique({
+        where: { id: deal.campaignId },
+        select: { selectedInfluencers: true, reservedAmount: true, reservedTotalAmount: true },
+      });
+      const selectedCount = campaignForRelease?.selectedInfluencers ?? 0;
+      const currentReservedAmount = campaignForRelease?.reservedAmount ?? 0;
+      const currentReservedTotal = campaignForRelease?.reservedTotalAmount ?? 0;
+      const dealTotal = getDealTotalAmount(deal);
+
+      // Decrement campaign reserved amount and selectedInfluencers
+      await t.campaign.update({
+        where: { id: deal.campaignId },
+        data: {
+          selectedInfluencers: { decrement: selectedCount > 0 ? 1 : 0 },
+          reservedAmount: { decrement: Math.min(currentReservedAmount, deal.amount) },
+          reservedTotalAmount: { decrement: Math.min(currentReservedTotal, dealTotal) },
+        },
+      });
+
+      await processPayoutAndPlatformFees(t, deal, cancelSummary);
+      await processBrandCancellationRefund(t, deal, cancelSummary);
+    },
+    metadata: {
+      cancelSummary,
+    },
+    tx,
+  });
+}

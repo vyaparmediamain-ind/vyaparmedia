@@ -1,0 +1,157 @@
+name: "Crons: Daily Maintenance (Ledger, Tokens, Fulfillment, Badges, Cleanup)"
+
+on:
+  schedule:
+    # Runs daily at 02:00 UTC (07:30 AM IST)
+    - cron: "0 2 * * *"
+  workflow_dispatch:
+    inputs:
+      job:
+        description: "Select which daily cron to run (or 'all')"
+        required: true
+        default: "all"
+        type: choice
+        options:
+          - "all"
+          - "ledger-scan"
+          - "reconcile-ledger-settlements"
+          - "refresh-social-tokens"
+          - "cleanup-idempotency"
+          - "cleanup-oauth"
+          - "post-monitor"
+          - "stale-fulfillment"
+          - "tenure-badges"
+
+jobs:
+  run-daily-crons:
+    name: Execute Daily Maintenance Crons
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verify CRON_SECRET is configured
+        run: |
+          if [ -z "${{ secrets.CRON_SECRET }}" ]; then
+            echo "::error::CRON_SECRET secret is not configured in GitHub repository secrets!"
+            exit 1
+          fi
+
+      - name: Set target APP_URL
+        run: |
+          TARGET_URL="${{ secrets.APP_URL }}"
+          if [ -z "$TARGET_URL" ]; then
+            TARGET_URL="https://vyaparmedia-nine.vercel.app"
+          fi
+          echo "APP_URL=$TARGET_URL" >> $GITHUB_ENV
+          echo "Target Application URL: $TARGET_URL"
+
+      # 1. Double-Entry Ledger Scan
+      - name: Ledger Scan & Escrow Reconcile
+        if: ${{ github.event_name == 'schedule' || inputs.job == 'all' || inputs.job == 'ledger-scan' }}
+        run: |
+          echo "Running /api/cron/ledger-scan..."
+          HTTP_CODE=$(curl -s -o /tmp/ledger_scan.json -w "%{http_code}" -X GET "${{ env.APP_URL }}/api/cron/ledger-scan" \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}")
+          cat /tmp/ledger_scan.json || true
+          echo ""
+          if [ "$HTTP_CODE" -ne 200 ]; then
+            echo "::error::ledger-scan failed with status $HTTP_CODE"
+            exit 1
+          fi
+
+      # 2. Reconcile Ledger Settlements
+      - name: Reconcile Ledger Settlements
+        if: ${{ github.event_name == 'schedule' || inputs.job == 'all' || inputs.job == 'reconcile-ledger-settlements' }}
+        run: |
+          echo "Running /api/cron/reconcile-ledger-settlements..."
+          HTTP_CODE=$(curl -s -o /tmp/ledger_settle.json -w "%{http_code}" -X GET "${{ env.APP_URL }}/api/cron/reconcile-ledger-settlements" \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}")
+          cat /tmp/ledger_settle.json || true
+          echo ""
+          if [ "$HTTP_CODE" -ne 200 ]; then
+            echo "::error::reconcile-ledger-settlements failed with status $HTTP_CODE"
+            exit 1
+          fi
+
+      # 3. Refresh Expiring Social OAuth Tokens
+      - name: Refresh Social OAuth Tokens
+        if: ${{ github.event_name == 'schedule' || inputs.job == 'all' || inputs.job == 'refresh-social-tokens' }}
+        run: |
+          echo "Running /api/cron/refresh-social-tokens..."
+          HTTP_CODE=$(curl -s -o /tmp/social_tokens.json -w "%{http_code}" -X GET "${{ env.APP_URL }}/api/cron/refresh-social-tokens" \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}")
+          cat /tmp/social_tokens.json || true
+          echo ""
+          if [ "$HTTP_CODE" -ne 200 ]; then
+            echo "::error::refresh-social-tokens failed with status $HTTP_CODE"
+            exit 1
+          fi
+
+      # 4. Clean Up Expired Idempotency Keys
+      - name: Cleanup Idempotency Keys
+        if: ${{ github.event_name == 'schedule' || inputs.job == 'all' || inputs.job == 'cleanup-idempotency' }}
+        run: |
+          echo "Running /api/cron/cleanup-idempotency..."
+          HTTP_CODE=$(curl -s -o /tmp/idempotency.json -w "%{http_code}" -X GET "${{ env.APP_URL }}/api/cron/cleanup-idempotency" \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}")
+          cat /tmp/idempotency.json || true
+          echo ""
+          if [ "$HTTP_CODE" -ne 200 ]; then
+            echo "::error::cleanup-idempotency failed with status $HTTP_CODE"
+            exit 1
+          fi
+
+      # 5. Clean Up Disconnected OAuth Records
+      - name: Cleanup OAuth Records
+        if: ${{ github.event_name == 'schedule' || inputs.job == 'all' || inputs.job == 'cleanup-oauth' }}
+        run: |
+          echo "Running /api/cron/cleanup-oauth..."
+          HTTP_CODE=$(curl -s -o /tmp/oauth.json -w "%{http_code}" -X GET "${{ env.APP_URL }}/api/cron/cleanup-oauth" \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}")
+          cat /tmp/oauth.json || true
+          echo ""
+          if [ "$HTTP_CODE" -ne 200 ]; then
+            echo "::error::cleanup-oauth failed with status $HTTP_CODE"
+            exit 1
+          fi
+
+      # 6. Post Monitor (Check deleted or private posts)
+      - name: Post Monitor
+        if: ${{ github.event_name == 'schedule' || inputs.job == 'all' || inputs.job == 'post-monitor' }}
+        run: |
+          echo "Running /api/cron/post-monitor..."
+          HTTP_CODE=$(curl -s -o /tmp/post_mon.json -w "%{http_code}" -X GET "${{ env.APP_URL }}/api/cron/post-monitor" \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}")
+          cat /tmp/post_mon.json || true
+          echo ""
+          if [ "$HTTP_CODE" -ne 200 ]; then
+            echo "::error::post-monitor failed with status $HTTP_CODE"
+            exit 1
+          fi
+
+      # 7. Stale Physical Product Fulfillment Scanner
+      - name: Stale Fulfillment Scanner
+        if: ${{ github.event_name == 'schedule' || inputs.job == 'all' || inputs.job == 'stale-fulfillment' }}
+        run: |
+          echo "Running /api/cron/stale-fulfillment..."
+          HTTP_CODE=$(curl -s -o /tmp/fulfillment.json -w "%{http_code}" -X GET "${{ env.APP_URL }}/api/cron/stale-fulfillment" \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}")
+          cat /tmp/fulfillment.json || true
+          echo ""
+          if [ "$HTTP_CODE" -ne 200 ]; then
+            echo "::error::stale-fulfillment failed with status $HTTP_CODE"
+            exit 1
+          fi
+
+      # 8. Creator Tenure & Milestone Badges
+      - name: Tenure Badges Evaluation
+        if: ${{ github.event_name == 'schedule' || inputs.job == 'all' || inputs.job == 'tenure-badges' }}
+        run: |
+          echo "Running /api/cron/tenure-badges..."
+          HTTP_CODE=$(curl -s -o /tmp/badges.json -w "%{http_code}" -X GET "${{ env.APP_URL }}/api/cron/tenure-badges" \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}")
+          cat /tmp/badges.json || true
+          echo ""
+          if [ "$HTTP_CODE" -ne 200 ]; then
+            echo "::error::tenure-badges failed with status $HTTP_CODE"
+            exit 1
+          fi
+

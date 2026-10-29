@@ -1,0 +1,69 @@
+name: "Crons: Weekly Maintenance (Weekly Challenges, Social Proof)"
+
+on:
+  schedule:
+    # Monday 00:00 UTC (05:30 AM IST) - Weekly challenges rollover
+    - cron: "0 0 * * 1"
+    # Sunday 01:00 UTC (06:30 AM IST) - Social proof authenticity re-scoring
+    - cron: "0 1 * * 0"
+  workflow_dispatch:
+    inputs:
+      job:
+        description: "Select which weekly cron to run (or 'all')"
+        required: true
+        default: "all"
+        type: choice
+        options:
+          - "all"
+          - "weekly-challenges"
+          - "social-proof"
+
+jobs:
+  run-weekly-crons:
+    name: Execute Weekly Maintenance Crons
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verify CRON_SECRET is configured
+        run: |
+          if [ -z "${{ secrets.CRON_SECRET }}" ]; then
+            echo "::error::CRON_SECRET secret is not configured in GitHub repository secrets!"
+            exit 1
+          fi
+
+      - name: Set target APP_URL
+        run: |
+          TARGET_URL="${{ secrets.APP_URL }}"
+          if [ -z "$TARGET_URL" ]; then
+            TARGET_URL="https://vyaparmedia-nine.vercel.app"
+          fi
+          echo "APP_URL=$TARGET_URL" >> $GITHUB_ENV
+          echo "Target Application URL: $TARGET_URL"
+
+      # 1. Weekly Challenges (Monday 00:00 UTC / on-demand)
+      - name: Rollover Weekly Challenges
+        if: ${{ github.event_name == 'schedule' || inputs.job == 'all' || inputs.job == 'weekly-challenges' }}
+        run: |
+          echo "Running /api/cron/weekly-challenges..."
+          HTTP_CODE=$(curl -s -o /tmp/challenges.json -w "%{http_code}" -X GET "${{ env.APP_URL }}/api/cron/weekly-challenges" \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}")
+          cat /tmp/challenges.json || true
+          echo ""
+          if [ "$HTTP_CODE" -ne 200 ]; then
+            echo "::error::weekly-challenges failed with status $HTTP_CODE"
+            exit 1
+          fi
+
+      # 2. Social Proof & Authenticity Recalculation (Sunday 01:00 UTC / on-demand)
+      - name: Recalculate Social Proof Scores
+        if: ${{ github.event_name == 'schedule' || inputs.job == 'all' || inputs.job == 'social-proof' }}
+        run: |
+          echo "Running /api/cron/social-proof..."
+          HTTP_CODE=$(curl -s -o /tmp/social_proof.json -w "%{http_code}" -X GET "${{ env.APP_URL }}/api/cron/social-proof" \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}")
+          cat /tmp/social_proof.json || true
+          echo ""
+          if [ "$HTTP_CODE" -ne 200 ]; then
+            echo "::error::social-proof failed with status $HTTP_CODE"
+            exit 1
+          fi
+

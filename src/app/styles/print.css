@@ -1,0 +1,70 @@
+/* ── Professional Print & PDF Export Stylesheet ── */
+@media print {
+  @page {
+    size: A4;
+    margin: 12mm 15mm 15mm 15mm;
+  }
+
+  body {
+    background: #ffffff !important;
+    color: #111827 !important;
+    font-size: 10pt !important;
+    line-height: 1.4 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* Hide interactive web chrome, navbars, sidebars, buttons, alerts, modals backdrops */
+  header,
+  nav,
+  aside,
+  footer,
+  button:not(.print-allow),
+  a[href^="/dashboard"],
+  .no-print,
+  .toast-container,
+  [aria-live="polite"] {
+    display: none !important;
+  }
+
+  /* Show dedicated printable document container with clean margins */
+  .printable-document {
+    display: block !important;
+    position: static !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #ffffff !important;
+    color: #000000 !important;
+    box-shadow: none !important;
+    border: none !important;
+  }
+
+  /* Prevent page breaks inside critical elements */
+  .page-break-inside-avoid,
+  table,
+  tr,
+  .print-section,
+  .signature-block {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+
+  /* Ensure tables render with clean borders and contrast */
+  table {
+    border-collapse: collapse !important;
+    width: 100% !important;
+  }
+
+  th, td {
+    border: 1px solid #d1d5db !important;
+    padding: 6px 8px !important;
+  }
+
+  th {
+    background-color: #f3f4f6 !important;
+    font-weight: bold !important;
+    color: #111827 !important;
+  }
+}

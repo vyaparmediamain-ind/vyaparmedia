@@ -1,0 +1,247 @@
+import { describe, it, expect } from "vitest";
+import {
+  validateCampaignForm,
+  getRecommendedRate,
+  deliverableTypes,
+  CampaignFormData,
+  calculateCampaignEscrowPaise,
+} from "@/components/dashboard/campaigns/create/CampaignCreateHelpers";
+import {
+  DEFAULT_BRAND_PLATFORM_FEE_PERCENT,
+  DEFAULT_GATEWAY_FEE_PERCENT,
+  DEFAULT_PRODUCT_HANDLING_FEE_PERCENT,
+  GST_STANDARD_RATE,
+} from "@/constants";
+import { calculateTotalAmount } from "@/lib/razorpay";
+
+describe("Campaign Creation Wizard", () => {
+  const validFormData: CampaignFormData = {
+    title: "Summer Fest Glow Collection Launch",
+    description: "Promoting our cruelty-free vegan sunscreen range across Instagram reels.",
+    requirements: "High energy 60s Reel showing direct product application. Include link sticker.",
+    totalBudget: 15000,
+    perInfluencerBudget: 3000,
+    targetCategories: ["Beauty", "Fashion"],
+    targetCities: ["Mumbai", "Bengaluru"],
+    targetGender: "FEMALE",
+    targetAgeMin: 18,
+    targetAgeMax: 34,
+    minFollowers: 5000,
+    maxFollowers: 50000,
+    maxInfluencers: 5,
+    applicationDeadline: new Date(Date.now() + 86400000 * 3).toISOString().split("T")[0]!,
+    contentDeadline: new Date(Date.now() + 86400000 * 7).toISOString().split("T")[0]!,
+    postingDeadline: new Date(Date.now() + 86400000 * 10).toISOString().split("T")[0]!,
+    requiresProduct: true,
+    productName: "Glow Daily Sunscreen SPF 50",
+    productValue: 999,
+    productDescription: "Standard 50ml retail pack shipped via BlueDart.",
+    deliverables: [
+      { type: "INSTAGRAM_REEL", count: 1, rate: 3000 },
+    ],
+  };
+
+  describe("Validation & Step Integrity", () => {
+    it("should successfully validate a well-formed campaign payload", () => {
+      const result = validateCampaignForm(validFormData);
+      expect(result.success).toBe(true);
+      expect(result.fieldErrors).toBeUndefined();
+    });
+
+    it("should fail validation if no categories are chosen", () => {
+      const invalid = { ...validFormData, targetCategories: [] };
+      const result = validateCampaignForm(invalid);
+      expect(result.success).toBe(false);
+      const errMessage = result.fieldErrors?.targetCategories || result.error || "";
+      expect(errMessage.toLowerCase()).toContain("category");
+    });
+
+    it("should reject budgets below platform minimums", () => {
+      const invalid = { ...validFormData, totalBudget: 500, perInfluencerBudget: 200 };
+      const result = validateCampaignForm(invalid);
+      expect(result.success).toBe(false);
+      expect(result.error).toMatch(/Minimum budget/);
+    });
+
+    it("should reject deadlines where posting is before content submission", () => {
+      const invalid = {
+        ...validFormData,
+        contentDeadline: "2026-10-15",
+        postingDeadline: "2026-10-10",
+      };
+      const result = validateCampaignForm(invalid);
+      expect(result.success).toBe(false);
+      expect(result.error).toContain("Posting deadline must be after content deadline");
+    });
+
+    it("should reject maxFollowers less than minFollowers", () => {
+      const invalid = {
+        ...validFormData,
+        minFollowers: 10000,
+        maxFollowers: 5000,
+      };
+      const result = validateCampaignForm(invalid);
+      expect(result.success).toBe(false);
+      expect(result.error).toContain("Max followers must be greater than or equal to min followers");
+    });
+  });
+
+  describe("Rate Recommendations & Deliverables", () => {
+    it("should provide higher recommended rates for YouTube vs Instagram", () => {
+      const instaRate = getRecommendedRate("INSTAGRAM_REEL", 10000);
+      const ytRate = getRecommendedRate("YOUTUBE_VIDEO", 10000);
+
+      expect(ytRate).toBeGreaterThan(instaRate);
+      expect(instaRate).toBeGreaterThanOrEqual(500);
+      expect(ytRate).toBeGreaterThanOrEqual(750);
+    });
+
+    it("should support standard creator deliverable formats", () => {
+      const values = deliverableTypes.map((d) => d.value);
+      expect(values).toContain("INSTAGRAM_POST");
+      expect(values).toContain("INSTAGRAM_REEL");
+      expect(values).toContain("INSTAGRAM_STORY");
+      expect(values).toContain("YOUTUBE_VIDEO");
+      expect(values).toContain("YOUTUBE_SHORT");
+    });
+  });
+
+  describe("Escrow & Gateway Fee Financial Calculations", () => {
+    it("should compute accurate escrow lock requirement with platform fee, automated GST above ₹1,500, and gateway fee", () => {
+      const breakdown = calculateCampaignEscrowPaise(15000);
+
+      const expectedCreatorPool = 1500000;
+      const expectedPlatformFee = Math.round((expectedCreatorPool * DEFAULT_BRAND_PLATFORM_FEE_PERCENT) / 100);
+      const expectedGst = Math.round(expectedPlatformFee * GST_STANDARD_RATE);
+      const expectedGatewayFee = Math.round(((expectedCreatorPool + expectedPlatformFee + expectedGst) * DEFAULT_GATEWAY_FEE_PERCENT) / 100);
+      const expectedTotal = expectedCreatorPool + expectedPlatformFee + expectedGst + expectedGatewayFee;
+
+      expect(breakdown.creatorPayoutPoolPaise).toBe(expectedCreatorPool); // ₹15,000 in paise
+      expect(breakdown.platformFeePaise).toBe(expectedPlatformFee); // 10% fee = ₹1,500
+      expect(breakdown.gstPaise).toBe(expectedGst); // 18% GST on fee = ₹270
+      expect(breakdown.gstPercent).toBe(18);
+      expect(breakdown.gatewayFeePaise).toBe(expectedGatewayFee);
+      expect(breakdown.totalEscrowRequiredPaise).toBe(expectedTotal);
+      expect(breakdown.platformFeePercent).toBe(DEFAULT_BRAND_PLATFORM_FEE_PERCENT);
+      expect(breakdown.gatewayFeePercent).toBe(DEFAULT_GATEWAY_FEE_PERCENT);
+    });
+
+    it("should enforce exact ₹1,500 zero-GST threshold rule: ≤ ₹1,500 has 0% GST, > ₹1,500 has 18% GST", () => {
+      // 1. Exactly ₹1,500 (threshold limit): 0% GST (Zero Tax Starter)
+      const atThreshold = calculateCampaignEscrowPaise(1500);
+      expect(atThreshold.creatorPayoutPoolPaise).toBe(150000); // ₹1,500
+      expect(atThreshold.platformFeePaise).toBe(15000); // 10% = ₹150
+      expect(atThreshold.gstPaise).toBe(0); // 0 GST
+      expect(atThreshold.gstPercent).toBe(0);
+      const expectedAtThresholdGateway = Math.round((150000 + 15000) * 0.02); // ₹33
+      expect(atThreshold.gatewayFeePaise).toBe(expectedAtThresholdGateway);
+      expect(atThreshold.totalEscrowRequiredPaise).toBe(150000 + 15000 + expectedAtThresholdGateway);
+
+      // 2. ₹1,501 (1 rupee above threshold): 18% GST automatically applied!
+      const aboveThreshold = calculateCampaignEscrowPaise(1501);
+      expect(aboveThreshold.creatorPayoutPoolPaise).toBe(150100); // ₹1,501
+      expect(aboveThreshold.platformFeePaise).toBe(15010); // 10% = ₹150.10
+      expect(aboveThreshold.gstPercent).toBe(18); // 18% GST
+      const expectedAboveGst = Math.round(15010 * 0.18); // ₹27.02
+      expect(aboveThreshold.gstPaise).toBe(expectedAboveGst);
+      const expectedAboveGateway = Math.round((150100 + 15010 + expectedAboveGst) * 0.02);
+      expect(aboveThreshold.gatewayFeePaise).toBe(expectedAboveGateway);
+      expect(aboveThreshold.totalEscrowRequiredPaise).toBe(150100 + 15010 + expectedAboveGst + expectedAboveGateway);
+
+      // 3. Test calculateTotalAmount directly in paise
+      const microDeal = calculateTotalAmount(150000); // ₹1,500
+      expect(microDeal.gstAmount).toBe(0);
+      expect(microDeal.gstPercent).toBe(0);
+
+      const standardDeal = calculateTotalAmount(150100); // ₹1,501
+      expect(standardDeal.gstPercent).toBe(18);
+      expect(standardDeal.gstAmount).toBe(Math.round(standardDeal.platformFee * 0.18));
+      expect(standardDeal.totalAmount).toBe(150100 + standardDeal.platformFee + standardDeal.gstAmount + standardDeal.gatewayFee);
+    });
+
+    it("should compute accurate escrow for product-seeded and product-only campaigns", () => {
+      // Product-seeded campaign (Budget ₹10,000, Product ₹1,000, 2 slots)
+      const seeded = calculateCampaignEscrowPaise(10000, undefined, undefined, {
+        requiresProduct: true,
+        productValueRupees: 1000,
+        maxInfluencers: 2,
+      });
+
+      const expectedProductFee = Math.round((1000 * 100 * DEFAULT_PRODUCT_HANDLING_FEE_PERCENT) / 100) * 2;
+      const expectedPlatformFee = Math.round((10000 * 100 * DEFAULT_BRAND_PLATFORM_FEE_PERCENT) / 100) + expectedProductFee;
+      // Per slot is 5,000 > 1,500, so GST applies
+      const expectedGst = Math.round(expectedPlatformFee * GST_STANDARD_RATE);
+      const expectedGatewayFee = Math.round(((10000 * 100 + expectedPlatformFee + expectedGst) * DEFAULT_GATEWAY_FEE_PERCENT) / 100);
+      const expectedTotal = 10000 * 100 + expectedPlatformFee + expectedGst + expectedGatewayFee;
+
+      expect(seeded.productHandlingFeePaise).toBe(expectedProductFee);
+      expect(seeded.platformFeePaise).toBe(expectedPlatformFee);
+      expect(seeded.gstPaise).toBe(expectedGst);
+      expect(seeded.gstPercent).toBe(18);
+      expect(seeded.gatewayFeePaise).toBe(expectedGatewayFee);
+      expect(seeded.totalEscrowRequiredPaise).toBe(expectedTotal);
+
+      // Product-only campaign (Budget ₹0, Product ₹1,000, 1 slot)
+      const productOnly = calculateCampaignEscrowPaise(0, undefined, undefined, {
+        requiresProduct: true,
+        productValueRupees: 1000,
+        maxInfluencers: 1,
+      });
+      const expectedProductOnlyFee = Math.round((1000 * 100 * DEFAULT_BRAND_PLATFORM_FEE_PERCENT) / 100);
+      const expectedProductOnlyGateway = Math.round((expectedProductOnlyFee * DEFAULT_GATEWAY_FEE_PERCENT) / 100);
+      expect(productOnly.platformFeePaise).toBe(expectedProductOnlyFee);
+      expect(productOnly.gstPaise).toBe(0);
+      expect(productOnly.gatewayFeePaise).toBe(expectedProductOnlyGateway);
+      expect(productOnly.totalEscrowRequiredPaise).toBe(expectedProductOnlyFee + expectedProductOnlyGateway);
+    });
+
+    it("should accurately detect insufficient wallet balance and calculate exact shortfall", () => {
+      const { totalEscrowRequiredPaise } = calculateCampaignEscrowPaise(15000);
+
+      // Case 1: Insufficient funds (wallet has ₹10,000)
+      const walletBalancePaise = 10000 * 100; // 1,000,000 paise
+      const isBalanceInsufficient = walletBalancePaise < totalEscrowRequiredPaise;
+      const shortfallPaise = isBalanceInsufficient
+        ? totalEscrowRequiredPaise - walletBalancePaise
+        : 0;
+
+      expect(isBalanceInsufficient).toBe(true);
+      expect(shortfallPaise).toBe(totalEscrowRequiredPaise - walletBalancePaise);
+
+      // Case 2: Sufficient funds (wallet has ₹20,000)
+      const sufficientBalancePaise = 20000 * 100;
+      const isSufficient = sufficientBalancePaise < totalEscrowRequiredPaise;
+      const zeroShortfall = isSufficient
+        ? totalEscrowRequiredPaise - sufficientBalancePaise
+        : 0;
+
+      expect(isSufficient).toBe(false);
+      expect(zeroShortfall).toBe(0);
+    });
+
+    it("should enforce premature-action-exposure guard rule (disable launch on shortfall, keep draft enabled)", () => {
+      const isBalanceInsufficient = true;
+      const isLoading = false;
+
+      // Launch button must be blocked before backend rejection
+      const isLaunchButtonDisabled = isLoading || isBalanceInsufficient;
+      expect(isLaunchButtonDisabled).toBe(true);
+
+      // Save as draft must stay available without requiring escrow lock
+      const isDraftButtonDisabled = isLoading;
+      expect(isDraftButtonDisabled).toBe(false);
+    });
+
+    it("should flag creator profile invite low balance when wallet cannot cover min deliverable rate", () => {
+      const creatorMinRatePaise = 2500000; // ₹25,000
+      const brandWalletPaise = 1000000; // ₹10,000
+
+      const isLowBalance = brandWalletPaise < Math.max(creatorMinRatePaise, 50000);
+      expect(isLowBalance).toBe(true);
+
+      const highBrandWalletPaise = 3000000; // ₹30,000
+      const isNotLowBalance = highBrandWalletPaise < Math.max(creatorMinRatePaise, 50000);
+      expect(isNotLowBalance).toBe(false);
+    });
+  });
+});

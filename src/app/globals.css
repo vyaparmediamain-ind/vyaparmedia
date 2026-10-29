@@ -1,0 +1,440 @@
+@import "./styles/base.css";
+@import "./styles/components.css";
+@import "./styles/landing.css";
+@import "./styles/dashboard.css";
+@import "./styles/admin.css";
+@import "./styles/auth.css";
+@import "./styles/marketing.css";
+@import "./styles/print.css";
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* -------------------------------------------------------------------------
+       Instagram-Clean Neutral Scale (Light Mode: Off-white canvas, near-black text)
+       ------------------------------------------------------------------------- */
+    --background: 0 0% 98%;           /* #FAFAFA - Iconic Instagram background */
+    --foreground: 240 10% 12%;        /* #1B1B22 - Crisp near-black text */
+    --card: 0 0% 100%;                /* #FFFFFF - Pure white surface cards */
+    --card-foreground: 240 10% 12%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 240 10% 12%;
+
+    /* Brand Primary Identity: Electric Royal Blue */
+    --primary: 221 83% 53%;           /* #2563EB */
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 240 5% 94%;          /* #EFF0F3 */
+    --secondary-foreground: 240 10% 12%;
+    --muted: 240 5% 94%;
+    --muted-foreground: 240 4% 46%;   /* #71717A - Subtle metadata text */
+    --accent: 240 5% 92%;
+    --accent-foreground: 240 10% 12%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 240 6% 90%;             /* #E4E4E7 - Soft hairline divider */
+    --input: 240 6% 90%;
+    --ring: 221 83% 53%;
+
+    --radius: 0.75rem;                /* 12px default radius */
+
+    /* -------------------------------------------------------------------------
+       Semantic Financial Escrow & Trust Tokens (Light Mode - WCAG AA >= 4.5:1)
+       ------------------------------------------------------------------------- */
+    /* Escrow Locked: Blue-ish "funds safely secured in escrow" */
+    --escrow: 215 85% 46%;            /* #1168E3 - Primary icon/badge base */
+    --escrow-foreground: 215 90% 20%; /* #082F6B - 6.5:1 contrast on muted */
+    --escrow-muted: 214 95% 94%;      /* #EBF3FE - Badge/pill background */
+    --escrow-border: 215 85% 82%;     /* #A8CBFA - Hairline badge border */
+
+    /* Verified Creator/Brand: Green KYC trust badge */
+    --verified: 152 76% 36%;          /* #159359 - Primary verified emerald */
+    --verified-foreground: 152 85% 18%; /* #074526 - 6.2:1 contrast on muted */
+    --verified-muted: 149 80% 93%;    /* #E6F8EE - Verified pill background */
+    --verified-border: 152 70% 80%;   /* #9BE5BF */
+
+    /* Pending Review: Warm amber alert */
+    --pending: 38 92% 40%;            /* #C47D08 - Amber badge icon */
+    --pending-foreground: 38 95% 18%; /* #573402 - 5.8:1 contrast on muted */
+    --pending-muted: 48 96% 92%;      /* #FEF6D9 - Pending pill background */
+    --pending-border: 43 90% 78%;     /* #F8DE8F */
+
+    /* Disputed / Frozen: High-urgency crimson */
+    --disputed: 356 75% 50%;          /* #DE2134 - Disputed alert */
+    --disputed-foreground: 356 85% 20%; /* #610B13 - 7.0:1 contrast on muted */
+    --disputed-muted: 355 95% 94%;    /* #FDEBED - Disputed pill background */
+    --disputed-border: 356 75% 82%;   /* #F7A4AC */
+  }
+
+  .dark {
+    /* -------------------------------------------------------------------------
+       Instagram-Clean Neutral Scale (Dark Mode: Near-black slate, NOT inverted light)
+       ------------------------------------------------------------------------- */
+    --background: 224 25% 6%;         /* #0B0D12 - Deep OLED canvas */
+    --foreground: 220 14% 96%;        /* #F3F4F6 - Soft off-white text */
+    --card: 224 24% 10%;              /* #141721 - Elevated content cards */
+    --card-foreground: 220 14% 96%;
+    --popover: 224 24% 10%;
+    --popover-foreground: 220 14% 96%;
+
+    /* Brand Primary Identity (Dark Mode Luminous) */
+    --primary: 221 90% 64%;           /* #4D88FE */
+    --primary-foreground: 224 25% 6%;
+
+    --secondary: 224 20% 16%;         /* #1F2330 */
+    --secondary-foreground: 220 14% 96%;
+    --muted: 224 20% 15%;
+    --muted-foreground: 220 10% 65%;  /* #9CA3AF - Dark mode metadata */
+    --accent: 224 20% 18%;
+    --accent-foreground: 220 14% 96%;
+
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 224 21% 18%;            /* #232736 - Subdued slate border */
+    --input: 224 21% 18%;
+    --ring: 221 90% 64%;
+
+    /* -------------------------------------------------------------------------
+       Semantic Financial Escrow & Trust Tokens (Dark Mode - WCAG AA >= 4.5:1)
+       ------------------------------------------------------------------------- */
+    /* Escrow Locked (Dark) */
+    --escrow: 214 95% 68%;            /* #5EA0FD - Luminous sky blue */
+    --escrow-foreground: 214 100% 94%;/* #E1EDFE - 7.5:1 contrast on muted */
+    --escrow-muted: 217 76% 15%;      /* #091E44 - Deep navy pill background */
+    --escrow-border: 215 80% 28%;     /* #0E3E8C */
+
+    /* Verified Creator/Brand (Dark) */
+    --verified: 150 75% 52%;          /* #2CE08A - Luminous verified mint */
+    --verified-foreground: 149 90% 95%;/* #E1FCED - 8.1:1 contrast on muted */
+    --verified-muted: 152 70% 12%;    /* #072C19 - Deep forest pill background */
+    --verified-border: 152 65% 24%;   /* #105B35 */
+
+    /* Pending Review (Dark) */
+    --pending: 43 96% 58%;            /* #F6B832 - Luminous warm amber */
+    --pending-foreground: 45 100% 95%;/* #FFF8E6 - 7.8:1 contrast on muted */
+    --pending-muted: 38 85% 14%;      /* #372004 - Warm dark amber background */
+    --pending-border: 40 80% 26%;     /* #673E0A */
+
+    /* Disputed / Frozen (Dark) */
+    --disputed: 356 85% 68%;          /* #F45868 - Luminous crimson coral */
+    --disputed-foreground: 355 100% 95%;/* #FFE8EA - 7.2:1 contrast on muted */
+    --disputed-muted: 356 75% 15%;    /* #3F080E - Deep crimson background */
+    --disputed-border: 356 70% 28%;   /* #7B131E */
+  }
+}
+
+@layer utilities {
+  /* Financial numeric font-feature utility: guarantees zero jitter during wallet balance mutations */
+  .tabular-nums {
+    font-variant-numeric: tabular-nums;
+    -moz-font-feature-settings: "tnum" 1, "zero" 1;
+    -webkit-font-feature-settings: "tnum" 1, "zero" 1;
+    font-feature-settings: "tnum" 1, "zero" 1;
+  }
+
+  /* 44pt (44px) minimum hit-target size for touch accessibility (WCAG 2.5.5 / Apple HIG) */
+  .touch-target-44 {
+    min-width: 44px;
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* Safe Area Inset utilities for modern mobile notches, dynamic islands & home bars */
+  .pt-safe {
+    padding-top: env(safe-area-inset-top, 0px);
+  }
+  .pb-safe {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  .pl-safe {
+    padding-left: env(safe-area-inset-left, 0px);
+  }
+  .pr-safe {
+    padding-right: env(safe-area-inset-right, 0px);
+  }
+  .top-safe {
+    top: env(safe-area-inset-top, 0px);
+  }
+  .bottom-safe {
+    bottom: env(safe-area-inset-bottom, 0px);
+  }
+}
+
+/* Universal prefers-reduced-motion accessibility reset:
+   Zero animation duration and instantaneous state transitions for vestibular-sensitive users */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ════════════════════════════════════════════════════════
+   SETTINGS PAGE — Premium 2-column sidebar layout
+   Reference: CRED / Jupiter / PhonePe settings pattern
+   ════════════════════════════════════════════════════════ */
+
+/* Page container: sidebar + content */
+.settings-page-layout {
+  display: flex;
+  gap: 0;
+  min-height: calc(100vh - 80px);
+  align-items: flex-start;
+}
+
+/* ── Sidebar ─────────────────────────────────────────── */
+.settings-sidebar {
+  width: 240px;
+  min-width: 240px;
+  flex-shrink: 0;
+  background: var(--color-card);
+  border-right: 1px solid var(--color-border);
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  position: sticky;
+  top: calc(80px + env(safe-area-inset-top, 0px));
+  height: calc(100vh - 80px - env(safe-area-inset-top, 0px));
+  padding-bottom: max(16px, env(safe-area-inset-bottom, 0px));
+  padding-left: max(0px, env(safe-area-inset-left, 0px));
+  overflow-y: auto;
+}
+
+.settings-sidebar-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 20px 16px 12px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.settings-sidebar-nav {
+  flex: 1;
+  padding: 12px 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.settings-sidebar-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.15s ease, color 0.15s ease;
+  color: var(--color-muted-foreground);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.settings-sidebar-item:hover {
+  background: var(--color-muted);
+  color: var(--color-foreground);
+}
+
+.settings-sidebar-item[data-active="true"] {
+  background: hsl(var(--primary) / 0.1);
+  color: var(--color-primary);
+  font-weight: 600;
+}
+
+.settings-sidebar-item-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  background: var(--color-muted);
+  flex-shrink: 0;
+  transition: background 0.15s ease;
+}
+
+.settings-sidebar-item[data-active="true"] .settings-sidebar-item-icon {
+  background: hsl(var(--primary) / 0.15);
+}
+
+.settings-sidebar-item-label {
+  flex: 1;
+}
+
+/* Mini profile card at bottom of sidebar */
+.settings-sidebar-profile {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 16px;
+  border-top: 1px solid var(--color-border);
+  margin-top: auto;
+}
+
+.settings-sidebar-avatar {
+  width: 32px;
+  height: 32px;
+  min-width: 32px;
+  border-radius: 50%;
+  background: var(--color-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border: 1.5px solid var(--color-border);
+}
+
+/* ── Content area ──────────────────────────────────── */
+.settings-content-area {
+  flex: 1;
+  min-width: 0;
+  padding: 28px 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.settings-content-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--color-border);
+  margin-bottom: 24px;
+}
+
+.settings-panel-body {
+  flex: 1;
+}
+
+/* Error state */
+.settings-error-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 320px;
+  text-align: center;
+  padding: 40px;
+}
+
+/* ── Responsive: mobile ─────────────────────────────── */
+@media (max-width: 768px) {
+  .settings-page-layout {
+    flex-direction: column;
+    width: 100%;
+    max-width: 100%;
+    min-height: auto;
+  }
+
+  .settings-sidebar {
+    width: 100%;
+    min-width: unset;
+    max-width: 100%;
+    height: auto;
+    position: static;
+    border-right: none;
+    border-bottom: 1px solid var(--color-border);
+    overflow: hidden;
+  }
+
+  .settings-sidebar-nav {
+    display: flex;
+    flex-direction: row;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding: 8px 12px 10px;
+    gap: 8px;
+    flex-wrap: nowrap;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  .settings-sidebar-nav::-webkit-scrollbar {
+    display: none;
+  }
+
+  .settings-sidebar-item {
+    flex: 0 0 auto;
+    flex-shrink: 0;
+    width: auto;
+    min-width: max-content;
+    display: inline-flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 14px;
+    border-radius: 9999px;
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+    text-align: left;
+    border: 1px solid var(--color-border);
+    background: var(--color-bg-card, transparent);
+    color: var(--color-muted-foreground);
+    transition: all 0.15s ease;
+  }
+
+  .settings-sidebar-item:hover {
+    background: var(--color-muted);
+    color: var(--color-foreground);
+  }
+
+  .settings-sidebar-item[data-active="true"] {
+    background: hsl(var(--primary) / 0.12);
+    border-color: hsl(var(--primary) / 0.4);
+    color: var(--color-primary);
+    font-weight: 600;
+  }
+
+  .settings-sidebar-item .settings-sidebar-item-icon {
+    width: 20px;
+    height: 20px;
+    border-radius: 6px;
+    background: transparent;
+    color: inherit;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .settings-sidebar-item[data-active="true"] .settings-sidebar-item-icon {
+    background: transparent;
+    color: var(--color-primary);
+  }
+
+  .settings-sidebar-item .settings-sidebar-item-label {
+    flex: initial;
+    white-space: nowrap;
+  }
+
+  .settings-sidebar-item > svg:last-child {
+    display: none;
+  }
+
+  .settings-sidebar-profile {
+    display: none;
+  }
+
+  .settings-content-area {
+    padding: 16px 16px 0;
+  }
+}

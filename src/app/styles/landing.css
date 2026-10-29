@@ -1,0 +1,610 @@
+/* =====================================================================
+   ULTRA-DEEP MOBILE RESPONSIVE SYSTEM
+   Breakpoints: 1280 | 1024 | 768 | 640 | 480 | 375
+   Touch targets: minimum 44×44px per Apple HIG
+   ===================================================================== */
+
+/* ── 1280px: Large tablets / small laptops ── */
+@media (max-width: 1280px) {
+  .container {
+    padding: 0 20px;
+  }
+
+  .grid-4 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* ── 1024px: iPad landscape / small desktops ── */
+@media (max-width: 1024px) {
+
+  /* Sidebar: slide off-screen, becomes drawer */
+  .sidebar {
+    transform: translateX(-100%);
+    z-index: var(--z-drawer);
+    width: 280px !important;
+    box-shadow: var(--shadow-lg);
+  }
+
+  .sidebar.mobile-open {
+    transform: translateX(0);
+  }
+
+  .sidebar-overlay {
+    display: block;
+  }
+
+  .dashboard-main {
+    margin-left: 0 !important;
+  }
+
+  .sidebar-toggle-mobile {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  .grid-3 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* ── 768px: Mobile landscape / small tablets ── */
+@media (max-width: 768px) {
+
+  /* === LAYOUT === */
+  .container {
+    padding: 0 16px;
+  }
+
+  .section {
+    padding: 56px 0;
+  }
+
+  /* Nav */
+  .nav-links,
+  .nav-auth-buttons {
+    display: none;
+  }
+
+  .hamburger {
+    display: flex;
+  }
+
+  .mobile-nav-overlay,
+  .mobile-nav {
+    display: block;
+  }
+
+  /* === DASHBOARD MAIN === */
+  .dashboard-content {
+    padding: 16px 16px calc(96px + env(safe-area-inset-bottom, 0px)) 16px !important;
+  }
+
+  .dashboard-sub-header {
+    margin: 0 0 20px 0;
+    padding: 14px 16px;
+  }
+
+  /* Sticky topbar for dashboard header */
+  header.glass {
+    padding: 10px 16px !important;
+    min-height: 58px !important;
+  }
+
+  /* === CARDS === */
+  .card {
+    padding: 16px !important;
+  }
+
+  /* === GRIDS === */
+  .grid-2,
+  .grid-3,
+  .grid-4 {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .col-span-2 {
+    grid-column: auto;
+  }
+
+  /* === TYPOGRAPHY === */
+  h1 {
+    font-size: clamp(22px, 6vw, 32px) !important;
+  }
+
+  h2 {
+    font-size: clamp(18px, 5vw, 24px) !important;
+  }
+
+  h3 {
+    font-size: clamp(15px, 4vw, 20px) !important;
+  }
+
+  .section-title {
+    font-size: clamp(22px, 5.5vw, 36px);
+  }
+
+  .section-subtitle {
+    font-size: 15px;
+    margin-bottom: 32px;
+  }
+
+  /* === BUTTONS === */
+  .btn-lg {
+    padding: 14px 24px;
+    font-size: 15px;
+  }
+
+  /* All interactive elements must be at least 44×44px touch target */
+  .btn,
+  button,
+  a.btn,
+  [role="button"] {
+    min-height: 44px;
+  }
+
+  /* === STAT CARDS === */
+  .stat-card {
+    padding: 20px 12px;
+  }
+
+  .stat-value {
+    font-size: clamp(28px, 7vw, 40px);
+  }
+
+  /* === BADGES === */
+  .badge {
+    font-size: 11px !important;
+    padding: 4px 10px !important;
+  }
+
+  /* === TOAST === */
+  .toast {
+    left: 12px;
+    right: 12px;
+    bottom: 16px;
+    width: auto;
+  }
+
+  /* === MODAL OVERLAYS === */
+  .modal-overlay {
+    padding: 12px 12px calc(88px + env(safe-area-inset-bottom, 12px)) 12px !important;
+    align-items: flex-end !important;
+    z-index: 99999 !important;
+    /* slide-up-sheet on mobile */
+  }
+
+  /* Modal inner cards */
+  .modal-overlay > div,
+  .modal-overlay > .card {
+    width: 100% !important;
+    max-width: 100% !important;
+    max-height: calc(100dvh - 110px) !important;
+    overflow-y: auto !important;
+    border-radius: var(--radius-xl) !important;
+    padding: 20px 16px !important;
+    margin-bottom: 0 !important;
+    z-index: 100000 !important;
+  }
+
+  .modal-container {
+    width: 100% !important;
+    max-width: 100% !important;
+    max-height: calc(100dvh - 110px) !important;
+    border-radius: var(--radius-xl) !important;
+    padding: 0 !important;
+    margin-bottom: 0 !important;
+    z-index: 100000 !important;
+  }
+
+  /* === NOTIFICATION DROPDOWN === */
+  .notif-dropdown-portal {
+    width: calc(100vw - 24px) !important;
+    max-width: calc(100vw - 24px) !important;
+    right: 12px !important;
+    left: auto !important;
+  }
+
+  /* === TABLE OVERFLOW === */
+  table {
+    display: block !important;
+    overflow-x: auto !important;
+    white-space: nowrap !important;
+    width: 100% !important;
+  }
+
+  /* === SETTINGS PAGE HERO GRID === */
+  .dashboard-settings-content .grid-2 {
+    grid-template-columns: 1fr !important;
+    gap: 16px;
+  }
+}
+
+/* ── 640px: Standard mobile ── */
+@media (max-width: 640px) {
+
+  /* === DASHBOARD CONTENT === */
+  .dashboard-content {
+    padding: 14px 12px calc(96px + env(safe-area-inset-bottom, 0px)) 12px !important;
+  }
+
+  /* === SECTIONS === */
+  .section {
+    padding: 40px 0;
+  }
+
+  /* === GRIDS === */
+  .grid-2,
+  .grid-3,
+  .grid-4 {
+    gap: 10px;
+  }
+
+  /* === BUTTONS — full width contextual === */
+  .btn-lg {
+    width: 100%;
+  }
+
+  /* === DASHBOARD TOPBAR === */
+  header.glass h1 {
+    font-size: 17px !important;
+  }
+
+  /* === SIDEBAR TOGGLE — bigger tap area === */
+  .sidebar-toggle-mobile {
+    padding: 10px 14px;
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  /* === SIDEBAR nav items touch target === */
+  .sidebar-link {
+    padding: 13px 12px;
+    min-height: 44px;
+  }
+
+  /* === FOOTER GRID — 2col → 1col === */
+  footer .footer-grid {
+    grid-template-columns: 1fr !important;
+    gap: 20px !important;
+  }
+
+  /* === MOBILE NAV SLIDE-OUT === */
+  .mobile-nav {
+    width: min(300px, 88vw);
+    padding: 72px 20px 24px;
+  }
+
+  .mobile-nav a {
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+  }
+}
+
+/* ── 480px: Small phones ── */
+@media (max-width: 480px) {
+
+  /* === CONTENT === */
+  .dashboard-content {
+    padding: 12px 10px calc(96px + env(safe-area-inset-bottom, 0px)) 10px !important;
+  }
+
+  /* === HERO BUTTONS — stack on tiny screens === */
+  .hero-cta-group {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  /* === STAT CARD === */
+  .stat-card {
+    padding: 16px 8px;
+  }
+
+  .stat-value {
+    font-size: clamp(22px, 8vw, 32px);
+  }
+
+  /* === BADGE === */
+  .badge {
+    font-size: 10px !important;
+    padding: 3px 8px !important;
+  }
+
+  /* === AVATAR — reduce on tiny screens === */
+  .avatar-xl {
+    width: 72px;
+    height: 72px;
+    font-size: 24px;
+  }
+
+  /* === CARD === */
+  .card {
+    padding: 12px 10px !important;
+    border-radius: var(--radius-md) !important;
+  }
+
+  /* === FORM INPUTS — enlarge for touch === */
+  .input {
+    padding: 13px 14px;
+    font-size: 16px !important;
+    border-radius: var(--radius-md);
+  }
+
+  /* === REGISTER TYPE CARDS === */
+  .card.hover-lift {
+    padding: 16px 12px !important;
+  }
+
+  .card .feature-icon {
+    width: 48px;
+    height: 48px;
+    font-size: 24px;
+    margin-bottom: 12px;
+  }
+
+  /* === SIDEBAR MOBILE NAV === */
+  .sidebar-link {
+    padding: 12px 10px;
+    font-size: 13px;
+  }
+
+  /* === SETTINGS TABS — reduce font === */
+  .btn-ghost,
+  .btn-primary,
+  .btn-secondary {
+    font-size: 12px;
+    padding: 8px 12px;
+  }
+}
+
+/* ── 375px: iPhone SE / small Android ── */
+@media (max-width: 375px) {
+
+  /* Push content to edges */
+  .container {
+    padding: 0 12px;
+  }
+
+  .dashboard-content {
+    padding: 10px 8px calc(96px + env(safe-area-inset-bottom, 0px)) 8px !important;
+  }
+
+  /* === TYPOGRAPHY (absolute floor) === */
+  h1 {
+    font-size: 20px !important;
+  }
+
+  h2 {
+    font-size: 17px !important;
+  }
+
+  h3 {
+    font-size: 15px !important;
+  }
+
+  /* === DASHBOARD HEADER collapse === */
+  header.glass {
+    padding: 8px 12px !important;
+  }
+
+  header.glass h1 {
+    font-size: 15px !important;
+  }
+
+  /* === SETTINGS TABS — emoji only for space === */
+  .dashboard-settings-content .btn span:last-child {
+    display: none;
+  }
+
+  /* === MOBILE NAV === */
+  .mobile-nav {
+    width: 92vw;
+  }
+}
+
+/* ── Safe area insets (notch/home-indicator) ── */
+@supports (padding: max(0px)) {
+
+  .navbar {
+    padding-left: max(0px, env(safe-area-inset-left));
+    padding-right: max(0px, env(safe-area-inset-right));
+  }
+
+  .mobile-nav {
+    padding-bottom: max(24px, env(safe-area-inset-bottom));
+  }
+
+  .sidebar {
+    padding-bottom: max(0px, env(safe-area-inset-bottom));
+  }
+
+  .toast {
+    bottom: max(16px, calc(env(safe-area-inset-bottom) + 8px));
+  }
+
+  header.glass {
+    padding-top: max(12px, env(safe-area-inset-top));
+  }
+
+  /* For mobile modal sheet (slides up from bottom) */
+  .modal-overlay>.card,
+  .modal-overlay>div {
+    padding-bottom: max(20px, env(safe-area-inset-bottom)) !important;
+  }
+}
+
+/* ── Prevent horizontal overflow globally ── */
+body {
+  overflow-x: hidden;
+  max-width: 100vw;
+  top: 0px !important;
+  position: static !important;
+}
+
+/* ── Prevent text size inflation on orientation change ── */
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+/* ── Hide scrollbar on horizontal scroll containers ── */
+.overflow-x-auto::-webkit-scrollbar,
+.scrollable-tabs::-webkit-scrollbar {
+  height: 0;
+  display: none;
+}
+
+/* ── Input zoom prevention on iOS (font < 16px zooms in) ── */
+@media (max-width: 768px) {
+
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  input[type="tel"],
+  input[type="number"],
+  input[type="search"],
+  textarea,
+  select {
+    font-size: 16px !important;
+  }
+}
+
+/* ── Tap highlight color (better than transparent) ── */
+* {
+  -webkit-tap-highlight-color: rgba(37, 99, 235, 0.15);
+}
+
+/* ── Better click/tap region for small icons ── */
+button svg,
+a svg {
+  pointer-events: none;
+}
+
+/* ── Card hover effects disabled on touch (prevents stuck state) ── */
+@media (hover: none) {
+  .card:hover {
+    transform: none;
+    box-shadow: var(--shadow-sm);
+  }
+
+  .card:hover::before {
+    opacity: 0;
+  }
+
+  .hover-lift:hover {
+    transform: none;
+    box-shadow: none;
+  }
+
+  .btn-primary:hover {
+    transform: none;
+  }
+
+  .btn-secondary:hover {
+    transform: none;
+  }
+}
+
+/* ── Active state feedback on touch (replace hover) ── */
+@media (hover: none) {
+  .btn:active {
+    transform: scale(0.97);
+    opacity: 0.9;
+  }
+
+  .card:active {
+    transform: scale(0.99);
+  }
+
+  .sidebar-link:active {
+    background: rgba(37, 99, 235, 0.15);
+  }
+}
+
+/* Prevent third-party translation extensions from injecting layout shifts */
+.skiptranslate,
+iframe.skiptranslate,
+.goog-te-banner-frame {
+  display: none !important;
+}
+
+.goog-text-highlight {
+  background-color: transparent !important;
+}
+
+/* ==================== RESPONSIVE STEP CARDS ==================== */
+
+@media (max-width: 640px) {
+  .step-card {
+    flex-direction: column !important;
+    align-items: center !important;
+    text-align: center !important;
+    gap: 16px !important;
+    padding: 24px 20px !important;
+  }
+}
+
+.nav-link {
+  padding: 8px 14px;
+}
+
+
+.pwa-install-mini-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.pwa-install-mini-btn:hover {
+  background: rgba(255, 255, 255, 0.14);
+  border-color: var(--color-primary-light);
+  transform: translateY(-1px);
+}
+
+
+.blog-glow {
+  top: 50%;
+  left: 50%;
+  width: 400px;
+  height: 400px;
+  background: radial-gradient(circle, rgba(37, 99, 235, 0.08) 0%, transparent 70%);
+  transform: translate(-50%, -50%);
+}
+
+.blog-title {
+  font-size: clamp(32px, 5vw, 56px);
+  line-height: 1.15;
+}
+
+.blog-subtitle {
+  line-height: 1.75;
+  animation-delay: 0.1s;
+}
+
+.blog-subscribe-card {
+  border-radius: var(--radius-lg);
+  background: rgba(30, 41, 59, 0.4);
+  animation-delay: 0.2s;
+}
+
+.blog-status {
+  border-radius: var(--radius-md);
+}
+
+.blog-status[data-status="success"] {
+  color: var(--color-accent-emerald);
+  background: rgba(16, 185, 129, 0.15);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}

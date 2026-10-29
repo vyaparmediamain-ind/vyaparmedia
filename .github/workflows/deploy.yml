@@ -1,0 +1,112 @@
+name: Automated Deployment Pipeline (Vercel)
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+concurrency:
+  group: deploy-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  # 1. Preview Deployment on PRs (runs after CI validation)
+  preview-deploy:
+    name: Vercel Preview Deployment
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      deployments: write
+      pull-requests: write
+    env:
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v4.1.2
+
+      - name: Setup Node.js 24.x
+        uses: actions/setup-node@60edb5dd545a775178f5252478337951c3269ab8 # v4.0.2
+        with:
+          node-version: 24
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci --legacy-peer-deps
+
+      - name: Deploy Preview to Vercel
+        if: env.VERCEL_TOKEN != ''
+        uses: amondnet/vercel-action@245585b4f6206085a6a66699a74070a7df8cb234 # v25.2.0
+        with:
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          vercel-args: ''
+
+  # 2. Production Deployment on main merge (with automated DB migration)
+  production-deploy:
+    name: Vercel Production Deployment & Automated Migration
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment: production
+    permissions:
+      contents: read
+      deployments: write
+    env:
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v4.1.2
+
+      - name: Setup Node.js 24.x
+        uses: actions/setup-node@60edb5dd545a775178f5252478337951c3269ab8 # v4.0.2
+        with:
+          node-version: 24
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci --legacy-peer-deps
+
+      - name: Generate Prisma Client
+        run: npx prisma generate
+
+      - name: Automated Production Migration Deploy (Zero Manual Migrations)
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          DIRECT_URL: ${{ secrets.DIRECT_URL }}
+        run: |
+          if [ -n "$DATABASE_URL" ]; then
+            echo "🚀 Applying pending database migrations via Prisma migrate deploy..."
+            npx prisma migrate deploy
+            echo "✅ Production database migrations applied successfully!"
+          else
+            echo "⚠️ DATABASE_URL repository secret not configured; skipping automated migration."
+          fi
+
+      - name: Deploy Production to Vercel
+        if: env.VERCEL_TOKEN != ''
+        uses: amondnet/vercel-action@245585b4f6206085a6a66699a74070a7df8cb234 # v25.2.0
+        with:
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+          vercel-args: '--prod'
+
+      - name: Synchronize QStash Cron Schedules (P11 REL-06)
+        env:
+          QSTASH_TOKEN: ${{ secrets.QSTASH_TOKEN }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          APP_URL: "https://vyaparmedia-nine.vercel.app"
+        run: |
+          if [ -n "$QSTASH_TOKEN" ]; then
+            echo "⏰ Synchronizing QStash cron schedules..."
+            npx tsx scripts/setup-qstash-crons.ts
+          else
+            echo "⚠️ QSTASH_TOKEN secret not configured; running verification..."
+            npx tsx scripts/verify-qstash-crons.ts
+          fi

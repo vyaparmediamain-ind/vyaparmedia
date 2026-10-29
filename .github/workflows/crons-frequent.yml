@@ -1,0 +1,127 @@
+name: "Crons: High-Frequency (Payouts, Signatures, Campaigns, Approvals, Engagement)"
+
+on:
+  schedule:
+    # Runs every 30 minutes
+    - cron: "*/30 * * * *"
+  workflow_dispatch:
+    inputs:
+      job:
+        description: "Select which cron to run (or 'all')"
+        required: true
+        default: "all"
+        type: choice
+        options:
+          - "all"
+          - "reconcile-payouts"
+          - "expire-signatures"
+          - "expire-campaigns"
+          - "lift-suspensions"
+          - "content-auto-approve"
+          - "engagement"
+
+jobs:
+  run-frequent-crons:
+    name: Execute High-Frequency Crons
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verify CRON_SECRET is configured
+        run: |
+          if [ -z "${{ secrets.CRON_SECRET }}" ]; then
+            echo "::error::CRON_SECRET secret is not configured in GitHub repository secrets!"
+            exit 1
+          fi
+
+      - name: Set target APP_URL
+        run: |
+          TARGET_URL="${{ secrets.APP_URL }}"
+          if [ -z "$TARGET_URL" ]; then
+            TARGET_URL="https://vyaparmedia-nine.vercel.app"
+          fi
+          echo "APP_URL=$TARGET_URL" >> $GITHUB_ENV
+          echo "Target Application URL: $TARGET_URL"
+
+      # 1. Payouts Reconcile (Every 30 mins)
+      - name: Reconcile Verified Payouts (every 30m)
+        if: ${{ github.event_name == 'schedule' || inputs.job == 'all' || inputs.job == 'reconcile-payouts' }}
+        run: |
+          echo "Running /api/cron/reconcile-payouts..."
+          HTTP_CODE=$(curl -s -o /tmp/payouts.json -w "%{http_code}" -X GET "${{ env.APP_URL }}/api/cron/reconcile-payouts" \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}")
+          cat /tmp/payouts.json || true
+          echo ""
+          if [ "$HTTP_CODE" -ne 200 ]; then
+            echo "::error::reconcile-payouts failed with status $HTTP_CODE"
+            exit 1
+          fi
+
+      # 2. Expire Unsigned Deal Contracts (Hourly)
+      - name: Expire Deal Signatures (Hourly)
+        if: ${{ github.event_name == 'schedule' || inputs.job == 'all' || inputs.job == 'expire-signatures' }}
+        run: |
+          echo "Running /api/cron/expire-signatures..."
+          HTTP_CODE=$(curl -s -o /tmp/signatures.json -w "%{http_code}" -X GET "${{ env.APP_URL }}/api/cron/expire-signatures" \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}")
+          cat /tmp/signatures.json || true
+          echo ""
+          if [ "$HTTP_CODE" -ne 200 ]; then
+            echo "::error::expire-signatures failed with status $HTTP_CODE"
+            exit 1
+          fi
+
+      # 3. Auto-Pause Expired Campaigns (Hourly)
+      - name: Expire Campaigns (Hourly)
+        if: ${{ github.event_name == 'schedule' || inputs.job == 'all' || inputs.job == 'expire-campaigns' }}
+        run: |
+          echo "Running /api/cron/expire-campaigns..."
+          HTTP_CODE=$(curl -s -o /tmp/campaigns.json -w "%{http_code}" -X GET "${{ env.APP_URL }}/api/cron/expire-campaigns" \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}")
+          cat /tmp/campaigns.json || true
+          echo ""
+          if [ "$HTTP_CODE" -ne 200 ]; then
+            echo "::error::expire-campaigns failed with status $HTTP_CODE"
+            exit 1
+          fi
+
+      # 4. Lift Expired Account Suspensions (Hourly)
+      - name: Lift Account Suspensions (Hourly)
+        if: ${{ github.event_name == 'schedule' || inputs.job == 'all' || inputs.job == 'lift-suspensions' }}
+        run: |
+          echo "Running /api/cron/lift-suspensions..."
+          HTTP_CODE=$(curl -s -o /tmp/suspensions.json -w "%{http_code}" -X GET "${{ env.APP_URL }}/api/cron/lift-suspensions" \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}")
+          cat /tmp/suspensions.json || true
+          echo ""
+          if [ "$HTTP_CODE" -ne 200 ]; then
+            echo "::error::lift-suspensions failed with status $HTTP_CODE"
+            exit 1
+          fi
+
+      # 5. Content Auto-Approve (Every 2 Hours or on-demand)
+      - name: Content Auto-Approve (every 2h)
+        if: ${{ github.event_name == 'schedule' || inputs.job == 'all' || inputs.job == 'content-auto-approve' }}
+        run: |
+          echo "Running /api/cron/content-auto-approve..."
+          HTTP_CODE=$(curl -s -o /tmp/auto_approve.json -w "%{http_code}" -X GET "${{ env.APP_URL }}/api/cron/content-auto-approve" \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}")
+          cat /tmp/auto_approve.json || true
+          echo ""
+          if [ "$HTTP_CODE" -ne 200 ]; then
+            echo "::error::content-auto-approve failed with status $HTTP_CODE"
+            exit 1
+          fi
+
+      # 6. Capture Post Engagement Metrics (Every 4 Hours or on-demand)
+      - name: Capture Post Engagement (every 4h)
+        if: ${{ github.event_name == 'schedule' || inputs.job == 'all' || inputs.job == 'engagement' }}
+        run: |
+          echo "Running /api/cron/engagement..."
+          HTTP_CODE=$(curl -s -o /tmp/engagement.json -w "%{http_code}" -X GET "${{ env.APP_URL }}/api/cron/engagement" \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}")
+          cat /tmp/engagement.json || true
+          echo ""
+          if [ "$HTTP_CODE" -ne 200 ]; then
+            echo "::error::engagement failed with status $HTTP_CODE"
+            exit 1
+          fi
+

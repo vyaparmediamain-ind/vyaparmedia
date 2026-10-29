@@ -1,0 +1,499 @@
+/**
+* Next.js Edge Middleware - Enterprise WAF + Security Layer
+*/
+
+import { NextResponse, NextRequest } from "next/server";
+import NextAuth from "next-auth";
+import { authConfig } from "./auth.config";
+import { logger } from "@/lib/logger-client";
+import { getSecureClientIp } from "@/lib/ip";
+
+// Edge-safe auth instance
+const { auth } = NextAuth(authConfig);
+
+function hostnameFromUrl(value?: string) {
+if (!value) return null;
+try {
+return new URL(value).hostname;
+} catch {
+return null;
+}
+}
+
+const storagePublicHost =
+hostnameFromUrl(process.env.STORAGE_PUBLIC_URL) ||
+hostnameFromUrl(process.env.R2_PUBLIC_URL);
+const storageEndpointHost = hostnameFromUrl(process.env.S3_ENDPOINT);
+const s3Bucket = process.env.S3_BUCKET;
+const s3Region = process.env.S3_REGION || "ap-south-1";
+
+const storageConnectSources = [
+storagePublicHost ? `https://${storagePublicHost}` : null,
+storageEndpointHost ? `https://${storageEndpointHost}` : null,
+s3Bucket ? `https://${s3Bucket}.s3.${s3Region}.amazonaws.com` : null,
+].filter(Boolean);
+
+const storageImageSources = [
+storagePublicHost ? `https://${storagePublicHost}` : null,
+s3Bucket ? `https://${s3Bucket}.s3.${s3Region}.amazonaws.com` : null,
+].filter(Boolean);
+
+const storageConnectStr = storageConnectSources.length > 0 ? " " + storageConnectSources.join(" ") : "";
+const storageImageStr = storageImageSources.length > 0 ? " " + storageImageSources.join(" ") : "";
+
+// Unified Content Security Policy supporting Next.js SSR/hydration with nonce-based execution, inline styles, Google, Razorpay, and Vercel analytics
+function generateCspWithNonce(nonce: string): string {
+  const isDev = process.env.NODE_ENV !== "production";
+  return [
+    "default-src 'self'",
+    `script-src 'self' 'nonce-${nonce}' 'strict-dynamic' https://*.google.com https://*.googleapis.com https://checkout.razorpay.com https://*.razorpay.com https://va.vercel-scripts.com${isDev ? " 'unsafe-eval'" : ""}`,
+    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+    `img-src 'self' data: blob: https://lh3.googleusercontent.com https://avatars.githubusercontent.com https://images.unsplash.com${storageImageStr}`,
+    "font-src 'self' https://fonts.gstatic.com data:",
+    `connect-src 'self' https://*.googleapis.com https://*.razorpay.com https://api.razorpay.com https://graph.instagram.com https://api.instagram.com https://graph.facebook.com https://api.msg91.com https://surepass.io https://*.surepass.io https://*.ingest.sentry.io https://*.sentry.io https://va.vercel-scripts.com https://vitals.vercel-insights.com${storageConnectStr}`,
+    "frame-src 'self' https://checkout.razorpay.com https://*.razorpay.com",
+    "frame-ancestors 'none'",
+    "form-action 'self'",
+    "worker-src 'self' blob:",
+    "object-src 'none'",
+    "base-uri 'self'",
+  ].join("; ");
+}
+
+import { checkWafPatterns } from "@/lib/waf";
+export { checkWafPatterns };
+
+const CSRF_EXEMPT_PREFIXES = [
+  "/api/payments/webhook",
+  "/api/webhooks/",
+  "/api/jobs/",
+  "/api/cron/",
+  // Public NextAuth internal handlers (have their own anti-CSRF token verification)
+  "/api/auth/callback",
+  "/api/auth/signin",
+  "/api/auth/signout",
+  "/api/auth/session",
+  "/api/auth/csrf",
+  "/api/auth/providers",
+  // External OAuth redirect callbacks
+  "/api/auth/digilocker/callback",
+  "/api/auth/instagram/callback",
+  "/api/auth/youtube/callback",
+];
+
+function isCsrfExempt(pathname: string): boolean {
+  return CSRF_EXEMPT_PREFIXES.some((prefix) => pathname.startsWith(prefix));
+}
+
+function handleCsrfCheck(
+  req: NextRequest,
+  pathname: string,
+  applyCSP: (response: NextResponse) => NextResponse,
+): NextResponse | null {
+  const method = req.method.toUpperCase();
+  const MUTATING_METHODS = new Set(["POST", "PUT", "PATCH", "DELETE"]);
+
+  if (!MUTATING_METHODS.has(method) || isCsrfExempt(pathname)) {
+    return null;
+  }
+
+  // 1. Sec-Fetch-Site check: Reject cross-site mutations outright
+  const secFetchSite = req.headers.get("sec-fetch-site");
+  if (secFetchSite === "cross-site") {
+    return applyCSP(
+      NextResponse.json(
+        { error: "Forbidden: Cross-site mutation rejected (CSRF)" },
+        { status: 403 },
+      ),
+    );
+  }
+
+  // Determine allowed hosts from request host and configured base URLs
+  const requestHost = req.headers.get("host") || "";
+  const forwardedHost = req.headers.get("x-forwarded-host") || "";
+  const allowedHosts = new Set<string>();
+
+  if (requestHost) allowedHosts.add(requestHost.toLowerCase());
+  if (forwardedHost) allowedHosts.add(forwardedHost.toLowerCase());
+
+  const configuredHosts = [
+    hostnameFromUrl(process.env.NEXTAUTH_URL),
+    hostnameFromUrl(process.env.NEXT_PUBLIC_APP_URL),
+    hostnameFromUrl(process.env.APP_BASE_URL),
+  ].filter((h): h is string => Boolean(h));
+
+  for (const h of configuredHosts) {
+    allowedHosts.add(h.toLowerCase());
+  }
+
+  // 2. Check Origin header if present
+  const origin = req.headers.get("origin");
+  if (origin) {
+    try {
+      const originHost = new URL(origin).host.toLowerCase();
+      if (!allowedHosts.has(originHost)) {
+        return applyCSP(
+          NextResponse.json(
+            { error: "Forbidden: Invalid origin (CSRF)" },
+            { status: 403 },
+          ),
+        );
+      }
+    } catch {
+      return applyCSP(
+        NextResponse.json(
+          { error: "Forbidden: Malformed origin header" },
+          { status: 403 },
+        ),
+      );
+    }
+    return null;
+  }
+
+  // 3. Fallback to Referer header if Origin is omitted
+  const referer = req.headers.get("referer");
+  if (referer) {
+    try {
+      const refererHost = new URL(referer).host.toLowerCase();
+      if (!allowedHosts.has(refererHost)) {
+        return applyCSP(
+          NextResponse.json(
+            { error: "Forbidden: Invalid referer (CSRF)" },
+            { status: 403 },
+          ),
+        );
+      }
+    } catch {
+      return applyCSP(
+        NextResponse.json(
+          { error: "Forbidden: Malformed referer header" },
+          { status: 403 },
+        ),
+      );
+    }
+  }
+
+  return null;
+}
+
+/** Returns true if the IP address is found in the Edge Redis blacklist. */
+async function checkEdgeIpBlacklist(ip: string): Promise<boolean> {
+  try {
+    const { isIpBannedEdge } = await import("./lib/blacklist-edge");
+    return await isIpBannedEdge(ip);
+  } catch (err) {
+    logger.error("Middleware edge blacklist lookup failed:", err);
+    return false;
+  }
+}
+
+/**
+ * Returns true when an unauthenticated user is accessing a protected path,
+ * meaning a login redirect (or 401) should be issued.
+ */
+function requiresLoginRedirect(
+  isAuth: boolean,
+  isStaticAsset: boolean,
+  isDashboardPath: boolean,
+  isAdminPath: boolean,
+): boolean {
+  return !isAuth && !isStaticAsset && (isDashboardPath || isAdminPath);
+}
+
+/**
+ * Returns true when the current path is an admin path but the user's
+ * userType is not "ADMIN".
+ */
+function isAdminAccessDenied(
+  userType: string | undefined,
+  isAdminPath: boolean,
+): boolean {
+  return isAdminPath && userType !== "ADMIN";
+}
+
+/**
+ * Timing-safe CRON secret verification using Web Crypto (Edge-safe).
+ * Returns true if the provided secret matches the expected value.
+ */
+async function verifyCronSecret(
+  cronSecret: string | null,
+  expectedSecret: string,
+): Promise<boolean> {
+  if (!cronSecret || !expectedSecret) return false;
+  const encoder = new TextEncoder();
+  const expectedHash = new Uint8Array(
+    await crypto.subtle.digest("SHA-256", encoder.encode(expectedSecret)),
+  );
+  const actualHash = new Uint8Array(
+    await crypto.subtle.digest("SHA-256", encoder.encode(cronSecret)),
+  );
+  let result = 0;
+  for (let i = 0; i < expectedHash.length; i++) {
+    result |= expectedHash[i]! ^ actualHash[i]!;
+  }
+  return result === 0;
+}
+
+async function handleWafAndIpCheck(
+  req: NextRequest,
+  pathname: string,
+  applyCSP: (response: NextResponse) => NextResponse,
+): Promise<NextResponse | null> {
+  const ua = (req.headers.get("user-agent") || "").toLowerCase();
+  const rawPath = pathname.toLowerCase();
+  const rawSearch = req.nextUrl.search.toLowerCase();
+  let decodedPath = rawPath;
+  let decodedSearch = rawSearch;
+  try {
+    decodedPath = decodeURIComponent(pathname).toLowerCase();
+    decodedSearch = decodeURIComponent(req.nextUrl.search).toLowerCase();
+  } catch {
+    // Keep raw strings on malformed URI encoding
+  }
+  const requestFingerprint = `${ua} ${rawPath} ${rawSearch} ${decodedPath} ${decodedSearch}`;
+  if (checkWafPatterns(requestFingerprint)) {
+    return applyCSP(
+      NextResponse.json(
+        { error: "Forbidden: Security violation detected" },
+        { status: 403 },
+      ),
+    );
+  }
+
+  const ip = getSecureClientIp(req);
+  if (ip !== "unknown" && (await checkEdgeIpBlacklist(ip))) {
+    return applyCSP(
+      NextResponse.json(
+        { error: "Access Denied: Your IP is banned." },
+        { status: 403 },
+      ),
+    );
+  }
+  return null;
+}
+
+interface AuthRedirectConfig {
+req: NextRequest;
+pathname: string;
+isAuth: boolean;
+isStaticAsset: boolean;
+isDashboardPath: boolean;
+isAdminPath: boolean;
+isApiRoute: boolean;
+redirectTo: (targetPath: string) => URL;
+applyCSP: (response: NextResponse) => NextResponse;
+}
+
+function handleAuthRedirect(config: AuthRedirectConfig): NextResponse | null {
+const {
+req,
+pathname,
+isAuth,
+isStaticAsset,
+isDashboardPath,
+isAdminPath,
+isApiRoute,
+redirectTo,
+applyCSP,
+} = config;
+if (requiresLoginRedirect(isAuth, isStaticAsset, isDashboardPath, isAdminPath)) {
+if (isApiRoute) {
+return applyCSP(NextResponse.json({ error: "Unauthorized" }, { status: 401 }));
+}
+const loginUrl = redirectTo("/login");
+loginUrl.searchParams.set("callbackUrl", `${pathname}${req.nextUrl.search || ""}`);
+return applyCSP(NextResponse.redirect(loginUrl));
+}
+return null;
+}
+
+function handleAdminRedirect(
+  pathname: string,
+  session: { user?: { userType?: string } } | null,
+  isAuth: boolean,
+  isAdminPath: boolean,
+  redirectTo: (targetPath: string) => URL,
+  applyCSP: (response: NextResponse) => NextResponse
+): NextResponse | null {
+  if (isAdminPath && isAdminAccessDenied(session?.user?.userType, isAdminPath)) {
+    if (pathname.startsWith("/api/")) {
+      return applyCSP(
+        NextResponse.json({ error: "Forbidden: Admin access required" }, { status: 403 }),
+      );
+    }
+    return applyCSP(NextResponse.redirect(redirectTo(isAuth ? "/dashboard" : "/login")));
+  }
+  return null;
+}
+
+function handleRoleRedirect(
+  pathname: string,
+  session: { user?: { userType?: string } } | null,
+  isAuth: boolean,
+  redirectTo: (targetPath: string) => URL,
+  applyCSP: (response: NextResponse) => NextResponse
+): NextResponse | null {
+  if (!isAuth) return null;
+  const userType = (session?.user?.userType || "INFLUENCER").toUpperCase();
+  if (userType === "ADMIN") return null;
+
+  // Brand-only routes
+  const isBrandOnly =
+    pathname === "/dashboard/campaigns/create" ||
+    pathname.startsWith("/dashboard/campaigns/create/") ||
+    pathname === "/dashboard/influencers" ||
+    pathname.startsWith("/dashboard/influencers/");
+
+  if (isBrandOnly && userType !== "BRAND" && userType !== "INDIVIDUAL") {
+    if (pathname.startsWith("/api/")) {
+      return applyCSP(
+        NextResponse.json({ error: "Forbidden: Brand access required" }, { status: 403 }),
+      );
+    }
+    return applyCSP(NextResponse.redirect(redirectTo("/dashboard")));
+  }
+
+  // Influencer-only routes
+  const isInfluencerOnly =
+    pathname === "/dashboard/applications" ||
+    pathname.startsWith("/dashboard/applications/");
+
+  if (isInfluencerOnly && userType !== "INFLUENCER") {
+    if (pathname.startsWith("/api/")) {
+      return applyCSP(
+        NextResponse.json({ error: "Forbidden: Influencer access required" }, { status: 403 }),
+      );
+    }
+    return applyCSP(NextResponse.redirect(redirectTo("/dashboard")));
+  }
+
+  return null;
+}
+
+async function handleCronProtection(
+  req: NextRequest,
+  pathname: string,
+  applyCSP: (response: NextResponse) => NextResponse
+): Promise<NextResponse | null> {
+  if (pathname.startsWith("/api/cron/")) {
+    const expectedSecret = process.env.CRON_SECRET || "";
+    const xCronSecret = req.headers.get("x-cron-secret") || req.headers.get("x-api-key");
+    const authHeader = req.headers.get("authorization");
+    const bearerSecret = authHeader?.replace(/^bearer /i, "")?.trim() || null;
+    const querySecret = req.nextUrl.searchParams.get("key") || req.nextUrl.searchParams.get("secret");
+
+    const isXCronValid = await verifyCronSecret(xCronSecret, expectedSecret);
+    const isBearerValid = await verifyCronSecret(bearerSecret, expectedSecret);
+    const isQueryValid = await verifyCronSecret(querySecret, expectedSecret);
+
+    if (!isXCronValid && !isBearerValid && !isQueryValid) {
+      return applyCSP(NextResponse.json({ error: "Forbidden: Invalid Cron Secret" }, { status: 403 }));
+    }
+  }
+  return null;
+}
+
+/**
+* Enterprise Middleware Logic
+*/
+export default auth(async (req) => {
+const { pathname } = req.nextUrl;
+const session = req.auth;
+
+const redirectTo = (targetPath: string) => {
+  return new URL(targetPath, req.nextUrl.origin);
+};
+
+// Helper to apply CSP headers to response
+const nonce = Buffer.from(crypto.randomUUID()).toString("base64");
+const cspHeader = generateCspWithNonce(nonce);
+
+const applyCSP = (response: NextResponse) => {
+  response.headers.set('Content-Security-Policy', cspHeader);
+  return response;
+};
+
+const wafResult = await handleWafAndIpCheck(req, pathname, applyCSP);
+if (wafResult) return wafResult;
+
+const csrfResult = handleCsrfCheck(req, pathname, applyCSP);
+if (csrfResult) return csrfResult;
+
+// 2. Auth Logic
+const isAuth = !!session && !session.error;
+const isApiRoute = pathname.startsWith("/api/");
+const isStaticAsset =
+pathname.startsWith("/_next") ||
+pathname === "/favicon.ico" ||
+/\.[a-zA-Z0-9]+$/.test(pathname);
+const isDashboardPath =
+  pathname === "/dashboard" ||
+  pathname.startsWith("/dashboard/") ||
+  pathname === "/onboarding" ||
+  pathname.startsWith("/onboarding/");
+
+// 3. Admin Protection
+const isAdminPath =
+pathname === "/admin" ||
+pathname.startsWith("/admin/") ||
+pathname === "/api/admin" ||
+pathname.startsWith("/api/admin/");
+
+const authRedirect = handleAuthRedirect({
+req,
+pathname,
+isAuth,
+isStaticAsset,
+isDashboardPath,
+isAdminPath,
+isApiRoute,
+redirectTo,
+applyCSP,
+});
+if (authRedirect) return authRedirect;
+
+const adminRedirect = handleAdminRedirect(
+pathname,
+session,
+isAuth,
+isAdminPath,
+redirectTo,
+applyCSP
+);
+if (adminRedirect) return adminRedirect;
+
+const roleRedirect = handleRoleRedirect(
+  pathname,
+  session,
+  isAuth,
+  redirectTo,
+  applyCSP
+);
+if (roleRedirect) return roleRedirect;
+
+// 4. Prevent logged-in users from seeing /login and /register
+const authPages = new Set(["/login", "/register", "/forgot-password", "/reset-password"]);
+if (isAuth && authPages.has(pathname)) {
+return applyCSP(NextResponse.redirect(redirectTo("/dashboard")));
+}
+
+// 5. Cron route protection - fallback in case guard import is forgotten
+const cronResult = await handleCronProtection(req, pathname, applyCSP);
+if (cronResult) return cronResult;
+
+const requestHeaders = new Headers(req.headers);
+requestHeaders.set("x-nonce", nonce);
+requestHeaders.set("Content-Security-Policy", cspHeader);
+
+const response = NextResponse.next({
+  request: {
+    headers: requestHeaders,
+  },
+});
+response.headers.set("Content-Security-Policy", cspHeader);
+return response;
+});
+
+export const config = {
+  matcher: ["/((?!api/auth/(?:session|providers|csrf|callback)|api/payments/webhook|api/webhooks/razorpay/process|api/jobs|api/metrics|_next/static|_next/image|favicon.ico).*)"],
+};

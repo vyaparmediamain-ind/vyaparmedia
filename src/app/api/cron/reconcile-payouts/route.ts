@@ -1,0 +1,231 @@
+import { NextRequest, NextResponse } from "next/server";
+import { apiWrapper } from "@/lib/api-wrapper";
+import { validateCronSecret } from "../guard";
+import prisma from "@/lib/db";
+import { PaymentService } from "@/services/payment.service";
+import { logger } from "@/lib/logger";
+import { redis } from "@/lib/redis";
+import { acquireDistributedLock, releaseDistributedLock } from "@/lib/lock";
+import { fetchPayoutByReferenceId, fetchRazorpayXBalance } from "@/lib/razorpay";
+
+const CRON_LAST_RUN_KEY = "cron:reconcile-payouts:last_run";
+const CRON_LOCK_KEY = "cron:reconcile-payouts:lock";
+const LOCK_TTL_SECS = 300;
+
+interface ReconcileResult {
+  success: boolean;
+  escalated: boolean;
+}
+
+async function reconcileSingleDeal(dealId: string): Promise<ReconcileResult> {
+  try {
+    await PaymentService.processDealCompletion(dealId);
+    await prisma.deal.update({
+      where: { id: dealId },
+      data: { reconcileFailures: 0 },
+    });
+    return { success: true, escalated: false };
+  } catch (error: unknown) {
+    const errMsg = error instanceof Error ? error.message : String(error);
+    let count = 1;
+    try {
+      const updated = await prisma.deal.update({
+        where: { id: dealId },
+        data: { reconcileFailures: { increment: 1 } },
+        select: { reconcileFailures: true },
+      });
+      count = updated.reconcileFailures;
+    } catch (updateErr) {
+      logger.error("Failed to increment reconcileFailures on deal", { dealId, error: updateErr });
+    }
+
+    if (count >= 3) {
+      logger.critical(
+        "RECONCILE_ESCALATION: Deal has failed reconciliation 3+ times requires manual admin intervention",
+        { dealId, failureCount: count, error: errMsg },
+      );
+      return { success: false, escalated: true };
+    }
+
+    logger.error("Failed to reconcile verified deal payout", { dealId, attempt: count, error: errMsg });
+    return { success: false, escalated: false };
+  }
+}
+
+async function _handler_POST(_req: NextRequest) {
+  await validateCronSecret(_req);
+
+  const lockToken = await acquireDistributedLock(CRON_LOCK_KEY, LOCK_TTL_SECS);
+  if (!lockToken) {
+    logger.warn("cron:reconcile-payouts: Lock already held, skipping concurrent run.");
+    return NextResponse.json({
+      success: true,
+      message: "Another reconciliation instance is currently running",
+      data: { locked: true },
+    });
+  }
+
+  try {
+    const verifiedDeals = await prisma.deal.findMany({
+      where: {
+        OR: [
+          { status: "VERIFIED" },
+          { status: "CONTENT_APPROVED", requiresPostVerification: false },
+        ],
+        completedAt: null,
+        deletedAt: null,
+        reconcileFailures: { lt: 3 },
+      },
+      select: { id: true },
+      take: 100,
+      orderBy: { createdAt: "asc" },
+    });
+
+    logger.info("Found verified deals needing payout reconciliation", { count: verifiedDeals.length });
+
+    let successCount = 0;
+    let failureCount = 0;
+    const escalated: string[] = [];
+
+    for (const deal of verifiedDeals) {
+      try {
+        const result = await reconcileSingleDeal(deal.id);
+        if (result.success) {
+          successCount++;
+        } else {
+          failureCount++;
+          if (result.escalated) escalated.push(deal.id);
+        }
+      } catch (loopErr) {
+        failureCount++;
+        logger.error("Unexpected error in reconcile loop for deal", { dealId: deal.id, error: loopErr });
+      }
+    }
+
+    // P6-MONEY-03 FIX: Reconcile stuck withdrawals (> 30 minutes in PROCESSING without resolution)
+    // TP-04 FIX: Query gateway by deterministic reference_id (withdrawal.id) to prevent blind double-refunds
+    const stuckWithdrawals = await prisma.withdrawal.findMany({
+      where: {
+        status: "PROCESSING",
+        updatedAt: { lt: new Date(Date.now() - 30 * 60 * 1000) },
+      },
+      take: 50,
+      orderBy: { updatedAt: "asc" },
+    });
+
+    for (const w of stuckWithdrawals) {
+      try {
+        const gatewayPayout = await fetchPayoutByReferenceId(w.id);
+
+        if (gatewayPayout) {
+          if (gatewayPayout.status === "processed") {
+            await prisma.withdrawal.updateMany({
+              where: { id: w.id, status: "PROCESSING" },
+              data: {
+                status: "COMPLETED",
+                razorpayPayoutId: gatewayPayout.id,
+                processedAt: new Date(),
+              },
+            });
+            logger.info("Reconciled stuck withdrawal: verified processed on gateway", {
+              withdrawalId: w.id,
+              payoutId: gatewayPayout.id,
+              utr: gatewayPayout.utr,
+            });
+          } else if (gatewayPayout.status === "reversed") {
+            await prisma.$transaction(async (tx) => {
+              await PaymentService.refundFailedWithdrawal(
+                w.id,
+                tx,
+                `Gateway payout reversed by bank: ${gatewayPayout.failure_reason || "Reversed"}`,
+                undefined,
+                false,
+                "REVERSED",
+              );
+            });
+            logger.warn("Reconciled stuck withdrawal: gateway confirmed reversed, wallet re-credited", {
+              withdrawalId: w.id,
+              payoutId: gatewayPayout.id,
+            });
+          } else if (gatewayPayout.status === "failed" || gatewayPayout.status === "rejected") {
+            await prisma.$transaction(async (tx) => {
+              await PaymentService.refundFailedWithdrawal(
+                w.id,
+                tx,
+                `Gateway payout ${gatewayPayout.status}: ${gatewayPayout.failure_reason || "Gateway rejection"}`,
+                undefined,
+                false,
+                "FAILED",
+              );
+            });
+            logger.warn("Reconciled stuck withdrawal: gateway confirmed failed, funds refunded", {
+              withdrawalId: w.id,
+              payoutId: gatewayPayout.id,
+            });
+          } else {
+            // queued / pending / processing
+            if (!w.razorpayPayoutId && gatewayPayout.id) {
+              await prisma.withdrawal.updateMany({
+                where: { id: w.id },
+                data: { razorpayPayoutId: gatewayPayout.id },
+              });
+            }
+            logger.info("Stuck withdrawal still active on gateway, awaiting webhook/completion", {
+              withdrawalId: w.id,
+              gatewayStatus: gatewayPayout.status,
+            });
+          }
+        } else if (!w.razorpayPayoutId) {
+          // Confirmed 404/null from gateway and no payout ID exists locally: safely refund
+          await prisma.$transaction(async (tx) => {
+            await PaymentService.refundFailedWithdrawal(
+              w.id,
+              tx,
+              "Gateway timeout during payout submission: verified never reached gateway, funds returned to wallet for retry",
+              undefined,
+              false,
+            );
+          });
+          logger.warn("Reconciled timed-out withdrawal with verified no gateway record: funds refunded", { withdrawalId: w.id });
+        }
+      } catch (wErr) {
+        logger.error("Failed to reconcile stuck withdrawal", { withdrawalId: w.id, error: wErr });
+      }
+    }
+
+    // Check RazorpayX balance and trigger alert if balance < 50,000 INR (5,000,000 paise)
+    try {
+      const { balance } = await fetchRazorpayXBalance();
+      const LOW_BALANCE_THRESHOLD_PAISE = 5_000_000;
+      if (balance > 0 && balance < LOW_BALANCE_THRESHOLD_PAISE) {
+        logger.critical("[RazorpayX Alert] Low account balance! Payouts may be queued", {
+          balancePaise: balance,
+          thresholdPaise: LOW_BALANCE_THRESHOLD_PAISE,
+        });
+      }
+    } catch (balErr) {
+      logger.warn("Failed to check RazorpayX balance in cron", { error: balErr });
+    }
+
+    try {
+      await redis.set(CRON_LAST_RUN_KEY, String(Date.now()), "EX", 172800);
+    } catch (redisErr) {
+      logger.warn("reconcile-payouts: failed to write last_run timestamp to Redis", { error: redisErr });
+    }
+
+    return NextResponse.json({
+      success: true,
+      message: "Reconciliation complete",
+      totalProcessed: verifiedDeals.length,
+      successCount,
+      failureCount,
+      escalated,
+    });
+  } finally {
+    await releaseDistributedLock(CRON_LOCK_KEY, lockToken);
+  }
+}
+
+export const GET = apiWrapper(_handler_POST);
+export const POST = apiWrapper(_handler_POST);
+

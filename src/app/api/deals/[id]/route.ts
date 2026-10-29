@@ -1,0 +1,110 @@
+import { apiWrapper, ValidatedNextRequest } from "@/lib/api-wrapper";
+import prisma from "@/lib/db";
+import { cache } from "@/lib/cache";
+import { NextResponse } from "next/server";
+import { routeParamsSchema } from "@/lib/validations";
+import { getDealParticipantRole } from "@/lib/utils";
+import { isAdmin } from "@/lib/rbac";
+import { requireActiveAdmin } from "@/lib/admin-auth";
+
+const paramsSchema = routeParamsSchema;
+
+export const GET = apiWrapper(
+  async (request: ValidatedNextRequest, { params }) => {
+    const session = request.session;
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const resolvedParams = (await params) as { id: string };
+    const parsedParams = paramsSchema.safeParse(resolvedParams);
+    if (!parsedParams.success) {
+      return NextResponse.json({ error: "Invalid deal ID" }, { status: 400 });
+    }
+    const { id } = parsedParams.data;
+
+    // Cache individual deal for 5 minutes (300 seconds)
+    // Note: Deal updates should invalidate this key: `deal:${id}`
+    const deal = await cache(
+      `deal:${id}`,
+      async () => {
+        return await prisma.deal.findUnique({
+          where: { id },
+          include: {
+            campaign: {
+              select: {
+                id: true,
+                title: true,
+                requirements: true,
+                guidelines: true,
+                deliverables: true,
+                postingDeadline: true,
+              },
+            },
+            brand: {
+              select: {
+                id: true,
+                companyName: true,
+                logo: true,
+                userId: true,
+                isGstVerified: true,
+                averageRating: true,
+              },
+            },
+            influencer: {
+              select: {
+                id: true,
+                displayName: true,
+                avatar: true,
+                userId: true,
+                instagramHandle: true,
+                averageRating: true,
+              },
+            },
+            contentSubmissions: {
+              orderBy: { version: "desc" },
+            },
+          },
+        });
+      },
+      300,
+    );
+
+    if (!deal) {
+      return NextResponse.json({ error: "Deal not found" }, { status: 404 });
+    }
+
+    // Verify access: admins can inspect any deal; participants can only view their own.
+    const { isInfluencer, isBrand } = getDealParticipantRole(deal, session.user.id);
+
+    if (isAdmin(session.user.userType)) {
+      try {
+        await requireActiveAdmin(session.user);
+      } catch {
+        return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
+      }
+    } else if (!isInfluencer && !isBrand) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
+    }
+
+    // Confidentiality Protection: Mask shipping address details for brand users
+    let sanitizedDeal = deal;
+    if (isBrand && !isAdmin(session.user.userType) && deal.shippingAddress) {
+      const raw = deal.shippingAddress as Record<string, unknown>;
+      sanitizedDeal = {
+        ...deal,
+        shippingAddress: {
+          city: raw.city || null,
+          state: raw.state || null,
+          pinCode: raw.pinCode ? `${String(raw.pinCode).slice(0, 3)}***` : null,
+          country: raw.country || "India",
+          isConfidential: true,
+          submittedAt: raw.submittedAt || null,
+        },
+      };
+    }
+
+    return NextResponse.json({ deal: sanitizedDeal });
+  },
+  { requireAuth: true, rateLimit: { limit: 120, window: 60 } },
+);

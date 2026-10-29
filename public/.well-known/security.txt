@@ -1,0 +1,8 @@
+Contact: mailto:security@vyaparmedia.in
+Contact: https://vyaparmedia.in/security
+Expires: 2029-12-31T23:59:59.000Z
+Acknowledgments: https://vyaparmedia.in/security/hall-of-fame
+Preferred-Languages: en, hi
+Canonical: https://vyaparmedia.in/.well-known/security.txt
+Policy: https://vyaparmedia.in/security/policy
+Hiring: https://vyaparmedia.in/careers
