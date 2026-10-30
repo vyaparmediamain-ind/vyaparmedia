@@ -23,6 +23,9 @@ async function _handler_POST(request: NextRequest) {
     }
 
     const result = await processWebhookEventInternal(job);
+    if (!result.success && result.message.includes("locked by another worker")) {
+      return NextResponse.json(result, { status: 429 });
+    }
     return NextResponse.json(result, { status: 200 });
   } catch (error: unknown) {
     logger.error("Error in webhook background processor", {

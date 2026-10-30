@@ -68,7 +68,7 @@ export interface BaseJobPayload {
 export interface WebhookJobPayload extends BaseJobPayload {
   eventId: string;
   eventType: string;
-  rawBody: string;
+  rawBody?: string | undefined;
   payload: unknown;
   topic?: string | undefined;
   category?: QStashJobCategory | undefined;

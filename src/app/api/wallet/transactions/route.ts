@@ -3,7 +3,7 @@ import { z } from "zod";
 import { TransactionStatus, TransactionType } from "@prisma/client";
 import { apiWrapper, ApiResponse } from "@/lib/api-wrapper";
 import { WalletService } from "@/services/wallet.service";
-import { csvResponse, paiseToRupees } from "@/lib/csv-export";
+import { csvResponse, paiseToRupees, csvEsc } from "@/lib/csv-export";
 import { format } from "date-fns";
 import prisma from "@/lib/db";
 import { isInfluencer } from "@/lib/rbac";
@@ -72,10 +72,9 @@ filterDesc: string,
 totalCredit: number,
 totalDebit: number
 ): string {
-const esc = (v: string) => v.includes(",") ? `"${v.replaceAll('"', '""')}"` : v;
-const row = (label: string, value: string) => `${esc(label)},${esc(value)}\r\n`;
+const row = (label: string, value: string) => `${csvEsc(label)},${csvEsc(value)}\r\n`;
 const sep = () => `\r\n`;
-const title = (t: string) => `${esc(t)},\r\n`;
+const title = (t: string) => `${csvEsc(t)},\r\n`;
 
 let csv = "";
 
@@ -122,7 +121,8 @@ csv += sep();
 csv += title("ITEMIZED TRANSACTION LEDGER");
 csv += "Date & Time (IST),Transaction ID,Category,Money In (INR),Money Out (INR),Status,Description\r\n";
 for (const t of txns) {
-  const isCredit = ["DEPOSIT", "PAYOUT", "REFUND", "CREDIT"].includes(t.type);
+  // Canonical Prisma TransactionType mapping: CREDIT & REFUND are Money In; WITHDRAWAL, DEBIT, CHARGEBACK, etc. are Money Out
+  const isCredit = ["CREDIT", "REFUND"].includes(t.type);
   const moneyIn = isCredit ? paiseToRupees(t.amount) : "0.00";
   const moneyOut = !isCredit ? paiseToRupees(t.amount) : "0.00";
   csv += [
@@ -132,7 +132,7 @@ for (const t of txns) {
     moneyIn,
     moneyOut,
     t.status,
-    esc(t.description ?? "Escrow settlement transaction"),
+    csvEsc(t.description ?? "Escrow settlement transaction"),
   ].join(",") + "\r\n";
 }
 csv += sep();
