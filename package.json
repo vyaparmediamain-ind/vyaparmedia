@@ -43,7 +43,7 @@
     "@sentry/nextjs": "^10.59.0",
     "@supabase/supabase-js": "^2.116.0",
     "@tailwindcss/postcss": "^4.3.3",
-    "@tanstack/react-virtual": "^3.14.12",
+    "@tanstack/react-virtual": "^3.14.24",
     "@upstash/qstash": "^2.12.0",
     "autoprefixer": "^10.6.0",
     "bcryptjs": "^3.0.3",
