@@ -52,7 +52,7 @@
     "disposable-email-domains": "^1.0.62",
     "framer-motion": "^14.2.0",
     "ioredis": "^6.0.0",
-    "lucide-react": "^1.45.0",
+    "lucide-react": "^1.64.0",
     "motion-dom": "^14.5.0",
     "motion-utils": "^14.1.1",
     "next": "^16.2.6",
