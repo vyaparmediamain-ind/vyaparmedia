@@ -159,7 +159,7 @@ export function BrandProfileClient({
               <span className="text-xl sm:text-2xl font-black text-foreground">
                 {brand.trustScore}
               </span>
-              <span className="text-xs font-semibold text-muted-foreground">/ 1000</span>
+              <span className="text-xs font-semibold text-muted-foreground">/ 900</span>
             </div>
             <span className="text-[10px] font-medium text-verified flex items-center gap-1 mt-1">
               <CheckCircle2 className="w-3 h-3" /> Tier 1 Platform Standing

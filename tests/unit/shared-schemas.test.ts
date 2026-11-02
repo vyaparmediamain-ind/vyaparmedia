@@ -74,7 +74,7 @@ describe("Shared Zod Schemas & Runtime Validation", () => {
         handle: "priyastyle",
         followers: 120000,
         engagementRate: 4.5,
-        trustScore: 1200, // max is 1000
+        trustScore: 1200, // max is 900
         startingRatePaise: -100, // min is 0
       };
 
