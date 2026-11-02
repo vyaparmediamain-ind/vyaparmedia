@@ -245,10 +245,19 @@ export default function StoryShareModal({
     ctx.fillRect(0, 1000, 1080, 920);
 
     // 3. Platform Brand Header
-    ctx.textAlign = "center";
-    ctx.fillStyle = "#38BDF8";
-    ctx.font = "bold 32px sans-serif";
-    ctx.fillText("VYAPARMEDIA", 540, 160);
+    const vmHeaderLogo = await loadImage("/logo-vm.png");
+    if (vmHeaderLogo) {
+      ctx.drawImage(vmHeaderLogo, 540 - 24, 85, 48, 48);
+      ctx.textAlign = "center";
+      ctx.fillStyle = "#38BDF8";
+      ctx.font = "bold 30px sans-serif";
+      ctx.fillText("VYAPARMEDIA", 540, 168);
+    } else {
+      ctx.textAlign = "center";
+      ctx.fillStyle = "#38BDF8";
+      ctx.font = "bold 32px sans-serif";
+      ctx.fillText("VYAPARMEDIA", 540, 160);
+    }
 
     // Header sub-pill
     ctx.fillStyle = "rgba(255, 255, 255, 0.08)";
@@ -307,19 +316,47 @@ export default function StoryShareModal({
       ctx.fillStyle = "#1E293B";
       ctx.fill();
 
-      // Monogram initials
       const name = isBrand
         ? profile?.companyName || profile?.displayName || "Brand Partner"
         : profile?.displayName || "Verified Creator";
-      const initials = name
-        .split(" ")
-        .map((n) => n[0])
-        .join("")
-        .toUpperCase()
-        .slice(0, 2);
-      ctx.fillStyle = "#F8FAFC";
-      ctx.font = "bold 80px sans-serif";
-      ctx.fillText(initials, avatarX, avatarY + 30);
+
+      let avatarDrawn = false;
+      if (profile?.avatar) {
+        try {
+          const avatarImg = await loadImage(profile.avatar);
+          if (avatarImg) {
+            ctx.save();
+            ctx.beginPath();
+            ctx.arc(avatarX, avatarY, avatarSize / 2, 0, Math.PI * 2);
+            ctx.closePath();
+            ctx.clip();
+            ctx.drawImage(
+              avatarImg,
+              avatarX - avatarSize / 2,
+              avatarY - avatarSize / 2,
+              avatarSize,
+              avatarSize
+            );
+            ctx.restore();
+            avatarDrawn = true;
+          }
+        } catch (e) {
+          logger.warn("[StoryShareModal] Failed to draw avatar onto canvas", { error: String(e) });
+        }
+      }
+
+      if (!avatarDrawn) {
+        // Monogram initials fallback
+        const initials = name
+          .split(" ")
+          .map((n) => n[0])
+          .join("")
+          .toUpperCase()
+          .slice(0, 2);
+        ctx.fillStyle = "#F8FAFC";
+        ctx.font = "bold 80px sans-serif";
+        ctx.fillText(initials, avatarX, avatarY + 30);
+      }
 
       // Display Name / Brand Name
       ctx.fillStyle = "#FFFFFF";
@@ -403,17 +440,22 @@ export default function StoryShareModal({
       ctx.fillText(badgeText, 540, 1530);
     } else {
       // ── REFERRAL STORY CARD ──
+      const vmCardLogo = await loadImage("/logo-vm.png");
+      if (vmCardLogo) {
+        ctx.drawImage(vmCardLogo, 540 - 45, 330, 90, 90);
+      }
+
       ctx.fillStyle = "#F8FAFC";
       ctx.font = "bold 56px sans-serif";
       const referralHeadline = isBrand ? "Partner With Top Creators" : "Join My Creator Network";
-      ctx.fillText(referralHeadline, 540, 430);
+      ctx.fillText(referralHeadline, 540, vmCardLogo ? 470 : 430);
 
       ctx.fillStyle = "#94A3B8";
       ctx.font = "400 30px sans-serif";
       const referralSub = isBrand
         ? "Launch high-ROI influencer campaigns on VyaparMedia"
         : "Get exclusive brand deal access on VyaparMedia";
-      ctx.fillText(referralSub, 540, 485);
+      ctx.fillText(referralSub, 540, vmCardLogo ? 520 : 485);
 
       // Referral Code Prominent Box
       ctx.fillStyle = "rgba(5, 150, 105, 0.15)";
@@ -769,17 +811,34 @@ export default function StoryShareModal({
                   {/* Story Header */}
                   <div className="absolute top-9 left-0 right-0 z-20 flex items-center gap-2 px-3">
                     <div
-                      className="w-7 h-7 rounded-full p-[2px] flex-shrink-0"
+                      className="w-7 h-7 rounded-full p-[1.5px] flex-shrink-0"
                       style={{
-                        background: isBrand
-                          ? "linear-gradient(135deg, #8B5CF6 0%, #3B82F6 50%, #38BDF8 100%)"
-                          : "linear-gradient(135deg, #3B82F6 0%, #8B5CF6 50%, #10B981 100%)",
+                        background:
+                          activeTab === "profile"
+                            ? isBrand
+                              ? "linear-gradient(135deg, #8B5CF6 0%, #3B82F6 50%, #38BDF8 100%)"
+                              : "linear-gradient(135deg, #3B82F6 0%, #8B5CF6 50%, #10B981 100%)"
+                            : "linear-gradient(135deg, #3B82F6 0%, #8B5CF6 100%)",
                       }}
                     >
-                      <div className="w-full h-full rounded-full bg-[#0E1322] flex items-center justify-center text-white text-[9px] font-black">
-                        {activeTab === "profile"
-                          ? (isBrand ? profile?.companyName || "B" : profile?.displayName || "C")[0]?.toUpperCase()
-                          : "VM"}
+                      <div className="w-full h-full rounded-full bg-[#0E1322] flex items-center justify-center text-white text-[9px] font-black overflow-hidden relative">
+                        {activeTab === "profile" ? (
+                          profile?.avatar ? (
+                            <img
+                              src={profile.avatar}
+                              alt={isBrand ? profile?.companyName || "Brand" : profile?.displayName || "Creator"}
+                              className="w-full h-full object-cover rounded-full"
+                            />
+                          ) : (
+                            <span>{(isBrand ? profile?.companyName || "B" : profile?.displayName || "C")[0]?.toUpperCase()}</span>
+                          )
+                        ) : (
+                          <img
+                            src="/logo-vm.png"
+                            alt="VyaparMedia Logo"
+                            className="w-full h-full object-contain p-[2px] rounded-full bg-[#0E1322]"
+                          />
+                        )}
                       </div>
                     </div>
                     <div className="flex-1 min-w-0">
@@ -809,17 +868,27 @@ export default function StoryShareModal({
                             boxShadow: "0 0 18px rgba(59,130,246,0.45)",
                           }}
                         >
-                          <div className="w-full h-full rounded-full bg-[#1E293B] flex items-center justify-center text-white text-base font-black">
-                            {(
-                              (isBrand
-                                ? profile?.companyName || profile?.displayName || "B"
-                                : profile?.displayName || "C")
-                            )
-                              .split(" ")
-                              .map((n) => n[0])
-                              .join("")
-                              .toUpperCase()
-                              .slice(0, 2)}
+                          <div className="w-full h-full rounded-full bg-[#1E293B] flex items-center justify-center text-white text-base font-black overflow-hidden relative">
+                            {profile?.avatar ? (
+                              <img
+                                src={profile.avatar}
+                                alt={isBrand ? profile?.companyName || "Brand" : profile?.displayName || "Creator"}
+                                className="w-full h-full object-cover rounded-full"
+                              />
+                            ) : (
+                              <span>
+                                {(
+                                  (isBrand
+                                    ? profile?.companyName || profile?.displayName || "B"
+                                    : profile?.displayName || "C")
+                                )
+                                  .split(" ")
+                                  .map((n) => n[0])
+                                  .join("")
+                                  .toUpperCase()
+                                  .slice(0, 2)}
+                              </span>
+                            )}
                           </div>
                         </div>
 

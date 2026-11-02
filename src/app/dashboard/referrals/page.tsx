@@ -654,6 +654,7 @@ export default function ReferralsPage() {
           username: session.user.name?.toLowerCase().replace(/[^a-z0-9]/g, "") || (session.user.userType === "BRAND" ? "brand" : "creator"),
           trustScore: session.user.trustScore ?? (session.user.userType === "BRAND" ? 750 : 600),
           userType: session.user.userType,
+          avatar: session.user.image || undefined,
         }}
       />
     </DashboardShell>
