@@ -84,6 +84,7 @@ VyaparMedia par koi bhi brand aapse **"Free promotion"** nahi karwa sakti:
 3. Apna Instagram Business/Creator account aur YouTube channel 1-click me connect karein. Isse aapke real stats (Reach, Engagement Rate) automatic verify ho jayenge.
 
 ### 2.2 Finding Campaigns & Submitting Proposals
+* **1,000 Minimum Followers Requirement**: VyaparMedia par kisi bhi campaign me apply karne ke liye creator ke account par kam se kam 1,000 (1k) followers/subscribers hona mandatory hai (`MIN_INFLUENCER_FOLLOWERS_TO_APPLY = 1000`). Ye bot aur spam accounts ko rok kar marketplace quality maintain karta hai.
 * **Dashboard -> Campaigns Discovery**: Yahan aapko D2C brands aur local shops ke active paid campaigns dikhenge (Fashion, Food, Tech, Fitness, Travel).
 * **Apply Button**: Apna quote dalein (e.g. ₹3,500 for 1 Reel + 1 Story) aur pitch message likhein.
 * Brand aapki application accept karegi aur turant deal create ho jayegi.

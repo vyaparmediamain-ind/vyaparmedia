@@ -58,10 +58,11 @@ graph TD
 - **Key Files:** `src/services/application/create.ts`, `src/lib/action-eligibility.ts`
 - **Checks Enforced:**
   1. `followerAuthenticityScore >= 40` (Fraud / fake follower bot guard).
-  2. At least 1 connected social media handle (Instagram ya YouTube).
-  3. Anti-spam duplicate check (`@@unique([campaignId, influencerId])`).
-  4. Contact details filter (phone, email, UPI pitch me nahi share kar sakte).
-  5. Trust Rule Gate & Enterprise risk checks.
+  2. At least 1,000 followers or subscribers on connected social profile (`MIN_INFLUENCER_FOLLOWERS_TO_APPLY = 1000`).
+  3. At least 1 connected social media handle (Instagram ya YouTube).
+  4. Anti-spam duplicate check (`@@unique([campaignId, influencerId])`).
+  5. Contact details filter (phone, email, UPI pitch me nahi share kar sakte).
+  6. Trust Rule Gate & Enterprise risk checks.
 - **Budget Mismatch Edge Case:**
   - Creator brand ke budget se alag apna `proposedRate` daal sakta hai.
   - Agar creator ka rate brand budget se match nahi hota, toh deal block nahi hoti — negotiation pitch ke roop me Brand ko submit hoti hai.

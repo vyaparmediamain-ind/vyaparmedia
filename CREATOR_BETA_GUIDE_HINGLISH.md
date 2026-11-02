@@ -88,6 +88,7 @@ VyaparMedia par **kuch bhi free nahi hota**:
 3. Apna Instagram Creator/Business account aur YouTube channel connect karo. Isse tumhare real followers aur real engagement score automatic verify ho jayenge.
 
 ### 2.2 Paid Campaigns Dhundhna aur Proposal Bhejna
+* **Minimum 1,000 Followers Zaruri**: Kisi bhi campaign me apply karne ke liye creator ke connected Instagram/YouTube par minimum 1,000 (1k) genuine followers hona compulsory hai (`MIN_INFLUENCER_FOLLOWERS_TO_APPLY = 1000`).
 * Dashboard me **Campaigns** tab par jao. Wahan alag-alag brands (Clothing, Cafes, Fitness, Tech) ke paid offers dikhenge.
 * Jo campaign pasand aaye uspe **"Apply"** dabao.
 * Apna rate quote karo (jaise 1 Reel ke ₹3,500) aur pitch message likh do.

@@ -114,11 +114,11 @@ graph TD
 | **Logistics & Courier** | Shiprocket REST API | v1 | Live courier rates, automated AWB generation, tracking webhooks, brand wallet shipping debits |
 | **Job Queue** | Upstash QStash | v2 REST | Decoupled webhook processing, cron execution, Dead-Letter Queue |
 | **Object Storage** | AWS S3 / Cloudflare R2 | S3 API | Direct presigned uploads for video deliverables and KYC documents |
-| **Realtime Engine** | Supabase Realtime | WebSockets | Real-time deal status updates, wallet changes, typing, chat |
+| **Realtime Engine** | Server-Sent Events & Polling | HTTP/SSE + Redis | Real-time deal status updates, wallet changes, notifications, typing, chat |
 | **Payment Gateway** | Razorpay SDK & Route | 2.9.6 | UPI, Netbanking, Cards top-up, Razorpay Route split settlement, and RazorpayX instant payouts |
 | **Contract Safety** | Zod Schemas | 4.3.6 | Shared schemas across API routes and client fetchers with fail-fast runtime drift rejection |
 | **Observability** | Sentry + Winston | 10.59.0 | Distributed request tracing, structured JSON logging, error tracking |
-| **Testing Suite** | Vitest + Testing Library | 5.0.0 | 50 test files, 546 passed unit, integration & e2e tests (100% pass rate) |e) |
+| **Testing Suite** | Vitest + Testing Library | 5.0.0 | 136 test files, 1,117 passed unit, integration & e2e tests (100% pass rate) |
 
 
 ### 2.2 Database Read/Write Segregation (`src/lib/db-read.ts`)
@@ -385,11 +385,11 @@ The absolute floor for any platform fee is **5.0%**.
    - `includedRevisions`: Default 2 revisions included free of charge.
    - `costPerExtraRevision`: ₹500 (50,000 paise) per additional revision.
 5. **Cancellation Payout Schedule**:
-   - *Before Approval (Dormant)*: 0% creator payout (100% brand refund).
-   - *After Draft Submission*: 30% creator payout for production labor.
-   - *After Brand Approval*: 70% creator payout if brand cancels before posting.
-   - *After Live Posting*: 100% creator payout (non-cancellable).
-6. **Brand Late Approval Fee**: 5% flat surcharge credited to creator if brand delays review beyond 48 hours.
+   - *Before Concept Approval (Dormant)*: 0% creator payout (100% brand refund).
+   - *After Concept Approval*: 30% creator payout (`DEFAULT_CANCELLATION_FEE_AFTER_APPROVAL_PERCENT = 30`).
+   - *After Deliverables Submission*: 70% creator payout (`DEFAULT_CANCELLATION_FEE_AFTER_SUBMISSION_PERCENT = 70`).
+   - *After Live Posting*: 100% creator payout (non-cancellable, `DEFAULT_CANCELLATION_FEE_AFTER_POSTING_PERCENT = 100`).
+6. **Brand Late Approval Fee**: 10% penalty surcharge credited to creator if brand delays review beyond 48 hours (`DEFAULT_BRAND_LATE_APPROVAL_FEE_PERCENT = 10`).
 7. **Content Licensing & Usage Rights**: Specifies grant terms for organic reposts, paid performance ads (dark posting), and brand whitelisting.
 
 ### 5.3 Cryptographic Contract Fingerprint
@@ -1393,7 +1393,7 @@ To eliminate magic numbers, prevent drift between frontend validation and backen
 | **`wallet.ts`** | `MIN_WALLET_TOPUP_PAISE = 10_000`<br>`MAX_WALLET_TOPUP_PAISE = 100_000_000`<br>`MIN_WITHDRAWAL_AMOUNT_PAISE = 50_000`<br>`MAX_WITHDRAWAL_AMOUNT_PAISE = 50_000_000`<br>`RAPID_FIRE_WITHDRAWAL_WINDOW_SECONDS = 600` | Min top-up ₹100 (prevents gateway loss); Max single top-up ₹10,00,000.<br>Min withdrawal ₹500; Max single withdrawal ₹5,00,000.<br>Velocity check: max 2 withdrawals per 10m window. |
 | **`tax.ts`** | `TDS_194O_RATE = 0.001` (0.1%)<br>`TDS_194O_THRESHOLD_PAISE = 50_000_000`<br>`TDS_206AA_PENAL_RATE = 0.05` (5%)<br>`TDS_194J_RATE = 0.10` (10%)<br>`GST_STANDARD_RATE = 0.18` (18%) | Income Tax Act 1961 Section 194-O: 0.1% TDS on creator GMV exceeding ₹5,00,000 per FY.<br>Section 206AA: 5% penal rate for missing/unfurnished PAN.<br>Section 194J: 10% on technical services.<br>CGST/SGST: 18% on platform commissions. |
 | **`auth.ts`** | `AUTH_OTP_EXPIRY_SECONDS = 900` (15m)<br>`CONTACT_UPDATE_OTP_EXPIRY_SECONDS = 600` (10m)<br>`OTP_RESEND_COOLDOWN_SECONDS = 60`<br>`INACTIVITY_LOGOUT_MS = 1_800_000` (30m)<br>`SENSITIVE_ACTION_MAX_SESSION_AGE_MS = 600_000` (10m) | User onboarding OTP valid 15m; sensitive profile update OTP valid 10m.<br>60s resend throttle.<br>30m idle session forced logout with 5m advance modal warning.<br>Sensitive actions (withdraw, sign deal) require fresh auth (<10m). |
-| **`deals.ts`** | `DEFAULT_BRAND_REVIEW_PERIOD_HOURS = 48`<br>`MAX_BRAND_REVIEW_PERIOD_HOURS = 168`<br>`DEAL_SIGNING_WINDOW_HOURS = 72`<br>`POST_MONITORING_WINDOW_DAYS = 30`<br>`DEFAULT_INCLUDED_REVISIONS = 2` | 48-hour brand review window before auto-approval (campaigns can customize up to 7 days).<br>72-hour contract signing window before expiration.<br>30-day post retention monitoring against deletion/clawbacks. |
+| **`deals.ts`** | `DEFAULT_BRAND_REVIEW_PERIOD_HOURS = 48`<br>`MAX_BRAND_REVIEW_PERIOD_HOURS = 168`<br>`DEAL_SIGNING_WINDOW_HOURS = 72`<br>`POST_MONITORING_WINDOW_DAYS = 30`<br>`DEFAULT_INCLUDED_REVISIONS = 2`<br>`MIN_INFLUENCER_FOLLOWERS_TO_APPLY = 1000` | 48-hour brand review window before auto-approval (campaigns can customize up to 7 days).<br>72-hour contract signing window before expiration.<br>30-day post retention monitoring against deletion/clawbacks.<br>1,000 minimum followers/subscribers required to apply to any campaign. |
 | **`drs.ts`** | `MIN_TRUST_SCORE = 0`<br>`MAX_TRUST_SCORE = 900`<br>`IST_OFFSET_MS = 19_800_000` (UTC+5:30)<br>`DRS_DEAL_CAP_LIMITED_PAISE = 500_000`<br>`DRS_DEAL_CAP_NORMAL_PAISE = 2_500_000` | Reputation score bounds 0–900; Indian Standard Time synchronization.<br>Limited tier deal cap: ₹5,000; Normal tier: ₹25,000; Trusted: ₹1,00,000. |
 | **`files.ts`** | `MAX_IMAGE_SIZE_BYTES = 5MB`<br>`MAX_DOCUMENT_SIZE_BYTES = 10MB`<br>`MAX_VIDEO_SIZE_BYTES = 50MB`<br>`MAX_DELIVERABLE_SIZE_BYTES = 100MB` | File upload limits strictly enforced across S3/Supabase upload presigned routes and UI dropzones. |
 | **`network.ts`** | `SMS_GATEWAY_TIMEOUT_MS = 15_000`<br>`IPINFO_TIMEOUT_MS = 3_000`<br>`CRON_LOCK_KEYS.CONTENT_AUTO_APPROVE`<br>`CRON_LOCK_TTLS.AUTO_APPROVE = 300` | Outgoing HTTP timeouts prevent hung worker threads.<br>Centralized Redis distributed lock keys with 5-minute TTL prevent concurrent cron overlap. |

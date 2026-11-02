@@ -88,8 +88,10 @@ VyaparMedia par koi bhi deal **"Free"** nahi hoti, aur iska sabse bada fayda Bra
 ### 2.2 3-Step Campaign Creation Wizard
 Aap 2 minute me naya campaign live kar sakte hain:
 * **Step 1: Campaign Brief**: Campaign ka title, target city (e.g. Jaipur, Delhi, Surat), aur product/service details dalein.
-* **Step 2: Deliverables & Budget**: Kitni reels chahiye (e.g. 3 creators × ₹3,000 = ₹9,000 total budget).
-* **Step 3: Deadlines**: Creators ko draft kab tak dena hai aur reel kab live honi chahiye.
+* **Step 2: Deliverables & Budget**: Kitni reels chahiye (e.g. 3 creators × ₹1,000 = ₹3,000 total budget).
+  * *Platform Budget Guardrails*: Minimum total campaign budget ₹1,000 hai, aur per-creator minimum payout ₹500 hai. Product-only campaigns me product ki real market value minimum ₹500 honi chahiye (max 10,000 followers cap).
+  * *Creator Follower Filter*: Minimum follower requirement kam se kam 1,000 (1k) followers/subscribers honi chahiye.
+* **Step 3: Deadlines**: Creators ko draft kab tak dena hai aur reel kab live honi chahiye. Review window default 48 hours hoti hai (late approval par 10% penalty lagti hai), aur contract signing window 72 hours hoti hai.
 
 ### 2.3 Creator Discovery via DRS™ (Find High-Converting Creators)
 Aapko hazaron profiles scroll karne ki zaroorat nahi hai:

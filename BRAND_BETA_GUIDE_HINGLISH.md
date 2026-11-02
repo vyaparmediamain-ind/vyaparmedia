@@ -91,8 +91,10 @@ VyaparMedia par koi bhi deal **"Free"** nahi hoti, aur iska sabse bada fayda aap
 
 ### 2.2 3-Step Campaign Creation Wizard (2 Minute Ka Kaam)
 * **Step 1: Campaign Brief**: Title daalo (jaise *"Weekend Footfall Reel for Cafe"*), target city chuno (jaise Jaipur, Lucknow, Delhi, Indore).
-* **Step 2: Budget & Deliverables**: Kitne creators chahiye aur har creator ko kitna pay karna hai (jaise 3 creators × ₹2,500 = ₹7,500).
-* **Step 3: Deadlines**: Draft video kab tak chahiye aur reel kab live honi chahiye.
+* **Step 2: Budget & Deliverables**: Kitne creators chahiye aur har creator ko kitna pay karna hai (jaise 3 creators × ₹1,000 = ₹3,000).
+  * *Budget Guardrails*: Minimum total campaign budget ₹1,000 hona chahiye, aur per-creator minimum payout ₹500 hai. Product-only campaigns me product ka real market value minimum ₹500 hona compulsory hai (max 10,000 followers cap).
+  * *Followers Filter*: Creators ke liye minimum followers filter kam se kam 1,000 (1k) followers/subscribers set hota hai.
+* **Step 3: Deadlines**: Draft video kab tak chahiye aur reel kab live honi chahiye. Review window default 48 hours hoti hai (late approval par 10% late fee lagti hai), aur contract signing window 72 hours hoti hai.
 
 ### 2.3 DRS™ Verified Creators Discovery (Real Footfall Wale Creators)
 * **Creator Directory**: City, Niche aur Follower range ke hisaab se filter karo.

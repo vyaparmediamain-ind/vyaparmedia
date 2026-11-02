@@ -598,7 +598,7 @@ export default function SettingsPage() {
           username: user?.userType === "BRAND"
             ? (profile?.companyName?.toLowerCase().replace(/[^a-z0-9]/g, "") || user?.id?.slice(-8) || "brand")
             : (profile?.instagramHandle?.replace(/^@/, "").toLowerCase() || user?.id?.slice(-8) || "creator"),
-          avatar: profile?.profileImage || (profile as unknown as { avatar?: string })?.avatar || (profile as unknown as { logo?: string })?.logo,
+          avatar: profile?.profileImage || (profile as unknown as { avatar?: string })?.avatar || (profile as unknown as { logo?: string })?.logo || user?.image,
           trustScore: user?.trustScore ?? (user?.userType === "BRAND" ? 750 : 600),
           categories: profile?.categories,
           city: profile?.city,
