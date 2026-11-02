@@ -1054,7 +1054,7 @@ The UI rebuild established four primary high-impact page flows:
 - **Architecture**: Comprehensive standalone Help Center equipped with categorized knowledge base, search, and support escalation:
   - *12 Categorized FAQs across 4 Domains*:
     1. `GETTING_STARTED`: Platform overview, dual creator/brand roles, campaign invitation and offer workflow.
-    2. `PAYMENTS_ESCROW`: 100% Escrow security, platform fee structure (5% + GST), milestone payout timelines.
+    2. `PAYMENTS_ESCROW`: 100% Escrow security, platform fee structure (10% standard brand platform fee + GST, with level discounts down to 5%), milestone payout timelines.
     3. `DISPUTES_REVISIONS`: Creative revision requests, delivery deadline lapses, 48-hour mutual resolution & senior arbitration.
     4. `KYC_SECURITY`: Aadhaar & PAN verification necessity, DRS scoring algorithm, automated anti-leak contact protection.
   - *Real-Time Search Query Filtering*: Instant client-side filtering matching keywords across questions, answers, and category tags.
@@ -1085,12 +1085,14 @@ The UI rebuild established four primary high-impact page flows:
 | | `/terms` | `src/app/terms/page.tsx` | Terms of Service for brands and creators |
 | | `/refund` | `src/app/refund/page.tsx` | Escrow cancellation & refund settlement policies |
 | | `/cookie-policy` | `src/app/cookie-policy/page.tsx` | Cookie usage, session security, analytics tracking |
+| | `/status` | `src/app/status/page.tsx` | Real-time system operations status, provider availability metrics, and maintenance logs |
 | **Auth** | `/login` | `src/app/login/page.tsx` | Email/Phone login with 2FA TOTP verification |
 | | `/register` | `src/app/register/page.tsx` | 2-step registration with 6-digit OTP & role selection |
 | | `/onboarding` | `src/app/onboarding/page.tsx` | Multi-step role-specific profile setup wizard with progress tracking |
 | | `/forgot-password` | `src/app/forgot-password/page.tsx` | Password reset request with rate-limited email token |
 | | `/reset-password` | `src/app/reset-password/page.tsx` | Cryptographic token password update form |
 | **Portfolio** | `/creator/[username]` | `src/app/creator/[username]/page.tsx` | Public creator showcase with Instagram 3-col grid, verified reach, DRS gauge, rate card, & direct offer CTA |
+| | `/brand/[id]` | `src/app/brand/[id]/page.tsx` | Public brand profile: company overview, verified badge, active campaigns listing, and direct collaboration CTA |
 | **Dashboard** | `/dashboard` | `src/app/dashboard/page.tsx` | Central overview: active deals, wallet summary, notifications, and onboarding guard |
 | | `/dashboard/campaigns` | `src/app/dashboard/campaigns/page.tsx` | Campaign discovery & brand campaign management |
 | | `/dashboard/campaigns/create` | `src/app/dashboard/campaigns/create/page.tsx` | 3-step campaign creation wizard with live summary sidebar & budget escrow calculator |
@@ -1218,22 +1220,23 @@ Every route is guarded by `apiWrapper` (`src/lib/api-wrapper.ts`) enforcing sess
 | | DELETE | `/api/campaigns/[id]` | `DELETE_CAMPAIGN` | Cancel or soft-delete campaign |
 | **Applications** | GET | `/api/applications` | `VIEW_APPLICATIONS` | List applications for user campaigns |
 | | POST | `/api/applications` | `APPLY_CAMPAIGN` | Creator applies with proposal & quote |
-| | PATCH | `/api/applications/[id]`| `MANAGE_APPLICATIONS`| Shortlist, select, or reject applicant |
+| | POST | `/api/applications/[id]/accept`| `MANAGE_APPLICATIONS`| Accept creator proposal and create deal |
+| | POST | `/api/applications/[id]/reject`| `MANAGE_APPLICATIONS`| Decline candidate application |
 | **Bookmarks** | GET | `/api/bookmarks` | Authenticated | List bookmarked creators, campaigns, deals |
 | | POST | `/api/bookmarks` | Authenticated | Optimistically toggle saved bookmark |
 | **Deals** | GET | `/api/deals` | `VIEW_DEALS` | List user's active and past deals |
-| | POST | `/api/deals` | `CREATE_DEAL` | Direct offer issuance |
-| | GET | `/api/deals/[id]` | `VIEW_DEALS` | Detailed deal contract view |
+| | POST | `/api/deals` | `MANAGE_DEALS` | Deal action router: `submit_content`, `review_content`, `verify_post`, `complete_deal`, `update_shipping` |
+| | GET | `/api/deals/[id]` | `VIEW_DEALS` | Detailed deal contract view with masked shipping |
 | | POST | `/api/deals/[id]/sign`| `ACCEPT_DEAL` | Sign digital contract terms |
-| | POST | `/api/deals/[id]/content`| `SUBMIT_CONTENT` | Submit draft deliverables |
-| | POST | `/api/deals/[id]/approve`| `APPROVE_CONTENT` | Brand approves draft content |
-| | POST | `/api/deals/[id]/verify` | `SUBMIT_CONTENT` | Submit live post URL for verification |
-| | POST | `/api/deals/[id]/release`| `MANAGE_DEALS` | Release escrow to creator wallet |
-| | POST | `/api/deals/[id]/cancel` | `MANAGE_DEALS` | Cancel unexecuted deal / refund |
+| | POST | `/api/deals/[id]/cancel` | `MANAGE_DEALS` | Cancel unexecuted deal & refund escrow |
+| | POST | `/api/deals/[id]/fund` | `MANAGE_DEALS` | Fund deal escrow from brand wallet |
+| | POST | `/api/deals/[id]/product`| `MANAGE_DEALS` | Dispatch product via Shiprocket & generate AWB |
+| | GET | `/api/deals/[id]/contract`| `VIEW_DEALS` | Fetch canonical contract terms |
+| | POST | `/api/deals/[id]/reject`| `MANAGE_DEALS` | Reject incoming direct deal offer |
 | **Disputes** | GET | `/api/disputes` | `VIEW_DEALS` | List dispute mediation cases |
 | | POST | `/api/disputes` | `CREATE_DISPUTE` | Open formal dispute (freezes escrow) |
-| | POST | `/api/disputes/[id]/evidence`| `MANAGE_DEALS` | Upload dispute evidence files |
-| | POST | `/api/disputes/[id]/resolve` | `RESOLVE_DISPUTE` | Admin settles dispute |
+| | GET | `/api/disputes/[id]` | `VIEW_DEALS` | Get dispute case details & automated analysis |
+| | PATCH | `/api/disputes/[id]` | `MANAGE_DEALS` | Actions: `accept`, `reject`, `withdraw`, `escalate` |
 | **Wallet** | GET | `/api/wallet` | `VIEW_OWN_FINANCE` | Get available balance & debt |
 | | POST | `/api/wallet/add-funds` | `MANAGE_CAMPAIGNS`| Create Razorpay order to top-up |
 | | GET | `/api/wallet/transactions` | `VIEW_TRANSACTIONS`| Filterable & exportable transaction ledger |
@@ -1242,9 +1245,7 @@ Every route is guarded by `apiWrapper` (`src/lib/api-wrapper.ts`) enforcing sess
 | | POST | `/api/payments/webhook` | Public (HMAC) | Razorpay fast webhook ingestion |
 | | POST | `/api/webhooks/razorpay/process`| Internal (QStash) | Heavy webhook transaction worker |
 | **Compliance** | GET/POST| `/api/compliance/india-tax`| `VIEW_SETTINGS` | Manage PAN, GSTIN, and tax slabs |
-| **Verification**| POST | `/api/verification` | `SUBMIT_VERIFICATION`| Upload KYC identity documents |
-| | POST | `/api/verification/pan`| `SUBMIT_VERIFICATION`| Verify PAN with Surepass / NSDL |
-| | POST | `/api/verification/gstin`| `SUBMIT_VERIFICATION`| Verify GSTIN & extract state code |
+| **Verification**| GET/POST| `/api/verification` | `SUBMIT_VERIFICATION`| Upload & verify KYC documents (PAN, GSTIN, Aadhaar, Bank) via Surepass |
 | **Upload** | POST | `/api/upload/presign` | Authenticated | Generate presigned S3/R2 upload URL |
 | **Messages** | GET | `/api/messages` | Authenticated | List conversations & unread count |
 | | POST | `/api/messages` | Authenticated | Send message (contact leak checked) |
@@ -1261,7 +1262,11 @@ Every route is guarded by `apiWrapper` (`src/lib/api-wrapper.ts`) enforcing sess
 | **Admin** | GET | `/api/admin/users` | `MANAGE_USERS` | User directory with search & bans |
 | | GET | `/api/admin/financial`| `MANAGE_PLATFORM_FINANCE`| Platform treasury & drift overview |
 | | GET/POST| `/api/admin/ip-blacklist`| `SYSTEM_ADMIN` | Manage edge-blocked IP addresses |
-| | GET/POST| `/api/admin/jobs` | `SYSTEM_ADMIN` | View and retry dead-letter jobs |
+| | GET/POST| `/api/admin/jobs/dlq` | `SYSTEM_ADMIN` | View and retry dead-letter jobs |
+| | GET | `/api/admin/audit-logs`| `SYSTEM_ADMIN` | Search immutable audit log records |
+| | GET | `/api/admin/payouts` | `MANAGE_PLATFORM_FINANCE`| Payout verification and approval queue |
+| | GET | `/api/admin/reports/revenue` | `MANAGE_PLATFORM_FINANCE`| Platform GMV and revenue metrics |
+| | GET | `/api/admin/reports/tds` | `MANAGE_PLATFORM_FINANCE`| Section 194-O tax withholding ledger |
 
 ---
 

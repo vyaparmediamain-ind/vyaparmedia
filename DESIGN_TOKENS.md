@@ -286,7 +286,7 @@ All primitive components consume `@base-ui/react` (v1.8.0) and export via `@/com
 
 ### 6.8 Campaign Creation Wizard (`src/components/dashboard/campaigns/create/`)
 - **`CreateCampaignClient.tsx`**: 3-step progressive disclosure wizard for campaign creation.
-- **`CampaignSummarySidebar.tsx`**: Sticky desktop preview sidebar with real-time creator payout pool, 5% platform fee, 18% GST calculation, and bold `tabular-nums` escrow lock total.
+- **`CampaignSummarySidebar.tsx`**: Sticky desktop preview sidebar with real-time creator payout pool, 10% platform fee, 18% GST calculation, and bold `tabular-nums` escrow lock total.
 - **`DeliverablesList.tsx`**: Deliverable selector featuring platform accent badges (Instagram pink, YouTube red), quantity counters, and recommended price helper tags.
 - **`ProductSeedingCard.tsx`**: Logistics management card for physical product gifting with retail value tracking.
 
