@@ -89,6 +89,7 @@ async function _GET(req: AuthenticatedRequest) {
   ]);
 
   return ApiResponse.success({
+    flags,
     data: flags,
     pagination: {
       page,

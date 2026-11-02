@@ -35,7 +35,7 @@ export default function HelpPage() {
       <Navbar />
 
       {/* Main Knowledge Base Content */}
-      <main className="flex-1 pt-20 pb-16">
+      <main className="flex-1 pt-24 sm:pt-28 pb-16">
         <HelpCenterClient />
       </main>
 

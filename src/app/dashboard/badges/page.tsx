@@ -8,7 +8,7 @@ import { useSession } from "next-auth/react";
 import DashboardShell from "@/components/dashboard/DashboardShell";
 import { BadgeDefinition } from "@/lib/badges";
 import EmptyState from "@/components/ui/EmptyState";
-import { Button, PageContainer, PageHeader } from "@/components/ui";
+import { Button, PageContainer, PageHeader, HorizontalScrollArea } from "@/components/ui";
 import { formatNumber } from "@/lib/utils-client";
 import {
   Trophy,
@@ -89,7 +89,13 @@ export default function BadgesPage() {
     fetcher
   );
 
-  const badges: BadgeWithStatus[] = (data?.badges || []) as unknown as BadgeWithStatus[];
+  const badges: BadgeWithStatus[] = (
+    Array.isArray(data?.badges)
+      ? data.badges
+      : Array.isArray((data as Record<string, unknown>)?.data)
+      ? (data as Record<string, unknown>).data
+      : []
+  ) as unknown as BadgeWithStatus[];
   const stats = data?.stats || null;
   const hasError = Boolean(fetchErr);
 
@@ -104,7 +110,7 @@ export default function BadgesPage() {
   if (!session) {
     return (
       <DashboardShell user={undefined}>
-        <PageContainer maxWidth="5xl" className="flex items-center justify-center h-48 pt-4 pb-0 sm:py-6">
+        <PageContainer maxWidth="7xl" className="flex items-center justify-center h-48 pt-4 pb-0 sm:py-6">
           <div className="w-8 h-8 rounded-full border-2 border-primary border-t-transparent animate-spin" />
         </PageContainer>
       </DashboardShell>
@@ -113,7 +119,7 @@ export default function BadgesPage() {
 
   return (
     <DashboardShell user={session.user}>
-      <PageContainer maxWidth="5xl" className="space-y-6 pt-4 pb-0 sm:py-6">
+      <PageContainer maxWidth="7xl" className="space-y-6 pt-4 pb-0 sm:py-6">
 
         {/* ── Page Header ── */}
         <PageHeader
@@ -250,33 +256,35 @@ export default function BadgesPage() {
         )}
 
         {/* ── Category Filter Tabs ── */}
-        <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar">
-          {CATEGORY_ITEMS.map((cat) => {
-            const count =
-              cat.id === "ALL"
-                ? badges.length
-                : badges.filter((b) => b.category === cat.id).length;
-            const isActive = activeCategory === cat.id;
-            return (
-              <button
-                key={cat.id}
-                type="button"
-                onClick={() => setActiveCategory(cat.id)}
-                className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all shrink-0 whitespace-nowrap cursor-pointer border ${
-                  isActive
-                    ? "bg-primary text-primary-foreground border-primary shadow-sm"
-                    : "bg-card text-muted-foreground border-border hover:text-foreground hover:bg-muted/50"
-                }`}
-              >
-                {cat.icon}
-                {cat.label}
-                {count > 0 && (
-                  <span className="tabular-nums opacity-70">({count})</span>
-                )}
-              </button>
-            );
-          })}
-        </div>
+        <HorizontalScrollArea aria-label="Badge category filters" showScrollIndicator={true}>
+          <div className="inline-flex items-center gap-2 py-1 px-1 min-w-max shrink-0">
+            {CATEGORY_ITEMS.map((cat) => {
+              const count =
+                cat.id === "ALL"
+                  ? badges.length
+                  : badges.filter((b) => b.category === cat.id).length;
+              const isActive = activeCategory === cat.id;
+              return (
+                <button
+                  key={cat.id}
+                  type="button"
+                  onClick={() => setActiveCategory(cat.id)}
+                  className={`inline-flex items-center gap-1.5 px-3.5 py-2 min-h-[38px] rounded-xl text-xs font-semibold transition-all shrink-0 whitespace-nowrap cursor-pointer border ${
+                    isActive
+                      ? "bg-card text-foreground border-border shadow-xs font-bold"
+                      : "bg-muted/40 text-muted-foreground border-border/60 hover:text-foreground hover:bg-muted"
+                  }`}
+                >
+                  {cat.icon}
+                  {cat.label}
+                  {count > 0 && (
+                    <span className="tabular-nums opacity-70">({count})</span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        </HorizontalScrollArea>
 
         {/* ── Rarity Sub-filter Row ── */}
         <div className="flex items-center gap-2 flex-wrap">

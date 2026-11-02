@@ -15,6 +15,8 @@ import {
   AlertTriangle,
   Copy,
   X,
+  Eye,
+  EyeOff,
 } from "lucide-react";
 import { type UserSettingsResponse as SettingsResponse } from "@/lib/schemas";
 
@@ -42,6 +44,7 @@ export default function TwoFactorAuthPanel({
   const [setupCode, setSetupCode] = useState("");
   const [is2FASetupVisible, setIs2FASetupVisible] = useState(false);
   const [disable2FAPassword, setDisable2FAPassword] = useState("");
+  const [showDisablePassword, setShowDisablePassword] = useState(false);
   const [recoveryCodes, setRecoveryCodes] = useState<string[]>([]);
 
   const is2FAEnabled = override2FA ?? !!settingsData?.user?.isTwoFactorEnabled;
@@ -323,13 +326,28 @@ export default function TwoFactorAuthPanel({
           <div className="flex items-center gap-2">
             <Input
               id="disable-2fa-password"
-              type="password"
+              type={showDisablePassword ? "text" : "password"}
               placeholder="Current Password"
               aria-label="Current password to disable two-factor authentication"
               autoComplete="current-password"
               value={disable2FAPassword}
               onChange={(e) => setDisable2FAPassword(e.target.value)}
-              className="text-xs w-44"
+              className="text-xs w-52"
+              rightElement={
+                <button
+                  type="button"
+                  onClick={() => setShowDisablePassword(!showDisablePassword)}
+                  className="p-1 rounded-lg text-muted-foreground hover:text-foreground transition-colors focus:outline-none focus:ring-1 focus:ring-primary"
+                  aria-label={showDisablePassword ? "Hide password" : "Show password"}
+                  title={showDisablePassword ? "Hide password" : "Show password"}
+                >
+                  {showDisablePassword ? (
+                    <EyeOff className="w-3.5 h-3.5" aria-hidden="true" />
+                  ) : (
+                    <Eye className="w-3.5 h-3.5" aria-hidden="true" />
+                  )}
+                </button>
+              }
             />
             <Button
               variant="danger"

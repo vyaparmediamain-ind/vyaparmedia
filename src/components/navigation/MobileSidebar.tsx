@@ -98,12 +98,14 @@ export default function MobileSidebar({
   };
 
   const isBrand = (userType || "").toUpperCase() === "BRAND";
+  const isAdmin = (userType || "").toUpperCase() === "ADMIN";
+  const roleLabel = isAdmin ? "Admin" : isBrand ? "Brand" : "Creator";
   const shouldReduceMotion = useReducedMotion();
 
   return (
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-50 flex" role="dialog" aria-modal="true" aria-label="Sidebar Navigation">
+        <div className="fixed inset-0 z-50 flex print:hidden" role="dialog" aria-modal="true" aria-label="Sidebar Navigation">
           {/* Backdrop Blur Overlay */}
           <motion.div
             initial={{ opacity: 0 }}
@@ -111,7 +113,7 @@ export default function MobileSidebar({
             exit={{ opacity: 0 }}
             transition={{ duration: shouldReduceMotion ? 0 : 0.2 }}
             onClick={onClose}
-            className="fixed inset-0 bg-background/80 backdrop-blur-sm"
+            className="fixed inset-0 bg-background/80 backdrop-blur-sm print:hidden"
             aria-hidden="true"
           />
 
@@ -125,17 +127,21 @@ export default function MobileSidebar({
           >
             {/* Header: Brand Logo, Role Badge & Close Button */}
             <div className="flex items-center justify-between pb-4 border-b border-border mb-4">
-              <div className="flex items-center gap-2">
-                <Logo href="/dashboard" />
-                <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full border bg-muted text-muted-foreground shrink-0 whitespace-nowrap">
-                  {isBrand ? "Brand" : "Creator"}
-                </span>
-              </div>
+              <Logo
+                href="/dashboard"
+                size="sm"
+                showTagline={true}
+                badge={
+                  <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full border bg-muted text-muted-foreground shrink-0 whitespace-nowrap">
+                    {roleLabel}
+                  </span>
+                }
+              />
               <button
                 type="button"
                 onClick={onClose}
                 aria-label="Close sidebar navigation"
-                className="p-2 rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted transition-colors focus:outline-none focus:ring-2 focus:ring-primary"
+                className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors focus:outline-none focus:ring-2 focus:ring-primary shrink-0 ml-2"
               >
                 <X className="w-5 h-5" />
               </button>

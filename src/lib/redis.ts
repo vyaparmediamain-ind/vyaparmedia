@@ -55,36 +55,59 @@ const redisOptions: RedisOptions = {
   enableOfflineQueue: true,
   maxRetriesPerRequest: 3,
   commandTimeout: 5000,
+  keepAlive: 10000, // Sends TCP keep-alive packets every 10s to prevent Upstash TLS idle timeouts
+  autoResubscribe: true,
+  autoResendUnfulfilledCommands: true,
   enableReadyCheck: !shouldDisableReadyCheck,
   retryStrategy(times: number) {
-if (isBuildTime) return null;
+    if (isBuildTime) return null;
 
-// In local development, stop retrying after 20 attempts (~60s) to prevent spamming logs
-if (!isProductionRuntime && times > 20) {
-logger.warn("Redis reconnection attempts exceeded limit. Stopping retries.");
-return null;
-}
-
-const delay = Math.min(times * 100, 3000);
-return delay;
-},
+    // Never return null during server runtime to prevent ioredis from entering terminal "end" state.
+    // Exponential backoff capped at 3000ms ensures graceful reconnects when network recovers or idle timeouts occur.
+    return Math.min(times * 150, 3000);
+  },
 };
 
-export const redis: Redis =
-  globalForRedis.redis ??
-  new Redis(redisUrl, redisOptions);
+function getOrCreateRedisClient(): Redis {
+  if (globalForRedis.redis && globalForRedis.redis.status !== "end") {
+    return globalForRedis.redis;
+  }
 
-// Log Redis Connection Issues to prevent silent failure
-if (!isBuildTime) {
-  redis.on("error", (err: unknown) => {
-    logger.error("Redis Connection Error:", toError(err));
-  });
+  if (globalForRedis.redis && globalForRedis.redis.status === "end") {
+    logger.warn("Reviving existing Redis client from terminal 'end' status...");
+    globalForRedis.redis.connect().catch((err: unknown) => {
+      logger.error("Failed to revive Redis client:", toError(err));
+    });
+    return globalForRedis.redis;
+  }
 
-redis.on("ready", () => {
-logger.info("Enterprise Redis connected successfully");
-});
+  const client = new Redis(redisUrl, redisOptions);
+
+  if (!isBuildTime) {
+    client.on("error", (err: unknown) => {
+      logger.error("Redis Connection Error:", toError(err));
+    });
+
+    client.on("ready", () => {
+      logger.info("Enterprise Redis connected successfully");
+    });
+
+    client.on("end", () => {
+      logger.warn("Enterprise Redis connection ended. Scheduling reconnection...");
+      setTimeout(() => {
+        if (client.status === "end") {
+          client.connect().catch((err: unknown) => {
+            logger.error("Redis auto-reconnect error:", toError(err));
+          });
+        }
+      }, 1000);
+    });
+  }
+
+  globalForRedis.redis = client;
+  return client;
 }
 
-globalForRedis.redis = redis;
+export const redis: Redis = getOrCreateRedisClient();
 
 export default redis;

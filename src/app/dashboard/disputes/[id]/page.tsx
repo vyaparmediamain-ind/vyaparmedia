@@ -12,6 +12,7 @@ import { haptic } from "@/lib/haptics";
 import { Button, Textarea, ToastContainer, type ToastItem, type ToastType, Skeleton, PageContainer, PageHeader } from "@/components/ui";
 import DashboardShell from "@/components/dashboard/DashboardShell";
 import { formatCurrency, formatDate, formatDateTime } from "@/lib/utils-client";
+import { humanizeString } from "@/lib/audit-formatters";
 import {
   DisputeDetail,
   MediatorAnalysis,
@@ -248,7 +249,7 @@ export default function DisputeDetailPage({ params }: Readonly<DisputeDetailPage
       default:
         return (
           <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-muted text-muted-foreground border border-border shrink-0 whitespace-nowrap">
-            {status.replaceAll("_", " ")}
+            {humanizeString(status)}
           </span>
         );
     }
@@ -266,7 +267,7 @@ export default function DisputeDetailPage({ params }: Readonly<DisputeDetailPage
     <DashboardShell user={session?.user}>
       <ToastContainer toasts={toasts} onClose={removeToast} />
 
-      <PageContainer maxWidth="6xl" className="space-y-6 animate-fade-in pt-4 pb-0 sm:py-6">
+      <PageContainer maxWidth="7xl" className="space-y-6 animate-fade-in pt-4 pb-0 sm:py-6">
         {/* Navigation Breadcrumb & Header */}
         <PageHeader
           title={`Dispute Room #${id ? id.slice(-6).toUpperCase() : ""}`}
@@ -511,7 +512,7 @@ export default function DisputeDetailPage({ params }: Readonly<DisputeDetailPage
                               onClick={() => setSettlementOffer(preset.value)}
                               className={`py-2 px-3 rounded-xl text-xs font-semibold border transition-all cursor-pointer ${
                                 settlementOffer === preset.value
-                                  ? "bg-primary text-primary-foreground border-primary shadow-xs font-bold"
+                                  ? "bg-card text-foreground border-border/90 shadow-xs font-bold ring-1 ring-border"
                                   : "bg-muted text-foreground border-border hover:bg-muted/80"
                               }`}
                             >

@@ -88,7 +88,7 @@ const [deals, stats] = await Promise.all([
   prisma.deal.findMany({
     where,
     include: {
-      campaign: { select: { id: true, title: true, deliverables: true } },
+      campaign: { select: { id: true, title: true, status: true, deliverables: true } },
       influencer: {
         select: {
           id: true,

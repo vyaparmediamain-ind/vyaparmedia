@@ -7,7 +7,7 @@ import type { InfluencerAnalyticsData } from "@/components/analytics/InfluencerD
 import type { BrandAnalyticsData } from "@/components/analytics/BrandDashboard";
 import WeeklyChallenges from "@/components/dashboard/challenges/WeeklyChallenges";
 import { Download, Calendar, Sparkles, FileSpreadsheet } from "lucide-react";
-import { ToastContainer, useToasts } from "@/components/ui";
+import { ToastContainer, useToasts, HorizontalScrollArea } from "@/components/ui";
 
 const InfluencerDashboard = dynamic(
   () => import("@/components/analytics/InfluencerDashboard"),
@@ -132,38 +132,40 @@ export default function AnalyticsPageClient({
         aria-label="Financial Year Filter"
         className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-2.5 sm:p-3 rounded-2xl bg-card border border-border shadow-xs"
       >
-        <div className="flex items-center gap-2 overflow-x-auto pb-1 sm:pb-0 scrollbar-none">
-          <span className="flex items-center gap-1.5 text-xs font-bold text-muted-foreground px-2 whitespace-nowrap">
-            <Calendar className="w-3.5 h-3.5 text-primary" /> Period:
-          </span>
+        <HorizontalScrollArea aria-label="Financial Year Filter" containerClassName="flex-1 min-w-0" showScrollIndicator={true}>
+          <div className="inline-flex items-center gap-2 py-1 px-1 min-w-max shrink-0">
+            <span className="flex items-center gap-1.5 text-xs font-bold text-muted-foreground px-2 whitespace-nowrap">
+              <Calendar className="w-3.5 h-3.5 text-primary" /> Period:
+            </span>
 
-          <button
-            type="button"
-            onClick={() => handleFYChange("")}
-            className={`px-3.5 py-2.5 min-h-[44px] inline-flex items-center justify-center rounded-xl text-xs font-semibold whitespace-nowrap shrink-0 cursor-pointer transition-all ${
-              selectedFY === ""
-                ? "bg-primary text-primary-foreground shadow-xs"
-                : "bg-muted text-muted-foreground hover:text-foreground hover:bg-muted/80"
-            }`}
-          >
-            Rolling 12 Months
-          </button>
-
-          {availableFYs.map((fy) => (
             <button
-              key={fy}
               type="button"
-              onClick={() => handleFYChange(fy)}
+              onClick={() => handleFYChange("")}
               className={`px-3.5 py-2.5 min-h-[44px] inline-flex items-center justify-center rounded-xl text-xs font-semibold whitespace-nowrap shrink-0 cursor-pointer transition-all ${
-                selectedFY === fy
-                  ? "bg-primary text-primary-foreground shadow-xs"
+                selectedFY === ""
+                  ? "bg-card text-foreground shadow-xs border border-border/80 font-bold"
                   : "bg-muted text-muted-foreground hover:text-foreground hover:bg-muted/80"
               }`}
             >
-              FY {fy}
+              Rolling 12 Months
             </button>
-          ))}
-        </div>
+
+            {availableFYs.map((fy) => (
+              <button
+                key={fy}
+                type="button"
+                onClick={() => handleFYChange(fy)}
+                className={`px-3.5 py-2.5 min-h-[44px] inline-flex items-center justify-center rounded-xl text-xs font-semibold whitespace-nowrap shrink-0 cursor-pointer transition-all ${
+                  selectedFY === fy
+                    ? "bg-card text-foreground shadow-xs border border-border/80 font-bold"
+                    : "bg-muted text-muted-foreground hover:text-foreground hover:bg-muted/80"
+                }`}
+              >
+                FY {fy}
+              </button>
+            ))}
+          </div>
+        </HorizontalScrollArea>
 
         {/* Quick Export Statement Action */}
         <div className="flex items-center gap-2 shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-border">

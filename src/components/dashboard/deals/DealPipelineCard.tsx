@@ -245,7 +245,7 @@ export function DealPipelineCard({
               <CheckCircle2 className="w-3 h-3" />
               Completed
             </span>
-          ) : deal.status === "CANCELLED" ? (
+          ) : deal.status === "CANCELLED" || deal.campaign?.status === "CANCELLED" ? (
             <span className="flex items-center gap-1 text-destructive font-medium">
               <XCircle className="w-3 h-3" />
               Cancelled
@@ -278,7 +278,7 @@ export function DealPipelineCard({
             <div className={`text-[10px] font-bold uppercase tracking-wider flex items-center sm:justify-end gap-1 ${
               deal.status === "COMPLETED" || deal.status === "VERIFIED"
                 ? "text-verified"
-                : deal.status === "CANCELLED"
+                : deal.status === "CANCELLED" || deal.campaign?.status === "CANCELLED"
                 ? "text-destructive"
                 : "text-escrow"
             }`}>
@@ -286,7 +286,7 @@ export function DealPipelineCard({
                 <>
                   <CheckCircle2 className="w-3 h-3" /> Escrow Released
                 </>
-              ) : deal.status === "CANCELLED" ? (
+              ) : deal.status === "CANCELLED" || deal.campaign?.status === "CANCELLED" ? (
                 <>
                   <XCircle className="w-3 h-3" /> Cancelled
                 </>

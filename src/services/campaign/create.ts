@@ -290,7 +290,7 @@ function parseAndValidateCampaignDetails(data: Record<string, unknown>) {
     data.perInfluencerBudget === null || data.perInfluencerBudget === undefined
       ? null
       : Number(data.perInfluencerBudget);
-  const minFollowers = Math.max(0, Number(data.minFollowers || 0));
+  const minFollowers = Math.max(1000, Number(data.minFollowers || 1000));
 
   validateCampaignInputAndBudgets(
     data,

@@ -3,7 +3,7 @@
 import React from "react";
 import { Search, X } from "lucide-react";
 import { ALL_CATEGORIES } from "@/lib/categories";
-import { Select } from "@/components/ui";
+import { Select, HorizontalScrollArea } from "@/components/ui";
 
 interface CampaignFiltersBarProps {
   searchQuery: string;
@@ -35,14 +35,14 @@ export function CampaignFiltersBar({
       {/* Search Input & Sort Selector */}
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
         <div className="relative flex-1">
-          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
           <input
             id="search-campaigns-input"
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search campaigns by brand, title, or keywords..."
-            className="w-full pl-10 pr-10 min-h-[44px] py-2.5 rounded-xl border border-input bg-card text-foreground placeholder:text-muted-foreground text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-ring transition-all"
+            className="w-full pl-11 pr-10 min-h-[44px] py-2.5 rounded-xl border border-input bg-card text-foreground placeholder:text-muted-foreground text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-ring transition-all"
             aria-label="Search campaigns"
           />
           {searchQuery && (
@@ -105,28 +105,30 @@ export function CampaignFiltersBar({
       )}
 
       {/* Horizontally Scrollable Category Chips Carousel (Instagram Explore Style) */}
-      <nav
-        aria-label="Campaign category filters"
-        className="flex items-center gap-2 overflow-x-auto pb-1.5 scrollbar-none -mx-1 px-1"
-      >
-        {categories.map((category) => {
-          const isActive = selectedCategory === category;
-          return (
-            <button
-              key={category}
-              type="button"
-              onClick={() => setSelectedCategory(category)}
-              className={`shrink-0 whitespace-nowrap px-3.5 py-2 min-h-[44px] inline-flex items-center rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                isActive
-                  ? "bg-primary text-primary-foreground shadow-sm"
-                  : "bg-card text-muted-foreground hover:text-foreground border border-border hover:border-border/80"
-              }`}
-            >
-              {category}
-            </button>
-          );
-        })}
-      </nav>
+      <HorizontalScrollArea aria-label="Campaign category filters" showScrollIndicator={true}>
+        <nav
+          aria-label="Campaign category filters"
+          className="inline-flex items-center gap-2 py-1 px-1 min-w-max shrink-0"
+        >
+          {categories.map((category) => {
+            const isActive = selectedCategory === category;
+            return (
+              <button
+                key={category}
+                type="button"
+                onClick={() => setSelectedCategory(category)}
+                className={`shrink-0 whitespace-nowrap px-3.5 py-2 min-h-[44px] inline-flex items-center rounded-xl text-xs font-bold transition-all cursor-pointer border ${
+                  isActive
+                    ? "bg-card text-foreground border-border/90 shadow-xs font-bold ring-1 ring-border"
+                    : "bg-card text-muted-foreground hover:text-foreground border-border hover:border-border/80"
+                }`}
+              >
+                {category}
+              </button>
+            );
+          })}
+        </nav>
+      </HorizontalScrollArea>
     </div>
   );
 }

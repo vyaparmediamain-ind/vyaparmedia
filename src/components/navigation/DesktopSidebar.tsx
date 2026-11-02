@@ -94,18 +94,26 @@ export default function DesktopSidebar({
   };
 
   const isBrand = (userType || "").toUpperCase() === "BRAND";
+  const isAdmin = (userType || "").toUpperCase() === "ADMIN";
+  const roleLabel = isAdmin ? "Admin" : isBrand ? "Brand" : "Creator";
 
   return (
     <aside
       aria-label="Sidebar Navigation"
-      className="hidden md:flex flex-col w-64 shrink-0 h-screen md:h-dvh sticky top-0 bg-card border-r border-border/80 px-4 pt-[max(1.5rem,env(safe-area-inset-top,0px))] pb-[max(1.5rem,env(safe-area-inset-bottom,0px))] pl-[max(1rem,env(safe-area-inset-left,0px))] z-20 select-none"
+      className="hidden md:flex flex-col w-72 shrink-0 h-screen md:h-dvh sticky top-0 bg-card border-r border-border/80 px-4 pt-[max(1.5rem,env(safe-area-inset-top,0px))] pb-[max(1.5rem,env(safe-area-inset-bottom,0px))] pl-[max(1rem,env(safe-area-inset-left,0px))] z-20 select-none"
     >
       {/* Brand Header */}
-      <div className="flex items-center justify-between px-3 mb-8">
-        <Logo href="/dashboard" />
-        <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full border bg-muted text-muted-foreground shrink-0 whitespace-nowrap">
-          {isBrand ? "Brand" : "Creator"}
-        </span>
+      <div className="flex items-center justify-between px-2 mb-8">
+        <Logo
+          href="/dashboard"
+          size="sm"
+          showTagline={true}
+          badge={
+            <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full border bg-muted text-muted-foreground shrink-0 whitespace-nowrap">
+              {roleLabel}
+            </span>
+          }
+        />
       </div>
 
       {/* Prominent Context-Aware Create CTA */}

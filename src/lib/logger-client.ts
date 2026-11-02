@@ -41,11 +41,19 @@ export const logger = {
     const msg = safeString(message);
     const meta: Record<string, unknown> = safeMeta(undefined, context);
 
-    if (error instanceof Error) {
+    const isErr =
+      error instanceof Error ||
+      (typeof error === "object" &&
+        error !== null &&
+        ("message" in error || "stack" in error || "name" in error || "digest" in error));
+
+    if (isErr) {
+      const errObj = error as Record<string, unknown>;
       meta.error = {
-        name: error.name,
-        message: maskPIIPrimitive(error.message),
-        stack: error.stack ? maskPIIPrimitive(error.stack) : undefined,
+        name: errObj.name ? String(errObj.name) : "Error",
+        message: errObj.message ? maskPIIPrimitive(String(errObj.message)) : "",
+        stack: errObj.stack ? maskPIIPrimitive(String(errObj.stack)) : undefined,
+        digest: errObj.digest ? String(errObj.digest) : undefined,
       };
     } else if (error !== undefined && error !== null) {
       meta.error = safeString(error);
@@ -70,11 +78,19 @@ export const logger = {
     const msg = safeString(message);
     const meta: Record<string, unknown> = { ...safeMeta(undefined, context), level: "crit" };
 
-    if (error instanceof Error) {
+    const isErr =
+      error instanceof Error ||
+      (typeof error === "object" &&
+        error !== null &&
+        ("message" in error || "stack" in error || "name" in error || "digest" in error));
+
+    if (isErr) {
+      const errObj = error as Record<string, unknown>;
       meta.error = {
-        name: error.name,
-        message: maskPIIPrimitive(error.message),
-        stack: error.stack ? maskPIIPrimitive(error.stack) : undefined,
+        name: errObj.name ? String(errObj.name) : "Error",
+        message: errObj.message ? maskPIIPrimitive(String(errObj.message)) : "",
+        stack: errObj.stack ? maskPIIPrimitive(String(errObj.stack)) : undefined,
+        digest: errObj.digest ? String(errObj.digest) : undefined,
       };
     } else if (error !== undefined && error !== null) {
       meta.error = safeString(error);

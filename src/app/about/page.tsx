@@ -102,21 +102,25 @@ const values = [
 
 const timeline = [
   {
+    id: "timeline-2024",
     year: "2024",
     title: "Founding Vision",
     body: "VyaparMedia was conceptualized to eliminate the widespread trust deficit, unpaid invoices, and ghosting in India's creator economy.",
   },
   {
+    id: "timeline-2025-escrow",
     year: "2025",
     title: "First INR Escrow Engine",
     body: "Launched India's first INR-native creator escrow architecture integrated with double-entry ledgers and Razorpay.",
   },
   {
+    id: "timeline-2025-kyc",
     year: "2025",
     title: "Deep KYC & Tax Integration",
     body: "Integrated DigiLocker, PAN/GST validation, and automated Section 194-O TDS reporting for seamless enterprise compliance.",
   },
   {
+    id: "timeline-2026",
     year: "2026",
     title: "National Scale & DRS™",
     body: "Scaling verified creators and brands nationwide with DRS™ reputation scoring, anti-disintermediation shields, and mobile PWA.",
@@ -136,9 +140,9 @@ export default function AboutPage() {
             <span>Our Mission &amp; Purpose</span>
           </div>
 
-          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black text-foreground tracking-tight leading-[1.1] text-balance">
+          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black text-foreground tracking-tight leading-[1.18] sm:leading-[1.18] lg:leading-[1.2] text-balance py-1">
             Where Indian Brands &amp; Creators Build{" "}
-            <span className="bg-gradient-to-r from-primary to-accent-purple bg-clip-text text-transparent">
+            <span className="inline-block py-0.5 bg-gradient-to-r from-primary to-accent-purple bg-clip-text text-transparent">
               Trusted Business.
             </span>
           </h1>
@@ -286,7 +290,7 @@ export default function AboutPage() {
 
           <div className="relative pl-6 sm:pl-8 space-y-8 border-l border-border ml-4 sm:ml-6">
             {timeline.map((item) => (
-              <div key={item.year} className="relative group">
+              <div key={item.id} className="relative group">
                 {/* Dot */}
                 <div className="absolute -left-[35px] sm:-left-[43px] top-1.5 w-6 h-6 rounded-full bg-primary/20 border-2 border-primary flex items-center justify-center">
                   <div className="w-2 h-2 rounded-full bg-primary" />

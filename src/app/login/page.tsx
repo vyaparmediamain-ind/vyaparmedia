@@ -358,19 +358,22 @@ function LoginContent() {
               error={fieldErrors.password}
               className="auth-field-password-input"
               fullWidth
+              rightElement={
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                  title={showPassword ? "Hide password" : "Show password"}
+                  className="p-1 rounded-lg text-muted-foreground hover:text-foreground transition-colors focus:outline-none focus:ring-1 focus:ring-primary"
+                >
+                  {showPassword ? (
+                    <EyeOff className="w-4 h-4" aria-hidden="true" />
+                  ) : (
+                    <Eye className="w-4 h-4" aria-hidden="true" />
+                  )}
+                </button>
+              }
             />
-            <button
-              type="button"
-              onClick={() => setShowPassword(!showPassword)}
-              aria-label={showPassword ? "Hide password" : "Show password"}
-              className="auth-field-password-toggle"
-            >
-              {showPassword ? (
-                <EyeOff className="w-4 h-4" aria-hidden="true" />
-              ) : (
-                <Eye className="w-4 h-4" aria-hidden="true" />
-              )}
-            </button>
           </div>
         </div>
 

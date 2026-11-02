@@ -476,7 +476,7 @@ html {
 
 /* ── Tap highlight color (better than transparent) ── */
 * {
-  -webkit-tap-highlight-color: rgba(37, 99, 235, 0.15);
+  -webkit-tap-highlight-color: rgba(5, 150, 105, 0.15);
 }
 
 /* ── Better click/tap region for small icons ── */
@@ -522,7 +522,7 @@ a svg {
   }
 
   .sidebar-link:active {
-    background: rgba(37, 99, 235, 0.15);
+    background: rgba(5, 150, 105, 0.15);
   }
 }
 
@@ -579,7 +579,7 @@ iframe.skiptranslate,
   left: 50%;
   width: 400px;
   height: 400px;
-  background: radial-gradient(circle, rgba(37, 99, 235, 0.08) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(5, 150, 105, 0.08) 0%, transparent 70%);
   transform: translate(-50%, -50%);
 }
 

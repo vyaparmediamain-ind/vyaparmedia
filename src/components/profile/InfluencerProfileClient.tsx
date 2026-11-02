@@ -11,7 +11,7 @@ import {
 import { formatCurrency, formatDate, formatNumber } from "@/lib/utils-client";
 import { copyToClipboard } from "@/lib/clipboard";
 import CampaignProofModal from "./CampaignProofModal";
-import { BottomSheet, PageContainer } from "@/components/ui";
+import { BottomSheet, PageContainer, HorizontalScrollArea } from "@/components/ui";
 import {
   ShieldCheck,
   CheckCircle2,
@@ -204,7 +204,7 @@ export default function InfluencerProfileClient({
 
   return (
     <PageContainer
-      maxWidth="4xl"
+      maxWidth="7xl"
       className="py-4 md:py-8 space-y-6"
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
@@ -218,7 +218,7 @@ export default function InfluencerProfileClient({
             exit={{ opacity: 0, y: shouldReduceMotion ? 0 : -20 }}
             transition={{ duration: shouldReduceMotion ? 0 : 0.2 }}
             role="alert"
-            className="fixed top-[max(1.25rem,calc(env(safe-area-inset-top,0px)+12px))] left-1/2 -translate-x-1/2 z-50 px-4 py-2 rounded-full bg-foreground text-background text-xs font-bold shadow-xl flex items-center gap-2"
+            className="fixed top-[max(1.25rem,calc(env(safe-area-inset-top,0px)+12px))] left-1/2 -translate-x-1/2 z-50 px-4 py-2 rounded-full bg-foreground text-background text-xs font-bold shadow-xl flex items-center gap-2 print:hidden"
           >
             <CheckCircle2 className="w-3.5 h-3.5 text-verified" />
             <span>{toastMessage}</span>
@@ -528,7 +528,8 @@ export default function InfluencerProfileClient({
 
       {/* ==================== 3. SWIPEABLE TAB NAVIGATION ==================== */}
       <nav aria-label="Profile Sections" className="border-b border-border">
-        <div className="flex items-center justify-start sm:justify-around overflow-x-auto no-scrollbar flex-nowrap" role="tablist">
+        <HorizontalScrollArea aria-label="Profile navigation tabs" className="overflow-x-auto" showScrollIndicator={true}>
+          <div className="inline-flex items-center justify-start sm:justify-around py-1 px-1 flex-nowrap min-w-max shrink-0" role="tablist">
           {[
             {
               id: "portfolio",
@@ -589,7 +590,12 @@ export default function InfluencerProfileClient({
             );
           })}
         </div>
+
+        </HorizontalScrollArea>
+
       </nav>
+
+
 
       {/* ==================== 4. TAB CONTENT PANELS ==================== */}
       <main>
@@ -971,7 +977,7 @@ export default function InfluencerProfileClient({
       {!isOwnProfile && (
         <aside
           aria-label="Sticky Collaboration Bar"
-          className="fixed bottom-0 left-0 right-0 z-40 bg-card/95 backdrop-blur-md border-t border-border p-3 sm:p-4 pb-[max(0.75rem,calc(env(safe-area-inset-bottom,0px)+8px))] pl-[max(0.75rem,env(safe-area-inset-left,0px))] pr-[max(0.75rem,env(safe-area-inset-right,0px))] shadow-2xl"
+          className="fixed bottom-0 left-0 right-0 z-40 bg-card/95 backdrop-blur-md border-t border-border p-3 sm:p-4 pb-[max(0.75rem,calc(env(safe-area-inset-bottom,0px)+8px))] pl-[max(0.75rem,env(safe-area-inset-left,0px))] pr-[max(0.75rem,env(safe-area-inset-right,0px))] shadow-2xl print:hidden"
         >
           <div className="max-w-4xl mx-auto flex items-center justify-between gap-3">
             <div className="min-w-0">

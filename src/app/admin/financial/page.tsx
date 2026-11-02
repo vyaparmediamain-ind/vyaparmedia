@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { formatCurrency } from "@/lib/utils-client";
 import { AdminAnalyticsService } from "@/services/admin-analytics.service";
 import { Button, PageContainer, PageHeader } from "@/components/ui";
+import Logo from "@/components/Logo";
 import {
   Wallet,
   TrendingUp,
@@ -36,7 +37,7 @@ export default async function AdminFinancialPage() {
   const data = await AdminAnalyticsService.getFinancialOverview();
 
   return (
-    <PageContainer maxWidth="6xl" className="space-y-6 py-2 sm:py-4">
+    <PageContainer maxWidth="7xl" className="space-y-6 py-2 sm:py-4">
       {/* Page header */}
       <PageHeader
         icon={
@@ -232,12 +233,17 @@ export default async function AdminFinancialPage() {
 
       {/* Export Reports */}
       <div className="p-5 rounded-2xl bg-card border border-border shadow-sm">
-        <h2 className="text-base font-extrabold text-foreground mb-1">
-          Export Financial Reports
-        </h2>
-        <p className="text-sm text-muted-foreground mb-5">
-          Generate and download detailed financial statements in CSV format for compliance, auditing, and tax filing.
-        </p>
+        <div className="flex flex-wrap items-center justify-between gap-4 mb-4">
+          <div>
+            <h2 className="text-base font-extrabold text-foreground mb-1">
+              Export Financial Reports
+            </h2>
+            <p className="text-sm text-muted-foreground">
+              Generate and download detailed financial statements in CSV format for compliance, auditing, and tax filing.
+            </p>
+          </div>
+          <Logo asLink={false} showTagline={true} size="sm" />
+        </div>
         <div className="flex gap-3 flex-wrap">
           <Button
             href="/api/admin/reports/revenue?format=csv"

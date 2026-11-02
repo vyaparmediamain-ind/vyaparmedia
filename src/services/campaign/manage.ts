@@ -561,7 +561,7 @@ description: `Refund for cancelled campaign: ${campaign.title}`,
 await tx.application.updateMany({
 where: {
 campaignId,
-status: { in: ["PENDING", "SHORTLISTED"] },
+status: { in: ["PENDING", "SHORTLISTED", "SELECTED"] },
 },
 data: {
 status: "REJECTED",

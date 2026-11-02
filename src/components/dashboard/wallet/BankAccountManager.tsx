@@ -23,6 +23,8 @@ import {
   AlertCircle,
   Clock,
   RefreshCw,
+  Eye,
+  EyeOff,
 } from "lucide-react";
 import { copyToClipboard } from "@/lib/clipboard";
 import {
@@ -62,6 +64,7 @@ export default function BankAccountManager({
     isDefault: false,
   });
   const [isSaving, setIsSaving] = useState(false);
+  const [showAccountNumber, setShowAccountNumber] = useState(false);
   const [notice, setNotice] = useState<{ type: "success" | "error"; message: string } | null>(null);
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
   const [verifyingId, setVerifyingId] = useState<string | null>(null);
@@ -76,7 +79,11 @@ export default function BankAccountManager({
     dedupingInterval: 30000,
   });
 
-  const accounts: BankAccount[] = data?.accounts || [];
+  const accounts: BankAccount[] = Array.isArray(data?.accounts)
+    ? data.accounts
+    : Array.isArray((data as Record<string, unknown>)?.data)
+    ? ((data as Record<string, unknown>).data as BankAccount[])
+    : [];
 
   const showNotice = (message: string, type: "success" | "error" = "success") => {
     setNotice({ type, message });
@@ -469,11 +476,26 @@ export default function BankAccountManager({
                   <Input
                     id="beneficiary-account-number"
                     label="Account Number"
-                    type="password"
+                    type={showAccountNumber ? "text" : "password"}
                     placeholder="Enter full bank account number"
                     value={newAccount.accountNumber}
                     onChange={(e) => setNewAccount((prev) => ({ ...prev, accountNumber: e.target.value }))}
                     required
+                    rightElement={
+                      <button
+                        type="button"
+                        onClick={() => setShowAccountNumber(!showAccountNumber)}
+                        className="p-1 rounded-lg text-muted-foreground hover:text-foreground transition-colors focus:outline-none focus:ring-1 focus:ring-primary"
+                        aria-label={showAccountNumber ? "Hide account number" : "Show account number"}
+                        title={showAccountNumber ? "Hide account number" : "Show account number"}
+                      >
+                        {showAccountNumber ? (
+                          <EyeOff className="w-4 h-4" aria-hidden="true" />
+                        ) : (
+                          <Eye className="w-4 h-4" aria-hidden="true" />
+                        )}
+                      </button>
+                    }
                   />
                   <Input
                     id="beneficiary-confirm-account-number"

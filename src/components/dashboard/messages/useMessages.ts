@@ -107,7 +107,7 @@ export function useMessages() {
     setSelectedConversation((prev) => {
       if (prev) return prev;
       if (withParam) return withParam;
-      return convs[0]?.userId || null;
+      return null;
     });
   }, [messagesData, withParam]);
 

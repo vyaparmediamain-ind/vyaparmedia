@@ -2,7 +2,7 @@
 @media print {
   @page {
     size: A4;
-    margin: 12mm 15mm 15mm 15mm;
+    margin: 10mm 12mm 12mm 12mm;
   }
 
   body {
@@ -14,7 +14,28 @@
     print-color-adjust: exact !important;
   }
 
-  /* Hide interactive web chrome, navbars, sidebars, buttons, alerts, modals backdrops */
+  /* When an official printable modal overlay (ContractPrintView or StatementPrintView) is active,
+     isolate it completely and hide all other root-level elements so background pages never bleed into print */
+  body.printable-modal-active > *:not(.printable-modal-overlay),
+  body:has(.printable-modal-overlay) > *:not(.printable-modal-overlay) {
+    display: none !important;
+  }
+
+  .printable-modal-overlay {
+    position: static !important;
+    inset: auto !important;
+    width: 100% !important;
+    min-height: auto !important;
+    background: transparent !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    overflow: visible !important;
+    display: block !important;
+    box-shadow: none !important;
+    backdrop-filter: none !important;
+  }
+
+  /* Hide interactive web chrome, navbars, sidebars, buttons, alerts, modal backdrops */
   header,
   nav,
   aside,
@@ -23,8 +44,25 @@
   a[href^="/dashboard"],
   .no-print,
   .toast-container,
-  [aria-live="polite"] {
+  [aria-live="polite"],
+  [role="status"],
+  [role="alert"],
+  .modal-overlay:not(.printable-modal-overlay),
+  .modal-backdrop,
+  .referral-modal-overlay,
+  div[role="dialog"]:not(.printable-document):not(:has(.printable-document)),
+  div:has(> [role="dialog"]:not(.printable-document):not(:has(.printable-document))) {
     display: none !important;
+  }
+
+  /* Suppress all fixed position bars, floating overlays, bottom navigation, and popups */
+  .fixed:not(.printable-modal-overlay):not(.printable-document):not(.printable-document *) {
+    display: none !important;
+  }
+
+  /* Reset sticky elements so they flow naturally without repeating on multi-page printouts */
+  .sticky {
+    position: static !important;
   }
 
   /* Show dedicated printable document container with clean margins */
@@ -41,7 +79,7 @@
     border: none !important;
   }
 
-  /* Prevent page breaks inside critical elements */
+  /* Prevent awkward page breaks inside critical sections */
   .page-break-inside-avoid,
   table,
   tr,

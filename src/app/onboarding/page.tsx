@@ -487,8 +487,8 @@ export default function OnboardingPage() {
                             onClick={() => toggleLanguage(lang)}
                             className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition-all flex items-center gap-1.5 shrink-0 whitespace-nowrap ${
                               isSelected
-                                ? "bg-primary border-primary text-primary-foreground shadow-xs"
-                                : "bg-muted border-border text-foreground hover:border-primary/50"
+                                ? "bg-card text-foreground border-border/90 shadow-xs font-bold ring-1 ring-border"
+                                : "bg-muted border-border text-foreground hover:border-border/80"
                             }`}
                           >
                             {isSelected && <Check className="w-3 h-3 stroke-[3]" />}
@@ -610,7 +610,7 @@ export default function OnboardingPage() {
                         value={instagramHandle}
                         onChange={(e) => setInstagramHandle(e.target.value)}
                         placeholder="your_handle"
-                        className="w-full pl-8 pr-4 py-2.5 rounded-xl border border-border bg-card text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary text-xs sm:text-sm"
+                        className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-border bg-card text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary text-xs sm:text-sm"
                       />
                     </div>
                   </div>
@@ -628,7 +628,7 @@ export default function OnboardingPage() {
                         value={youtubeHandle}
                         onChange={(e) => setYoutubeHandle(e.target.value)}
                         placeholder="channel_handle"
-                        className="w-full pl-8 pr-4 py-2.5 rounded-xl border border-border bg-card text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary text-xs sm:text-sm"
+                        className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-border bg-card text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary text-xs sm:text-sm"
                       />
                     </div>
                   </div>

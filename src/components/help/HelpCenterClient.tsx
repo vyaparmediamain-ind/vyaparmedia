@@ -227,7 +227,7 @@ export default function HelpCenterClient() {
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search by keyword (e.g., escrow, TDS, dispute, KYC)..."
               aria-label="Search help articles by keyword"
-              className="w-full pl-10 pr-10 py-3 rounded-2xl border border-border bg-card text-foreground placeholder:text-muted-foreground text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-primary shadow-xs transition-all"
+              className="w-full pl-11 pr-10 py-3 rounded-2xl border border-border bg-card text-foreground placeholder:text-muted-foreground text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-primary shadow-xs transition-all"
             />
             {searchQuery && (
               <button
@@ -257,7 +257,7 @@ export default function HelpCenterClient() {
                 onClick={() => setActiveCategory(tab.id)}
                 className={`flex items-center gap-1.5 px-3 sm:px-4 py-2 rounded-xl text-xs font-bold transition-all shrink-0 whitespace-nowrap cursor-pointer ${
                   active
-                    ? "bg-primary text-primary-foreground shadow-xs"
+                    ? "bg-card text-foreground shadow-xs border border-border/80 font-bold"
                     : "text-muted-foreground hover:text-foreground hover:bg-muted"
                 }`}
               >

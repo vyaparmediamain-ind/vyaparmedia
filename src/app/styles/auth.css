@@ -389,8 +389,8 @@
   background: #ffffff;
   border-color: var(--color-primary);
   box-shadow:
-    0 0 0 3px rgba(37, 99, 235, 0.15),
-    0 0 20px rgba(37, 99, 235, 0.08);
+    0 0 0 3px rgba(5, 150, 105, 0.15),
+    0 0 20px rgba(5, 150, 105, 0.08);
 }
 
 .dark .auth-card .input {
@@ -409,26 +409,36 @@
 }
 
 .auth-field-password-toggle {
-  position: absolute;
-  right: 8px;
-  top: 50%;
-  transform: translateY(-50%);
-  z-index: 10;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 36px;
-  height: 36px;
-  color: var(--color-text-muted);
-  border: none;
-  background: transparent;
-  cursor: pointer;
-  border-radius: var(--radius-sm);
-  transition: color var(--transition-fast);
+  position: absolute !important;
+  right: 8px !important;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+  z-index: 10 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 32px !important;
+  height: 32px !important;
+  padding: 0 !important;
+  color: var(--color-text-muted) !important;
+  border: none !important;
+  background: transparent !important;
+  cursor: pointer !important;
+  border-radius: var(--radius-sm) !important;
+  transition: color var(--transition-fast), background-color var(--transition-fast) !important;
 }
 
 .auth-field-password-toggle:hover {
-  color: var(--color-text-primary);
+  color: var(--color-text-primary) !important;
+  background: rgba(255, 255, 255, 0.08) !important;
+}
+
+.dark .auth-field-password-toggle {
+  color: #94a3b8 !important;
+}
+
+.dark .auth-field-password-toggle:hover {
+  color: #f8fafc !important;
 }
 
 /* Links */

@@ -6,7 +6,7 @@ import { PageContainer } from "@/components/ui";
  */
 export default function ApplicationsLoading() {
   return (
-    <PageContainer maxWidth="6xl" className="space-y-6 animate-pulse py-8" aria-hidden="true">
+    <PageContainer maxWidth="7xl" className="space-y-6 animate-pulse py-8" aria-hidden="true">
       {/* Page header */}
       <div className="mb-8 space-y-2">
         <div className="skeleton h-8 w-48 rounded-md" />

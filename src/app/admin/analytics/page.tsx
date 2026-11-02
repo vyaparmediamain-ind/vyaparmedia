@@ -25,7 +25,7 @@ export default async function AdminAnalyticsPage() {
   const data = await AdminAnalyticsService.getDashboardStats();
 
   return (
-    <PageContainer maxWidth="6xl" className="space-y-6 py-2 sm:py-4">
+    <PageContainer maxWidth="7xl" className="space-y-6 py-2 sm:py-4">
       <PageHeader
         icon={
           <div className="w-10 h-10 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center">

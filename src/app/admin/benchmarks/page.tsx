@@ -19,7 +19,7 @@ export default async function AdminBenchmarksPage() {
   const benchmarks = await MatchingService.getAllCategoryBenchmarks();
 
   return (
-    <PageContainer maxWidth="6xl" className="space-y-6 py-2 sm:py-4">
+    <PageContainer maxWidth="7xl" className="space-y-6 py-2 sm:py-4">
       <PageHeader
         backHref="/admin"
         backLabel="Admin Operations"

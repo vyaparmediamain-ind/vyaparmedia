@@ -3,7 +3,7 @@
  */
 export default function AdminDisputesLoading() {
   return (
-    <div className="max-w-6xl mx-auto space-y-6" aria-hidden="true">
+    <div className="max-w-7xl mx-auto space-y-6" aria-hidden="true">
       {/* Header */}
       <div className="space-y-2">
         <div className="h-8 w-56 bg-muted rounded-xl animate-pulse" />

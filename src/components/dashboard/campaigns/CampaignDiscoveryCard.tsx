@@ -169,7 +169,7 @@ export function CampaignDiscoveryCard({
           <div className="text-right hidden sm:block">
             <div className="text-xs text-muted-foreground">Budget</div>
             <div className="text-base font-extrabold font-mono tabular-nums text-foreground">
-              {formatCurrency(campaign.perInfluencerBudget)}
+              {formatCurrency(campaign.perInfluencerBudget || 0)}
             </div>
           </div>
           <div className="text-right hidden md:block">
@@ -232,13 +232,6 @@ export function CampaignDiscoveryCard({
           : "border-border bg-card hover:border-primary/50"
       }`}
     >
-      {/* Recommended glow accent */}
-      {isRecommended && !isApplied && (
-        <div className="absolute top-0 right-0 flex items-center gap-1 px-2.5 py-1 bg-primary/10 text-primary text-[10px] font-bold border-b border-l border-primary/20 rounded-bl-xl rounded-tr-2xl">
-          <Sparkles className="w-3 h-3" /> Top Match
-        </div>
-      )}
-
       <div className="space-y-4">
         {/* Top: Brand Info & Budget */}
         <div className="flex items-start justify-between gap-3">
@@ -284,6 +277,11 @@ export function CampaignDiscoveryCard({
           </div>
 
           <div className="text-right shrink-0 flex flex-col items-end gap-1">
+            {isRecommended && !isApplied && !isCancelled && (
+              <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20 shadow-2xs shrink-0 whitespace-nowrap mb-0.5">
+                <Sparkles className="w-2.5 h-2.5" /> Top Match
+              </span>
+            )}
             {isCancelled ? (
               <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-destructive/10 text-destructive border border-destructive/20 shadow-2xs shrink-0 whitespace-nowrap">
                 <XCircle className="w-2.5 h-2.5" /> Cancelled
@@ -306,7 +304,7 @@ export function CampaignDiscoveryCard({
                 Budget
               </div>
               <div className="text-base sm:text-lg font-extrabold font-mono tabular-nums text-foreground">
-                {formatCurrency(campaign.perInfluencerBudget)}
+                {formatCurrency(campaign.perInfluencerBudget || 0)}
               </div>
             </div>
           </div>

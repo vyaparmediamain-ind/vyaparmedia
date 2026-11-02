@@ -25,6 +25,7 @@ import {
   Globe,
   BarChart3,
   ExternalLink,
+  XCircle,
 } from "lucide-react";
 import { formatCurrency, formatDate, formatNumber } from "@/lib/utils-client";
 import { Button, Input, Textarea, BottomSheet, Spinner, PageHeader } from "@/components/ui";
@@ -72,6 +73,8 @@ export default function CampaignDetailClient({
     hasApplied,
     applicationStatus,
     dealId,
+    dealStatus,
+    rejectionReason,
     recommendedPayout,
     isOwner,
     canApply: _canApply,
@@ -944,28 +947,81 @@ export default function CampaignDetailClient({
                 <span className="text-xs text-muted-foreground block mb-1">
                   Your Pitch Status
                 </span>
-                <span
-                  className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border ${
-                    applicationStatus === "SELECTED" || applicationStatus === "ACCEPTED"
-                      ? "bg-verified-muted text-verified border-verified-border"
-                      : "bg-pending-muted text-pending border-pending-border"
-                  }`}
-                >
-                  {applicationStatus === "SELECTED" || applicationStatus === "ACCEPTED"
-                    ? "Offer Accepted 🎉"
-                    : applicationStatus || "Pitch Submitted"}
-                </span>
-              </div>
+                {(() => {
+                  const isCancelled =
+                    dealStatus?.toUpperCase() === "CANCELLED" ||
+                    campaign.status?.toUpperCase() === "CANCELLED";
+                  const isAccepted =
+                    !isCancelled &&
+                    (applicationStatus === "SELECTED" || applicationStatus === "ACCEPTED");
+                  const isRejected =
+                    isCancelled ||
+                    applicationStatus === "REJECTED" ||
+                    applicationStatus === "WITHDRAWN";
 
-              {dealId && (
-                <Button
-                  href={`/dashboard/deals/${dealId}`}
-                  variant="primary"
-                  className="w-full font-bold shadow-sm"
-                >
-                  ✍️ Sign Contract & Deal Room
-                </Button>
-              )}
+                  return (
+                    <div className="space-y-3">
+                      <span
+                        className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border ${
+                          isAccepted
+                            ? "bg-verified-muted text-verified border-verified-border"
+                            : isCancelled || isRejected
+                            ? "bg-disputed-muted text-disputed border-disputed-border"
+                            : "bg-pending-muted text-pending border-pending-border"
+                        }`}
+                      >
+                        {isAccepted ? (
+                          <>
+                            <CheckCircle2 className="w-3.5 h-3.5" />
+                            Offer Accepted 🎉
+                          </>
+                        ) : isCancelled ? (
+                          <>
+                            <XCircle className="w-3.5 h-3.5" />
+                            {dealStatus === "CANCELLED" ? "Deal Cancelled" : "Campaign Cancelled"}
+                          </>
+                        ) : isRejected ? (
+                          <>
+                            <XCircle className="w-3.5 h-3.5" />
+                            {applicationStatus === "WITHDRAWN" ? "Withdrawn" : "Not Selected"}
+                          </>
+                        ) : (
+                          <>
+                            <Clock className="w-3.5 h-3.5" />
+                            {applicationStatus || "Pitch Submitted"}
+                          </>
+                        )}
+                      </span>
+
+                      {(isCancelled || rejectionReason) && (
+                        <p className="text-xs text-muted-foreground bg-muted/40 p-2.5 rounded-xl border border-border">
+                          {rejectionReason || "This deal or campaign was cancelled."}
+                        </p>
+                      )}
+
+                      {dealId && isAccepted && (
+                        <Button
+                          href={`/dashboard/deals/${dealId}`}
+                          variant="primary"
+                          className="w-full font-bold shadow-sm"
+                        >
+                          ✍️ Sign Contract & Deal Room
+                        </Button>
+                      )}
+
+                      {dealId && isCancelled && (
+                        <Button
+                          href={`/dashboard/deals/${dealId}`}
+                          variant="secondary"
+                          className="w-full font-medium border border-border"
+                        >
+                          View Deal Room
+                        </Button>
+                      )}
+                    </div>
+                  );
+                })()}
+              </div>
             </div>
           )}
 
@@ -1037,6 +1093,9 @@ export default function CampaignDetailClient({
                 hasApplied: false,
                 kycTier,
                 verificationLevel: user?.verificationLevel,
+                followerCount: influencerProfile
+                  ? Math.max(influencerProfile.instagramFollowers || 0, influencerProfile.youtubeSubscribers || 0)
+                  : 0,
                 proposedRate,
               }
             );
@@ -1086,6 +1145,9 @@ export default function CampaignDetailClient({
                   hasApplied: false,
                   kycTier,
                   verificationLevel: user?.verificationLevel,
+                  followerCount: influencerProfile
+                    ? Math.max(influencerProfile.instagramFollowers || 0, influencerProfile.youtubeSubscribers || 0)
+                    : 0,
                   proposedRate,
                 }).allowed
               }

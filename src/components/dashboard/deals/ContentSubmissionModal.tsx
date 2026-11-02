@@ -379,7 +379,7 @@ export function ContentSubmissionModal({
                 onClick={() => setShowHistory(!showHistory)}
                 className={`flex items-center gap-1.5 px-3 min-h-[44px] rounded-xl text-xs font-semibold transition-colors border cursor-pointer ${
                   showHistory
-                    ? "bg-primary text-primary-foreground border-primary"
+                    ? "bg-card text-foreground border-border shadow-xs font-bold"
                     : "bg-secondary text-secondary-foreground border-border hover:bg-secondary/80"
                 }`}
                 title="View previous submission history"
@@ -498,8 +498,8 @@ export function ContentSubmissionModal({
                   <div className="mt-2 space-y-1">
                     {latestSubmission.contentUrls
                       .filter((u: ContentUrlEntry) => u.status === "REVISION_REQUESTED" && u.feedback)
-                      .map((u: ContentUrlEntry) => (
-                        <div key={u.type} className="text-xs flex items-center gap-1.5">
+                      .map((u: ContentUrlEntry, idx: number) => (
+                        <div key={`${u.type}-${idx}`} className="text-xs flex items-center gap-1.5">
                           <span className="font-bold text-amber-600 dark:text-amber-400">
                             • {u.type.replace(/_\d+$/, "").replaceAll("_", " ")}:
                           </span>
@@ -533,13 +533,13 @@ export function ContentSubmissionModal({
 
               {/* Deliverable Items List */}
               <div className="space-y-4">
-                {deliverableItems.map((item) => {
+                {deliverableItems.map((item, idx) => {
                   const hasFile = Boolean(item.url || item.previewUrl);
                   const isVideo = item.mediaType === "video" || item.file?.type.startsWith("video/") || item.url.match(/\.(mp4|mov|webm)$/i);
 
                   return (
                     <div
-                      key={item.type}
+                      key={`${item.type}-${idx}`}
                       className={`p-4 rounded-xl border transition-all ${
                         item.isApproved
                           ? "border-emerald-500/30 bg-emerald-500/5"
@@ -842,8 +842,8 @@ export function ContentSubmissionModal({
                   Attached Deliverables ({deliverableItems.length})
                 </h4>
                 <div className="space-y-2">
-                  {deliverableItems.map((d) => (
-                    <div key={d.type} className="flex items-center justify-between text-xs py-1 border-b border-border/50 last:border-0">
+                  {deliverableItems.map((d, idx) => (
+                    <div key={`${d.type}-${idx}`} className="flex items-center justify-between text-xs py-1 border-b border-border/50 last:border-0">
                       <span className="font-medium capitalize">{d.label}</span>
                       <span className="text-muted-foreground font-mono truncate max-w-[200px]">
                         {d.file?.name || d.url.split("/").pop()}
@@ -1071,9 +1071,9 @@ export function ContentSubmissionModal({
 
                       {Array.isArray(sub.contentUrls) && sub.contentUrls.length > 0 && (
                         <div className="space-y-1 pt-1">
-                          {sub.contentUrls.map((u: ContentUrlEntry) => (
+                          {sub.contentUrls.map((u: ContentUrlEntry, idx: number) => (
                             <a
-                              key={u.type}
+                              key={`${u.type}-${idx}`}
                               href={u.url}
                               target="_blank"
                               rel="noopener noreferrer"

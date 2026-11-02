@@ -118,7 +118,7 @@ return NextResponse.json({
 success: true,
 message,
 });
-});
+}, { requireAuth: true });
 
 export const PATCH = apiWrapper(async (req: ValidatedNextRequest) => {
 const session = req.session;

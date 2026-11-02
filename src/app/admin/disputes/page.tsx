@@ -5,8 +5,9 @@ import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { requireActiveAdmin } from "@/lib/admin-auth";
 import EmptyState from "@/components/ui/EmptyState";
-import { Badge, Button, PageContainer, PageHeader } from "@/components/ui";
+import { Badge, Button, PageContainer, PageHeader, HorizontalScrollArea } from "@/components/ui";
 import { formatCurrency, formatDate } from "@/lib/utils-client";
+import { humanizeString } from "@/lib/audit-formatters";
 import { Scale, Clock, CheckCircle2 } from "lucide-react";
 import { Prisma, DisputeStatus } from "@prisma/client";
 
@@ -53,8 +54,8 @@ function DisputeItem({
           Raised by: {userEmail} · {createdDate}
         </div>
         <div className="mt-2 flex gap-2 text-xs flex-wrap">
-          <Badge variant={badgeVariant}>{dispute.status}</Badge>
-          <Badge variant="ghost">{dispute.type}</Badge>
+          <Badge variant={badgeVariant}>{humanizeString(dispute.status)}</Badge>
+          <Badge variant="ghost">{humanizeString(dispute.type)}</Badge>
           <span className="text-muted-foreground font-medium">Amount: {formattedAmount}</span>
         </div>
       </div>
@@ -150,7 +151,7 @@ export default async function AdminDisputeListPage({
   const content = renderDisputeContent(disputes, showHistory, error);
 
   return (
-    <PageContainer maxWidth="4xl" className="space-y-6 py-2 sm:py-4">
+    <PageContainer maxWidth="7xl" className="space-y-6 py-2 sm:py-4">
       {/* Page header */}
       <PageHeader
         icon={
@@ -163,7 +164,8 @@ export default async function AdminDisputeListPage({
       />
 
       {/* Tab toggle */}
-      <div className="flex gap-2 overflow-x-auto no-scrollbar flex-nowrap pb-1" role="tablist" aria-label="Dispute queue filters">
+      <HorizontalScrollArea aria-label="Dispute queue filters" showScrollIndicator={true}>
+        <div className="inline-flex items-center gap-2 py-1 px-1 min-w-max shrink-0" role="tablist" aria-label="Dispute queue filters">
         <Button
           href="/admin/disputes"
           variant={showHistory ? "secondary" : "primary"}
@@ -196,7 +198,8 @@ export default async function AdminDisputeListPage({
             </span>
           )}
         </Button>
-      </div>
+        </div>
+      </HorizontalScrollArea>
 
       {content}
     </PageContainer>

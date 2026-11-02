@@ -103,7 +103,7 @@ export function Drawer({
   return createPortal(
     <AnimatePresence>
       {isVisible && (
-        <div className={`fixed inset-0 z-50 flex ${currentVariant.containerClass}`}>
+        <div className={`fixed inset-0 z-50 flex ${currentVariant.containerClass} print:hidden`}>
           {/* Backdrop Overlay */}
           <motion.button
             type="button"
@@ -113,7 +113,7 @@ export function Drawer({
             exit={{ opacity: 0 }}
             transition={backdropTransition}
             onClick={onClose}
-            className="fixed inset-0 bg-background/80 backdrop-blur-xs w-full h-full cursor-pointer"
+            className="fixed inset-0 bg-background/80 backdrop-blur-xs w-full h-full cursor-pointer print:hidden"
           />
 
           {/* Drawer / Sheet Content */}

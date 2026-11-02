@@ -5,6 +5,7 @@ import { apiClient } from "@/lib/api-client";
 import { formatUserError } from "@/lib/user-messages";
 import { Download, FileText, Calendar, Filter, CheckCircle2, AlertCircle, Printer, Loader2 } from "lucide-react";
 import { Button, Input, Modal } from "@/components/ui";
+import Logo from "@/components/Logo";
 import { StatementPrintView, type StatementTransaction } from "./StatementPrintView";
 
 interface StatementExportModalProps {
@@ -190,17 +191,20 @@ export function StatementExportModal({
   };
 
   const headerTitle = (
-    <div className="flex items-center gap-2.5">
-      <div className="w-9 h-9 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
-        <FileText className="w-5 h-5" />
-      </div>
-      <div>
-        <h3 className="font-heading font-bold text-base text-foreground">
-          Download Financial Statement
-        </h3>
-        <p className="text-xs text-muted-foreground font-normal">
-          Generate an official ledger statement for accounting &amp; tax records.
-        </p>
+    <div className="space-y-2.5">
+      <Logo asLink={false} showTagline={true} size="sm" />
+      <div className="flex items-center gap-2.5 pt-0.5">
+        <div className="w-9 h-9 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
+          <FileText className="w-5 h-5" />
+        </div>
+        <div>
+          <h3 className="font-heading font-bold text-base text-foreground">
+            Download Financial Statement
+          </h3>
+          <p className="text-xs text-muted-foreground font-normal">
+            Generate an official ledger statement for accounting &amp; tax records.
+          </p>
+        </div>
       </div>
     </div>
   );

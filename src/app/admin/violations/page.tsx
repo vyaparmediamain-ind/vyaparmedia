@@ -1,11 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import useSWR from "swr";
 import { fetcher } from "@/lib/fetcher";
 import EmptyState from "@/components/ui/EmptyState";
 import { Badge, Input, PageContainer, PageHeader } from "@/components/ui";
 import { formatDate } from "@/lib/utils-client";
+import { humanizeString } from "@/lib/audit-formatters";
 import type { AdminService } from "@/services/admin.service";
 import type { Prisma } from "@prisma/client";
 import { AlertTriangle, Filter, AlertCircle } from "lucide-react";
@@ -52,7 +53,22 @@ export default function AdminViolationsPage() {
     fetcher
   );
 
-  const violations = data?.data || [];
+  const rawData = data?.data;
+  const violations: AdminViolationElement[] = useMemo(() => {
+    if (Array.isArray(rawData)) return rawData;
+    const rawObj = rawData as unknown as Record<string, unknown> | undefined;
+    if (Array.isArray(rawObj?.data)) {
+      return rawObj.data as AdminViolationElement[];
+    }
+    const dataObj = data as unknown as Record<string, unknown> | undefined;
+    if (Array.isArray(dataObj?.violations)) {
+      return dataObj.violations as AdminViolationElement[];
+    }
+    if (Array.isArray(data)) {
+      return data as unknown as AdminViolationElement[];
+    }
+    return [];
+  }, [rawData, data]);
 
   let content;
   if (isLoading) {
@@ -104,21 +120,21 @@ export default function AdminViolationsPage() {
                   <div className="flex flex-col items-end gap-1 shrink-0">
                     <Badge
                       variant={getSeverityVariant(violation.severity)}
-                      className="font-extrabold text-[10px] uppercase"
+                      className="font-extrabold text-[10px]"
                     >
-                      {violation.severity}
+                      {humanizeString(violation.severity)}
                     </Badge>
                     <Badge
                       variant={getActionVariant(violation.action)}
-                      className="font-extrabold text-[10px] uppercase"
+                      className="font-extrabold text-[10px]"
                     >
-                      {violation.action}
+                      {humanizeString(violation.action)}
                     </Badge>
                   </div>
                 </div>
 
                 <div className="text-xs text-foreground font-semibold">
-                  Type: <span className="font-normal text-muted-foreground">{violation.type}</span>
+                  Type: <span className="font-normal text-muted-foreground">{humanizeString(violation.type)}</span>
                 </div>
 
                 {violation.description && (
@@ -171,22 +187,22 @@ export default function AdminViolationsPage() {
                         </div>
                       </td>
                       <td className="px-4 py-3 font-semibold text-sm text-foreground">
-                        {violation.type}
+                        {humanizeString(violation.type)}
                       </td>
                       <td className="px-4 py-3">
                         <Badge
                           variant={getSeverityVariant(violation.severity)}
-                          className="font-extrabold text-xs uppercase"
+                          className="font-extrabold text-xs"
                         >
-                          {violation.severity}
+                          {humanizeString(violation.severity)}
                         </Badge>
                       </td>
                       <td className="px-4 py-3">
                         <Badge
                           variant={getActionVariant(violation.action)}
-                          className="font-extrabold text-xs uppercase"
+                          className="font-extrabold text-xs"
                         >
-                          {violation.action}
+                          {humanizeString(violation.action)}
                         </Badge>
                       </td>
                       <td className="px-4 py-3 text-sm text-foreground">
@@ -215,7 +231,7 @@ export default function AdminViolationsPage() {
   }
 
   return (
-    <PageContainer maxWidth="6xl" className="space-y-6 py-2 sm:py-4">
+    <PageContainer maxWidth="7xl" className="space-y-6 py-2 sm:py-4">
       {/* Page header */}
       <PageHeader
         icon={

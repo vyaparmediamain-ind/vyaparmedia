@@ -65,3 +65,8 @@ export type { PageContainerProps, PageContainerMaxWidth } from "./PageContainer"
 // PageHeader component
 export { PageHeader } from "./PageHeader";
 export type { PageHeaderProps } from "./PageHeader";
+
+// HorizontalScrollArea component
+export { HorizontalScrollArea } from "./HorizontalScrollArea";
+export type { HorizontalScrollAreaProps } from "./HorizontalScrollArea";
+

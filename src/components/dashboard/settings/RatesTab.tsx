@@ -126,7 +126,7 @@ export default function RatesTab({ profile, setProfile }: Readonly<RatesTabProps
             strokeWidth={2}
             strokeLinecap="round"
             strokeLinejoin="round"
-            className="w-4 h-4 text-blue-500 mt-0.5 flex-shrink-0"
+            className="w-4 h-4 text-primary mt-0.5 flex-shrink-0"
           >
             <circle cx="12" cy="12" r="10" />
             <line x1="12" y1="16" x2="12" y2="12" />

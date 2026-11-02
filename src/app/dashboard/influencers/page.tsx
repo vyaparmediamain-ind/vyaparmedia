@@ -11,7 +11,7 @@ import {
 } from "@/lib/schemas";
 import DashboardShell from "@/components/dashboard/DashboardShell";
 import EmptyState from "@/components/ui/EmptyState";
-import { Button, Input, PageContainer, PageHeader } from "@/components/ui";
+import { Button, Input, PageContainer, PageHeader, HorizontalScrollArea } from "@/components/ui";
 import CreatorDiscoveryCard from "@/components/discovery/CreatorDiscoveryCard";
 import DiscoveryCardSkeleton from "@/components/discovery/DiscoveryCardSkeleton";
 import FilterBottomSheet from "@/components/discovery/FilterBottomSheet";
@@ -143,8 +143,12 @@ export default function DiscoverInfluencersPage() {
   );
 
   const creators = useMemo(() => {
-    const rawInfluencers: RawInfluencerApiItem[] =
-      payload?.influencers || payload?.data?.influencers || [];
+    const raw = payload?.influencers || payload?.data?.influencers;
+    const rawInfluencers: RawInfluencerApiItem[] = Array.isArray(raw)
+      ? raw
+      : Array.isArray(payload?.data)
+      ? (payload.data as RawInfluencerApiItem[])
+      : [];
     return rawInfluencers.map((raw) => {
       const normalized = normalizeCreatorItem(raw);
       if (typeof savedOverrides[normalized.id] === "boolean") {
@@ -210,7 +214,7 @@ export default function DiscoverInfluencersPage() {
   if (!isBrandOrAdmin) {
     return (
       <DashboardShell user={session.user}>
-        <PageContainer maxWidth="4xl" className="pt-4 pb-0 sm:py-6">
+        <PageContainer maxWidth="7xl" className="pt-4 pb-0 sm:py-6">
           <div className="max-w-lg mx-auto p-8 rounded-2xl bg-card border border-border text-center mt-12 shadow-sm space-y-4">
             <div className="w-12 h-12 rounded-2xl bg-primary/10 text-primary flex items-center justify-center mx-auto">
               <Sparkles className="w-6 h-6" />
@@ -245,7 +249,7 @@ export default function DiscoverInfluencersPage() {
           actions={
             <>
               {/* View Tab Segment: All Creators vs Saved Shortlist */}
-              <div className="inline-flex items-center p-1 rounded-xl bg-muted border border-border text-xs font-semibold">
+              <div className="inline-flex items-center gap-1 p-1 rounded-xl bg-muted border border-border text-xs font-semibold">
                 <button
                   type="button"
                   onClick={() => setViewTab("all")}
@@ -331,13 +335,13 @@ export default function DiscoverInfluencersPage() {
           <div className="flex flex-col md:flex-row gap-3 items-stretch md:items-center justify-between">
             {/* Live Search Input */}
             <div className="relative flex-1">
-              <Search className="w-4 h-4 text-muted-foreground absolute left-3.5 top-1/2 -translate-y-1/2" />
+              <Search className="w-4 h-4 text-muted-foreground absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
               <Input
                 type="text"
                 placeholder="Search creators by name, Instagram handle, niche, or city..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="pl-10 pr-10 text-sm min-h-[44px] h-11 rounded-2xl"
+                className="pl-11 pr-10 text-sm min-h-[44px] h-11 rounded-2xl"
               />
               {search && (
                 <button
@@ -367,7 +371,7 @@ export default function DiscoverInfluencersPage() {
                     onClick={() => setFilters((prev) => ({ ...prev, sortBy: opt.id }))}
                     className={`shrink-0 inline-flex items-center gap-1 px-3 py-2 min-h-[44px] rounded-xl font-semibold border transition-all cursor-pointer ${
                       isSelected
-                        ? "bg-foreground text-background border-foreground shadow-xs font-bold"
+                        ? "bg-card text-foreground border-border/90 shadow-xs font-bold ring-1 ring-border"
                         : "bg-card text-muted-foreground border-border hover:text-foreground hover:bg-muted"
                     }`}
                   >
@@ -380,28 +384,30 @@ export default function DiscoverInfluencersPage() {
           </div>
 
           {/* Horizontally Scrollable Category Chips Carousel */}
-          <nav
-            aria-label="Creator category filters"
-            className="flex items-center gap-2 overflow-x-auto pb-1.5 scrollbar-none -mx-1 px-1 text-xs"
-          >
-            {CATEGORY_CHIPS.map((chip) => {
-              const isSelected = selectedCategory === chip;
-              return (
-                <button
-                  key={chip}
-                  type="button"
-                  onClick={() => setSelectedCategory(chip)}
-                  className={`shrink-0 px-3.5 py-2 min-h-[44px] inline-flex items-center rounded-full font-bold whitespace-nowrap transition-all cursor-pointer border ${
-                    isSelected
-                      ? "bg-primary text-primary-foreground border-primary shadow-xs"
-                      : "bg-card text-muted-foreground border-border hover:text-foreground hover:bg-muted"
-                  }`}
-                >
-                  {chip}
-                </button>
-              );
-            })}
-          </nav>
+          <HorizontalScrollArea aria-label="Creator category filters" showScrollIndicator={true}>
+            <nav
+              aria-label="Creator category filters"
+              className="inline-flex items-center gap-2 py-1 px-1 text-xs min-w-max shrink-0"
+            >
+              {CATEGORY_CHIPS.map((chip) => {
+                const isSelected = selectedCategory === chip;
+                return (
+                  <button
+                    key={chip}
+                    type="button"
+                    onClick={() => setSelectedCategory(chip)}
+                    className={`shrink-0 px-3.5 py-2 min-h-[44px] inline-flex items-center rounded-full font-bold whitespace-nowrap transition-all cursor-pointer border ${
+                      isSelected
+                        ? "bg-card text-foreground border-border/90 shadow-xs font-bold ring-1 ring-border"
+                        : "bg-card text-muted-foreground border-border hover:text-foreground hover:bg-muted"
+                    }`}
+                  >
+                    {chip}
+                  </button>
+                );
+              })}
+            </nav>
+          </HorizontalScrollArea>
         </div>
 
         {/* ── 4. ACTIVE FILTERS PILL BAR ──────────────────────────────────── */}
@@ -477,7 +483,7 @@ export default function DiscoverInfluencersPage() {
             )}
           </div>
         ) : (
-          <div className="space-y-6">
+          <div className="space-y-6 pt-2">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {displayedCreators.slice(0, visibleCount).map((creator) => (
                 <CreatorDiscoveryCard

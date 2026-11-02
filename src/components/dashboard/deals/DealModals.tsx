@@ -286,7 +286,7 @@ maxWidth="600px"
 <div
 className="mb-5 flex flex-col gap-4 overflow-y-auto deal-modal-scroll-container"
 >
-{getFlatDeliverablesList(deal).map((item) => {
+{getFlatDeliverablesList(deal).map((item, idx) => {
 const latestSub = deal?.contentSubmissions?.[0];
 const existing = latestSub?.contentUrls && Array.isArray(latestSub.contentUrls)
 ? latestSub.contentUrls.find((u: ContentUrlEntry) => u.type === item.type)
@@ -298,7 +298,7 @@ feedback: "",
 
 return (
 <div
-key={item.type}
+key={`${item.type}-${idx}`}
 className="p-3 border-card rounded-md bg-secondary flex flex-col gap-3"
 >
 <div className="flex justify-between items-center">
@@ -492,7 +492,7 @@ className="flex-1"
           onClick={() => setDispatchMode("shiprocket")}
           className={`flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg text-xs font-bold transition-all cursor-pointer ${
             dispatchMode === "shiprocket"
-              ? "bg-primary text-primary-foreground shadow-xs"
+              ? "bg-card text-foreground shadow-xs border border-border"
               : "text-muted-foreground hover:text-foreground"
           }`}
         >

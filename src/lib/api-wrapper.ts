@@ -378,7 +378,25 @@ options?.userRateLimit ||
 options?.tieredRateLimit;
 
 if (!shouldRequireAuth) {
-return null;
+  // If route didn't strictly require auth, optionally populate session if an auth cookie exists
+  // This ensures handlers that inspect req.session work transparently for authenticated users
+  const hasSessionCookie =
+    req.cookies.has("authjs.session-token") ||
+    req.cookies.has("__Secure-authjs.session-token") ||
+    req.cookies.has("next-auth.session-token") ||
+    req.cookies.has("__Secure-next-auth.session-token");
+
+  if (hasSessionCookie) {
+    try {
+      const optSession = await auth();
+      if (optSession?.user?.id && !(optSession as { error?: string }).error) {
+        (req as NextRequest & { session: Session }).session = optSession;
+      }
+    } catch {
+      // Ignore optional auth failure on non-restricted endpoints
+    }
+  }
+  return null;
 }
 
   const session = await auth();

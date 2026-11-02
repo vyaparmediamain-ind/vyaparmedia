@@ -3,7 +3,7 @@
  */
 export default function AdminApplicationsLoading() {
   return (
-    <div className="max-w-6xl mx-auto space-y-6" aria-hidden="true">
+    <div className="max-w-7xl mx-auto space-y-6" aria-hidden="true">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="space-y-2">
           <div className="h-8 w-56 bg-muted rounded-xl animate-pulse" />

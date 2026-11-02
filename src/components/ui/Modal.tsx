@@ -119,12 +119,12 @@ export function Modal({
   return createPortal(
     <AnimatePresence>
       {isVisible && (
-        <div className="modal-overlay">
+        <div className="modal-overlay print:hidden">
           {/* Backdrop blur overlay */}
           <motion.button
             type="button"
             aria-label="Close modal"
-            className="modal-backdrop"
+            className="modal-backdrop print:hidden"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}

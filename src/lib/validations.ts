@@ -121,7 +121,7 @@ targetLanguages: z.array(z.string().min(1)).optional().default([]),
 targetGender: z.enum(["ANY", "MALE", "FEMALE"]).optional(),
 targetAgeMin: z.number().int().min(18, "Target age must be at least 18 (DPDPA 2023 & Indian Contract Act compliance)").max(100).nullable().optional(),
 targetAgeMax: z.number().int().min(18, "Target age must be at least 18").max(100).nullable().optional(),
-minFollowers: z.number().int().min(0).optional().default(0),
+minFollowers: z.number().int().min(1000, "Minimum followers must be at least 1,000").optional().default(1000),
 maxFollowers: z.number().int().min(1, "Max followers is required"),
 minEngagementRate: z.number().int().min(0).optional(),
 
@@ -662,7 +662,7 @@ export const campaignFormSchema = z.object({
     .max(100, "Maximum 100 influencers per campaign"),
   minFollowers: z
     .number()
-    .min(0, "Minimum followers cannot be negative"),
+    .min(1000, "Minimum followers must be at least 1,000"),
   targetCategories: z
     .array(z.string())
     .min(1, "Please select at least one target category"),

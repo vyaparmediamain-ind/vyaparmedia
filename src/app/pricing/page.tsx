@@ -89,7 +89,7 @@ export default function PricingPage() {
     <div className="flex flex-col min-h-screen bg-background">
       <Navbar />
 
-      <main className="flex-1 pt-20">
+      <main className="flex-1 pt-24 sm:pt-28">
 
         {/* ── Hero ──────────────────────────────────────────── */}
         <section className="pricing-hero section relative overflow-hidden">
@@ -145,7 +145,7 @@ export default function PricingPage() {
                   onClick={() => setBillingCycle("volume")}
                   className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold transition-all ${
                     billingCycle === "volume"
-                      ? "bg-primary text-primary-foreground shadow-xs"
+                      ? "bg-card text-foreground shadow-xs"
                       : "text-muted-foreground hover:text-foreground"
                   }`}
                 >

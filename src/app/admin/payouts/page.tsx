@@ -4,6 +4,7 @@ import { FormEvent, useCallback, useMemo, useState } from "react";
 import useSWR from "swr";
 import { fetcher } from "@/lib/fetcher";
 import { formatCurrency, formatDateTime } from "@/lib/utils-client";
+import { humanizeString } from "@/lib/audit-formatters";
 import { apiClient } from "@/lib/api-client";
 import { formatUserError } from "@/lib/user-messages";
 import EmptyState from "@/components/ui/EmptyState";
@@ -71,10 +72,12 @@ export default function PayoutsAdminPage() {
     fetcher
   );
 
-  const withdrawals = useMemo<Withdrawal[]>(
-    () => data?.withdrawals ?? data?.data?.withdrawals ?? [],
-    [data]
-  );
+  const withdrawals = useMemo<Withdrawal[]>(() => {
+    const raw = data?.withdrawals ?? data?.data?.withdrawals;
+    if (Array.isArray(raw)) return raw;
+    if (Array.isArray(data?.data)) return data.data as Withdrawal[];
+    return [];
+  }, [data]);
   const total = data?.total ?? data?.data?.total ?? withdrawals.length;
   const error = fetchErr ? "Failed to load payouts. Please try again." : "";
 
@@ -201,7 +204,7 @@ export default function PayoutsAdminPage() {
                       {formatCurrency(withdrawal.amount)}
                     </span>
                     <Badge variant={getStatusBadgeVariant(withdrawal.status)} className="mt-1 text-[10px]">
-                      {withdrawal.status}
+                      {humanizeString(withdrawal.status)}
                     </Badge>
                   </div>
                 </div>
@@ -336,7 +339,7 @@ export default function PayoutsAdminPage() {
                     <td className="px-5 py-4">
                       <div className="flex items-center gap-1.5">
                         <Badge variant={getStatusBadgeVariant(withdrawal.status)}>
-                          {withdrawal.status}
+                          {humanizeString(withdrawal.status)}
                         </Badge>
                       </div>
                       <div className="text-[11px] text-muted-foreground mt-1 flex items-center gap-1">
@@ -395,7 +398,7 @@ export default function PayoutsAdminPage() {
   };
 
   return (
-    <PageContainer maxWidth="6xl" className="space-y-6 py-2 sm:py-4">
+    <PageContainer maxWidth="7xl" className="space-y-6 py-2 sm:py-4">
       {/* Header */}
       <PageHeader
         icon={

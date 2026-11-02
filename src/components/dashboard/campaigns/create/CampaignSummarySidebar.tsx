@@ -397,7 +397,7 @@ export function CampaignSummarySidebar({
         type="button"
         aria-label="View escrow summary"
         onClick={() => setDrawerOpen(true)}
-        className="lg:hidden fixed bottom-[calc(5rem+env(safe-area-inset-bottom,0px))] right-[max(1rem,calc(env(safe-area-inset-right,0px)+1rem))] z-40 flex items-center gap-2 pl-3 pr-4 py-3 rounded-2xl bg-escrow text-white shadow-xl shadow-escrow/30 text-xs font-bold transition-transform active:scale-95"
+        className="lg:hidden fixed bottom-[calc(5rem+env(safe-area-inset-bottom,0px))] right-[max(1rem,calc(env(safe-area-inset-right,0px)+1rem))] z-40 flex items-center gap-2 pl-3 pr-4 py-3 rounded-2xl bg-escrow text-white shadow-xl shadow-escrow/30 text-xs font-bold transition-transform active:scale-95 print:hidden"
       >
         <ReceiptText className="w-4 h-4 shrink-0" />
         <span>Escrow Summary</span>
@@ -413,7 +413,7 @@ export function CampaignSummarySidebar({
         <>
           {/* Backdrop */}
           <div
-            className="lg:hidden fixed inset-0 z-40 bg-background/80 backdrop-blur-sm"
+            className="lg:hidden fixed inset-0 z-40 bg-background/80 backdrop-blur-sm print:hidden"
             onClick={() => setDrawerOpen(false)}
             aria-hidden="true"
           />
@@ -423,7 +423,7 @@ export function CampaignSummarySidebar({
             role="dialog"
             aria-label="Escrow summary drawer"
             aria-modal="true"
-            className="lg:hidden fixed bottom-0 inset-x-0 z-50 max-h-[85dvh] overflow-y-auto rounded-t-3xl bg-background shadow-2xl animate-in slide-in-from-bottom duration-300 pb-[max(1.25rem,env(safe-area-inset-bottom,0px))]"
+            className="lg:hidden fixed bottom-0 inset-x-0 z-50 max-h-[85dvh] overflow-y-auto rounded-t-3xl bg-background shadow-2xl animate-in slide-in-from-bottom duration-300 pb-[max(1.25rem,env(safe-area-inset-bottom,0px))] print:hidden"
           >
             {/* Drag handle + header */}
             <div className="sticky top-0 bg-background/95 backdrop-blur-sm px-5 pt-4 pb-3 border-b border-border flex items-center justify-between z-10">

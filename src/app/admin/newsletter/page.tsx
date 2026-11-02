@@ -33,7 +33,7 @@ export default async function AdminNewsletterPage() {
   const stats = await getSubscriberStats();
 
   return (
-    <PageContainer maxWidth="4xl" className="space-y-6 py-2 sm:py-4">
+    <PageContainer maxWidth="7xl" className="space-y-6 py-2 sm:py-4">
       {/* Header */}
       <PageHeader
         icon={

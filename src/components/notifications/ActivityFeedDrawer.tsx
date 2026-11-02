@@ -64,8 +64,12 @@ export default function ActivityFeedDrawer({
   const router = useRouter();
   const [activeFilter, setActiveFilter] = useState<FilterTab>("all");
 
+  const safeNotifications = useMemo(() => {
+    return Array.isArray(notifications) ? notifications : [];
+  }, [notifications]);
+
   const filteredNotifications = useMemo(() => {
-    return notifications.filter((notif) => {
+    return safeNotifications.filter((notif) => {
       if (activeFilter === "unread") return !notif.isRead;
       if (activeFilter === "deals") {
         const meta = getNotificationTypeMeta(notif.type);
@@ -178,7 +182,7 @@ export default function ActivityFeedDrawer({
                 onClick={() => setActiveFilter(tab.key)}
                 className={`px-3.5 py-1.5 min-h-[44px] rounded-full text-xs font-medium transition-all flex items-center justify-center shrink-0 whitespace-nowrap cursor-pointer ${
                   active
-                    ? "bg-primary text-primary-foreground font-semibold shadow-sm"
+                    ? "bg-card text-foreground font-bold shadow-xs border border-border/80"
                     : "text-muted-foreground hover:text-foreground hover:bg-muted"
                 }`}
               >

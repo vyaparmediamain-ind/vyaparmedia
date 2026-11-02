@@ -18,6 +18,7 @@ import { copyToClipboard } from "@/lib/clipboard";
 import { BottomSheet, Button } from "@/components/ui";
 import { DealDetail } from "./DealDetailHelpers";
 import { formatDate } from "@/lib/utils-client";
+import { humanizeString } from "@/lib/audit-formatters";
 
 interface ShipmentTrackingModalProps {
   readonly open: boolean;
@@ -148,7 +149,7 @@ export function ShipmentTrackingModal({
                       : "bg-primary/10 text-primary border-primary/20"
                   }`}
                 >
-                  {currentStatus.replaceAll("_", " ")}
+                  {humanizeString(currentStatus)}
                 </span>
               </div>
               <div className="flex items-center gap-2 mt-0.5">

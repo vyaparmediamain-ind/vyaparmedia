@@ -115,7 +115,7 @@ export function BottomSheet({
   return createPortal(
     <AnimatePresence>
       {isVisible && (
-        <div className="fixed inset-0 z-50 flex items-end justify-center md:items-center md:p-4 pointer-events-none">
+        <div className="fixed inset-0 z-50 flex items-end justify-center md:items-center md:p-4 pointer-events-none print:hidden">
           {/* Backdrop Blur Overlay */}
           <motion.button
             type="button"
@@ -125,7 +125,7 @@ export function BottomSheet({
             exit={{ opacity: 0 }}
             transition={{ duration: shouldReduceMotion ? 0 : 0.2 }}
             onClick={onClose}
-            className="fixed inset-0 bg-background/80 backdrop-blur-xs w-full h-full cursor-pointer pointer-events-auto"
+            className="fixed inset-0 bg-background/80 backdrop-blur-xs w-full h-full cursor-pointer pointer-events-auto print:hidden"
           />
 
           {/* BottomSheet / Modal Panel */}

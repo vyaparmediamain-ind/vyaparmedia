@@ -73,7 +73,8 @@ export function buildCampaignQueryParams(
 }
 
 export function mapRawCampaigns(rawCampaigns: RawCampaign[]): Campaign[] {
-  return rawCampaigns.map((campaign: RawCampaign) => ({
+  const safe = Array.isArray(rawCampaigns) ? rawCampaigns : [];
+  return safe.map((campaign: RawCampaign) => ({
     id: campaign.id || "",
     title: campaign.title || "Untitled Campaign",
     status: campaign.status || "ACTIVE",
@@ -179,7 +180,12 @@ export default function CampaignsClient({
   } = useSWR<CampaignsPayload>(`/api/campaigns?${queryString}`, campaignsFetcher);
 
   const { campaigns, totalPages } = useMemo(() => {
-    const rawCampaigns: RawCampaign[] = payload?.data?.campaigns ?? payload?.campaigns ?? [];
+    const raw = payload?.data?.campaigns ?? payload?.campaigns;
+    const rawCampaigns: RawCampaign[] = Array.isArray(raw)
+      ? raw
+      : Array.isArray(payload?.data)
+      ? (payload.data as RawCampaign[])
+      : [];
     const pages = payload?.data?.totalPages ?? payload?.totalPages ?? 1;
     const mapped = mapRawCampaigns(rawCampaigns);
     return { campaigns: mapped, totalPages: pages };

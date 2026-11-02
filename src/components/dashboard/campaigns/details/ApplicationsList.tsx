@@ -72,13 +72,18 @@ export function ApplicationsList({
   return (
     <div className="space-y-4">
       {applications.map((application) => {
-        const canAct = ["PENDING", "SHORTLISTED"].includes(
-          application.status.toUpperCase()
-        );
+        const isCancelled =
+          application.dealStatus?.toUpperCase() === "CANCELLED" ||
+          campaign?.status?.toUpperCase() === "CANCELLED";
+        const canAct =
+          !isCancelled &&
+          campaign?.status === "ACTIVE" &&
+          ["PENDING", "SHORTLISTED"].includes(application.status.toUpperCase());
         const isSelected =
-          application.status.toUpperCase() === "SELECTED" ||
-          application.status.toUpperCase() === "ACCEPTED";
-        const isRejected = application.status.toUpperCase() === "REJECTED";
+          !isCancelled &&
+          (application.status.toUpperCase() === "SELECTED" ||
+           application.status.toUpperCase() === "ACCEPTED");
+        const isRejected = application.status.toUpperCase() === "REJECTED" || isCancelled;
         const matchScore = application.matchScore;
         const acceptanceEligibility = checkApplicationAcceptanceEligibility(application, campaign);
 
@@ -143,19 +148,27 @@ export function ApplicationsList({
 
                 <span
                   className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold border shrink-0 whitespace-nowrap ${
-                    isSelected
+                    isCancelled
+                      ? "bg-disputed-muted text-disputed border-disputed-border"
+                      : isSelected
                       ? "bg-verified-muted text-verified border-verified-border"
                       : isRejected
                       ? "bg-disputed-muted text-disputed border-disputed-border"
                       : "bg-muted text-muted-foreground border-border"
                   }`}
                 >
-                  {isSelected ? (
+                  {isCancelled ? (
+                    <XCircle className="w-3.5 h-3.5" />
+                  ) : isSelected ? (
                     <CheckCircle2 className="w-3.5 h-3.5" />
                   ) : isRejected ? (
                     <XCircle className="w-3.5 h-3.5" />
                   ) : null}
-                  {application.status}
+                  {isCancelled
+                    ? application.dealStatus === "CANCELLED"
+                      ? "Deal Cancelled"
+                      : "Campaign Cancelled"
+                    : application.status}
                 </span>
               </div>
             </div>
@@ -230,6 +243,17 @@ export function ApplicationsList({
                     className="font-bold"
                   >
                     ✍️ Deal Room Active
+                  </Button>
+                )}
+
+                {isCancelled && (application as { dealId?: string }).dealId && (
+                  <Button
+                    href={`/dashboard/deals/${(application as { dealId?: string }).dealId}`}
+                    variant="secondary"
+                    size="sm"
+                    className="border border-border font-medium text-xs"
+                  >
+                    View Deal Room
                   </Button>
                 )}
 

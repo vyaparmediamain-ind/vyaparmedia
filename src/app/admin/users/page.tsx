@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import useSWR from "swr";
 import { useSession } from "next-auth/react";
 import { fetcher } from "@/lib/fetcher";
@@ -92,7 +92,7 @@ function AuthenticityAuditModal({
   });
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pt-[max(1rem,env(safe-area-inset-top,0px))] pb-[max(1rem,env(safe-area-inset-bottom,0px))] pl-[max(1rem,env(safe-area-inset-left,0px))] pr-[max(1rem,env(safe-area-inset-right,0px))] bg-background/80 backdrop-blur-sm animate-in fade-in">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pt-[max(1rem,env(safe-area-inset-top,0px))] pb-[max(1rem,env(safe-area-inset-bottom,0px))] pl-[max(1rem,env(safe-area-inset-left,0px))] pr-[max(1rem,env(safe-area-inset-right,0px))] bg-background/80 backdrop-blur-sm animate-in fade-in print:hidden">
       <div className="bg-card border border-border rounded-2xl max-w-xl w-full p-6 shadow-2xl space-y-5 max-h-[calc(90dvh-env(safe-area-inset-top,0px)-env(safe-area-inset-bottom,0px))] overflow-y-auto">
         {/* Header */}
         <div className="flex items-start justify-between gap-4">
@@ -567,7 +567,15 @@ export default function AdminUsersPage() {
     fetcher
   );
 
-  const users = data?.data?.users || [];
+  const users = useMemo(() => {
+    const raw = data?.data;
+    if (Array.isArray(raw?.users)) return raw.users;
+    if (Array.isArray(raw)) return raw;
+    if (Array.isArray((data as unknown as Record<string, unknown>)?.users)) {
+      return (data as unknown as Record<string, unknown>).users as AdminUserListElement[];
+    }
+    return [];
+  }, [data]);
   const total = data?.data?.total || 0;
   const totalPages = Math.max(1, Math.ceil(total / (limit || 1)));
 
@@ -847,7 +855,7 @@ export default function AdminUsersPage() {
   };
 
   return (
-    <PageContainer maxWidth="6xl" className="space-y-6 py-2 sm:py-4">
+    <PageContainer maxWidth="7xl" className="space-y-6 py-2 sm:py-4">
       <ToastContainer toasts={toasts} onClose={removeToast} />
       {/* Header */}
       <PageHeader
@@ -883,7 +891,7 @@ export default function AdminUsersPage() {
               setSearch(e.target.value);
               setPage(1);
             }}
-            className="pl-9 w-full"
+            className="pl-11 w-full"
           />
         </div>
 

@@ -160,7 +160,7 @@ export default function FilterBottomSheet({
                         onClick={() => handleSortSelect(opt.id as DiscoveryFilters["sortBy"])}
                         className={`py-2.5 px-3 min-h-[44px] flex items-center rounded-xl text-xs font-semibold border transition-all text-left ${
                           isSelected
-                            ? "bg-primary text-primary-foreground border-primary shadow-xs"
+                            ? "bg-card text-foreground border-border/90 shadow-xs font-bold ring-1 ring-border"
                             : "bg-muted/60 text-foreground border-border/80 hover:bg-muted"
                         }`}
                       >
@@ -189,7 +189,7 @@ export default function FilterBottomSheet({
                           onClick={() => handleNicheSelect(n)}
                           className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-all shrink-0 whitespace-nowrap ${
                             isSelected
-                              ? "bg-primary text-primary-foreground border-primary shadow-xs font-semibold"
+                              ? "bg-card text-foreground border-border/90 shadow-xs font-bold ring-1 ring-border"
                               : "bg-muted/40 text-foreground border-border/80 hover:bg-muted"
                           }`}
                         >
@@ -286,7 +286,7 @@ export default function FilterBottomSheet({
                         onClick={() => handleCitySelect(city)}
                         className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-all shrink-0 whitespace-nowrap ${
                           isSelected
-                            ? "bg-primary text-primary-foreground border-primary shadow-xs font-semibold"
+                            ? "bg-card text-foreground border-border/90 shadow-xs font-bold ring-1 ring-border"
                             : "bg-muted/40 text-foreground border-border/80 hover:bg-muted"
                         }`}
                       >

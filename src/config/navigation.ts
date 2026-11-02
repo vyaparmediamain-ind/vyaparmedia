@@ -267,7 +267,7 @@ export function calculateDealProgress(state: string): DealProgressMeta {
         percentage: 25,
         stageName: "Applied",
         ringColorClass: "text-primary",
-        strokeHex: "#2563EB",
+        strokeHex: "#059669",
         isDisputed: false,
       };
     case "ACCEPTED":
@@ -275,7 +275,7 @@ export function calculateDealProgress(state: string): DealProgressMeta {
         percentage: 40,
         stageName: "Accepted",
         ringColorClass: "text-primary",
-        strokeHex: "#2563EB",
+        strokeHex: "#059669",
         isDisputed: false,
       };
     case "PAYMENT_HELD":

@@ -7,6 +7,7 @@ import { useSession } from "next-auth/react";
 import { createSchemaFetcher } from "@/lib/fetcher";
 import { apiClient } from "@/lib/api-client";
 import { formatUserError } from "@/lib/user-messages";
+import { humanizeString } from "@/lib/audit-formatters";
 import {
   walletTransactionsResponseSchema,
   type WalletTransactionsResponse,
@@ -38,6 +39,7 @@ import {
   Skeleton,
   PageContainer,
   PageHeader,
+  HorizontalScrollArea,
 } from "@/components/ui";
 
 import {
@@ -191,14 +193,14 @@ function TransactionReceiptModal({ transaction, isOpen, onClose }: Readonly<Rece
           <div className="flex justify-between py-2 border-b border-border/60">
             <span className="text-muted-foreground">Description</span>
             <span className="font-semibold text-foreground text-right max-w-[280px] break-words line-clamp-2">
-              {transaction.description || transaction.type.replaceAll("_", " ")}
+              {transaction.description || humanizeString(transaction.type)}
             </span>
           </div>
 
           <div className="flex justify-between py-2 border-b border-border/60">
             <span className="text-muted-foreground">Category</span>
-            <span className="font-semibold text-foreground uppercase tracking-wider text-[11px] px-2 py-0.5 rounded bg-muted">
-              {transaction.type.replaceAll("_", " ")}
+            <span className="font-semibold text-foreground tracking-wider text-[11px] px-2 py-0.5 rounded bg-muted">
+              {humanizeString(transaction.type)}
             </span>
           </div>
 
@@ -288,7 +290,14 @@ export default function WalletPage() {
 
   const userType = hookUserType || session?.user?.userType || null;
   const isBrand = userType === "BRAND";
-  const transactions = useMemo(() => txResponse?.transactions || [], [txResponse?.transactions]);
+  const transactions = useMemo(() => {
+    const raw = txResponse?.transactions ?? (txResponse as Record<string, unknown>)?.data;
+    if (Array.isArray(raw)) return raw;
+    if (Array.isArray((raw as Record<string, unknown>)?.transactions)) {
+      return (raw as Record<string, unknown>).transactions as WalletTransactionItem[];
+    }
+    return [];
+  }, [txResponse]);
 
   const topUpEligibility = useMemo(() => {
     return checkWalletTopUpEligibility(
@@ -428,7 +437,7 @@ export default function WalletPage() {
           name: session?.user?.name || "",
           email: session?.user?.email || "",
         },
-        theme: { color: "#2563eb" },
+        theme: { color: "#059669" },
       });
 
       rzp.on("payment.failed", (response: { error?: { description?: string; reason?: string } }) => {
@@ -468,7 +477,7 @@ export default function WalletPage() {
       <ToastContainer toasts={toasts} onClose={handleRemoveToast} />
 
       <PullToRefresh onRefresh={handleRefreshAll}>
-        <PageContainer maxWidth="5xl" className="space-y-6 animate-fade-in pt-4 pb-0 sm:py-6">
+        <PageContainer maxWidth="7xl" className="space-y-6 animate-fade-in pt-4 pb-0 sm:py-6">
 
         {/* ── 1. HEADER & LIVE SYNC CHIP ──────────────────────────────────── */}
         <PageHeader
@@ -710,7 +719,8 @@ export default function WalletPage() {
         {/* ── 5. SEGMENTED TABS: TRANSACTIONS VS BANK ACCOUNTS ──────────────── */}
         <div className="space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-border pb-3 gap-2">
-            <div className="flex items-center gap-2 bg-muted/60 p-1 rounded-xl border border-border/60 w-full sm:w-auto overflow-x-auto no-scrollbar max-w-full">
+            <HorizontalScrollArea aria-label="Wallet section tabs" containerClassName="w-full sm:w-auto" showScrollIndicator={true}>
+            <div className="inline-flex items-center gap-2 bg-muted/60 p-1 rounded-xl border border-border/60 min-w-max shrink-0">
               <button
                 type="button"
                 onClick={() => setActiveTab("ledger")}
@@ -741,6 +751,7 @@ export default function WalletPage() {
                 <span>Bank Accounts &amp; KYC</span>
               </button>
             </div>
+            </HorizontalScrollArea>
 
             {activeTab === "ledger" && (
               <span className="hidden sm:inline-block text-xs text-muted-foreground">
@@ -826,7 +837,7 @@ export default function WalletPage() {
                 placeholder="Enter amount (e.g. 10000)"
                 value={topUpAmount}
                 onChange={(e) => setTopUpAmount(e.target.value)}
-                className="pl-8 text-base font-mono font-bold"
+                className="pl-10 text-base font-mono font-bold"
                 fullWidth
                 autoFocus
               />

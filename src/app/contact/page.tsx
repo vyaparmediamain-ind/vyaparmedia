@@ -90,8 +90,8 @@ export default function ContactPage() {
             <span>Support &amp; Communications</span>
           </div>
 
-          <h1 className="text-4xl sm:text-5xl font-black text-foreground tracking-tight">
-            Contact <span className="bg-gradient-to-r from-primary to-accent-purple bg-clip-text text-transparent">VyaparMedia</span>
+          <h1 className="text-4xl sm:text-5xl font-black text-foreground tracking-tight leading-[1.18] sm:leading-[1.2] py-1">
+            Contact <span className="inline-block py-0.5 bg-gradient-to-r from-primary to-accent-purple bg-clip-text text-transparent">VyaparMedia</span>
           </h1>
 
           <p className="text-base text-muted-foreground max-w-xl mx-auto leading-relaxed">

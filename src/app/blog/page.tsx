@@ -316,7 +316,7 @@ export default function BlogPage() {
                       onClick={() => setActiveCategory(cat)}
                       className={`px-4 py-2 rounded-full text-xs font-semibold transition-all duration-200 cursor-pointer ${
                         activeCategory === cat
-                          ? "bg-primary text-primary-foreground shadow-sm shadow-primary/20"
+                          ? "bg-card text-foreground shadow-xs border border-border/80 font-bold"
                           : "bg-muted/60 text-muted-foreground hover:bg-muted hover:text-foreground"
                       }`}
                     >

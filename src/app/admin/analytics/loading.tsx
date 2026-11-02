@@ -3,7 +3,7 @@
  */
 export default function AdminAnalyticsLoading() {
   return (
-    <div className="max-w-6xl mx-auto space-y-6" aria-hidden="true">
+    <div className="max-w-7xl mx-auto space-y-6" aria-hidden="true">
       {/* Page header */}
       <div className="space-y-2">
         <div className="h-8 w-64 bg-muted rounded-xl animate-pulse" />

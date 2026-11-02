@@ -112,7 +112,7 @@ export default function CreatorDiscoveryCard({
   const startingRate = formatCurrency(creator.startingRatePaise);
 
   return (
-    <Card as="article" className="relative w-full overflow-hidden shadow-sm hover:shadow-md transition-all duration-300 flex flex-col mb-4 group">
+    <Card as="article" className="p-0 relative w-full overflow-hidden shadow-sm hover:shadow-md transition-all duration-300 flex flex-col mb-4 group">
       {/* Toast Notification */}
       {toastMessage && (
         <div
@@ -124,8 +124,8 @@ export default function CreatorDiscoveryCard({
       )}
 
       {/* Creator Header */}
-      <div className="flex items-center justify-between p-4 border-b border-border">
-        <div className="flex items-center gap-3 min-w-0">
+      <div className="flex items-center justify-between p-3.5 sm:p-4 border-b border-border gap-2.5">
+        <div className="flex items-center gap-3 min-w-0 flex-1">
           <div className="relative w-10 h-10 rounded-full overflow-hidden bg-muted shrink-0 border border-border flex items-center justify-center">
             {creator.avatar ? (
               <Image
@@ -142,29 +142,31 @@ export default function CreatorDiscoveryCard({
             )}
           </div>
           <div className="min-w-0 flex-1">
-            <div className="flex items-center gap-1.5">
-              <h4 className="text-sm font-heading font-bold text-foreground line-clamp-1 break-words group-hover:text-primary transition-colors">
+            <div className="flex items-center gap-1.5 min-w-0">
+              <h4
+                className="text-sm font-heading font-bold text-foreground truncate group-hover:text-primary transition-colors"
+                title={creator.name}
+              >
                 {creator.name}
               </h4>
               {creator.isKycVerified && (
-                <span title="KYC Verified Creator" className="text-verified">
-                  <ShieldCheck className="w-4 h-4 fill-verified/15" aria-label="KYC Verified Creator" />
+                <span
+                  title="KYC Verified Creator (Aadhaar & PAN Audited)"
+                  className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-verified-muted text-verified border border-verified-border shrink-0 whitespace-nowrap"
+                >
+                  <ShieldCheck className="w-3 h-3 fill-verified/20" />
+                  <span>KYC</span>
                 </span>
               )}
             </div>
-            <p className="text-[11px] text-muted-foreground truncate">
+            <p
+              className="text-[11px] text-muted-foreground truncate"
+              title={`@${creator.handle} • ${creator.city || "India"}`}
+            >
               @{creator.handle} • {creator.city || "India"}
             </p>
           </div>
         </div>
-
-        {/* KYC Badge Pill */}
-        {creator.isKycVerified && (
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold border bg-verified-muted text-verified border-verified-border shrink-0 whitespace-nowrap">
-            <ShieldCheck className="w-3 h-3" />
-            <span>KYC Verified</span>
-          </span>
-        )}
       </div>
 
       {/* Image-First Showcase Container */}
@@ -272,7 +274,7 @@ export default function CreatorDiscoveryCard({
               aria-label={isSaved ? "Remove from saved" : "Save creator"}
               className={`w-11 h-11 min-h-[44px] min-w-[44px] flex items-center justify-center rounded-xl border transition-all cursor-pointer ${
                 isSaved
-                  ? "bg-primary text-primary-foreground border-primary"
+                  ? "bg-card text-primary border-border/80 shadow-xs ring-1 ring-border"
                   : "border-border hover:bg-muted text-muted-foreground hover:text-foreground"
               }`}
             >

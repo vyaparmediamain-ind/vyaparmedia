@@ -5,6 +5,7 @@ import { resolveDispute } from "../../dispute-actions";
 import EmptyState from "@/components/ui/EmptyState";
 import { Badge, Button, PageContainer, PageHeader } from "@/components/ui";
 import { formatCurrency, formatDate } from "@/lib/utils-client";
+import { humanizeString } from "@/lib/audit-formatters";
 import { checkDisputeResolutionEligibility } from "@/lib/action-eligibility";
 import {
   Scale,
@@ -170,7 +171,7 @@ export default async function AdminDisputeDetailPage({
   );
 
   return (
-    <PageContainer maxWidth="5xl" className="space-y-6 py-2 sm:py-4">
+    <PageContainer maxWidth="7xl" className="space-y-6 py-2 sm:py-4">
       {/* Header */}
       <PageHeader
         backHref="/admin/disputes"
@@ -184,9 +185,9 @@ export default async function AdminDisputeDetailPage({
         badge={
           <Badge
             variant={dispute.status === "OPEN" ? "warning" : "success"}
-            className="text-xs uppercase"
+            className="text-xs font-semibold"
           >
-            {dispute.status}
+            {humanizeString(dispute.status)}
           </Badge>
         }
         subtitle={
@@ -220,7 +221,7 @@ export default async function AdminDisputeDetailPage({
 
           <div className="space-y-2.5">
             {[
-              { label: "Dispute Reason", value: dispute.type },
+              { label: "Dispute Reason", value: humanizeString(dispute.type) },
               { label: "Raised By", value: dispute.raisedBy?.email || "Participant" },
               { label: "Campaign", value: dispute.deal.campaign?.title || "N/A" },
               { label: "Total Escrow", value: formatCurrency(dealAmount) },

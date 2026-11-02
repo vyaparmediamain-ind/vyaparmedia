@@ -98,7 +98,7 @@ export default function CustomInstallBanner() {
         animate={{ y: 0, opacity: 1 }}
         exit={{ y: shouldReduceMotion ? 0 : 80, opacity: 0 }}
         transition={shouldReduceMotion ? { duration: 0 } : { type: "spring", stiffness: 400, damping: 30 }}
-        className="fixed bottom-[calc(5rem+env(safe-area-inset-bottom,0px))] md:bottom-[max(1.5rem,calc(env(safe-area-inset-bottom,0px)+0.5rem))] left-4 right-4 md:left-auto md:right-6 md:w-[420px] z-[9998] p-4 rounded-2xl bg-card/95 backdrop-blur-xl border border-border shadow-2xl shadow-black/25 text-foreground"
+        className="fixed bottom-[calc(5rem+env(safe-area-inset-bottom,0px))] md:bottom-[max(1.5rem,calc(env(safe-area-inset-bottom,0px)+0.5rem))] left-4 right-4 md:left-auto md:right-6 md:w-[420px] z-[9998] p-4 rounded-2xl bg-card/95 backdrop-blur-xl border border-border shadow-2xl shadow-black/25 text-foreground print:hidden"
       >
         <div className="flex items-start gap-3">
           {/* Logo / App Icon */}
@@ -128,7 +128,7 @@ export default function CustomInstallBanner() {
               </span>
               <span>•</span>
               <span className="flex items-center gap-1">
-                <WifiOff className="w-3 h-3 text-blue-500" />
+                <WifiOff className="w-3 h-3 text-primary" />
                 <span>Offline Mode</span>
               </span>
             </div>

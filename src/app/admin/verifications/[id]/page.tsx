@@ -11,6 +11,7 @@ import {
 import EmptyState from "@/components/ui/EmptyState";
 import { Badge, Button, Input, PageContainer, PageHeader } from "@/components/ui";
 import { formatDate } from "@/lib/utils-client";
+import { humanizeString } from "@/lib/audit-formatters";
 import { z } from "zod";
 import {
   ShieldCheck,
@@ -119,7 +120,7 @@ export default async function VerificationDetailPage({
     "User Profile";
 
   return (
-    <PageContainer maxWidth="5xl" className="space-y-6 py-2 sm:py-4">
+    <PageContainer maxWidth="7xl" className="space-y-6 py-2 sm:py-4">
       {/* Header */}
       <PageHeader
         backHref="/admin/verifications"
@@ -242,7 +243,7 @@ export default async function VerificationDetailPage({
               },
               {
                 label: "Compliance Status",
-                value: user.taxCompliance?.status || "ACTION_REQUIRED",
+                value: user.taxCompliance?.status ? humanizeString(user.taxCompliance.status) : "Action Required",
                 status: user.taxCompliance?.status === "READY" ? "verified" : "warning",
               },
             ].map((item) => (
@@ -304,11 +305,11 @@ export default async function VerificationDetailPage({
                     </div>
                     <div>
                       <div className="flex items-center gap-2 flex-wrap">
-                        <span className="font-bold text-sm text-foreground uppercase tracking-wide">
-                          {doc.type.replaceAll("_", " ")}
+                        <span className="font-bold text-sm text-foreground tracking-wide">
+                          {humanizeString(doc.type)}
                         </span>
-                        <Badge variant={getDocBadgeVariant(doc.status)} className="text-[10px] uppercase">
-                          {doc.status}
+                        <Badge variant={getDocBadgeVariant(doc.status)} className="text-[10px]">
+                          {humanizeString(doc.status)}
                         </Badge>
                       </div>
                       <div className="text-xs text-muted-foreground mt-0.5 font-mono">

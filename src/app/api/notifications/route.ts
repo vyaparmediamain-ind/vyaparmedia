@@ -29,7 +29,7 @@ total: result.total,
 totalPages: Math.ceil(result.total / (limit || 1)),
 },
 });
-});
+}, { requireAuth: true });
 
 export const POST = apiWrapper(async (req: ValidatedNextRequest) => {
 const session = req.session;
@@ -58,4 +58,4 @@ return NextResponse.json({
   success: true,
   message: "Notifications marked as read",
 });
-});
+}, { requireAuth: true });

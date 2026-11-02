@@ -15,7 +15,7 @@ export default async function AdminVerificationsPage() {
   const pendingUsers = await AdminService.getVerificationQueue();
 
   return (
-    <PageContainer maxWidth="4xl" className="space-y-6 py-2 sm:py-4">
+    <PageContainer maxWidth="7xl" className="space-y-6 py-2 sm:py-4">
       {/* Page header */}
       <PageHeader
         icon={
@@ -27,7 +27,7 @@ export default async function AdminVerificationsPage() {
         subtitle="Manage and review pending KYC requests from influencers and brands."
       />
 
-      <VerificationQueue pendingUsers={pendingUsers} isNarrow={true} />
+      <VerificationQueue pendingUsers={pendingUsers} isNarrow={false} />
     </PageContainer>
   );
 }

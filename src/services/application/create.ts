@@ -1,5 +1,6 @@
 import { assertAccountCanTransact } from "@/lib/utils";
 import { formatNumber } from "@/lib/utils-client";
+import { MIN_INFLUENCER_FOLLOWERS_TO_APPLY } from "@/constants";
 import { TierError } from "@/services/campaign.service";
 import { addUserXp } from "@/lib/gamification-engine";
 import { checkChallengeProgress } from "@/lib/weekly-challenges";
@@ -60,9 +61,9 @@ const ytSubs = profile.youtubeSubscribers === null ? 0 : (profile.youtubeSubscri
 const hasHiddenSubscribers = instaFollowers === -1 || ytSubs === -1;
 const maxRelevantFollowers = hasHiddenSubscribers ? -1 : Math.max(instaFollowers, ytSubs);
 
-if (!hasHiddenSubscribers && maxRelevantFollowers < 1000) {
+if (!hasHiddenSubscribers && maxRelevantFollowers < MIN_INFLUENCER_FOLLOWERS_TO_APPLY) {
 throw AppError.badRequest(
-"You must have at least 1,000 Instagram followers or YouTube subscribers to apply for campaigns on VyaparMedia."
+`You must have at least ${MIN_INFLUENCER_FOLLOWERS_TO_APPLY.toLocaleString("en-IN")} Instagram followers or YouTube subscribers to apply for campaigns on VyaparMedia.`
 );
 }
 

@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import { Input, Card, PullToRefresh } from "@/components/ui";
 import { formatCurrency, formatDateTime, formatDate } from "@/lib/utils-client";
+import { humanizeString } from "@/lib/audit-formatters";
 import type { WalletTransactionItem } from "@/lib/schemas";
 
 export type TransactionItem = WalletTransactionItem;
@@ -168,13 +169,13 @@ export function VirtualizedTransactionList({
 
         <div className="flex items-center gap-2 w-full sm:w-auto">
           <div className="relative w-full sm:w-64">
-            <Search className="w-4 h-4 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2" />
+            <Search className="w-4 h-4 text-muted-foreground absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
             <Input
               type="text"
               placeholder="Search by ID or description..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-9 pr-8 text-xs sm:text-sm min-h-[44px] h-11 rounded-xl"
+              className="pl-11 pr-9 text-xs sm:text-sm min-h-[44px] h-11 rounded-xl"
             />
             {searchQuery && (
               <button
@@ -203,26 +204,24 @@ export function VirtualizedTransactionList({
       </div>
 
       {/* PhonePe/CRED Categorized Filter Chips */}
-      <div className="flex items-center gap-1.5 p-1 rounded-xl bg-muted border border-border mb-4 overflow-x-auto text-xs scrollbar-none">
+      <div className="flex items-center gap-1.5 p-1 rounded-xl bg-muted border border-border mb-4 flex-wrap text-xs">
         <button
           type="button"
           onClick={() => setActiveFilter("ALL")}
-          className={`px-3.5 py-2 min-h-[44px] inline-flex items-center justify-center rounded-lg font-semibold shrink-0 transition-colors cursor-pointer ${
-            activeFilter === "ALL"
-              ? "bg-card text-foreground shadow-xs"
-              : "text-muted-foreground hover:text-foreground"
-          }`}
+          className={`px-3.5 py-2 min-h-[44px] inline-flex items-center justify-center rounded-lg font-semibold shrink-0 transition-colors cursor-pointer ${activeFilter === "ALL"
+            ? "bg-card text-foreground shadow-xs"
+            : "text-muted-foreground hover:text-foreground"
+            }`}
         >
           All ({transactions.length})
         </button>
         <button
           type="button"
           onClick={() => setActiveFilter("CREDIT")}
-          className={`px-3.5 py-2 min-h-[44px] inline-flex items-center justify-center rounded-lg font-semibold shrink-0 transition-colors gap-1.5 cursor-pointer ${
-            activeFilter === "CREDIT"
-              ? "bg-card text-verified shadow-xs"
-              : "text-muted-foreground hover:text-foreground"
-          }`}
+          className={`px-3.5 py-2 min-h-[44px] inline-flex items-center justify-center rounded-lg font-semibold shrink-0 transition-colors gap-1.5 cursor-pointer ${activeFilter === "CREDIT"
+            ? "bg-card text-verified shadow-xs"
+            : "text-muted-foreground hover:text-foreground"
+            }`}
         >
           <ArrowDownLeft className="w-3.5 h-3.5 text-verified" />
           Credits
@@ -230,11 +229,10 @@ export function VirtualizedTransactionList({
         <button
           type="button"
           onClick={() => setActiveFilter("DEBIT")}
-          className={`px-3.5 py-2 min-h-[44px] inline-flex items-center justify-center rounded-lg font-semibold shrink-0 transition-colors gap-1.5 cursor-pointer ${
-            activeFilter === "DEBIT"
-              ? "bg-card text-foreground shadow-xs"
-              : "text-muted-foreground hover:text-foreground"
-          }`}
+          className={`px-3.5 py-2 min-h-[44px] inline-flex items-center justify-center rounded-lg font-semibold shrink-0 transition-colors gap-1.5 cursor-pointer ${activeFilter === "DEBIT"
+            ? "bg-card text-foreground shadow-xs"
+            : "text-muted-foreground hover:text-foreground"
+            }`}
         >
           <ArrowUpRight className="w-3.5 h-3.5 text-muted-foreground" />
           Debits
@@ -242,11 +240,10 @@ export function VirtualizedTransactionList({
         <button
           type="button"
           onClick={() => setActiveFilter("ESCROW")}
-          className={`px-3.5 py-2 min-h-[44px] inline-flex items-center justify-center rounded-lg font-semibold shrink-0 transition-colors gap-1.5 cursor-pointer ${
-            activeFilter === "ESCROW"
-              ? "bg-card text-escrow shadow-xs"
-              : "text-muted-foreground hover:text-foreground"
-          }`}
+          className={`px-3.5 py-2 min-h-[44px] inline-flex items-center justify-center rounded-lg font-semibold shrink-0 transition-colors gap-1.5 cursor-pointer ${activeFilter === "ESCROW"
+            ? "bg-card text-escrow shadow-xs"
+            : "text-muted-foreground hover:text-foreground"
+            }`}
         >
           <Lock className="w-3.5 h-3.5 text-escrow" />
           Escrow
@@ -254,11 +251,10 @@ export function VirtualizedTransactionList({
         <button
           type="button"
           onClick={() => setActiveFilter("PENDING")}
-          className={`px-3.5 py-2 min-h-[44px] inline-flex items-center justify-center rounded-lg font-semibold shrink-0 transition-colors gap-1.5 cursor-pointer ${
-            activeFilter === "PENDING"
-              ? "bg-card text-pending shadow-xs"
-              : "text-muted-foreground hover:text-foreground"
-          }`}
+          className={`px-3.5 py-2 min-h-[44px] inline-flex items-center justify-center rounded-lg font-semibold shrink-0 transition-colors gap-1.5 cursor-pointer ${activeFilter === "PENDING"
+            ? "bg-card text-pending shadow-xs"
+            : "text-muted-foreground hover:text-foreground"
+            }`}
         >
           <Clock className="w-3.5 h-3.5 text-pending" />
           Pending
@@ -266,125 +262,124 @@ export function VirtualizedTransactionList({
       </div>
 
       {/* Transaction List Area */}
-      <PullToRefresh onRefresh={onRefresh || (() => {})} disabled={!onRefresh} className="relative w-full">
+      <PullToRefresh onRefresh={onRefresh || (() => { })} disabled={!onRefresh} className="relative w-full">
         {isLoading ? (
-        <div className="space-y-3 py-2 animate-pulse" aria-label="Loading transactions">
-          {[1, 2, 3, 4, 5].map((idx) => (
-            <div
-              key={idx}
-              className="flex items-center justify-between p-3.5 rounded-xl border border-border bg-muted/30"
-            >
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-muted" />
-                <div className="space-y-2">
-                  <div className="w-32 sm:w-48 h-3.5 bg-muted rounded" />
-                  <div className="w-20 h-2.5 bg-muted/80 rounded" />
+          <div className="space-y-3 py-2 animate-pulse" aria-label="Loading transactions">
+            {[1, 2, 3, 4, 5].map((idx) => (
+              <div
+                key={idx}
+                className="flex items-center justify-between p-3.5 rounded-xl border border-border bg-muted/30"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-muted" />
+                  <div className="space-y-2">
+                    <div className="w-32 sm:w-48 h-3.5 bg-muted rounded" />
+                    <div className="w-20 h-2.5 bg-muted/80 rounded" />
+                  </div>
+                </div>
+                <div className="space-y-1.5 text-right">
+                  <div className="w-20 h-4 bg-muted rounded ml-auto" />
+                  <div className="w-14 h-3 bg-muted/80 rounded ml-auto" />
                 </div>
               </div>
-              <div className="space-y-1.5 text-right">
-                <div className="w-20 h-4 bg-muted rounded ml-auto" />
-                <div className="w-14 h-3 bg-muted/80 rounded ml-auto" />
-              </div>
-            </div>
-          ))}
-        </div>
-      ) : filteredTransactions.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-12 text-center text-muted-foreground border border-dashed border-border rounded-xl">
-          <HelpCircle className="w-10 h-10 text-muted-foreground/50 mb-2" />
-          <h3 className="font-heading font-bold text-sm text-foreground mb-1">
-            No Transactions Found
-          </h3>
-          <p className="text-xs max-w-xs text-muted-foreground">
-            {searchQuery
-              ? "No transactions match your search filter."
-              : "When you receive campaign payouts or perform withdrawals, they will appear here in your audit ledger."}
-          </p>
-        </div>
-      ) : (
-        /* ── CRED/Jupiter date-grouped ledger ──────────────────────────── */
-        <div className="h-[480px] overflow-auto rounded-xl border border-border" aria-label="Transaction history">
-          {groupedTransactions.map((group) => (
-            <div key={group.label}>
-              {/* Sticky date group header */}
-              <div className="sticky top-0 z-10 px-4 py-1.5 bg-muted/80 backdrop-blur-sm border-b border-border flex items-center gap-2">
-                <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
-                  {group.label}
-                </span>
-                <span className="text-[10px] text-muted-foreground/60 font-mono">
-                  · {group.items.length} {group.items.length === 1 ? "txn" : "txns"}
-                </span>
-              </div>
+            ))}
+          </div>
+        ) : filteredTransactions.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-12 text-center text-muted-foreground border border-dashed border-border rounded-xl">
+            <HelpCircle className="w-10 h-10 text-muted-foreground/50 mb-2" />
+            <h3 className="font-heading font-bold text-sm text-foreground mb-1">
+              No Transactions Found
+            </h3>
+            <p className="text-xs max-w-xs text-muted-foreground">
+              {searchQuery
+                ? "No transactions match your search filter."
+                : "When you receive campaign payouts or perform withdrawals, they will appear here in your audit ledger."}
+            </p>
+          </div>
+        ) : (
+          /* ── CRED/Jupiter date-grouped ledger ──────────────────────────── */
+          <div className="h-[480px] overflow-auto rounded-xl border border-border" aria-label="Transaction history">
+            {groupedTransactions.map((group) => (
+              <div key={group.label}>
+                {/* Sticky date group header */}
+                <div className="sticky top-0 z-10 px-4 py-1.5 bg-muted/80 backdrop-blur-sm border-b border-border flex items-center gap-2">
+                  <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
+                    {group.label}
+                  </span>
+                  <span className="text-[10px] text-muted-foreground/60 font-mono">
+                    · {group.items.length} {group.items.length === 1 ? "txn" : "txns"}
+                  </span>
+                </div>
 
-              {/* Transactions in this group */}
-              <div className="divide-y divide-border">
-                {group.items.map((tx) => {
-                  const isCredit = CREDIT_TYPES.has(tx.type);
-                  const formattedAmount = formatCurrency(tx.amount);
+                {/* Transactions in this group */}
+                <div className="divide-y divide-border">
+                  {group.items.map((tx) => {
+                    const isCredit = CREDIT_TYPES.has(tx.type);
+                    const formattedAmount = formatCurrency(tx.amount);
 
-                  let statusBadge = (
-                    <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-verified-muted text-verified border border-verified-border">
-                      <CheckCircle2 className="w-3 h-3" /> Completed
-                    </span>
-                  );
-
-                  if (tx.status === "PENDING") {
-                    statusBadge = (
-                      <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-pending-muted text-pending border border-pending-border">
-                        <Clock className="w-3 h-3" /> Pending
+                    let statusBadge = (
+                      <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-verified-muted text-verified border border-verified-border">
+                        <CheckCircle2 className="w-3 h-3" /> Completed
                       </span>
                     );
-                  } else if (tx.status === "FAILED" || tx.status === "REVERSED") {
-                    statusBadge = (
-                      <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-disputed-muted text-disputed border border-disputed-border">
-                        <AlertTriangle className="w-3 h-3" /> {tx.status}
-                      </span>
+
+                    if (tx.status === "PENDING") {
+                      statusBadge = (
+                        <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-pending-muted text-pending border border-pending-border">
+                          <Clock className="w-3 h-3" /> Pending
+                        </span>
+                      );
+                    } else if (tx.status === "FAILED" || tx.status === "REVERSED") {
+                      statusBadge = (
+                        <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-disputed-muted text-disputed border border-disputed-border">
+                          <AlertTriangle className="w-3 h-3" /> {tx.status}
+                        </span>
+                      );
+                    }
+
+                    return (
+                      <div
+                        key={tx.id}
+                        onClick={() => onSelectTransaction?.(tx)}
+                        className="flex items-center justify-between p-3.5 hover:bg-muted/40 transition-colors cursor-pointer"
+                      >
+                        {/* Left: Category Icon & Description */}
+                        <div className="flex items-center gap-3 min-w-0">
+                          {getCategoryIcon(tx.type)}
+                          <div className="min-w-0">
+                            <div className="flex items-center gap-2">
+                              <span className="text-xs sm:text-sm font-semibold truncate text-foreground">
+                                {tx.description || humanizeString(tx.type)}
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
+                              <span>{formatDateTime(tx.createdAt)}</span>
+                              <span>•</span>
+                              <span className="font-mono text-[10px]">
+                                Ref: {tx.id.slice(0, 10)}...
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Right: Amount & Status Badge */}
+                        <div className="text-right shrink-0 pl-3">
+                          <div
+                            className={`text-sm sm:text-base font-bold font-mono tabular-nums tracking-tight ${isCredit ? "text-verified" : "text-foreground"
+                              }`}
+                          >
+                            {isCredit ? `+ ${formattedAmount}` : `- ${formattedAmount}`}
+                          </div>
+                          <div className="mt-0.5">{statusBadge}</div>
+                        </div>
+                      </div>
                     );
-                  }
-
-                  return (
-                    <div
-                      key={tx.id}
-                      onClick={() => onSelectTransaction?.(tx)}
-                      className="flex items-center justify-between p-3.5 hover:bg-muted/40 transition-colors cursor-pointer"
-                    >
-                      {/* Left: Category Icon & Description */}
-                      <div className="flex items-center gap-3 min-w-0">
-                        {getCategoryIcon(tx.type)}
-                        <div className="min-w-0">
-                          <div className="flex items-center gap-2">
-                            <span className="text-xs sm:text-sm font-semibold truncate text-foreground">
-                              {tx.description || tx.type.replaceAll("_", " ")}
-                            </span>
-                          </div>
-                          <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
-                            <span>{formatDateTime(tx.createdAt)}</span>
-                            <span>•</span>
-                            <span className="font-mono text-[10px]">
-                              Ref: {tx.id.slice(0, 10)}...
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Right: Amount & Status Badge */}
-                      <div className="text-right shrink-0 pl-3">
-                        <div
-                          className={`text-sm sm:text-base font-bold font-mono tabular-nums tracking-tight ${
-                            isCredit ? "text-verified" : "text-foreground"
-                          }`}
-                        >
-                          {isCredit ? `+ ${formattedAmount}` : `- ${formattedAmount}`}
-                        </div>
-                        <div className="mt-0.5">{statusBadge}</div>
-                      </div>
-                    </div>
-                  );
-                })}
+                  })}
+                </div>
               </div>
-            </div>
-          ))}
-        </div>
-      )}
+            ))}
+          </div>
+        )}
       </PullToRefresh>
     </Card>
   );

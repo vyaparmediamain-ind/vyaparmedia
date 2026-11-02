@@ -24,3 +24,7 @@ export const DEFAULT_PRODUCT_HANDLING_FEE_PERCENT = 2; // 2% product handling fe
 // Deal Query Limits
 export const DEFAULT_DEAL_LIST_LIMIT = 10;
 export const MAX_DEAL_LIST_LIMIT = 50;
+
+// Campaign & Creator Eligibility Thresholds
+export const MIN_INFLUENCER_FOLLOWERS_TO_APPLY = 1000; // Minimum 1,000 followers/subscribers required to apply to any campaign on VyaparMedia
+

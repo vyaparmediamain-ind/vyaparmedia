@@ -46,7 +46,12 @@ export function useNotificationCenter(userId?: string | null) {
       setIsLoading(true);
       const data = await apiClient.settings.getNotifications({ limit: 30 });
       if (!isMountedRef.current) return;
-      setNotifications(data.notifications || []);
+      const notifs = Array.isArray(data?.notifications)
+        ? data.notifications
+        : Array.isArray((data as unknown as Record<string, unknown>)?.data)
+        ? ((data as unknown as Record<string, unknown>).data as typeof data.notifications)
+        : [];
+      setNotifications(notifs);
       setUnreadCount(data.unreadCount ?? 0);
       lastFetchTimeRef.current = Date.now();
     } catch (err) {

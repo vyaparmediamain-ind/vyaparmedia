@@ -124,7 +124,10 @@ return { success: false, error: "Per influencer budget cannot exceed total budge
 if (!formData.maxFollowers || formData.maxFollowers <= 0) {
   return { success: false, error: "Max followers is required" };
 }
-if (formData.maxFollowers < formData.minFollowers) {
+if (formData.minFollowers < 1000) {
+    return { success: false, error: "Minimum followers required must be at least 1,000" };
+  }
+  if (formData.maxFollowers < formData.minFollowers) {
   return { success: false, error: "Max followers must be greater than or equal to min followers" };
 }
 

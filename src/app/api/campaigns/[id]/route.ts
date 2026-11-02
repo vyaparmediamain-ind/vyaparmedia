@@ -125,6 +125,8 @@ return NextResponse.json(
 let hasApplied = false;
 let applicationStatus: string | null = null;
 let dealId: string | null = null;
+let dealStatus: string | null = null;
+let rejectionReason: string | null = null;
 
 if (isInfluencer(userType)) {
 const influencerProfile = await prisma.influencerProfile.findUnique({
@@ -137,22 +139,22 @@ where: {
 campaignId: id!,
 influencerId: influencerProfile.id,
 },
-select: { status: true },
+select: { status: true, rejectionReason: true },
 });
 if (application) {
 hasApplied = true;
 applicationStatus = application.status;
-if (application.status === "SELECTED") {
+rejectionReason = application.rejectionReason;
 const deal = await prisma.deal.findFirst({
 where: {
 campaignId: id!,
 influencerId: influencerProfile.id,
 deletedAt: null,
 },
-select: { id: true },
+select: { id: true, status: true },
 });
 dealId = deal?.id || null;
-}
+dealStatus = deal?.status || null;
 }
 }
 }
@@ -161,12 +163,14 @@ return NextResponse.json(
 {
 success: true,
 message: "Campaign loaded",
-data: { campaign, hasApplied, applicationStatus, dealId },
+data: { campaign, hasApplied, applicationStatus, dealId, dealStatus, rejectionReason },
 campaign: {
 ...campaign,
 hasApplied,
 applicationStatus,
 dealId,
+dealStatus,
+rejectionReason,
 },
 },
 { status: 200 },

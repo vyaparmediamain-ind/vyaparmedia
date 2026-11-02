@@ -41,10 +41,19 @@ export function QuickDiscoveryRow({ isBrand, isInfluencer }: Readonly<QuickDisco
     { revalidateOnFocus: false, dedupingInterval: 30000 }
   );
 
-  const rawCampaigns: CampaignItem[] =
-    campaignsData?.data?.campaigns || campaignsData?.campaigns || [];
-  const rawInfluencers: InfluencerItem[] =
-    influencersData?.data?.influencers || influencersData?.influencers || [];
+  const rawCamp = campaignsData?.data?.campaigns || campaignsData?.campaigns;
+  const rawCampaigns: CampaignItem[] = Array.isArray(rawCamp)
+    ? rawCamp
+    : Array.isArray(campaignsData?.data)
+    ? (campaignsData.data as CampaignItem[])
+    : [];
+
+  const rawInf = influencersData?.data?.influencers || influencersData?.influencers;
+  const rawInfluencers: InfluencerItem[] = Array.isArray(rawInf)
+    ? rawInf
+    : Array.isArray(influencersData?.data)
+    ? (influencersData.data as InfluencerItem[])
+    : [];
 
   return (
     <section aria-label="Discovery recommendations" className="space-y-4">

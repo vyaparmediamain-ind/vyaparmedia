@@ -276,7 +276,7 @@ export default function ReferralsPage() {
   if (loading || !session) {
     return (
       <DashboardShell user={session?.user}>
-        <PageContainer maxWidth="5xl" className="space-y-6 py-6">
+        <PageContainer maxWidth="7xl" className="space-y-6 py-6">
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <Skeleton className="h-28 rounded-xl" />
             <Skeleton className="h-28 rounded-xl" />
@@ -306,7 +306,7 @@ export default function ReferralsPage() {
 
   return (
     <DashboardShell user={session.user}>
-      <PageContainer maxWidth="5xl" className="space-y-6 pt-4 pb-0 sm:py-6">
+      <PageContainer maxWidth="7xl" className="space-y-6 pt-4 pb-0 sm:py-6">
 
         {/* ── Page Header ── */}
         <PageHeader
@@ -375,7 +375,7 @@ export default function ReferralsPage() {
         </div>
 
         {/* ── Tab Toggle ── */}
-        <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar">
+        <div className="flex items-center gap-2 flex-wrap">
           {(
             [
               { key: "overview", label: "Overview" },
@@ -391,7 +391,7 @@ export default function ReferralsPage() {
               onClick={() => setActiveTab(tab.key)}
               className={`px-4 py-2 rounded-xl text-xs font-semibold transition-all shrink-0 border ${
                 activeTab === tab.key
-                  ? "bg-primary text-primary-foreground border-primary shadow-sm"
+                  ? "bg-card text-foreground border-border/80 shadow-xs font-bold"
                   : "bg-card text-muted-foreground border-border hover:text-foreground hover:bg-muted/50"
               }`}
             >

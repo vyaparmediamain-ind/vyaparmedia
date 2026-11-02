@@ -8,7 +8,7 @@ import { useState } from "react";
 import { signOut } from "next-auth/react";
 import { Button, Input } from "@/components/ui";
 import { z } from "zod";
-import { AlertTriangle, Trash2, AlertCircle } from "lucide-react";
+import { AlertTriangle, Trash2, AlertCircle, Eye, EyeOff } from "lucide-react";
 import { checkAccountDeletionEligibility } from "@/lib/action-eligibility";
 
 export const deleteAccountSchema = z.object({
@@ -32,6 +32,7 @@ export default function DeleteAccountPanel({
 }: Readonly<DeleteAccountPanelProps>) {
   const [isConfirming, setIsConfirming] = useState(false);
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [reason, setReason] = useState("");
   const [confirmText, setConfirmText] = useState("");
   const [error, setError] = useState("");
@@ -149,13 +150,28 @@ export default function DeleteAccountPanel({
             <Input
               label="Account Password"
               id="delete-password-input"
-              type="password"
+              type={showPassword ? "text" : "password"}
               placeholder="Enter your current password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
               disabled={isSaving}
               fullWidth
+              rightElement={
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="p-1 rounded-lg text-muted-foreground hover:text-foreground transition-colors focus:outline-none focus:ring-1 focus:ring-primary"
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                  title={showPassword ? "Hide password" : "Show password"}
+                >
+                  {showPassword ? (
+                    <EyeOff className="w-4 h-4" aria-hidden="true" />
+                  ) : (
+                    <Eye className="w-4 h-4" aria-hidden="true" />
+                  )}
+                </button>
+              }
             />
 
             <Input

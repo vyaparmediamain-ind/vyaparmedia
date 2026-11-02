@@ -178,7 +178,7 @@ export function ThreePartyArbitrationFeed({
 
         {/* 3 Participant Badges */}
         <div className="flex flex-wrap items-center gap-2">
-          <span className="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">
+          <span className="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20">
             <Building2 className="w-3 h-3" />
             Brand
           </span>
@@ -251,14 +251,14 @@ export function ThreePartyArbitrationFeed({
               key={item.id}
               className={`p-3.5 rounded-xl border space-y-1.5 ${
                 isBrand
-                  ? "bg-blue-500/5 border-blue-500/20 ml-0 mr-4"
+                  ? "bg-primary/5 border-primary/20 ml-0 mr-4"
                   : "bg-background/80 border-border mr-0 ml-4"
               }`}
             >
               <div className="flex items-center justify-between gap-2">
                 <span className="flex items-center gap-1.5 text-xs font-bold text-foreground">
                   {isBrand ? (
-                    <Building2 className="w-3.5 h-3.5 text-blue-500" />
+                    <Building2 className="w-3.5 h-3.5 text-primary" />
                   ) : (
                     <User className="w-3.5 h-3.5 text-verified" />
                   )}

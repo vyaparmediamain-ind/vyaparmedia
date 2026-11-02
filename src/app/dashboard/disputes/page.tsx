@@ -9,6 +9,7 @@ import { useSession } from "next-auth/react";
 import EmptyState from "@/components/ui/EmptyState";
 import { Skeleton, PageContainer, PageHeader } from "@/components/ui";
 import { formatCurrency, formatDate } from "@/lib/utils-client";
+import { humanizeString } from "@/lib/audit-formatters";
 import { type DisputeItem, type DisputesResponse } from "@/lib/schemas/dispute.schema";
 import {
   Scale,
@@ -199,7 +200,7 @@ function getStatusBadge(status: string) {
     default:
       return (
         <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-muted text-muted-foreground border border-border shrink-0 whitespace-nowrap">
-          {status.replaceAll("_", " ")}
+          {humanizeString(status)}
         </span>
       );
   }
@@ -212,7 +213,14 @@ export default function DisputesPage() {
     revalidateOnFocus: false,
     dedupingInterval: 30000,
   });
-  const disputes = useMemo(() => data?.disputes || [], [data?.disputes]);
+  const disputes = useMemo(() => {
+    const raw = data?.disputes ?? (data as Record<string, unknown>)?.data;
+    if (Array.isArray(raw)) return raw;
+    if (Array.isArray((raw as Record<string, unknown>)?.disputes)) {
+      return (raw as Record<string, unknown>).disputes as DisputeItem[];
+    }
+    return [];
+  }, [data]);
 
   const [activeTab, setActiveTab] = useState<FilterTab>("all");
   const [searchQuery, setSearchQuery] = useState("");
@@ -280,7 +288,7 @@ export default function DisputesPage() {
 
   return (
     <DashboardShell user={session?.user}>
-      <PageContainer maxWidth="6xl" className="space-y-6 animate-fade-in pt-4 pb-0 sm:py-6">
+      <PageContainer maxWidth="7xl" className="space-y-6 animate-fade-in pt-4 pb-0 sm:py-6">
 
         {/* ── HEADER ──────────────────────────────────────────────────── */}
         <PageHeader
@@ -412,20 +420,20 @@ export default function DisputesPage() {
 
             {/* Search */}
             <div className="relative flex-1 sm:max-w-xs">
-              <Search className="w-4 h-4 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+              <Search className="w-4 h-4 text-muted-foreground absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
               <input
                 type="text"
                 id="disputes-search"
                 placeholder="Search campaign, case #, or party..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-9 pr-8 py-1.5 text-xs rounded-xl bg-background border border-border text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+                className="w-full pl-11 pr-9 py-2 min-h-[40px] text-xs rounded-xl bg-background border border-border text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all shadow-xs"
               />
               {searchQuery && (
                 <button
                   type="button"
                   onClick={() => setSearchQuery("")}
-                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground p-0.5"
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground p-1 rounded-full hover:bg-muted transition-colors cursor-pointer"
                   aria-label="Clear search"
                 >
                   <X className="w-3.5 h-3.5" />

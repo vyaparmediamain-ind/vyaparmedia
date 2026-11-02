@@ -83,9 +83,10 @@ export default function LeaderboardPage() {
     hallOfFame?: HallOfFameUser[];
   }>(`/api/gamification/leaderboard?${params.toString()}`, fetcher);
 
-  const influencers: LeaderboardUser[] = leaderboardData?.influencers || [];
-  const brands: LeaderboardUser[] = leaderboardData?.brands || [];
-  const hallOfFame: HallOfFameUser[] = leaderboardData?.hallOfFame || [];
+  const rawData = ((leaderboardData as Record<string, unknown>)?.data as typeof leaderboardData) ?? leaderboardData;
+  const influencers: LeaderboardUser[] = Array.isArray(rawData?.influencers) ? rawData.influencers : [];
+  const brands: LeaderboardUser[] = Array.isArray(rawData?.brands) ? rawData.brands : [];
+  const hallOfFame: HallOfFameUser[] = Array.isArray(rawData?.hallOfFame) ? rawData.hallOfFame : [];
   const error = fetchErr
     ? "Failed to load leaderboard. Please check your network and refresh."
     : null;
@@ -118,7 +119,7 @@ export default function LeaderboardPage() {
   return (
     <DashboardShell user={session.user}>
       <PullToRefresh onRefresh={async () => { await mutate(); }}>
-        <PageContainer maxWidth="5xl" className="space-y-8 py-8">
+        <PageContainer maxWidth="7xl" className="space-y-8 py-8">
         {/* Page Header */}
         <PageHeader
           title="Top Performers & Leaderboard"
@@ -277,7 +278,7 @@ export default function LeaderboardPage() {
                 </h2>
               </div>
 
-              <div className="grid grid-cols-3 gap-2 sm:gap-6 items-end justify-center max-w-2xl mx-auto pt-6">
+              <div className="grid grid-cols-3 gap-2 sm:gap-6 items-end justify-center max-w-2xl mx-auto pt-6 pb-2">
                 {/* 2nd Place (Silver) */}
                 <motion.div
                   initial={shouldReduceMotion ? false : { opacity: 0, y: 20 }}
@@ -316,8 +317,8 @@ export default function LeaderboardPage() {
                   </div>
 
                   {/* Silver Pedestal */}
-                  <div className="w-full h-24 sm:h-28 rounded-t-2xl bg-muted/60 border-t-2 border-x-2 border-border flex flex-col items-center justify-center p-2">
-                    <Medal className="w-6 h-6 text-muted-foreground mb-1" />
+                  <div className="w-full min-h-[96px] sm:min-h-[112px] h-24 sm:h-28 rounded-2xl bg-muted/60 border-2 border-border flex flex-col items-center justify-center p-2 shadow-xs shrink-0">
+                    <Medal className="w-6 h-6 text-muted-foreground mb-1 shrink-0" />
                     <span className="text-2xs font-extrabold text-muted-foreground uppercase">
                       Silver
                     </span>
@@ -331,7 +332,7 @@ export default function LeaderboardPage() {
                   transition={shouldReduceMotion ? { duration: 0 } : { delay: 0 }}
                   className="flex flex-col items-center text-center space-y-2 order-2"
                 >
-                  <Crown className={`w-7 h-7 text-amber-500 ${shouldReduceMotion ? "" : "animate-bounce"}`} />
+                  <Crown className={`w-7 h-7 text-amber-500 shrink-0 ${shouldReduceMotion ? "" : "animate-bounce"}`} />
                   <div className="relative">
                     <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full border-4 border-amber-500 overflow-hidden relative shadow-md">
                       {first.avatar ? (
@@ -363,8 +364,8 @@ export default function LeaderboardPage() {
                   </div>
 
                   {/* Gold Pedestal */}
-                  <div className="w-full h-32 sm:h-36 rounded-t-2xl bg-amber-500/10 border-t-2 border-x-2 border-amber-500/50 flex flex-col items-center justify-center p-2">
-                    <Trophy className="w-7 h-7 text-amber-500 mb-1" />
+                  <div className="w-full min-h-[128px] sm:min-h-[144px] h-32 sm:h-36 rounded-2xl bg-amber-500/10 border-2 border-amber-500/50 flex flex-col items-center justify-center p-2 shadow-xs shrink-0">
+                    <Trophy className="w-7 h-7 text-amber-500 mb-1 shrink-0" />
                     <span className="text-2xs font-extrabold text-amber-500 uppercase">
                       Champion
                     </span>
@@ -409,8 +410,8 @@ export default function LeaderboardPage() {
                   </div>
 
                   {/* Bronze Pedestal */}
-                  <div className="w-full h-20 sm:h-22 rounded-t-2xl bg-muted/40 border-t-2 border-x-2 border-amber-700/40 flex flex-col items-center justify-center p-2">
-                    <Medal className="w-5 h-5 text-amber-700 mb-1" />
+                  <div className="w-full min-h-[80px] sm:min-h-[96px] h-20 sm:h-24 rounded-2xl bg-muted/40 border-2 border-amber-700/40 flex flex-col items-center justify-center p-2 shadow-xs shrink-0">
+                    <Medal className="w-5 h-5 text-amber-700 mb-1 shrink-0" />
                     <span className="text-2xs font-extrabold text-muted-foreground uppercase">
                       Bronze
                     </span>
@@ -569,7 +570,7 @@ export default function LeaderboardPage() {
 
         {/* Instagram Benchmark: Sticky "Your Rank" Floating Dock */}
         {session?.user && (
-          <div className="fixed bottom-[calc(5rem+env(safe-area-inset-bottom,0px))] md:bottom-[max(1.5rem,calc(env(safe-area-inset-bottom,0px)+1.5rem))] left-1/2 -translate-x-1/2 z-40 w-[calc(100%-2rem)] max-w-lg">
+          <div className="fixed bottom-[calc(5rem+env(safe-area-inset-bottom,0px))] md:bottom-[max(1.5rem,calc(env(safe-area-inset-bottom,0px)+1.5rem))] left-1/2 -translate-x-1/2 z-40 w-[calc(100%-2rem)] max-w-lg print:hidden">
             <div className="flex items-center justify-between gap-3 p-3 px-4 rounded-2xl bg-card/95 backdrop-blur-md border border-primary/40 shadow-xl text-foreground">
               <div className="flex items-center gap-3 min-w-0">
                 <span className="w-8 h-8 rounded-full bg-primary/10 border border-primary/30 text-primary font-black text-xs flex items-center justify-center shrink-0">

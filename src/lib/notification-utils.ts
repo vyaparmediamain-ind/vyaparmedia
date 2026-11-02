@@ -103,9 +103,9 @@ export function getNotificationTypeMeta(type: string): NotificationTypeMeta {
     case "challenge":
       return {
         category: "deal",
-        badgeBg: "bg-blue-500/10 dark:bg-blue-500/20",
-        textColor: "text-blue-600 dark:text-blue-400",
-        borderColor: "border-blue-500/30",
+        badgeBg: "bg-primary/10 dark:bg-primary/20",
+        textColor: "text-primary",
+        borderColor: "border-primary/30",
         iconName: "briefcase",
         label: "Deal Update",
       };

@@ -2,6 +2,7 @@
 
 import React from "react";
 import { Button } from "@/components/ui";
+import { humanizeString } from "@/lib/audit-formatters";
 import {
   MediatorAnalysis,
   DisputeDetail,
@@ -50,7 +51,7 @@ export function DisputeAnalysisCard({
       case "DISMISSED":
         return "Dispute Dismissed";
       default:
-        return verdict.replaceAll("_", " ");
+        return humanizeString(verdict);
     }
   };
 

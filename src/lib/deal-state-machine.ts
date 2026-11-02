@@ -403,6 +403,20 @@ export async function transitionDealState(
       data: updateData,
     });
 
+    if (toState === "CANCELLED" && deal.campaignId && deal.influencerId) {
+      await tx.application.updateMany({
+        where: {
+          campaignId: deal.campaignId,
+          influencerId: deal.influencerId,
+          status: { in: ["SELECTED", "PENDING", "SHORTLISTED"] },
+        },
+        data: {
+          status: "REJECTED",
+          rejectionReason: reason || "Deal cancelled",
+        },
+      });
+    }
+
     // 9. Record Immutable Audit Log
     // If actor is SYSTEM and actor.userId is a pseudo-id like "SYSTEM_PAYMENT",
     // fallback to deal.influencer.userId or deal.brand.userId so the ActivityLog_userId FK constraint is satisfied.

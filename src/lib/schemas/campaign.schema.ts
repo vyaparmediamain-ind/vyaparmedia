@@ -194,6 +194,8 @@ export const campaignDetailSchema = z
     openDealCount: z.number().optional(),
     disputedDealCount: z.number().optional(),
     dealId: z.string().nullable().optional(),
+    dealStatus: z.string().nullable().optional(),
+    rejectionReason: z.string().nullable().optional(),
   })
   .catchall(z.unknown());
 
@@ -211,6 +213,8 @@ export const singleCampaignResponseSchema = z.object({
       hasApplied: z.boolean().optional(),
       applicationStatus: z.string().nullable().optional(),
       dealId: z.string().nullable().optional(),
+      dealStatus: z.string().nullable().optional(),
+      rejectionReason: z.string().nullable().optional(),
     })
     .catchall(z.unknown())
     .optional(),
@@ -218,6 +222,8 @@ export const singleCampaignResponseSchema = z.object({
   hasApplied: z.boolean().optional(),
   applicationStatus: z.string().nullable().optional(),
   dealId: z.string().nullable().optional(),
+  dealStatus: z.string().nullable().optional(),
+  rejectionReason: z.string().nullable().optional(),
 });
 
 export type SingleCampaignResponse = z.infer<typeof singleCampaignResponseSchema>;

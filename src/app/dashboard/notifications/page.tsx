@@ -27,7 +27,7 @@ import {
   ArrowRight,
 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
-import { PullToRefresh, PageContainer, ListItem, PageHeader } from "@/components/ui";
+import { PullToRefresh, PageContainer, ListItem, PageHeader, HorizontalScrollArea } from "@/components/ui";
 
 function renderActivityIcon(iconName: string, className: string) {
   switch (iconName) {
@@ -138,7 +138,7 @@ export default function NotificationsPage() {
   return (
     <DashboardShell user={session?.user}>
       <PullToRefresh onRefresh={refresh}>
-        <PageContainer maxWidth="4xl" className="space-y-6 animate-fade-in pt-4 pb-0 sm:py-6">
+        <PageContainer maxWidth="7xl" className="space-y-6 animate-fade-in pt-4 pb-0 sm:py-6">
         {/* ── 1. HEADER (INSTAGRAM ACTIVITY BENCHMARK) ───────────────────── */}
         <PageHeader
           title="Activity Feed"
@@ -195,36 +195,38 @@ export default function NotificationsPage() {
         />
 
         {/* ── 2. INSTAGRAM-STYLE CATEGORY FILTER TABS ────────────────────── */}
-        <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none text-xs">
-          {(
-            [
-              { key: "all", label: "All Activity" },
-              { key: "unread", label: unreadCount > 0 ? `Unread (${unreadCount})` : "Unread" },
-              { key: "deals", label: "Deals & Contracts" },
-              { key: "payments", label: "Payments & Escrow" },
-              { key: "messages", label: "Direct Messages" },
-            ] as const
-          ).map((tab) => {
-            const active = activeFilter === tab.key;
-            return (
-              <button
-                key={tab.key}
-                type="button"
-                onClick={() => {
-                  setActiveFilter(tab.key);
-                  setDisplayLimit(ITEMS_PER_PAGE);
-                }}
-                className={`px-4 py-2 rounded-xl text-xs font-medium transition-all shrink-0 whitespace-nowrap cursor-pointer border ${
-                  active
-                    ? "bg-primary text-primary-foreground border-primary font-bold shadow-xs"
-                    : "bg-card border-border text-muted-foreground hover:text-foreground hover:bg-muted"
-                }`}
-              >
-                {tab.label}
-              </button>
-            );
-          })}
-        </div>
+        <HorizontalScrollArea aria-label="Notification category filter tabs" showScrollIndicator={true}>
+          <div className="inline-flex items-center gap-2 py-1 px-1 text-xs min-w-max shrink-0">
+            {(
+              [
+                { key: "all", label: "All Activity" },
+                { key: "unread", label: unreadCount > 0 ? `Unread (${unreadCount})` : "Unread" },
+                { key: "deals", label: "Deals & Contracts" },
+                { key: "payments", label: "Payments & Escrow" },
+                { key: "messages", label: "Direct Messages" },
+              ] as const
+            ).map((tab) => {
+              const active = activeFilter === tab.key;
+              return (
+                <button
+                  key={tab.key}
+                  type="button"
+                  onClick={() => {
+                    setActiveFilter(tab.key);
+                    setDisplayLimit(ITEMS_PER_PAGE);
+                  }}
+                  className={`px-4 py-2 min-h-[38px] rounded-xl text-xs font-semibold transition-all shrink-0 whitespace-nowrap cursor-pointer border ${
+                    active
+                      ? "bg-card text-foreground border-border shadow-xs font-bold"
+                      : "bg-muted/40 border-border/60 text-muted-foreground hover:text-foreground hover:bg-muted"
+                  }`}
+                >
+                  {tab.label}
+                </button>
+              );
+            })}
+          </div>
+        </HorizontalScrollArea>
 
         {/* ── 3. MAIN ACTIVITY STREAM CARD ───────────────────────────────── */}
         <div className="bg-card border border-border rounded-2xl shadow-xs overflow-hidden divide-y divide-border">

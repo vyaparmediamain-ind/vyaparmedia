@@ -14,6 +14,7 @@ import Link from "next/link";
 import EmptyState from "@/components/ui/EmptyState";
 import { Badge, Button, ToastContainer, useToasts } from "@/components/ui";
 import { formatCurrency } from "@/lib/utils-client";
+import { humanizeString } from "@/lib/audit-formatters";
 import { copyToClipboard } from "@/lib/clipboard";
 import { GST_STANDARD_RATE, GST_STANDARD_RATE_PERCENT_STRING } from "@/constants";
 import {
@@ -198,7 +199,7 @@ export default function BrandDashboard({ data, currentFY }: BrandDashboardProps)
                   <TrendingUp className="w-3 h-3" /> Avg {formatCurrency(overview.avgDealCost)} / deal
                 </span>
               </div>
-              <MiniSparkline data={spendHistory.slice(-8).map((e) => e.amount)} color="#2563EB" />
+              <MiniSparkline data={spendHistory.slice(-8).map((e) => e.amount)} color="#059669" />
             </div>
           </div>
         </div>
@@ -362,8 +363,8 @@ export default function BrandDashboard({ data, currentFY }: BrandDashboardProps)
                 <AreaChart data={spendHistory} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
                   <defs>
                     <linearGradient id="spendGradient" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#2563EB" stopOpacity={0.35} />
-                      <stop offset="95%" stopColor="#2563EB" stopOpacity={0.0} />
+                      <stop offset="5%" stopColor="#059669" stopOpacity={0.35} />
+                      <stop offset="95%" stopColor="#059669" stopOpacity={0.0} />
                     </linearGradient>
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
@@ -388,7 +389,7 @@ export default function BrandDashboard({ data, currentFY }: BrandDashboardProps)
                   <Area
                     type="monotone"
                     dataKey="amount"
-                    stroke="#2563EB"
+                    stroke="#059669"
                     strokeWidth={2.5}
                     fillOpacity={1}
                     fill="url(#spendGradient)"
@@ -472,9 +473,9 @@ export default function BrandDashboard({ data, currentFY }: BrandDashboardProps)
                   Deal Status Distribution
                 </h4>
                 <div className="space-y-2">
-                  {dealStatusBreakdown.map((item) => (
-                    <div key={item.status} className="flex items-center justify-between text-xs">
-                      <span className="font-semibold text-foreground">{item.status.replaceAll("_", " ")}</span>
+                  {dealStatusBreakdown.map((item, idx) => (
+                    <div key={`${item.status}-${idx}`} className="flex items-center justify-between text-xs">
+                      <span className="font-semibold text-foreground">{humanizeString(item.status)}</span>
                       <span className="text-muted-foreground tabular-nums">
                         {item.count} deals ({formatCurrency(item.totalAmount)})
                       </span>

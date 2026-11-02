@@ -64,6 +64,8 @@ export function useCampaignDetail({
   const hasApplied = Boolean(payload?.data?.hasApplied || rawCampaign?.hasApplied || payload?.hasApplied);
   const applicationStatus = payload?.data?.applicationStatus || rawCampaign?.applicationStatus || payload?.applicationStatus || null;
   const dealId = payload?.data?.dealId || rawCampaign?.dealId || payload?.dealId || null;
+  const dealStatus = payload?.data?.dealStatus || rawCampaign?.dealStatus || payload?.dealStatus || null;
+  const rejectionReason = payload?.data?.rejectionReason || rawCampaign?.rejectionReason || payload?.rejectionReason || null;
 
   const recommendedPayout = useMemo(() => {
     if (!influencerProfile || !campaign) return 0;
@@ -234,6 +236,8 @@ export function useCampaignDetail({
     hasApplied,
     applicationStatus,
     dealId,
+    dealStatus,
+    rejectionReason,
     recommendedPayout,
     isOwner,
     canApply,

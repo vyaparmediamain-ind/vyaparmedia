@@ -106,9 +106,9 @@ export function LandingFAQ() {
                 setSelectedCategory(cat);
                 setOpenIndex(0);
               }}
-              className={`px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all ${
+              className={`px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all cursor-pointer ${
                 selectedCategory === cat
-                  ? "bg-primary text-primary-foreground shadow-sm"
+                  ? "bg-card text-foreground shadow-xs border border-border/80 font-bold"
                   : "bg-muted text-muted-foreground hover:text-foreground"
               }`}
             >

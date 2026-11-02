@@ -50,6 +50,7 @@ declare module "ioredis" {
     eval(script: string, numkeys: number, ...args: (string | number)[]): Promise<unknown>;
     mget(...keys: string[]): Promise<(string | null)[]>;
     pipeline(): Pipeline;
+    connect(callback?: (err?: Error) => void): Promise<void>;
     disconnect(reconnect?: boolean): void;
     quit(): Promise<"OK">;
   }

@@ -22,7 +22,7 @@ import {
   Edit3,
   Check,
 } from "lucide-react";
-import { Button } from "@/components/ui";
+import { Button, HorizontalScrollArea } from "@/components/ui";
 
 interface BrandProfileClientProps {
   brand: BrandPublicProfileData;
@@ -59,7 +59,7 @@ export function BrandProfileClient({
   };
 
   return (
-    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-8">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-8">
       {/* 1. HERO BRAND BANNER */}
       <section className="relative overflow-hidden rounded-3xl border border-border bg-card p-6 sm:p-8 shadow-xs">
         {/* Subtle decorative background gradient */}
@@ -214,52 +214,54 @@ export function BrandProfileClient({
       </section>
 
       {/* 3. NAVIGATION TABS */}
-      <div className="flex items-center gap-2 border-b border-border pb-px overflow-x-auto no-scrollbar flex-nowrap">
-        <button
-          type="button"
-          onClick={() => setActiveTab("campaigns")}
-          className={`flex items-center gap-2 px-4 py-2.5 text-sm font-semibold border-b-2 transition-all shrink-0 whitespace-nowrap cursor-pointer ${
-            activeTab === "campaigns"
-              ? "border-primary text-primary"
-              : "border-transparent text-muted-foreground hover:text-foreground"
-          }`}
-        >
-          <Layers className="w-4 h-4" />
-          <span>Active Campaigns</span>
-          <span className="text-xs py-0.5 px-2 rounded-full bg-muted font-bold">
-            {brand.activeCampaignsList.length}
-          </span>
-        </button>
+      <HorizontalScrollArea aria-label="Brand profile navigation tabs" className="overflow-x-auto" showScrollIndicator={true}>
+        <div className="inline-flex items-center gap-2 border-b border-border pb-px py-1 px-1 flex-nowrap min-w-max shrink-0">
+          <button
+            type="button"
+            onClick={() => setActiveTab("campaigns")}
+            className={`flex items-center gap-2 px-4 py-2.5 text-sm font-semibold border-b-2 transition-all shrink-0 whitespace-nowrap cursor-pointer ${
+              activeTab === "campaigns"
+                ? "border-primary text-primary"
+                : "border-transparent text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            <Layers className="w-4 h-4" />
+            <span>Active Campaigns</span>
+            <span className="text-xs py-0.5 px-2 rounded-full bg-muted font-bold">
+              {brand.activeCampaignsList.length}
+            </span>
+          </button>
 
-        <button
-          type="button"
-          onClick={() => setActiveTab("about")}
-          className={`flex items-center gap-2 px-4 py-2.5 text-sm font-semibold border-b-2 transition-all shrink-0 whitespace-nowrap cursor-pointer ${
-            activeTab === "about"
-              ? "border-primary text-primary"
-              : "border-transparent text-muted-foreground hover:text-foreground"
-          }`}
-        >
-          <Building2 className="w-4 h-4" />
-          <span>About Company</span>
-        </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab("about")}
+            className={`flex items-center gap-2 px-4 py-2.5 text-sm font-semibold border-b-2 transition-all shrink-0 whitespace-nowrap cursor-pointer ${
+              activeTab === "about"
+                ? "border-primary text-primary"
+                : "border-transparent text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            <Building2 className="w-4 h-4" />
+            <span>About Company</span>
+          </button>
 
-        <button
-          type="button"
-          onClick={() => setActiveTab("reviews")}
-          className={`flex items-center gap-2 px-4 py-2.5 text-sm font-semibold border-b-2 transition-all shrink-0 whitespace-nowrap cursor-pointer ${
-            activeTab === "reviews"
-              ? "border-primary text-primary"
-              : "border-transparent text-muted-foreground hover:text-foreground"
-          }`}
-        >
-          <Star className="w-4 h-4" />
-          <span>Creator Reviews</span>
-          <span className="text-xs py-0.5 px-2 rounded-full bg-muted font-bold">
-            {brand.reviews.length}
-          </span>
-        </button>
-      </div>
+          <button
+            type="button"
+            onClick={() => setActiveTab("reviews")}
+            className={`flex items-center gap-2 px-4 py-2.5 text-sm font-semibold border-b-2 transition-all shrink-0 whitespace-nowrap cursor-pointer ${
+              activeTab === "reviews"
+                ? "border-primary text-primary"
+                : "border-transparent text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            <Star className="w-4 h-4" />
+            <span>Creator Reviews</span>
+            <span className="text-xs py-0.5 px-2 rounded-full bg-muted font-bold">
+              {brand.reviews.length}
+            </span>
+          </button>
+        </div>
+      </HorizontalScrollArea>
 
       {/* 4. TAB CONTENTS */}
       {/* A. ACTIVE CAMPAIGNS */}

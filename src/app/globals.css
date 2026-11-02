@@ -7,9 +7,8 @@
 @import "./styles/marketing.css";
 @import "./styles/print.css";
 
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+@config "../../tailwind.config.ts";
 
 @layer base {
   :root {
@@ -23,8 +22,8 @@
     --popover: 0 0% 100%;
     --popover-foreground: 240 10% 12%;
 
-    /* Brand Primary Identity: Electric Royal Blue */
-    --primary: 221 83% 53%;           /* #2563EB */
+    /* Brand Primary Identity: Verified Emerald & Teal */
+    --primary: 160 84% 39%;           /* #059669 - Vibrant Emerald Brand */
     --primary-foreground: 0 0% 100%;
 
     --secondary: 240 5% 94%;          /* #EFF0F3 */
@@ -39,7 +38,7 @@
 
     --border: 240 6% 90%;             /* #E4E4E7 - Soft hairline divider */
     --input: 240 6% 90%;
-    --ring: 221 83% 53%;
+    --ring: 160 84% 39%;
 
     --radius: 0.75rem;                /* 12px default radius */
 
@@ -82,8 +81,8 @@
     --popover: 224 24% 10%;
     --popover-foreground: 220 14% 96%;
 
-    /* Brand Primary Identity (Dark Mode Luminous) */
-    --primary: 221 90% 64%;           /* #4D88FE */
+    /* Brand Primary Identity (Dark Mode Luminous Mint) */
+    --primary: 152 76% 52%;           /* #2CE08A */
     --primary-foreground: 224 25% 6%;
 
     --secondary: 224 20% 16%;         /* #1F2330 */
@@ -98,7 +97,7 @@
 
     --border: 224 21% 18%;            /* #232736 - Subdued slate border */
     --input: 224 21% 18%;
-    --ring: 221 90% 64%;
+    --ring: 152 76% 52%;
 
     /* -------------------------------------------------------------------------
        Semantic Financial Escrow & Trust Tokens (Dark Mode - WCAG AA >= 4.5:1)

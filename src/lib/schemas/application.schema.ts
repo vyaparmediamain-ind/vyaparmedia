@@ -16,6 +16,7 @@ export const applicationItemSchema = z.object({
   campaign: z.object({
     id: z.string(),
     title: z.string(),
+    status: z.string().optional(),
     perInfluencerBudget: z.number().int().default(0),
     brand: z
       .object({

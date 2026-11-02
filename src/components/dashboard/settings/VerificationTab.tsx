@@ -52,7 +52,7 @@ export default function VerificationTab({
     );
   }
 
-  const docs = verificationData.documents || [];
+  const docs = Array.isArray(verificationData.documents) ? verificationData.documents : [];
   const tier: number = verificationData.tier ?? 0;
   const tierLimit: number | null = verificationData.tierLimit ?? null;
   const tierDesc: string = verificationData.tierDescription || "";
@@ -62,7 +62,7 @@ export default function VerificationTab({
   const isBrand = roleType === "BRAND";
 
   const getDocStatus = (type: string) => docs.find((d) => d.type === type);
-  const tierColors = ["#6b7280", "#2563eb", "#f59e0b", "#10b981"];
+  const tierColors = ["#6b7280", "#0d9488", "#f59e0b", "#10b981"];
   const isUnlimited = tierLimit === null;
 
   const renderDocRow = (type: string, label: string, icon: string, desc: string) => {

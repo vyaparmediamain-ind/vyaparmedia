@@ -33,6 +33,7 @@ function normalizeDeal(raw: RawDeal): Deal {
     postingDeadline: raw?.postingDeadline || campaign?.postingDeadline || new Date().toISOString(),
     campaign: {
       title: String(campaign?.title || "Untitled Campaign"),
+      status: campaign?.status ? String(campaign.status) : undefined,
     },
     brand: {
       id: brand?.id ? String(brand.id) : undefined,

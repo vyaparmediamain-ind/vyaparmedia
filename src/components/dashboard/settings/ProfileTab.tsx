@@ -799,7 +799,7 @@ export default function ProfileTab({
                     onClick={() => toggleCategory(category)}
                     className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all border ${
                       isSelected
-                        ? "bg-primary text-primary-foreground border-primary shadow-xs"
+                        ? "bg-card text-foreground border-border/90 shadow-xs font-bold ring-1 ring-border"
                         : "bg-muted/40 text-muted-foreground border-border hover:text-foreground hover:border-border/80"
                     }`}
                   >
@@ -865,7 +865,7 @@ export default function ProfileTab({
                     onClick={() => toggleLanguage(language)}
                     className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all border ${
                       isSelected
-                        ? "bg-primary text-primary-foreground border-primary shadow-xs"
+                        ? "bg-card text-foreground border-border/90 shadow-xs font-bold ring-1 ring-border"
                         : "bg-muted/40 text-muted-foreground border-border hover:text-foreground hover:border-border/80"
                     }`}
                   >

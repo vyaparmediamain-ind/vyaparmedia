@@ -4,6 +4,7 @@ import {
   DEFAULT_PRODUCT_HANDLING_FEE_PERCENT,
   GST_STANDARD_RATE,
   GST_DEAL_EXEMPT_THRESHOLD_PAISE,
+  MIN_INFLUENCER_FOLLOWERS_TO_APPLY,
 } from "@/constants";
 
 /**
@@ -186,6 +187,9 @@ export function checkContractSigningEligibility(
 ): { allowed: boolean; reason?: string | undefined; ctaText?: string | undefined; ctaHref?: string | undefined } {
   if (!deal) {
     return { allowed: false, reason: "Deal not found" };
+  }
+  if ((deal as { campaign?: { status?: string } })?.campaign?.status === "CANCELLED") {
+    return { allowed: false, reason: "Campaign was cancelled by the brand." };
   }
   if (deal.status !== "PENDING_SIGNATURE") {
     return { allowed: false, reason: "Deal is not pending signature." };
@@ -711,10 +715,17 @@ export function checkCampaignApplicationEligibility(
 
   // Follower count checks
   if (typeof influencer?.followerCount === "number" && influencer.followerCount >= 0) {
-    if (typeof campaign.minFollowers === "number" && campaign.minFollowers > 0 && influencer.followerCount < campaign.minFollowers) {
+    const effectiveMinFollowers = Math.max(
+      MIN_INFLUENCER_FOLLOWERS_TO_APPLY,
+      typeof campaign.minFollowers === "number" ? campaign.minFollowers : 0
+    );
+    if (influencer.followerCount < effectiveMinFollowers) {
       return {
         allowed: false,
-        reason: `Minimum ${campaign.minFollowers.toLocaleString("en-IN")} followers required (you have ${influencer.followerCount.toLocaleString("en-IN")}).`,
+        reason:
+          influencer.followerCount < MIN_INFLUENCER_FOLLOWERS_TO_APPLY
+            ? `Minimum ${MIN_INFLUENCER_FOLLOWERS_TO_APPLY.toLocaleString("en-IN")} followers required to apply for campaigns on VyaparMedia (you have ${influencer.followerCount.toLocaleString("en-IN")}).`
+            : `Minimum ${effectiveMinFollowers.toLocaleString("en-IN")} followers required (you have ${influencer.followerCount.toLocaleString("en-IN")}).`,
         reasonCode: "MIN_FOLLOWERS_NOT_MET",
         ctaText: "View Other Campaigns",
         ctaHref: "/dashboard/campaigns",
@@ -1239,6 +1250,14 @@ export function checkApplicationAcceptanceEligibility(
       allowed: false,
       reason: `Creator authenticity score (${authenticityScore}/100) is below platform threshold of 40.`,
       reasonCode: "AUTHENTICITY_TOO_LOW",
+    };
+  }
+
+  if ((application as { dealStatus?: string | null })?.dealStatus === "CANCELLED") {
+    return {
+      allowed: false,
+      reason: "Associated deal was cancelled.",
+      reasonCode: "ALREADY_PROCESSED",
     };
   }
 

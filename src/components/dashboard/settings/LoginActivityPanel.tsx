@@ -33,9 +33,14 @@ export default function LoginActivityPanel({
   });
 
   const loginActivity = useMemo(() => {
-    if (!data?.activity) return [];
+    const list = Array.isArray(data?.activity)
+      ? data.activity
+      : Array.isArray((data as Record<string, unknown>)?.data)
+      ? ((data as Record<string, unknown>).data as LoginActivity[])
+      : null;
+    if (!list) return [];
     const uniqueDevices = new Map<string, LoginActivity>();
-    data.activity.forEach((login: LoginActivity) => {
+    list.forEach((login: LoginActivity) => {
       if (!uniqueDevices.has(login.device)) {
         uniqueDevices.set(login.device, login);
       }

@@ -84,6 +84,7 @@ export function DealContextualActions({
     deal,
     isBrand ? deal.brand?.userId : undefined
   );
+  const isCancelled = dealStatus === "CANCELLED" || deal?.campaign?.status === "CANCELLED";
 
   return (
     <div className="bg-card border border-border rounded-2xl p-5 mb-6 shadow-sm">
@@ -94,6 +95,15 @@ export function DealContextualActions({
             Next Action
           </span>
           <div className="mt-1">
+            {isCancelled ? (
+              <p className="text-sm font-semibold text-destructive flex items-center gap-1.5">
+                <XCircle className="w-4 h-4 shrink-0" />
+                {deal?.rejectionReason
+                  ? `Deal is cancelled: ${deal.rejectionReason}. Escrow funds have been refunded.`
+                  : "Deal is cancelled. Any held escrow funds have been refunded."}
+              </p>
+            ) : (
+              <>
             {dealStatus === "PENDING_SIGNATURE" && (
               <p className="text-sm font-semibold text-foreground">
                 {userHasSigned
@@ -186,11 +196,24 @@ export function DealContextualActions({
                 Deal is in mediation. Normal actions are paused pending VyaparMedia review.
               </p>
             )}
+              </>
+            )}
           </div>
         </div>
 
         {/* Action CTAs */}
         <div className="flex flex-wrap items-center gap-2.5">
+          {isCancelled ? (
+            <Button
+              variant="secondary"
+              disabled
+              className="gap-1.5 opacity-75 cursor-not-allowed bg-muted text-muted-foreground border-border"
+            >
+              <XCircle className="w-4 h-4 text-destructive" />
+              Deal Cancelled
+            </Button>
+          ) : (
+            <>
           {dealStatus === "PENDING_SIGNATURE" && (
             userHasSigned ? (
               <Button
@@ -383,6 +406,8 @@ export function DealContextualActions({
                 </div>
               )}
             </div>
+          )}
+          </>
           )}
 
           <Button

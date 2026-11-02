@@ -1,9 +1,11 @@
 "use client";
 
-import React, { useMemo } from "react";
+import React, { useMemo, useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { ShieldCheck, CheckCircle2, Lock, Building2, User, FileText, Printer, X } from "lucide-react";
 import { formatCurrency, formatDate } from "@/lib/utils-client";
 import { Button } from "@/components/ui";
+import Logo from "@/components/Logo";
 import {
   DEFAULT_BRAND_REVIEW_PERIOD_HOURS,
   DEFAULT_INCLUDED_REVISIONS,
@@ -64,6 +66,16 @@ export interface ContractPrintViewProps {
 }
 
 export function ContractPrintView({ deal, onClose }: ContractPrintViewProps) {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+    document.body.classList.add("printable-modal-active", "overflow-hidden");
+    return () => {
+      document.body.classList.remove("printable-modal-active", "overflow-hidden");
+    };
+  }, []);
+
   const terms = useMemo(() => ((deal.contractTerms || {}) as Record<string, unknown>), [deal.contractTerms]);
   const sig = useMemo(() => ((deal.contractSignature || {}) as Record<string, unknown>), [deal.contractSignature]);
 
@@ -95,8 +107,10 @@ export function ContractPrintView({ deal, onClose }: ContractPrintViewProps) {
     window.print();
   };
 
-  return (
-    <div className="fixed inset-0 z-[100] overflow-y-auto bg-background/90 backdrop-blur-sm flex items-center justify-center p-3 sm:p-6 pt-[max(0.75rem,env(safe-area-inset-top,0px))] pb-[max(0.75rem,env(safe-area-inset-bottom,0px))] pl-[max(0.75rem,env(safe-area-inset-left,0px))] pr-[max(0.75rem,env(safe-area-inset-right,0px))] print:p-0 print:bg-card print:static print:inset-auto">
+  if (!mounted) return null;
+
+  return createPortal(
+    <div className="printable-modal-overlay fixed inset-0 z-[100] overflow-y-auto bg-background/90 backdrop-blur-sm flex items-center justify-center p-3 sm:p-6 pt-[max(0.75rem,env(safe-area-inset-top,0px))] pb-[max(0.75rem,env(safe-area-inset-bottom,0px))] pl-[max(0.75rem,env(safe-area-inset-left,0px))] pr-[max(0.75rem,env(safe-area-inset-right,0px))] print:p-0 print:bg-card print:static print:inset-auto">
       {/* Floating Action Bar (Hidden on Print) */}
       <div className="fixed top-[max(1rem,calc(env(safe-area-inset-top,0px)+8px))] right-[max(1rem,calc(env(safe-area-inset-right,0px)+8px))] z-[110] flex items-center gap-2.5 no-print bg-card/90 backdrop-blur-md p-2 rounded-2xl border border-border shadow-xl">
         <Button
@@ -123,16 +137,19 @@ export function ContractPrintView({ deal, onClose }: ContractPrintViewProps) {
         
         {/* Document Header & Platform Letterhead */}
         <div className="border-b-2 border-border pb-6 mb-8 flex flex-col sm:flex-row sm:items-start justify-between gap-4">
-          <div>
-            <span className="text-2xs font-mono font-bold tracking-widest text-primary uppercase block mb-1">
-              OFFICIAL ESCROW SERVICE AGREEMENT
-            </span>
-            <h1 className="text-xl sm:text-2xl font-black tracking-tight text-foreground uppercase">
-              Independent Influencer Collaboration Agreement
-            </h1>
-            <p className="text-xs text-muted-foreground mt-1">
-              Executed digitally via VyaparMedia Trust &amp; Escrow Platform
-            </p>
+          <div className="space-y-3">
+            <Logo asLink={false} showTagline={true} size="md" />
+            <div>
+              <span className="text-2xs font-mono font-bold tracking-widest text-primary uppercase block mb-1">
+                OFFICIAL ESCROW SERVICE AGREEMENT
+              </span>
+              <h1 className="text-xl sm:text-2xl font-black tracking-tight text-foreground uppercase">
+                Independent Influencer Collaboration Agreement
+              </h1>
+              <p className="text-xs text-muted-foreground mt-1">
+                Executed digitally via VyaparMedia Trust &amp; Escrow Platform
+              </p>
+            </div>
           </div>
 
           <div className="text-left sm:text-right text-xs text-muted-foreground space-y-0.5 font-sans">
@@ -398,6 +415,7 @@ export function ContractPrintView({ deal, onClose }: ContractPrintViewProps) {
         </section>
 
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

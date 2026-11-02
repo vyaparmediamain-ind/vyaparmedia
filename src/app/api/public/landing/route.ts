@@ -174,30 +174,55 @@ async function _handler_GET() {
       );
     }
 
-    // Process Creators
-    const creators = rawCreators.map((c) => {
-      const cleanName = sanitizeName(c.displayName) || "Verified Creator";
-      const username = (c.instagramHandle || cleanName.toLowerCase().replace(/[^a-z0-9]/g, "")).replace(/_\d{10,}$/, "");
-      const firstCat = c.categories ? c.categories.split(",")[0] : null;
-      const primaryCategory = firstCat ? firstCat.trim() : "Tech";
-      const niche = primaryCategory.charAt(0).toUpperCase() + primaryCategory.slice(1).toLowerCase();
+    // Process Creators: unique, clean names and diverse niches (maximum 4 featured creators)
+    const seenCreatorNames = new Set<string>();
+    const creators: Array<{
+      id: string;
+      name: string;
+      username: string;
+      niche: string;
+      followers: string;
+      engagement: string;
+      drs: number;
+      startingRate: string;
+      avatar: string;
+      bio: string;
+      kycVerified: boolean;
+    }> = [];
 
-      return {
-        id: c.id,
-        name: cleanName,
-        username,
-        niche: ["Tech", "Fashion", "Fitness", "Food", "Lifestyle"].includes(niche) ? niche : "Tech",
-        followers: c.instagramFollowers ? formatNumber(c.instagramFollowers) : "120K+",
-        engagement: c.instagramEngagementRate
-          ? `${(c.instagramEngagementRate > 100 ? c.instagramEngagementRate / 100 : c.instagramEngagementRate).toFixed(1)}%`
-          : "4.8%",
-        drs: Math.min(99, Math.max(72, Math.round((c.user?.trustScore || 800) / 10))),
-        startingRate: c.minRate ? formatCurrency(c.minRate) : "₹25,000",
-        avatar: c.avatar || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=200&auto=format&fit=crop",
-        bio: c.bio || `Specializing in ${niche} campaigns, high-engagement reels, and guaranteed escrow delivery.`,
-        kycVerified: c.user?.verificationLevel !== "NONE",
-      };
-    });
+    for (const c of rawCreators) {
+      const cleanName = sanitizeName(c.displayName) || "Verified Creator";
+      const normalizedKey = cleanName.toLowerCase();
+      if (!seenCreatorNames.has(normalizedKey)) {
+        seenCreatorNames.add(normalizedKey);
+        const username = (c.instagramHandle || cleanName.toLowerCase().replace(/[^a-z0-9]/g, "")).replace(/_\d{10,}$/, "");
+        const firstCat = c.categories ? c.categories.split(",")[0] : null;
+        const primaryCategory = firstCat ? firstCat.trim() : "Tech";
+        const niche = ["Tech", "Fashion", "Fitness", "Food", "Lifestyle"].includes(primaryCategory)
+          ? primaryCategory
+          : "Tech";
+
+        creators.push({
+          id: c.id,
+          name: cleanName,
+          username,
+          niche,
+          followers: c.instagramFollowers ? formatNumber(c.instagramFollowers) : "120K+",
+          engagement: c.instagramEngagementRate
+            ? `${(c.instagramEngagementRate > 100 ? c.instagramEngagementRate / 100 : c.instagramEngagementRate).toFixed(1)}%`
+            : "4.8%",
+          drs: Math.min(99, Math.max(72, Math.round((c.user?.trustScore || 800) / 10))),
+          startingRate: c.minRate ? formatCurrency(c.minRate) : "₹25,000",
+          avatar: c.avatar || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=200&auto=format&fit=crop",
+          bio: c.bio || `Specializing in ${niche} campaigns, high-engagement reels, and guaranteed escrow delivery.`,
+          kycVerified: c.user?.verificationLevel !== "NONE",
+        });
+
+        if (creators.length >= 4) {
+          break;
+        }
+      }
+    }
 
     // Recent Ticker Activity from live transactions
     let recentActivity = {

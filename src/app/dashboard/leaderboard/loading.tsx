@@ -5,7 +5,7 @@ import { PageContainer } from "@/components/ui";
  */
 export default function LeaderboardLoading() {
   return (
-    <PageContainer maxWidth="5xl" className="space-y-6 animate-pulse py-8" aria-hidden="true">
+    <PageContainer maxWidth="7xl" className="space-y-6 animate-pulse py-8" aria-hidden="true">
       <div className="mb-6 space-y-2 text-center">
         <div className="skeleton h-8 w-44 rounded-md mx-auto" />
         <div className="skeleton h-4 w-72 rounded-sm mx-auto" />

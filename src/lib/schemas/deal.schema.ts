@@ -29,6 +29,7 @@ export const rawDealItemSchema = z.object({
     .object({
       id: z.string().optional(),
       title: z.string().optional(),
+      status: z.string().optional(),
       postingDeadline: z.string().optional(),
       deliverables: z.unknown().optional(),
     })
@@ -74,7 +75,7 @@ export const dashboardDealSchema = z.object({
   amount: z.number(),
   createdAt: z.string(),
   postingDeadline: z.string(),
-  campaign: z.object({ title: z.string() }),
+  campaign: z.object({ title: z.string(), status: z.string().optional() }),
   brand: z.object({
     id: z.string().nullable().optional(),
     userId: z.string().nullable().optional(),
@@ -218,6 +219,7 @@ export const dealDetailSchema = z
     campaign: z.object({
       id: z.string().optional(),
       title: z.string(),
+      status: z.string().optional(),
       requirements: z.string().optional(),
       guidelines: z.string().nullable().optional(),
       deliverables: z.unknown().optional(),

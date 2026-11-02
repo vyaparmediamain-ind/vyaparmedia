@@ -1,9 +1,11 @@
 "use client";
 
-import React, { useMemo } from "react";
+import React, { useMemo, useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { ShieldCheck, FileText, Printer, X, ArrowDownRight, ArrowUpRight } from "lucide-react";
 import { formatCurrency, formatDate } from "@/lib/utils-client";
 import { Button } from "@/components/ui";
+import Logo from "@/components/Logo";
 import { TDS_194O_RATE_PERCENT_STRING, TDS_194J_RATE_PERCENT_STRING } from "@/constants";
 import { PLATFORM_CONFIG } from "@/lib/platform-config";
 
@@ -44,6 +46,16 @@ export function StatementPrintView({
   referenceId,
   generatedDate,
 }: StatementPrintViewProps) {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+    document.body.classList.add("printable-modal-active", "overflow-hidden");
+    return () => {
+      document.body.classList.remove("printable-modal-active", "overflow-hidden");
+    };
+  }, []);
+
   const statementRef = referenceId || `STMT-${user.id.slice(-6).toUpperCase()}`;
   const displayDate = generatedDate || endDate;
 
@@ -76,8 +88,10 @@ export function StatementPrintView({
     window.print();
   };
 
-  return (
-    <div className="fixed inset-0 z-[100] overflow-y-auto bg-background/90 backdrop-blur-sm flex items-center justify-center p-3 sm:p-6 pt-[max(0.75rem,env(safe-area-inset-top,0px))] pb-[max(0.75rem,env(safe-area-inset-bottom,0px))] pl-[max(0.75rem,env(safe-area-inset-left,0px))] pr-[max(0.75rem,env(safe-area-inset-right,0px))] print:p-0 print:bg-card print:static print:inset-auto">
+  if (!mounted) return null;
+
+  return createPortal(
+    <div className="printable-modal-overlay fixed inset-0 z-[100] overflow-y-auto bg-background/90 backdrop-blur-sm flex items-center justify-center p-3 sm:p-6 pt-[max(0.75rem,env(safe-area-inset-top,0px))] pb-[max(0.75rem,env(safe-area-inset-bottom,0px))] pl-[max(0.75rem,env(safe-area-inset-left,0px))] pr-[max(0.75rem,env(safe-area-inset-right,0px))] print:p-0 print:bg-card print:static print:inset-auto">
       {/* Floating Action Bar (Hidden on Print) */}
       <div className="fixed top-[max(1rem,calc(env(safe-area-inset-top,0px)+8px))] right-[max(1rem,calc(env(safe-area-inset-right,0px)+8px))] z-[110] flex items-center gap-2.5 no-print bg-card/90 backdrop-blur-md p-2 rounded-2xl border border-border shadow-xl">
         <Button
@@ -104,16 +118,19 @@ export function StatementPrintView({
         
         {/* Header & Platform Corporate Letterhead */}
         <div className="border-b-2 border-border pb-6 mb-8 flex flex-col sm:flex-row sm:items-start justify-between gap-4">
-          <div>
-            <span className="text-2xs font-mono font-bold tracking-widest text-primary uppercase block mb-1">
-              OFFICIAL FINANCIAL STATEMENT &amp; LEDGER RECORD
-            </span>
-            <h1 className="text-xl sm:text-2xl font-black tracking-tight text-foreground uppercase">
-              Wallet Account Statement
-            </h1>
-            <p className="text-xs text-muted-foreground mt-1">
-              Escrow-protected transactions governed by RBI guidelines &amp; Indian Contract Act
-            </p>
+          <div className="space-y-3">
+            <Logo asLink={false} showTagline={true} size="md" />
+            <div>
+              <span className="text-2xs font-mono font-bold tracking-widest text-primary uppercase block mb-1">
+                OFFICIAL FINANCIAL STATEMENT &amp; LEDGER RECORD
+              </span>
+              <h1 className="text-xl sm:text-2xl font-black tracking-tight text-foreground uppercase">
+                Wallet Account Statement
+              </h1>
+              <p className="text-xs text-muted-foreground mt-1">
+                Escrow-protected transactions governed by RBI guidelines &amp; Indian Contract Act
+              </p>
+            </div>
           </div>
 
           <div className="text-left sm:text-right text-xs text-muted-foreground space-y-0.5 font-sans">
@@ -298,6 +315,7 @@ export function StatementPrintView({
         </section>
 
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

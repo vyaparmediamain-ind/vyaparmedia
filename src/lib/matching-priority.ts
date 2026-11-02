@@ -77,7 +77,7 @@ export const MATCHING_PRIORITY_META: Record<MatchingPriorityPreset, MatchingPrio
     tagline: "Prioritize viral reach and audience activity",
     description: "Gives higher priority to creator engagement rate (35%) and category relevance (25%) for maximum audience viral spread.",
     badge: "Engagement 35%",
-    accentClass: "border-blue-500/40 bg-blue-500/5 text-blue-500",
+    accentClass: "border-primary/40 bg-primary/5 text-primary",
     highlights: ["Engagement 35%", "Category 25%", "ROI 20%", "Quality 10%", "Authenticity 10%"],
   },
   TRUST_FOCUSED: {

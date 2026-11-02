@@ -99,7 +99,7 @@ function mapDraftCampaignToFormData(campaign: DraftCampaignData): CampaignFormDa
     targetGender: campaign.targetGender || "ANY",
     targetAgeMin: campaign.targetAgeMin ?? null,
     targetAgeMax: campaign.targetAgeMax ?? null,
-    minFollowers: campaign.minFollowers || 0,
+    minFollowers: campaign.minFollowers || 1000,
     maxFollowers: campaign.maxFollowers || 0,
     maxInfluencers: campaign.maxInfluencers || null,
     applicationDeadline: formatDateForInput(campaign.applicationDeadline),
@@ -580,7 +580,7 @@ export default function CreateCampaignClient() {
                 }}
                 className={`flex items-center gap-2 sm:gap-3 p-2 sm:p-3 rounded-xl transition-all text-left ${
                   isCurrent
-                    ? "bg-primary text-primary-foreground shadow-sm"
+                    ? "bg-card text-foreground border border-border/80 shadow-xs font-bold"
                     : isCompleted
                     ? "bg-verified-muted text-verified hover:bg-verified-muted/80 cursor-pointer"
                     : "bg-muted/50 text-muted-foreground cursor-not-allowed"
@@ -589,7 +589,7 @@ export default function CreateCampaignClient() {
                 <div
                   className={`w-6 h-6 sm:w-7 sm:h-7 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${
                     isCurrent
-                      ? "bg-primary-foreground text-primary"
+                      ? "bg-primary text-primary-foreground shadow-xs font-bold"
                       : isCompleted
                       ? "bg-verified text-primary-foreground"
                       : "bg-muted text-muted-foreground"
@@ -601,7 +601,7 @@ export default function CreateCampaignClient() {
                   <p className="text-xs font-bold leading-tight whitespace-nowrap">
                     {step.title}
                   </p>
-                  <p className={`text-[10px] truncate ${isCurrent ? "text-primary-foreground/80" : "text-muted-foreground"}`}>
+                  <p className="text-[10px] truncate text-muted-foreground">
                     {step.desc}
                   </p>
                 </div>
@@ -939,7 +939,7 @@ export default function CreateCampaignClient() {
                             minFollowers: Number.parseInt(e.target.value, 10) || 0,
                           })
                         }
-                        min={100}
+                        min={1000}
                         error={fieldErrors.minFollowers}
                         fullWidth
                       />

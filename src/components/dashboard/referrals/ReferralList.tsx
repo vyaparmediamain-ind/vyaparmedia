@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import useSWR from "swr";
 import { fetcher } from "@/lib/fetcher";
 import { Badge, Button } from "@/components/ui";
@@ -26,7 +26,14 @@ export default function ReferralList({ onShareClick }: ReferralListProps) {
     dedupingInterval: 60000,
   });
 
-  const referrals = data?.referrals || [];
+  const referrals = useMemo(() => {
+    const raw = data?.referrals;
+    if (Array.isArray(raw)) return raw;
+    if (Array.isArray((data as Record<string, unknown>)?.data)) {
+      return (data as Record<string, unknown>).data as NonNullable<typeof raw>;
+    }
+    return [];
+  }, [data]);
 
   const filteredReferrals =
     filter === "ALL" ? referrals : referrals.filter((r) => r.status === filter);

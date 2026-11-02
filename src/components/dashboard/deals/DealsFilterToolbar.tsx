@@ -2,7 +2,7 @@
 
 import React from "react";
 import { Search, X } from "lucide-react";
-import { Select } from "@/components/ui";
+import { Select, HorizontalScrollArea } from "@/components/ui";
 
 export interface FilterTabOption {
   key: string;
@@ -65,7 +65,7 @@ export function DealsFilterToolbar({
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search by campaign, brand name, or deliverable..."
             aria-label="Search by campaign, brand name, or deliverable"
-            className="w-full pl-10 pr-11 min-h-[44px] rounded-xl border border-input bg-card text-foreground placeholder:text-muted-foreground text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-ring transition-all"
+            className="w-full pl-11 pr-11 min-h-[44px] rounded-xl border border-input bg-card text-foreground placeholder:text-muted-foreground text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-ring transition-all"
           />
           {searchQuery && (
             <button
@@ -111,41 +111,43 @@ export function DealsFilterToolbar({
       </div>
 
       {/* 2. Horizontally Scrollable Stage Tabs */}
-      <nav
-        aria-label="Deal status filters"
-        className="flex items-center gap-2 overflow-x-auto pb-1.5 scrollbar-none -mx-1 px-1 touch-pan-x"
-      >
-        {DEAL_STATUS_TABS.map((tab) => {
-          const isActive = statusFilter === tab.key;
-          const count = tabCounts[tab.key];
+      <HorizontalScrollArea aria-label="Deal status filters" showScrollIndicator={true}>
+        <nav
+          aria-label="Deal status filters"
+          className="inline-flex items-center gap-1.5 p-1 rounded-xl bg-muted/60 border border-border/50 min-w-max shrink-0"
+        >
+          {DEAL_STATUS_TABS.map((tab) => {
+            const isActive = statusFilter === tab.key;
+            const count = tabCounts?.[tab.key];
 
-          return (
-            <button
-              key={tab.key}
-              type="button"
-              onClick={() => setStatusFilter(tab.key)}
-              className={`shrink-0 inline-flex items-center gap-1.5 px-3.5 min-h-[44px] rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                isActive
-                  ? "bg-primary text-primary-foreground shadow-xs"
-                  : "bg-card text-muted-foreground hover:text-foreground border border-border hover:border-border/90"
-              }`}
-            >
-              <span>{tab.label}</span>
-              {count !== undefined && count > 0 && (
-                <span
-                  className={`text-[10px] px-1.5 py-0.5 rounded-full font-mono tabular-nums shrink-0 whitespace-nowrap ${
-                    isActive
-                      ? "bg-primary-foreground/20 text-primary-foreground"
-                      : "bg-muted text-muted-foreground"
-                  }`}
-                >
-                  {count}
-                </span>
-              )}
-            </button>
-          );
-        })}
-      </nav>
+            return (
+              <button
+                key={tab.key}
+                type="button"
+                onClick={() => setStatusFilter(tab.key)}
+                className={`shrink-0 inline-flex items-center gap-1.5 px-3.5 min-h-[38px] rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                  isActive
+                    ? "bg-card text-foreground shadow-xs border border-border/80 font-bold"
+                    : "text-muted-foreground hover:text-foreground hover:bg-card/40"
+                }`}
+              >
+                <span>{tab.label}</span>
+                {count !== undefined && count > 0 && (
+                  <span
+                    className={`text-[10px] px-1.5 py-0.5 rounded-full font-mono tabular-nums font-bold shrink-0 whitespace-nowrap ${
+                      isActive
+                        ? "bg-primary/10 text-primary"
+                        : "bg-muted text-muted-foreground"
+                    }`}
+                  >
+                    {count}
+                  </span>
+                )}
+              </button>
+            );
+          })}
+        </nav>
+      </HorizontalScrollArea>
     </div>
   );
 }

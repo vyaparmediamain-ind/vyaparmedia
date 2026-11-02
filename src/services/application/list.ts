@@ -93,6 +93,7 @@ campaign: {
 select: {
 id: true,
 title: true,
+status: true,
 perInfluencerBudget: true,
 targetCategories: true,
 guidelines: true,
@@ -126,11 +127,11 @@ if (page > 1 || applications.length === limit) {
   total = await prisma.application.count({ where });
 }
 
-  const selectedApps = applications.filter((app) => app.status === "SELECTED");
-  const deals = selectedApps.length > 0
+  const appsWithCandidates = applications.filter((app) => app.campaignId && app.influencerId);
+  const deals = appsWithCandidates.length > 0
     ? await prisma.deal.findMany({
         where: {
-          OR: selectedApps.map((a) => ({
+          OR: appsWithCandidates.map((a) => ({
             campaignId: a.campaignId,
             influencerId: a.influencerId,
           })),
@@ -241,10 +242,7 @@ if (page > 1 || applications.length === limit) {
       },
     };
 
-    const dealInfo =
-      app.status === "SELECTED"
-        ? (dealMap.get(`${app.campaignId}_${app.influencerId}`) ?? null)
-        : null;
+    const dealInfo = dealMap.get(`${app.campaignId}_${app.influencerId}`) ?? null;
 
     return {
       ...app,

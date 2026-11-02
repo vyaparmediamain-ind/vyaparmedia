@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ReactNode, useState } from "react";
+import { ReactNode, useState, useEffect } from "react";
 import Logo from "@/components/Logo";
 import { signOut } from "next-auth/react";
 import { Button } from "@/components/ui";
@@ -64,9 +64,54 @@ function getInitials(name?: string | null, email?: string | null) {
 
 export default function AdminFrame({ children, user }: Readonly<AdminFrameProps>) {
   const pathname = usePathname();
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(true);
 
-  const closeSidebar = () => setSidebarOpen(false);
+  // Sync initial state responsively on mount
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (window.innerWidth < 1024) {
+      setSidebarOpen(false);
+    } else {
+      const saved = localStorage.getItem("admin_sidebar_open");
+      if (saved !== null) {
+        setSidebarOpen(saved === "true");
+      }
+    }
+  }, []);
+
+  // Keyboard shortcut: Escape closes sidebar
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && sidebarOpen) {
+        closeSidebar();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [sidebarOpen]);
+
+  const closeSidebar = () => {
+    setSidebarOpen(false);
+    if (typeof window !== "undefined" && window.innerWidth >= 1024) {
+      localStorage.setItem("admin_sidebar_open", "false");
+    }
+  };
+
+  const toggleSidebar = () => {
+    setSidebarOpen((prev) => {
+      const next = !prev;
+      if (typeof window !== "undefined" && window.innerWidth >= 1024) {
+        localStorage.setItem("admin_sidebar_open", String(next));
+      }
+      return next;
+    });
+  };
+
+  const handleNavClick = () => {
+    if (typeof window !== "undefined" && window.innerWidth < 1024) {
+      closeSidebar();
+    }
+  };
 
   return (
     <div className="flex h-screen overflow-hidden bg-background">
@@ -75,95 +120,104 @@ export default function AdminFrame({ children, user }: Readonly<AdminFrameProps>
         <button
           type="button"
           aria-label="Close admin navigation"
-          className="fixed inset-0 z-30 bg-background/80 backdrop-blur-sm lg:hidden"
+          className="fixed inset-0 z-30 bg-background/80 backdrop-blur-sm lg:hidden print:hidden"
           onClick={closeSidebar}
         />
       )}
 
       {/* ── Sidebar ── */}
       <aside
-        className={`fixed inset-y-0 left-0 z-40 flex w-64 flex-col bg-card border-r border-border shadow-xl pt-[max(0.5rem,env(safe-area-inset-top,0px))] pb-[max(0.5rem,env(safe-area-inset-bottom,0px))] pl-[max(0.5rem,env(safe-area-inset-left,0px))] transition-transform duration-300 lg:static lg:translate-x-0 ${
-          sidebarOpen ? "translate-x-0" : "-translate-x-full"
+        className={`fixed inset-y-0 left-0 z-40 flex flex-col bg-card border-border shadow-xl pt-[max(0.5rem,env(safe-area-inset-top,0px))] pb-[max(0.5rem,env(safe-area-inset-bottom,0px))] transition-all duration-300 ease-in-out lg:static shrink-0 print:hidden ${
+          sidebarOpen
+            ? "w-72 translate-x-0 border-r pl-[max(0.5rem,env(safe-area-inset-left,0px))] opacity-100"
+            : "w-0 -translate-x-full lg:translate-x-0 lg:w-0 border-r-0 pl-0 opacity-0 overflow-hidden pointer-events-none"
         }`}
       >
-        {/* Brand header */}
-        <div className="flex items-center justify-between p-4 border-b border-border">
-          <div className="flex items-center gap-3">
-            <Logo />
-            <span className="inline-flex items-center px-2 py-0.5 rounded-md bg-disputed-muted border border-disputed-border text-disputed text-[10px] font-extrabold uppercase tracking-wider">
-              Admin
-            </span>
+        <div className="w-72 flex flex-col h-full shrink-0">
+          {/* Brand header */}
+          <div className="flex items-center justify-between p-4 border-b border-border">
+            <Logo
+              href="/admin"
+              size="sm"
+              showTagline={true}
+              badge={
+                <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full border bg-muted text-muted-foreground shrink-0 whitespace-nowrap">
+                  Admin
+                </span>
+              }
+            />
+            <button
+              type="button"
+              aria-label="Close navigation"
+              title="Close sidebar"
+              onClick={closeSidebar}
+              className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors shrink-0 ml-2"
+            >
+              <X className="w-5 h-5" />
+            </button>
           </div>
-          <button
-            type="button"
-            aria-label="Close navigation"
-            onClick={closeSidebar}
-            className="lg:hidden p-2.5 min-h-[44px] min-w-[44px] flex items-center justify-center rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors"
-          >
-            <X className="w-5 h-5" />
-          </button>
-        </div>
 
-        {/* Nav items */}
-        <nav className="flex-1 overflow-y-auto p-3 space-y-0.5" aria-label="Admin navigation">
-          {navItems.map((item) => {
-            const Icon = item.icon;
-            const active =
-              item.href === "/admin"
-                ? pathname === "/admin"
-                : pathname?.startsWith(item.href);
+          {/* Nav items */}
+          <nav className="flex-1 overflow-y-auto p-3 space-y-0.5" aria-label="Admin navigation">
+            {navItems.map((item) => {
+              const Icon = item.icon;
+              const active =
+                item.href === "/admin"
+                  ? pathname === "/admin"
+                  : pathname?.startsWith(item.href);
 
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                onClick={closeSidebar}
-                className={`group flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all ${
-                  active
-                    ? "bg-primary/10 text-primary border border-primary/20"
-                    : "text-muted-foreground hover:text-foreground hover:bg-muted/50 border border-transparent"
-                }`}
-                aria-current={active ? "page" : undefined}
-              >
-                <Icon
-                  className={`w-4 h-4 shrink-0 transition-colors ${
-                    active ? "text-primary" : "text-muted-foreground group-hover:text-foreground"
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  onClick={handleNavClick}
+                  className={`group flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all ${
+                    active
+                      ? "bg-primary/10 text-primary border border-primary/20"
+                      : "text-muted-foreground hover:text-foreground hover:bg-muted/50 border border-transparent"
                   }`}
-                  aria-hidden="true"
-                />
-                <span className="flex-1">{item.label}</span>
-                {active && (
-                  <ChevronRight className="w-3.5 h-3.5 text-primary opacity-60" aria-hidden="true" />
-                )}
-              </Link>
-            );
-          })}
-        </nav>
+                  aria-current={active ? "page" : undefined}
+                >
+                  <Icon
+                    className={`w-4 h-4 shrink-0 transition-colors ${
+                      active ? "text-primary" : "text-muted-foreground group-hover:text-foreground"
+                    }`}
+                    aria-hidden="true"
+                  />
+                  <span className="flex-1">{item.label}</span>
+                  {active && (
+                    <ChevronRight className="w-3.5 h-3.5 text-primary opacity-60" aria-hidden="true" />
+                  )}
+                </Link>
+              );
+            })}
+          </nav>
 
-        {/* Sidebar footer — user card + logout */}
-        <div className="p-3 border-t border-border space-y-2">
-          <div className="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-muted/30">
-            <div className="w-8 h-8 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center text-xs font-extrabold text-primary shrink-0">
-              {getInitials(user.name, user.email)}
-            </div>
-            <div className="min-w-0 flex-1">
-              <div className="text-sm font-semibold text-foreground truncate">
-                {user.name || "Admin"}
+          {/* Sidebar footer — user card + logout */}
+          <div className="p-3 border-t border-border space-y-2">
+            <div className="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-muted/30">
+              <div className="w-8 h-8 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center text-xs font-extrabold text-primary shrink-0">
+                {getInitials(user.name, user.email)}
               </div>
-              <div className="text-xs text-muted-foreground truncate">
-                {user.email || "Admin access"}
+              <div className="min-w-0 flex-1">
+                <div className="text-sm font-semibold text-foreground truncate">
+                  {user.name || "Admin"}
+                </div>
+                <div className="text-xs text-muted-foreground truncate">
+                  {user.email || "Admin access"}
+                </div>
               </div>
             </div>
+
+            <Button
+              onClick={() => signOut({ callbackUrl: "/login" })}
+              variant="ghost"
+              className="w-full justify-start gap-2 text-sm font-semibold text-muted-foreground hover:text-disputed hover:bg-disputed-muted border border-transparent hover:border-disputed-border"
+            >
+              <LogOut className="w-4 h-4" />
+              Sign Out
+            </Button>
           </div>
-
-          <Button
-            onClick={() => signOut({ callbackUrl: "/login" })}
-            variant="ghost"
-            className="w-full justify-start gap-2 text-sm font-semibold text-muted-foreground hover:text-disputed hover:bg-disputed-muted border border-transparent hover:border-disputed-border"
-          >
-            <LogOut className="w-4 h-4" />
-            Sign Out
-          </Button>
         </div>
       </aside>
 
@@ -174,9 +228,10 @@ export default function AdminFrame({ children, user }: Readonly<AdminFrameProps>
           <div className="flex items-center gap-2.5">
             <button
               type="button"
-              className="p-2 min-h-[38px] min-w-[38px] flex items-center justify-center rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors lg:hidden"
-              onClick={() => setSidebarOpen(true)}
-              aria-label="Open admin navigation"
+              className="p-2 min-h-[38px] min-w-[38px] flex items-center justify-center rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors border border-transparent hover:border-border"
+              onClick={toggleSidebar}
+              aria-label={sidebarOpen ? "Close navigation" : "Open navigation"}
+              title={sidebarOpen ? "Close sidebar" : "Open sidebar"}
             >
               <Menu className="w-5 h-5" />
             </button>
@@ -201,7 +256,7 @@ export default function AdminFrame({ children, user }: Readonly<AdminFrameProps>
         </header>
 
         {/* Page content */}
-        <main className="flex-1 overflow-y-auto py-4 sm:py-6 animate-fade-in">
+        <main className="flex-1 w-full overflow-y-auto py-4 sm:py-6 animate-fade-in">
           {children}
         </main>
       </div>

@@ -71,7 +71,7 @@ export default function NotificationToastBanner({
   return (
     <AnimatePresence>
       <div
-        className="fixed top-[calc(1rem+env(safe-area-inset-top,0px))] right-[max(1rem,calc(env(safe-area-inset-right,0px)+1rem))] md:right-8 z-[99999] max-w-sm w-[calc(100vw-32px)] pointer-events-none"
+        className="fixed top-[calc(1rem+env(safe-area-inset-top,0px))] right-[max(1rem,calc(env(safe-area-inset-right,0px)+1rem))] md:right-8 z-[99999] max-w-sm w-[calc(100vw-32px)] pointer-events-none print:hidden"
         role="status"
         aria-live="polite"
       >

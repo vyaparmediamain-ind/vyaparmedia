@@ -377,7 +377,7 @@ export default function PasswordPanel({
                 Forgot Password?
               </button>
             </div>
-            <div className="relative flex items-center">
+            <div>
               <Input
                 id="current-password-input"
                 type={showPassword.current ? "text" : "password"}
@@ -391,29 +391,30 @@ export default function PasswordPanel({
                 placeholder="Enter current password"
                 required
                 fullWidth
-                className="pr-10"
+                rightElement={
+                  <button
+                    type="button"
+                    aria-label={
+                      showPassword.current
+                        ? "Hide current password"
+                        : "Show current password"
+                    }
+                    onClick={() =>
+                      setShowPassword((prev) => ({
+                        ...prev,
+                        current: !prev.current,
+                      }))
+                    }
+                    className="p-1 rounded-lg text-muted-foreground hover:text-foreground transition-colors focus:outline-none focus:ring-1 focus:ring-primary"
+                  >
+                    {showPassword.current ? (
+                      <EyeOff className="w-5 h-5" />
+                    ) : (
+                      <Eye className="w-5 h-5" />
+                    )}
+                  </button>
+                }
               />
-              <button
-                type="button"
-                aria-label={
-                  showPassword.current
-                    ? "Hide current password"
-                    : "Show current password"
-                }
-                onClick={() =>
-                  setShowPassword((prev) => ({
-                    ...prev,
-                    current: !prev.current,
-                  }))
-                }
-                className="absolute right-3 p-1 text-muted-foreground hover:text-foreground transition-colors"
-              >
-                {showPassword.current ? (
-                  <EyeOff className="w-4 h-4" />
-                ) : (
-                  <Eye className="w-4 h-4" />
-                )}
-              </button>
             </div>
           </div>
         )}
@@ -428,7 +429,7 @@ export default function PasswordPanel({
               >
                 New Password
               </label>
-              <div className="relative flex items-center">
+              <div>
                 <Input
                   id="new-password-input"
                   type={showPassword.new ? "text" : "password"}
@@ -442,29 +443,30 @@ export default function PasswordPanel({
                   placeholder="At least 8 characters"
                   required
                   fullWidth
-                  className="pr-10"
+                  rightElement={
+                    <button
+                      type="button"
+                      aria-label={
+                        showPassword.new
+                          ? "Hide new password"
+                          : "Show new password"
+                      }
+                      onClick={() =>
+                        setShowPassword((prev) => ({
+                          ...prev,
+                          new: !prev.new,
+                        }))
+                      }
+                      className="p-1 rounded-lg text-muted-foreground hover:text-foreground transition-colors focus:outline-none focus:ring-1 focus:ring-primary"
+                    >
+                      {showPassword.new ? (
+                        <EyeOff className="w-5 h-5" />
+                      ) : (
+                        <Eye className="w-5 h-5" />
+                      )}
+                    </button>
+                  }
                 />
-                <button
-                  type="button"
-                  aria-label={
-                    showPassword.new
-                      ? "Hide new password"
-                      : "Show new password"
-                  }
-                  onClick={() =>
-                    setShowPassword((prev) => ({
-                      ...prev,
-                      new: !prev.new,
-                    }))
-                  }
-                  className="absolute right-3 p-1 text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  {showPassword.new ? (
-                    <EyeOff className="w-4 h-4" />
-                  ) : (
-                    <Eye className="w-4 h-4" />
-                  )}
-                </button>
               </div>
             </div>
 
@@ -475,7 +477,7 @@ export default function PasswordPanel({
               >
                 Confirm New Password
               </label>
-              <div className="relative flex items-center">
+              <div>
                 <Input
                   id="confirm-password-input"
                   type={showPassword.confirm ? "text" : "password"}
@@ -489,29 +491,30 @@ export default function PasswordPanel({
                   placeholder="Re-enter new password"
                   required
                   fullWidth
-                  className="pr-10"
+                  rightElement={
+                    <button
+                      type="button"
+                      aria-label={
+                        showPassword.confirm
+                          ? "Hide confirm password"
+                          : "Show confirm password"
+                      }
+                      onClick={() =>
+                        setShowPassword((prev) => ({
+                          ...prev,
+                          confirm: !prev.confirm,
+                        }))
+                      }
+                      className="p-1 rounded-lg text-muted-foreground hover:text-foreground transition-colors focus:outline-none focus:ring-1 focus:ring-primary"
+                    >
+                      {showPassword.confirm ? (
+                        <EyeOff className="w-5 h-5" />
+                      ) : (
+                        <Eye className="w-5 h-5" />
+                      )}
+                    </button>
+                  }
                 />
-                <button
-                  type="button"
-                  aria-label={
-                    showPassword.confirm
-                      ? "Hide confirm password"
-                      : "Show confirm password"
-                  }
-                  onClick={() =>
-                    setShowPassword((prev) => ({
-                      ...prev,
-                      confirm: !prev.confirm,
-                    }))
-                  }
-                  className="absolute right-3 p-1 text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  {showPassword.confirm ? (
-                    <EyeOff className="w-4 h-4" />
-                  ) : (
-                    <Eye className="w-4 h-4" />
-                  )}
-                </button>
               </div>
             </div>
           </div>

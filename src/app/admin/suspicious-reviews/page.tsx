@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import useSWR from "swr";
 import { fetcher } from "@/lib/fetcher";
 import EmptyState from "@/components/ui/EmptyState";
@@ -37,9 +37,21 @@ type SuspiciousReviewPair = {
 };
 
 type ApiResponseData = {
-  success: boolean;
-  data: SuspiciousReviewPair[];
-  pagination: {
+  success?: boolean;
+  data?:
+    | SuspiciousReviewPair[]
+    | {
+        data?: SuspiciousReviewPair[];
+        flags?: SuspiciousReviewPair[];
+        pagination?: {
+          page: number;
+          limit: number;
+          total: number;
+          totalPages: number;
+        };
+      };
+  flags?: SuspiciousReviewPair[];
+  pagination?: {
     page: number;
     limit: number;
     total: number;
@@ -57,7 +69,23 @@ export default function AdminSuspiciousReviewsPage() {
     fetcher
   );
 
-  const flags = data?.data || [];
+  const rawData = data?.data;
+  const flags: SuspiciousReviewPair[] = useMemo(() => {
+    if (Array.isArray(rawData)) return rawData;
+    if (Array.isArray((rawData as Record<string, unknown>)?.data)) {
+      return (rawData as Record<string, unknown>).data as SuspiciousReviewPair[];
+    }
+    if (Array.isArray((rawData as Record<string, unknown>)?.flags)) {
+      return (rawData as Record<string, unknown>).flags as SuspiciousReviewPair[];
+    }
+    if (Array.isArray((data as Record<string, unknown>)?.flags)) {
+      return (data as Record<string, unknown>).flags as SuspiciousReviewPair[];
+    }
+    if (Array.isArray(data)) {
+      return data as unknown as SuspiciousReviewPair[];
+    }
+    return [];
+  }, [rawData, data]);
 
   const handleResolve = async (flagId: string, resolution: "CONFIRMED" | "DISMISSED") => {
     setActionError(null);
@@ -87,7 +115,7 @@ export default function AdminSuspiciousReviewsPage() {
   };
 
   return (
-    <PageContainer maxWidth="6xl" className="space-y-6 py-2 sm:py-4">
+    <PageContainer maxWidth="7xl" className="space-y-6 py-2 sm:py-4">
       {/* ── Page Header ── */}
       <PageHeader
         icon={

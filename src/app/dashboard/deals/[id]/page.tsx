@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 import DashboardShell from "@/components/dashboard/DashboardShell";
 import { useTokenRefreshGuard } from "@/hooks/useTokenRefreshGuard";
+import { humanizeString } from "@/lib/audit-formatters";
 import { useDealDetail, computeDealDisplay } from "@/components/dashboard/deals/useDealDetail";
 import { parseContractTerms } from "@/components/dashboard/deals/DealDetailHelpers";
 import { DealProgressStepper } from "@/components/dashboard/deals/DealProgressStepper";
@@ -102,13 +103,13 @@ function DealStatusBadge({ status }: { status: string }) {
     },
     CANCELLED: {
       label: "Cancelled",
-      className: "bg-muted text-muted-foreground border-border",
+      className: "bg-disputed-muted text-disputed border-disputed-border font-bold",
       icon: <XCircle className="w-3.5 h-3.5" />,
     },
   };
 
   const config = map[status] ?? {
-    label: status.replace(/_/g, " "),
+    label: humanizeString(status),
     className: "bg-muted text-muted-foreground border-border",
     icon: null,
   };
@@ -128,7 +129,7 @@ function DealStatusBadge({ status }: { status: string }) {
 function DealRoomSkeleton({ user }: { user?: unknown }) {
   return (
     <DashboardShell user={user as Parameters<typeof DashboardShell>[0]["user"]}>
-      <PageContainer maxWidth="6xl" className="space-y-6 animate-pulse pt-4 pb-0 sm:py-6">
+      <PageContainer maxWidth="7xl" className="space-y-6 animate-pulse pt-4 pb-0 sm:py-6">
         {/* Header skeleton */}
         <div className="space-y-3">
           <Skeleton className="h-4 w-28 rounded-lg" />
@@ -302,7 +303,7 @@ export default function DealDetailPage() {
     <DashboardShell user={session?.user || undefined}>
       <ToastContainer toasts={toasts} onClose={removeToast} />
 
-      <PageContainer maxWidth="6xl" className="space-y-6 animate-fade-in pt-4 pb-0 sm:py-6">
+      <PageContainer maxWidth="7xl" className="space-y-6 animate-fade-in pt-4 pb-0 sm:py-6">
 
         {/* ── 1. WORKROOM HERO HEADER ─────────── */}
         <PageHeader
@@ -314,7 +315,7 @@ export default function DealDetailPage() {
               <span className="font-mono text-xs font-bold px-2.5 py-0.5 rounded-md bg-muted text-foreground border border-border">
                 #{deal.id.slice(-6).toUpperCase()}
               </span>
-              <DealStatusBadge status={deal.status} />
+              <DealStatusBadge status={deal.campaign?.status === "CANCELLED" ? "CANCELLED" : deal.status} />
             </div>
           }
           subtitle={
@@ -414,6 +415,7 @@ export default function DealDetailPage() {
               deal={deal}
               isBrand={isClient}
               isInfluencer={isInfluencer}
+              onViewContract={() => setShowContractPrint(true)}
               onOpenAddressModal={() => setShowAddressModal(true)}
               onOpenDispatchModal={() => setShowDispatchModal(true)}
               onOpenTrackingModal={() => setShowTrackingModal(true)}
@@ -549,7 +551,7 @@ export default function DealDetailPage() {
               isEscrowLocked={isEscrowLocked}
               isCompleted={deal.status === "COMPLETED"}
               isDisputed={deal.status === "DISPUTED"}
-              isCancelled={deal.status === "CANCELLED"}
+              isCancelled={deal.status === "CANCELLED" || deal.campaign?.status === "CANCELLED"}
               brandCompanyName={deal.brand?.companyName || "Brand"}
               creatorName={deal.influencer?.displayName || "Creator"}
               isBrand={isClient}
@@ -654,7 +656,7 @@ export default function DealDetailPage() {
       {deal && (
         <aside
           aria-label="Dispute Support"
-          className="fixed bottom-[calc(4rem+env(safe-area-inset-bottom,0px))] md:bottom-0 left-0 right-0 z-30 bg-card/95 backdrop-blur-md border-t border-border px-4 py-3 md:pb-[max(0.75rem,env(safe-area-inset-bottom,0px))] pl-[max(1rem,env(safe-area-inset-left,0px))] pr-[max(1rem,env(safe-area-inset-right,0px))] shadow-lg"
+          className="fixed bottom-[calc(4rem+env(safe-area-inset-bottom,0px))] md:bottom-0 left-0 right-0 z-30 bg-card/95 backdrop-blur-md border-t border-border px-4 py-3 md:pb-[max(0.75rem,env(safe-area-inset-bottom,0px))] pl-[max(1rem,env(safe-area-inset-left,0px))] pr-[max(1rem,env(safe-area-inset-right,0px))] shadow-lg print:hidden"
         >
           <div className="max-w-6xl mx-auto flex items-center justify-between gap-3 text-xs">
             <div className="flex items-center gap-2 text-muted-foreground">

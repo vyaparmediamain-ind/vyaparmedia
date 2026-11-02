@@ -51,7 +51,7 @@ export default function OfflineIndicator() {
         animate={{ y: 0, opacity: 1 }}
         exit={{ y: shouldReduceMotion ? 0 : -30, opacity: 0 }}
         transition={shouldReduceMotion ? { duration: 0 } : { duration: 0.25, ease: "easeOut" }}
-        className="fixed top-0 left-0 right-0 z-[100000] flex items-center justify-center pt-[max(0.5rem,env(safe-area-inset-top,0px))] px-3 pb-2 text-xs font-semibold shadow-md"
+        className="fixed top-0 left-0 right-0 z-[100000] flex items-center justify-center pt-[max(0.5rem,env(safe-area-inset-top,0px))] px-3 pb-2 text-xs font-semibold shadow-md print:hidden"
       >
         {isOffline ? (
           <div className="w-full max-w-xl mx-auto flex items-center justify-between gap-3 px-4 py-2 rounded-xl bg-amber-600 text-white shadow-lg">

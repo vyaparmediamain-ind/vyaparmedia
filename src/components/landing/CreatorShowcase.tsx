@@ -21,6 +21,7 @@ export interface CreatorShowcaseItem {
 interface CreatorShowcaseProps {
   creators?: CreatorShowcaseItem[] | undefined;
   totalCount?: string | undefined;
+  limit?: number;
 }
 
 const DEFAULT_CREATORS: CreatorShowcaseItem[] = [
@@ -78,7 +79,7 @@ const DEFAULT_CREATORS: CreatorShowcaseItem[] = [
   },
 ];
 
-export function CreatorShowcase({ creators, totalCount }: CreatorShowcaseProps) {
+export function CreatorShowcase({ creators, totalCount, limit = 4 }: CreatorShowcaseProps) {
   const [activeNiche, setActiveNiche] = useState("All");
 
   const activeCreators = creators && creators.length > 0 ? creators : DEFAULT_CREATORS;
@@ -92,6 +93,8 @@ export function CreatorShowcase({ creators, totalCount }: CreatorShowcaseProps) 
   const filtered = activeNiche === "All"
     ? activeCreators
     : activeCreators.filter((c) => c.niche === activeNiche);
+
+  const displayed = filtered.slice(0, limit);
 
   return (
     <section className="py-20 relative">
@@ -116,9 +119,9 @@ export function CreatorShowcase({ creators, totalCount }: CreatorShowcaseProps) 
                 key={niche}
                 type="button"
                 onClick={() => setActiveNiche(niche)}
-                className={`px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all ${
+                className={`px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all cursor-pointer ${
                   activeNiche === niche
-                    ? "bg-primary text-primary-foreground shadow-sm"
+                    ? "bg-card text-foreground shadow-xs border border-border/80 font-bold"
                     : "bg-muted text-muted-foreground hover:text-foreground"
                 }`}
               >
@@ -130,7 +133,7 @@ export function CreatorShowcase({ creators, totalCount }: CreatorShowcaseProps) 
 
         {/* Creator Cards Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {filtered.map((creator) => (
+          {displayed.map((creator) => (
             <div
               key={creator.id || creator.username}
               className="rounded-2xl border border-border bg-card p-5 flex flex-col justify-between hover:border-primary/50 transition-all shadow-sm hover:shadow-md group"

@@ -265,7 +265,7 @@ const TopbarComponent = memo(function TopbarComponent({
           />
         )}
         <div className="dashboard-mobile-logo md:hidden" aria-hidden="true">
-          <Logo tabIndex={-1} showTagline={false} size="sm" />
+          <Logo tabIndex={-1} showTagline={true} size="sm" />
         </div>
         <div>
           <h1 className="dashboard-topbar-title">

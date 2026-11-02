@@ -3,7 +3,7 @@
  */
 export default function AdminNewsletterLoading() {
   return (
-    <div className="max-w-4xl mx-auto space-y-6" aria-hidden="true">
+    <div className="max-w-7xl mx-auto space-y-6" aria-hidden="true">
       <div className="space-y-2">
         <div className="h-8 w-48 bg-muted rounded-xl animate-pulse" />
         <div className="h-4 w-72 bg-muted rounded-md animate-pulse" />

@@ -215,7 +215,7 @@ export default function DiscoveryFeed({
         <div className="flex items-center gap-2 sticky top-[max(0.5rem,calc(env(safe-area-inset-top,0px)+0.5rem))] z-20 bg-background/80 backdrop-blur-md p-1 rounded-2xl">
           {/* Search Input */}
           <div className="relative flex-1">
-            <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
+            <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
             <input
               id="discovery-search-input"
               type="text"
@@ -231,7 +231,7 @@ export default function DiscoveryFeed({
                   ? "Search briefs, brands, or niches"
                   : "Search creators by name, handle, or style"
               }
-              className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-border/80 bg-card text-foreground text-xs placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
+              className="w-full pl-11 pr-4 py-2.5 rounded-xl border border-border/80 bg-card text-foreground text-xs placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
             />
           </div>
 
@@ -242,14 +242,14 @@ export default function DiscoveryFeed({
             aria-label="Open filter options"
             className={`flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl border text-xs font-semibold transition-all focus:outline-none focus:ring-2 focus:ring-primary/20 ${
               activeFilterCount > 0
-                ? "bg-primary text-primary-foreground border-primary shadow-xs"
+                ? "bg-card text-foreground border-border/90 shadow-xs font-bold ring-1 ring-border"
                 : "bg-card text-foreground border-border/80 hover:bg-muted"
             }`}
           >
             <SlidersHorizontal className="w-3.5 h-3.5" />
             <span className="hidden sm:inline">Filters</span>
             {activeFilterCount > 0 && (
-              <span className="w-4 h-4 rounded-full bg-primary-foreground text-primary text-[10px] font-bold flex items-center justify-center">
+              <span className="w-4 h-4 rounded-full bg-background text-foreground text-[10px] font-bold flex items-center justify-center">
                 {activeFilterCount}
               </span>
             )}
@@ -258,7 +258,7 @@ export default function DiscoveryFeed({
 
         {/* Active Filter Chips Bar */}
         {activeFilterCount > 0 && (
-          <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none text-xs">
+          <div className="flex items-center gap-2 flex-wrap text-xs pt-1">
             <span className="text-muted-foreground shrink-0 font-medium">Active:</span>
             {filters.niche && (
               <span className="px-2.5 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20 shrink-0 font-medium whitespace-nowrap">
@@ -278,7 +278,7 @@ export default function DiscoveryFeed({
             <button
               type="button"
               onClick={() => setFilters({})}
-              className="text-[11px] text-primary hover:underline font-semibold shrink-0 ml-1"
+              className="text-[11px] text-primary hover:underline font-semibold shrink-0 ml-1 cursor-pointer"
             >
               Clear all
             </button>

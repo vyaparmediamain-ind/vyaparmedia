@@ -107,7 +107,7 @@ export function ContentSubmissionsCard({ submissions }: Readonly<ContentSubmissi
               >
                 <div className="flex items-center gap-2.5 min-w-0">
                   <span className={`px-2 py-0.5 rounded-md text-xs font-bold font-mono ${
-                    isLatest ? "bg-primary text-primary-foreground" : "bg-muted text-foreground border border-border"
+                    isLatest ? "bg-card text-foreground border border-border/80 shadow-xs font-mono font-bold" : "bg-muted text-foreground border border-border"
                   }`}>
                     v{versionNumber}
                   </span>
@@ -252,9 +252,9 @@ export function ContentSubmissionsCard({ submissions }: Readonly<ContentSubmissi
                   {/* Deliverable Items */}
                   <div className="space-y-2">
                     {subUrls.length > 0 ? (
-                      subUrls.map((urlObj: ContentUrlEntry) => (
+                      subUrls.map((urlObj: ContentUrlEntry, urlIdx: number) => (
                         <div
-                          key={urlObj.type}
+                          key={`${urlObj.type}-${urlIdx}`}
                           className="flex justify-between items-center p-2.5 bg-muted/40 rounded-xl border border-border text-xs"
                         >
                           <div>

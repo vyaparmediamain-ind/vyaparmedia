@@ -116,7 +116,7 @@ export default async function AdminOverviewPage() {
   ];
 
   return (
-    <PageContainer maxWidth="6xl" className="space-y-8 py-2 sm:py-4">
+    <PageContainer maxWidth="7xl" className="space-y-8 py-2 sm:py-4">
       {/* Header */}
       <PageHeader
         icon={

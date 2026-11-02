@@ -14,6 +14,7 @@ import { calculateLevel } from "@/lib/drs-score";
 import EmptyState from "@/components/ui/EmptyState";
 import { Badge, Button, ToastContainer, useToasts } from "@/components/ui";
 import { getTrustTierLabel, formatCurrency, formatDate } from "@/lib/utils-client";
+import { formatAuditLogDetails } from "@/lib/audit-formatters";
 import { copyToClipboard } from "@/lib/clipboard";
 import { TDS_194O_RATE, TDS_194O_RATE_PERCENT_STRING } from "@/constants";
 import {
@@ -260,7 +261,7 @@ export default function InfluencerDashboard({
                 </span>
                 <span className="text-xs text-muted-foreground">{overview.successRate}% Success</span>
               </div>
-              <MiniSparkline data={earningsHistory.slice(-8).map((_, i) => i % 2 === 0 ? overview.completedDeals : Math.max(0, overview.completedDeals - 1))} color="#2563EB" />
+              <MiniSparkline data={earningsHistory.slice(-8).map((_, i) => i % 2 === 0 ? overview.completedDeals : Math.max(0, overview.completedDeals - 1))} color="#059669" />
             </div>
           </div>
         </div>
@@ -400,7 +401,7 @@ export default function InfluencerDashboard({
             </div>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-            {categoryBreakdown.map((cat) => {
+            {categoryBreakdown.map((cat, idx) => {
               const colors: Record<string, { bg: string; text: string; bar: string }> = {
                 Instagram: { bg: "bg-pink-50 dark:bg-pink-950/30", text: "text-pink-600 dark:text-pink-400", bar: "#ec4899" },
                 YouTube: { bg: "bg-red-50 dark:bg-red-950/30", text: "text-red-600 dark:text-red-400", bar: "#ef4444" },
@@ -409,7 +410,7 @@ export default function InfluencerDashboard({
               };
               const style = colors[cat.category] || { bg: "bg-muted/40", text: "text-muted-foreground", bar: "#6366f1" };
               return (
-                <div key={cat.category} className={`rounded-xl border border-border p-3 space-y-2 ${style.bg}`}>
+                <div key={`${cat.category}-${idx}`} className={`rounded-xl border border-border p-3 space-y-2 ${style.bg}`}>
                   <div className="flex items-center justify-between gap-1.5">
                     <span className={`text-xs font-bold ${style.text} truncate`}>{cat.category}</span>
                     <span className="text-[10px] font-bold text-muted-foreground tabular-nums shrink-0">{cat.percentage}%</span>
@@ -655,8 +656,8 @@ export default function InfluencerDashboard({
                 Industry Niche Distribution
               </h4>
               <div className="space-y-2">
-                {categoryBreakdown.map((cat) => (
-                  <div key={cat.category} className="flex items-center justify-between text-xs">
+                {categoryBreakdown.map((cat, idx) => (
+                  <div key={`${cat.category}-${idx}`} className="flex items-center justify-between text-xs">
                     <span className="font-semibold text-foreground">{cat.category}</span>
                     <span className="text-muted-foreground tabular-nums">{cat.percentage}% ({cat.count} deals)</span>
                   </div>
@@ -862,7 +863,9 @@ export default function InfluencerDashboard({
               <div key={`${log.action}-${idx}`} className="py-3 flex items-center justify-between text-xs">
                 <div className="flex items-center gap-2.5">
                   <div className="w-2 h-2 rounded-full bg-verified" />
-                  <span className="font-semibold text-foreground">{log.action.replaceAll("_", " ")}</span>
+                  <span className="font-semibold text-foreground">
+                    {formatAuditLogDetails({ actionType: log.action, afterJSON: log.metadata })}
+                  </span>
                 </div>
                 <span className="text-muted-foreground">{formatDate(log.createdAt)}</span>
               </div>

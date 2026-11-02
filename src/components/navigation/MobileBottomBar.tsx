@@ -72,7 +72,7 @@ export default function MobileBottomBar({
       <nav
         role="navigation"
         aria-label="Mobile Navigation"
-        className="fixed bottom-0 left-0 right-0 z-30 min-h-16 h-[calc(4rem+env(safe-area-inset-bottom,0px))] bg-card/95 backdrop-blur-md border-t border-border flex md:hidden items-start justify-around px-2 pt-1.5 pb-[env(safe-area-inset-bottom,0px)] pl-[max(0.5rem,env(safe-area-inset-left,0px))] pr-[max(0.5rem,env(safe-area-inset-right,0px))]"
+        className="fixed bottom-0 left-0 right-0 z-30 min-h-16 h-[calc(4rem+env(safe-area-inset-bottom,0px))] bg-card/95 backdrop-blur-md border-t border-border flex md:hidden items-start justify-around px-2 pt-1.5 pb-[env(safe-area-inset-bottom,0px)] pl-[max(0.5rem,env(safe-area-inset-left,0px))] pr-[max(0.5rem,env(safe-area-inset-right,0px))] print:hidden"
       >
         <div className="w-full max-w-lg mx-auto flex items-center justify-between" role="tablist">
           {navItems.map((item) => {

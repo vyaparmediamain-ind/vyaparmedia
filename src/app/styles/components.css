@@ -384,12 +384,12 @@
 }
 
 .sidebar-link:hover {
-  background: rgba(37, 99, 235, 0.08);
+  background: rgba(5, 150, 105, 0.08);
   color: var(--color-text-primary);
 }
 
 .sidebar-link.active {
-  background: rgba(37, 99, 235, 0.12);
+  background: rgba(5, 150, 105, 0.12);
   color: var(--color-primary-light);
 }
 
@@ -433,7 +433,7 @@
   height: 64px;
   border-radius: var(--radius-lg);
   background: linear-gradient(135deg,
-      rgba(37, 99, 235, 0.12),
+      rgba(5, 150, 105, 0.12),
       rgba(16, 185, 129, 0.08));
   display: flex;
   align-items: center;
@@ -694,7 +694,7 @@ dialog.pwa-install-overlay {
 .pwa-install-icon {
   width: 56px;
   height: 56px;
-  background: linear-gradient(135deg, rgba(37, 99, 235, 0.1), rgba(16, 185, 129, 0.1));
+  background: linear-gradient(135deg, rgba(5, 150, 105, 0.1), rgba(16, 185, 129, 0.1));
   border-radius: var(--radius-md);
   display: flex;
   align-items: center;
@@ -702,7 +702,7 @@ dialog.pwa-install-overlay {
   margin: 0 auto 20px;
   color: var(--color-primary-light);
   font-size: 24px;
-  border: 1px solid rgba(37, 99, 235, 0.2);
+  border: 1px solid rgba(5, 150, 105, 0.2);
 }
 
 .pwa-install-dialog h2 {
@@ -1099,7 +1099,7 @@ dialog.pwa-install-overlay {
 }
 
 .bg-indigo-subtle {
-  background: rgba(37, 99, 235, 0.12) !important;
+  background: rgba(5, 150, 105, 0.12) !important;
 }
 
 /* Borders & Cards */
@@ -1537,7 +1537,7 @@ dialog.pwa-install-overlay {
 }
 
 .text-indigo {
-  color: #2563eb;
+  color: #059669;
 }
 
 .text-indigo-light {
@@ -1557,7 +1557,7 @@ dialog.pwa-install-overlay {
 }
 
 .bg-indigo-10 {
-  background: rgba(37, 99, 235, 0.1);
+  background: rgba(5, 150, 105, 0.1);
 }
 
 .bg-emerald-06 {
@@ -1577,7 +1577,7 @@ dialog.pwa-install-overlay {
 }
 
 .bg-gradient-indigo {
-  background: linear-gradient(135deg, #2563eb, #10b981);
+  background: linear-gradient(135deg, #059669, #10b981);
 }
 
 .z-1000 {
@@ -1623,25 +1623,7 @@ dialog.pwa-install-overlay {
   min-height: 30px;
 }
 
-.w-32 {
-  width: 32px;
-}
 
-.h-32 {
-  height: 32px;
-}
-
-.w-36 {
-  width: 36px;
-}
-
-.h-36 {
-  height: 36px;
-}
-
-.w-80 {
-  width: 80px;
-}
 
 .min-w-0 {
   min-width: 0 !important;
@@ -1701,11 +1683,11 @@ dialog.pwa-install-overlay {
 }
 
 .bg-indigo-12 {
-  background: rgba(37, 99, 235, 0.12);
+  background: rgba(5, 150, 105, 0.12);
 }
 
 .bg-indigo-15 {
-  background: rgba(37, 99, 235, 0.15);
+  background: rgba(5, 150, 105, 0.15);
 }
 
 .bg-rose-02 {
@@ -1733,17 +1715,11 @@ dialog.pwa-install-overlay {
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 140px), 1fr));
 }
 
-.w-24 {
-  width: 24px;
-}
 
-.h-24 {
-  height: 24px;
-}
 
 .logo-mark {
-  background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
-  box-shadow: 0 4px 15px rgba(37, 99, 235, 0.3);
+  background: transparent;
+  box-shadow: none;
 }
 
 .logo-copy {
@@ -1827,7 +1803,7 @@ dialog.pwa-install-overlay {
 .deal-progress-step-circle.current {
   background: var(--color-primary);
   color: white;
-  box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.2);
+  box-shadow: 0 0 0 4px rgba(5, 150, 105, 0.2);
 }
 
 .deal-progress-step-label {
@@ -1850,7 +1826,7 @@ dialog.pwa-install-overlay {
 }
 
 .conversation-item[aria-current="true"] {
-  background: rgba(37, 99, 235, 0.1) !important;
+  background: rgba(5, 150, 105, 0.1) !important;
 }
 
 .messages-container {
@@ -1873,8 +1849,8 @@ dialog.pwa-install-overlay {
 }
 
 .bank-account-item.default {
-  border: 1px solid rgba(37, 99, 235, 0.5);
-  background: rgba(37, 99, 235, 0.05);
+  border: 1px solid rgba(5, 150, 105, 0.5);
+  background: rgba(5, 150, 105, 0.05);
 }
 
 .bank-account-badge-default {
@@ -2286,8 +2262,8 @@ dialog.pwa-install-overlay {
 
 /* Custom dashboard referral code banner */
 .referral-code-banner {
-  background: linear-gradient(135deg, rgba(37, 99, 235, 0.15), rgba(16, 185, 129, 0.1)) !important;
-  border: 1px solid rgba(37, 99, 235, 0.2) !important;
+  background: linear-gradient(135deg, rgba(5, 150, 105, 0.15), rgba(16, 185, 129, 0.1)) !important;
+  border: 1px solid rgba(5, 150, 105, 0.2) !important;
 }
 
 /* Global Recharts overrides */

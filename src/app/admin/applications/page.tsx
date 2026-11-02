@@ -27,11 +27,12 @@ function getTrustTone(score: number) {
 
 export default async function AdminApplicationsPage() {
   // Call service directly on the server consistent with other admin pages; avoids loopback REST overhead
-  const flaggedApps = await AdminService.getFlaggedApplications();
+  const rawFlaggedApps = await AdminService.getFlaggedApplications();
+  const flaggedApps = Array.isArray(rawFlaggedApps) ? rawFlaggedApps : [];
   const totalValue = flaggedApps.reduce((sum, app) => sum + (app.proposedRate || 0), 0);
 
   return (
-    <PageContainer maxWidth="4xl" className="space-y-6 py-2 sm:py-4">
+    <PageContainer maxWidth="7xl" className="space-y-6 py-2 sm:py-4">
       {/* Page header */}
       <PageHeader
         backHref="/admin"

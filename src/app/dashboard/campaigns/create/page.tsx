@@ -21,7 +21,7 @@ export default async function CreateCampaignPage() {
 
   return (
     <DashboardShell user={session.user}>
-      <PageContainer maxWidth="6xl" className="pt-4 pb-0 sm:py-6">
+      <PageContainer maxWidth="7xl" className="pt-4 pb-0 sm:py-6">
         <Suspense
           fallback={
             <div className="space-y-6 animate-pulse py-8">

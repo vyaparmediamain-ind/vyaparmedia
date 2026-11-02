@@ -421,7 +421,7 @@ html: wrapInBrandedTemplate(
 <p style="color: #666; margin: 0 0 24px;">We received a request to reset your password. Click the button below to set a new one:</p>
 
 <div style="text-align: center; margin: 0 0 24px;">
-<a href="${resetUrl}" style="display: inline-block; background: linear-gradient(135deg, #2563eb 0%, #10b981 100%); color: white; padding: 14px 36px; border-radius: 8px; text-decoration: none; font-weight: 700; font-size: 15px; box-shadow: 0 4px 12px rgba(37,99,235,0.3);">
+<a href="${resetUrl}" style="display: inline-block; background: linear-gradient(135deg, #059669 0%, #10b981 100%); color: white; padding: 14px 36px; border-radius: 8px; text-decoration: none; font-weight: 700; font-size: 15px; box-shadow: 0 4px 12px rgba(5,150,105,0.3);">
 Reset Password
 </a>
 </div>
@@ -434,7 +434,7 @@ This link expires in <strong>1 hour</strong>. If you didn't request this reset, 
 
 <p style="color: #999; font-size: 12px; margin: 0; word-break: break-all;">
 Can't click the button? Copy this link:<br>
-<a href="${resetUrl}" style="color: #2563eb;">${resetUrl}</a>
+<a href="${resetUrl}" style="color: #059669;">${resetUrl}</a>
 </p>
 `,
 "Reset your password link expires in 1 hour",
@@ -522,7 +522,7 @@ html: wrapInBrandedTemplate(
 </div>
 
 <div style="text-align: center; margin: 24px 0 0;">
-<a href="${getAppUrl()}/dashboard/deals" style="display: inline-block; background: linear-gradient(135deg, #2563eb 0%, #10b981 100%); color: white; padding: 14px 36px; border-radius: 8px; text-decoration: none; font-weight: 700; font-size: 15px; box-shadow: 0 4px 12px rgba(37,99,235,0.3);">
+<a href="${getAppUrl()}/dashboard/deals" style="display: inline-block; background: linear-gradient(135deg, #059669 0%, #10b981 100%); color: white; padding: 14px 36px; border-radius: 8px; text-decoration: none; font-weight: 700; font-size: 15px; box-shadow: 0 4px 12px rgba(5,150,105,0.3);">
 View Deal
 </a>
 </div>

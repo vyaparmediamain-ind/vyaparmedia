@@ -416,10 +416,10 @@ export default function StoryShareModal({
       ctx.fillText(referralSub, 540, 485);
 
       // Referral Code Prominent Box
-      ctx.fillStyle = "rgba(37, 99, 235, 0.15)";
+      ctx.fillStyle = "rgba(5, 150, 105, 0.15)";
       roundRect(ctx, 190, 540, 700, 200, 36);
       ctx.fill();
-      ctx.strokeStyle = "rgba(59, 130, 246, 0.5)";
+      ctx.strokeStyle = "rgba(16, 185, 129, 0.5)";
       ctx.lineWidth = 3;
       ctx.stroke();
 
@@ -926,9 +926,9 @@ export default function StoryShareModal({
                           className="w-full max-w-[155px] py-2 px-3 rounded-2xl"
                           style={{
                             background:
-                              "linear-gradient(135deg, rgba(37,99,235,0.25), rgba(168,85,247,0.25))",
-                            border: "1.5px solid rgba(168,85,247,0.45)",
-                            boxShadow: "0 0 16px rgba(168,85,247,0.2)",
+                              "linear-gradient(135deg, rgba(5,150,105,0.25), rgba(16,185,129,0.25))",
+                            border: "1.5px solid rgba(16,185,129,0.45)",
+                            boxShadow: "0 0 16px rgba(16,185,129,0.2)",
                           }}
                         >
                           <div className="text-purple-300 text-[7px] font-bold tracking-widest uppercase mb-0.5">

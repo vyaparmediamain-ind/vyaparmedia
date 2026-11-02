@@ -1,3 +1,4 @@
+import React, { useMemo } from "react";
 import useSWR from "swr";
 import { fetcher } from "@/lib/fetcher";
 import EmptyState from "@/components/ui/EmptyState";
@@ -160,7 +161,14 @@ const { data, isLoading: loading } = useSWR<ChallengesResponse>("/api/gamificati
   revalidateOnFocus: false,
   dedupingInterval: 60000,
 });
-const challenges = data?.data || [];
+const challenges = useMemo(() => {
+  const raw = data?.data;
+  if (Array.isArray(raw)) return raw;
+  if (Array.isArray((data as Record<string, unknown>)?.challenges)) {
+    return (data as Record<string, unknown>).challenges as NonNullable<typeof raw>;
+  }
+  return [];
+}, [data]);
 
 if (loading) {
   return (

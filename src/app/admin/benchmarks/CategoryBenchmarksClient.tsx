@@ -192,7 +192,7 @@ export default function CategoryBenchmarksClient({ initialBenchmarks }: Props) {
                 max="50"
                 value={simCpvRupees}
                 onChange={(e) => setSimCpvRupees(e.target.value)}
-                className="pl-8 text-base font-bold font-mono"
+                className="pl-10 text-base font-bold font-mono"
               />
             </div>
             <p className="text-2xs text-muted-foreground">
@@ -264,12 +264,12 @@ export default function CategoryBenchmarksClient({ initialBenchmarks }: Props) {
           </div>
 
           <div className="relative w-full sm:w-64">
-            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+            <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
             <Input
               placeholder="Search category..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-9 text-xs"
+              className="pl-11 text-xs"
             />
           </div>
         </div>

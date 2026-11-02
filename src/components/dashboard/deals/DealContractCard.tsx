@@ -1,7 +1,8 @@
 "use client";
 
 import React, { useState } from "react";
-import { Card, BottomSheet, Button } from "@/components/ui";
+import { Card, Button } from "@/components/ui";
+import { ContractPrintView } from "./ContractPrintView";
 import {
   CheckCircle2,
   Clock,
@@ -12,7 +13,6 @@ import {
   Lock,
   Copy,
   Check,
-  Printer,
   Scale,
   Receipt,
   Layers,
@@ -23,6 +23,7 @@ import {
   AlertCircle,
 } from "lucide-react";
 import { copyToClipboard } from "@/lib/clipboard";
+import { humanizeString } from "@/lib/audit-formatters";
 import {
   DealDetail,
   parseContractTerms,
@@ -50,6 +51,7 @@ interface DealContractCardProps {
   readonly onOpenDispatchModal?: () => void;
   readonly onOpenTrackingModal?: () => void;
   readonly onConfirmReceived?: () => void;
+  readonly onViewContract?: () => void;
   readonly isSubmitting?: boolean;
 }
 
@@ -63,11 +65,20 @@ export function DealContractCard({
   onOpenDispatchModal,
   onOpenTrackingModal,
   onConfirmReceived,
+  onViewContract,
   isSubmitting = false,
 }: Readonly<DealContractCardProps>) {
   const [activeTab, setActiveTab] = useState<ContractTab>("scope");
   const [copiedTag, setCopiedTag] = useState<string | null>(null);
   const [showFullAgreementModal, setShowFullAgreementModal] = useState(false);
+
+  const handleOpenAgreement = () => {
+    if (onViewContract) {
+      onViewContract();
+    } else {
+      setShowFullAgreementModal(true);
+    }
+  };
 
   const contractTerms = parseContractTerms(deal.contractTerms);
   const terms = contractTerms;
@@ -171,7 +182,7 @@ export function DealContractCard({
             {/* Quick Action: Open Full Legal Contract Modal */}
             <button
               type="button"
-              onClick={() => setShowFullAgreementModal(true)}
+              onClick={handleOpenAgreement}
               className="inline-flex items-center justify-center gap-1.5 px-3.5 py-2 min-h-[44px] rounded-xl bg-card border border-border hover:bg-muted text-foreground text-xs font-bold transition-all shadow-xs shrink-0 self-start sm:self-auto cursor-pointer"
             >
               <FileText className="w-4 h-4 text-primary" />
@@ -385,7 +396,7 @@ export function DealContractCard({
                           Product Sample Seeding
                         </h5>
                         <p className="text-xs text-muted-foreground">
-                          Status: <strong className="text-foreground">{status.replaceAll("_", " ")}</strong>
+                          Status: <strong className="text-foreground">{humanizeString(status)}</strong>
                           {tracking && (
                             <span className="ml-2 font-mono text-[11px] text-primary">
                               ({carrier || "Carrier"}: {tracking})
@@ -848,135 +859,10 @@ export function DealContractCard({
 
       {/* ── 4. OFFICIAL LEGAL AGREEMENT MODAL ── */}
       {showFullAgreementModal && (
-        <BottomSheet
-          open={showFullAgreementModal}
+        <ContractPrintView
+          deal={deal}
           onClose={() => setShowFullAgreementModal(false)}
-          title={
-            <div className="flex items-center gap-2">
-              <FileText className="w-5 h-5 text-primary" />
-              <span>Official Influencer Collaboration Agreement</span>
-            </div>
-          }
-          maxWidth="760px"
-        >
-          <div className="space-y-5 text-foreground max-h-[75vh] overflow-y-auto pr-1">
-            {/* Header Document Bar */}
-            <div className="p-4 rounded-2xl bg-muted/40 border border-border flex items-center justify-between flex-wrap gap-2 text-xs">
-              <div>
-                <span className="text-muted-foreground block text-[11px]">Agreement ID</span>
-                <span className="font-mono font-bold text-sm text-foreground">
-                  VYAPAR-CONTRACT-{deal.id.toUpperCase()}
-                </span>
-              </div>
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={() => window.print()}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-card border border-border hover:bg-muted text-xs font-bold transition-all cursor-pointer min-h-[36px]"
-                >
-                  <Printer className="w-3.5 h-3.5 text-primary" />
-                  <span>Print Agreement</span>
-                </button>
-              </div>
-            </div>
-
-            {/* Legal Agreement Text */}
-            <div className="p-5 sm:p-6 rounded-2xl border border-border bg-card text-xs space-y-4 leading-relaxed font-sans">
-              <div className="text-center pb-3 border-b border-border space-y-1">
-                <h4 className="font-heading font-black text-base text-foreground uppercase tracking-tight">
-                  Independent Influencer Marketing Agreement
-                </h4>
-                <p className="text-[11px] text-muted-foreground">
-                  Governed by the Indian Contract Act, 1872 &amp; IT Act, 2000
-                </p>
-              </div>
-
-              <div>
-                <h5 className="font-bold text-xs uppercase tracking-wider text-muted-foreground mb-1">
-                  1. PARTIES &amp; ENGAGEMENT
-                </h5>
-                <p className="text-muted-foreground">
-                  This Agreement is entered into between <strong>{deal.brand?.companyName || "Brand Partner"}</strong> (&quot;Client&quot;) and <strong>{deal.influencer?.displayName || "Influencer"}</strong> (&quot;Creator&quot;) through VyaparMedia Technologies (&quot;Platform Escrow Trustee&quot;).
-                </p>
-              </div>
-
-              <div>
-                <h5 className="font-bold text-xs uppercase tracking-wider text-muted-foreground mb-1">
-                  2. SCOPE OF SERVICES &amp; DELIVERABLES
-                </h5>
-                <p className="text-muted-foreground mb-2">
-                  Creator agrees to produce and publish the following promotional deliverables for the campaign: <strong>{deal.campaign?.title}</strong>.
-                </p>
-                <ul className="list-disc pl-5 space-y-1 text-muted-foreground">
-                  {deliverablesList.map((d, i) => (
-                    <li key={i}>
-                      {d.count || 1}x {d.type.replaceAll("_", " ")}
-                    </li>
-                  ))}
-                  <li>Mandatory tags: {mandatoryTags.join(", ")}</li>
-                  <li>Submission Deadline: {formatContractDate(terms?.submissionDeadline)}</li>
-                  <li>Posting Deadline: {formatContractDate(terms?.postingDeadline)}</li>
-                </ul>
-              </div>
-
-              <div>
-                <h5 className="font-bold text-xs uppercase tracking-wider text-muted-foreground mb-1">
-                  3. ESCROW DEPOSIT &amp; DISBURSAL
-                </h5>
-                <p className="text-muted-foreground leading-relaxed">
-                  Total contract value of <strong>{formatCurrency(totalAmountPaise)}</strong> has been locked in an escrow account. Upon Creator submitting final deliverables and Client approving (or after {reviewPeriodHours} hours without dispute), Creator receives <strong>{formatCurrency(creatorPayoutPaise)}</strong>.
-                </p>
-              </div>
-
-              <div>
-                <h5 className="font-bold text-xs uppercase tracking-wider text-muted-foreground mb-1">
-                  4. REVISIONS &amp; AUTO-APPROVAL SLA
-                </h5>
-                <p className="text-muted-foreground leading-relaxed">
-                  Agreement includes <strong>{getIncludedRevisions(terms, deal)} complimentary revisions</strong>. Client agrees to provide feedback within {reviewPeriodHours} hours of submission. If Client remains inactive for {reviewPeriodHours} hours after submission, the Platform automatically accepts the submission on Client&apos;s behalf.
-                </p>
-              </div>
-
-              <div>
-                <h5 className="font-bold text-xs uppercase tracking-wider text-muted-foreground mb-1">
-                  5. ASCI &amp; STATUTORY COMPLIANCE
-                </h5>
-                <p className="text-muted-foreground leading-relaxed">
-                  Creator warrants that all published content complies with ASCI Influencer Guidelines, Consumer Protection Act 2019, and will not contain defamatory, misleading, or copyrighted third-party material without appropriate licenses.
-                </p>
-              </div>
-
-              {/* Digital Execution Stamp */}
-              <div className="pt-4 border-t border-border grid grid-cols-2 gap-4">
-                <div className="p-3 rounded-xl bg-muted/30 border border-border">
-                  <span className="text-[10px] text-muted-foreground block">CLIENT SIGNATURE</span>
-                  <span className="font-bold text-foreground block">{deal.brand?.companyName || "Client"}</span>
-                  <span className="text-[10px] text-verified font-mono block mt-1">
-                    {brandSignedAt ? `Signed ${formatContractDate(brandSignedAt)}` : "Pending Signature"}
-                  </span>
-                </div>
-                <div className="p-3 rounded-xl bg-muted/30 border border-border">
-                  <span className="text-[10px] text-muted-foreground block">CREATOR SIGNATURE</span>
-                  <span className="font-bold text-foreground block">{deal.influencer?.displayName || "Creator"}</span>
-                  <span className="text-[10px] text-verified font-mono block mt-1">
-                    {influencerSignedAt ? `Signed ${formatContractDate(influencerSignedAt)}` : "Pending Signature"}
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            <div className="flex justify-end pt-2">
-              <Button
-                type="button"
-                variant="secondary"
-                onClick={() => setShowFullAgreementModal(false)}
-                className="text-xs font-bold"
-              >
-                Close Agreement
-              </Button>
-            </div>
-          </div>
-        </BottomSheet>
+        />
       )}
     </>
   );

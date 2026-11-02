@@ -13,6 +13,7 @@ import { haptic } from "@/lib/haptics";
 import { Button, Textarea, Input, ToastContainer, type ToastItem, Skeleton, BottomSheet, PageContainer, PageHeader } from "@/components/ui";
 import DashboardShell from "@/components/dashboard/DashboardShell";
 import { formatCurrency } from "@/lib/utils-client";
+import { humanizeString } from "@/lib/audit-formatters";
 import { createDisputeSchema } from "@/lib/validations/campaign";
 import { checkDisputeEligibility } from "@/lib/action-eligibility";
 import {
@@ -241,7 +242,7 @@ export default function DealDisputePage({ params }: Readonly<DisputePageProps>) 
     <DashboardShell user={session?.user || undefined}>
       <ToastContainer toasts={toasts} onClose={removeToast} />
 
-      <PageContainer maxWidth="4xl" className="space-y-6 animate-fade-in pt-4 pb-0 sm:py-6">
+      <PageContainer maxWidth="7xl" className="space-y-6 animate-fade-in pt-4 pb-0 sm:py-6">
         {/* Ineligibility Alert Banner (Single-Implementation Rule) */}
         {!isDealLoading && deal && !disputeEligibility.allowed && (
           <div className="bg-destructive/10 border border-destructive/20 text-destructive rounded-2xl p-4 flex items-start gap-3">
@@ -417,7 +418,7 @@ export default function DealDisputePage({ params }: Readonly<DisputePageProps>) 
               </div>
 
               <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-muted text-muted-foreground self-start sm:self-center">
-                Status: {deal.status.replaceAll("_", " ")}
+                Status: {humanizeString(deal.status)}
               </span>
             </div>
           ) : (
@@ -443,13 +444,13 @@ export default function DealDisputePage({ params }: Readonly<DisputePageProps>) 
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
-              {DISPUTE_OPTIONS.map((option) => {
+              {DISPUTE_OPTIONS.map((option, idx) => {
                 const IconComponent = option.icon;
                 const isSelected = issueType === option.type;
 
                 return (
                   <button
-                    key={option.type}
+                    key={`${option.type}-${idx}`}
                     type="button"
                     onClick={() => setIssueType(option.type)}
                     className={`text-left p-4 rounded-xl border transition-all flex items-start gap-3 relative cursor-pointer ${
@@ -586,7 +587,7 @@ export default function DealDisputePage({ params }: Readonly<DisputePageProps>) 
                   Supporting Evidence Link (Optional)
                 </label>
                 <div className="relative">
-                  <Paperclip className="w-4 h-4 text-muted-foreground absolute left-3.5 top-1/2 -translate-y-1/2" />
+                  <Paperclip className="w-4 h-4 text-muted-foreground absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                   <Input
                     id="evidence-url"
                     type="url"

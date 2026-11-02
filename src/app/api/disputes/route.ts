@@ -85,7 +85,7 @@ export const POST = apiWrapper(async (req: ValidatedNextRequest) => {
   }
 
   return NextResponse.json({ error: "Invalid action" }, { status: 400 });
-});
+}, { requireAuth: true });
 
 export const PATCH = apiWrapper(async (req: ValidatedNextRequest) => {
   const session = req.session;
