@@ -537,8 +537,16 @@ export default function ApplicationsPage() {
                             unoptimized
                             className="object-cover"
                           />
+                        ) : app.campaign.brand?.companyName ? (
+                          app.campaign.brand.companyName.slice(0, 2).toUpperCase()
                         ) : (
-                          (app.campaign.brand?.companyName || "VM").slice(0, 2).toUpperCase()
+                          <Image
+                            src="/logo-vm.png"
+                            alt="VyaparMedia"
+                            fill
+                            unoptimized
+                            className="object-contain p-1"
+                          />
                         )}
                       </div>
                     }
@@ -793,8 +801,16 @@ export default function ApplicationsPage() {
                             unoptimized
                             className="object-cover"
                           />
+                        ) : app.campaign.brand?.companyName ? (
+                          app.campaign.brand.companyName.slice(0, 2).toUpperCase()
                         ) : (
-                          (app.campaign.brand?.companyName || "VM").slice(0, 2).toUpperCase()
+                          <Image
+                            src="/logo-vm.png"
+                            alt="VyaparMedia"
+                            fill
+                            unoptimized
+                            className="object-contain p-1"
+                          />
                         )}
                       </div>
                     }

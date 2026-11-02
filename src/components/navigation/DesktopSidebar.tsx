@@ -275,10 +275,18 @@ export default function DesktopSidebar({
                 height={36}
                 className="w-full h-full object-cover"
               />
-            ) : (
+            ) : user?.name ? (
               <span className="text-xs font-bold text-foreground">
-                {(user?.name || "VM").substring(0, 2).toUpperCase()}
+                {user.name.substring(0, 2).toUpperCase()}
               </span>
+            ) : (
+              <Image
+                src="/logo-vm.png"
+                alt="VyaparMedia"
+                width={28}
+                height={28}
+                className="object-contain p-0.5"
+              />
             )}
           </div>
           <div className="min-w-0 flex-1">

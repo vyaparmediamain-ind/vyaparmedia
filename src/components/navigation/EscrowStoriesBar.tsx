@@ -42,10 +42,10 @@ export default function EscrowStoriesBar({
         state: String(d?.status || "IN_PROGRESS"),
         amount: Number(d?.amount || 0),
         counterpartyName: String(
-          isBrand ? d?.influencer?.user?.name || "Creator" : d?.brand?.companyName || "Brand"
+          isBrand ? d?.influencer?.displayName || d?.influencer?.user?.name || "Creator" : d?.brand?.companyName || "Brand"
         ),
         counterpartyAvatar: isBrand
-          ? d?.influencer?.user?.image || null
+          ? d?.influencer?.avatar || d?.influencer?.profileImage || d?.influencer?.user?.image || null
           : d?.brand?.logo || null,
         isDisputed: Boolean(d?.isDisputed || d?.status === "DISPUTED"),
         stageName: String(d?.stageName || d?.status || "In Progress"),

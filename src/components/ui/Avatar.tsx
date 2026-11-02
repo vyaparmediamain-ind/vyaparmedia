@@ -18,22 +18,25 @@ xl: "avatar-xl",
 };
 
 export function Avatar({
-name,
-src,
-size = "md",
-className = "",
-"aria-hidden": ariaHidden,
+  name,
+  src,
+  size = "md",
+  className = "",
+  "aria-hidden": ariaHidden,
 }: AvatarProps) {
-const initial = name ? (name[0]?.toUpperCase() ?? "U") : "U";
-const classes = `avatar ${sizeClass[size]} ${className}`.trim();
+  const isVyaparMedia = name === "VM" || name === "VyaparMedia";
+  const initial = name ? (name[0]?.toUpperCase() ?? "U") : "U";
+  const classes = `avatar ${sizeClass[size]} ${className}`.trim();
 
-return (
-<div className={classes} aria-hidden={ariaHidden}>
-{src ? (
-<Image src={src} alt={name ?? "Avatar"} fill className="object-cover" />
-) : (
-initial
-)}
-</div>
-);
+  return (
+    <div className={classes} aria-hidden={ariaHidden}>
+      {src ? (
+        <Image src={src} alt={name ?? "Avatar"} fill className="object-cover" />
+      ) : isVyaparMedia ? (
+        <Image src="/logo-vm.png" alt="VyaparMedia" fill className="object-contain p-0.5" />
+      ) : (
+        initial
+      )}
+    </div>
+  );
 }

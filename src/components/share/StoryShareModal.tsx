@@ -967,9 +967,9 @@ export default function StoryShareModal({
                       </div>
                     ) : (
                       <div className="w-full flex flex-col items-center gap-2 text-center">
-                        {/* Sparkle icon */}
+                        {/* VyaparMedia Brand Logo */}
                         <div
-                          className="w-11 h-11 rounded-2xl flex items-center justify-center"
+                          className="w-11 h-11 rounded-2xl flex items-center justify-center p-2 overflow-hidden"
                           style={{
                             background:
                               "linear-gradient(135deg, rgba(168,85,247,0.3), rgba(59,130,246,0.3))",
@@ -977,7 +977,7 @@ export default function StoryShareModal({
                             boxShadow: "0 0 20px rgba(168,85,247,0.3)",
                           }}
                         >
-                          <Sparkles className="w-5 h-5 text-purple-300" />
+                          <img src="/logo-vm.png" alt="VyaparMedia" className="w-full h-full object-contain" />
                         </div>
 
                         <div>

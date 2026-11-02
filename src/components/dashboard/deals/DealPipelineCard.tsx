@@ -205,8 +205,15 @@ export function DealPipelineCard({
               fill
               className="object-cover"
             />
+          ) : deal.brand?.companyName ? (
+            <span>{deal.brand.companyName.slice(0, 2).toUpperCase()}</span>
           ) : (
-            <span>{deal.brand?.companyName?.[0]?.toUpperCase() || "B"}</span>
+            <Image
+              src="/logo-vm.png"
+              alt="VyaparMedia"
+              fill
+              className="object-contain p-1"
+            />
           )}
         </Link>
       }
