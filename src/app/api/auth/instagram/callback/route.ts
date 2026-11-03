@@ -7,6 +7,7 @@ import { encrypt } from "@/lib/encryption";
 import { appUrl } from "@/lib/app-url";
 import { isInfluencer } from "@/lib/rbac";
 import { oauthRedirect, validateAndConsumeOAuthState } from "@/lib/oauth-callback-helper";
+import { CreatorAuditService } from "@/services/creator-audit.service";
 
 const ERROR_BASE = "/dashboard/settings?error=";
 
@@ -163,6 +164,13 @@ update: {
 instagramHandle: profile.username,
 instagramFollowers: profile.followersCount,
 },
+});
+
+// Automated In-House Social Audit:
+// Fetch historical media & comments to calculate authenticity & quality scores.
+// Run asynchronously without blocking OAuth redirect.
+CreatorAuditService.auditHistoricalInstagramData(userId, tokens.accessToken).catch((auditErr) => {
+  logger.warn("Asynchronous creator historical audit encountered error", { userId, auditErr });
 });
 }
 

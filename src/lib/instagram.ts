@@ -445,7 +445,7 @@ export async function getInstagramProfile(
  * Endpoint: GET https://graph.instagram.com/me/media?fields=id,media_type,permalink,caption,timestamp,like_count,comments_count,is_paid_partnership
  * Header: Authorization: Bearer <accessToken>
  */
-async function getRecentPosts(
+export async function getRecentPosts(
   accessToken: string,
   limit: number = 10,
 ): Promise<InstagramPost[]> {
@@ -502,6 +502,38 @@ async function getRecentPosts(
   } catch (error) {
     logger.error("Instagram posts fetch error", error);
     return allPosts;
+  }
+}
+
+/**
+ * Fetch top comments for a given Instagram media ID.
+ * Docs: https://developers.facebook.com/docs/instagram-platform/instagram-api-with-instagram-login/business-login/get-user-profile-and-media
+ * Endpoint: GET https://graph.instagram.com/{media-id}/comments?fields=id,text,timestamp,username&limit={limit}
+ */
+export async function getPostComments(
+  mediaId: string,
+  accessToken: string,
+  limit: number = 20,
+): Promise<Array<{ id: string; text: string; username?: string; timestamp?: string }>> {
+  if (!mediaId || !accessToken) return [];
+  try {
+    const res = await withCircuitBreaker("instagram:comments", async () => {
+      return await fetch(
+        `${IG_GRAPH_BASE_URL}/${mediaId}/comments?fields=id,text,timestamp,username&limit=${limit}`,
+        {
+          headers: { Authorization: `Bearer ${accessToken}` },
+          signal: AbortSignal.timeout(SOCIAL_API_TIMEOUT_MS),
+        },
+      );
+    });
+    if (!res.ok) return [];
+    const data = await res.json() as {
+      data?: Array<{ id: string; text: string; username?: string; timestamp?: string }>;
+    };
+    return data?.data || [];
+  } catch (error) {
+    logger.warn("Failed to fetch Instagram post comments for audit", { mediaId, error });
+    return [];
   }
 }
 

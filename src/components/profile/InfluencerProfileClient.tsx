@@ -269,6 +269,17 @@ export default function InfluencerProfileClient({
                 {profile.displayName}
               </h1>
 
+              {/* In-House Audience Quality & Authenticity Badge */}
+              {profile.followerAuthenticityScore !== undefined && profile.followerAuthenticityScore >= 70 && (
+                <span
+                  title={`In-House Audit: ${profile.followerAuthenticityScore}% authentic audience with low bot/pod probability`}
+                  className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold border bg-verified-muted text-verified border-verified-border shadow-xs shrink-0 whitespace-nowrap"
+                >
+                  <ShieldCheck className="w-3.5 h-3.5 fill-verified/20" />
+                  <span>{profile.followerAuthenticityScore}% Authentic Audience</span>
+                </span>
+              )}
+
               {/* Social Verification Badge */}
               {profile.isSocialVerified && (
                 <span
@@ -840,7 +851,7 @@ export default function InfluencerProfileClient({
                         </span>
                       </div>
                       <p className="text-[11px] text-muted-foreground mt-0.5">
-                        {formatNumber(profile.instagramFollowers)} Followers • {profile.instagramEngagementRate || 4.2}% Eng.
+                        {formatNumber(profile.instagramFollowers)} Followers • {profile.instagramEngagementRate || 4.2}% Eng.{profile.followerAuthenticityScore ? ` • ${profile.followerAuthenticityScore}% Quality` : ""}
                       </p>
                     </div>
                   </div>

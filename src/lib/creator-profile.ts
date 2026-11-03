@@ -28,6 +28,8 @@ export function formatCreatorProfileData(influencer: {
   maxInstagramRate?: number | null;
   minYoutubeRate?: number | null;
   maxYoutubeRate?: number | null;
+  followerAuthenticityScore?: number | null;
+  contentQualityScore?: number | null;
   completedDeals: number;
   user: {
     trustScore: number;
@@ -142,6 +144,8 @@ export function formatCreatorProfileData(influencer: {
     avgResponseTime: "< 2 hours",
     isKycVerified,
     isSocialVerified,
+    followerAuthenticityScore: influencer.followerAuthenticityScore ?? 85,
+    contentQualityScore: influencer.contentQualityScore ?? 80,
     minRatePaise: baseRate,
     maxRatePaise: influencer.maxRate || baseRate * 3,
     campaignProofs,

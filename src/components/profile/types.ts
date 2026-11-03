@@ -54,6 +54,8 @@ export interface InfluencerProfileData {
   avgResponseTime: string; // e.g. "< 2 hours"
   isKycVerified: boolean; // Server-side source of truth
   isSocialVerified: boolean; // Server-side source of truth
+  followerAuthenticityScore?: number | undefined; // 0 - 100 Authenticity / Quality Score
+  contentQualityScore?: number | undefined; // 0 - 100
   minRatePaise: number;
   maxRatePaise?: number | null | undefined;
   campaignProofs: CampaignProofItem[];
