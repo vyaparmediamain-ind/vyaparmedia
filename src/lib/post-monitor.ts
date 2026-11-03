@@ -21,15 +21,15 @@ import { applyProgressivePenalty } from "./penalty-system";
 import { NotificationService } from "@/services/notification.service";
 import { createActivityLog } from "./audit";
 
-interface PostStatusResult {
+export interface PostStatusResult {
 dealId: string;
 isAlive: boolean;
-status: "ACTIVE" | "DELETED" | "PRIVATE" | "CHANGED";
+status: "ACTIVE" | "DELETED" | "PRIVATE" | "CHANGED" | "DISCLOSURE_WARNING" | "DISCLOSURE_BREACH";
 message?: string;
 monitoringDay?: number;
 }
 
-interface ClawbackResult {
+export interface ClawbackResult {
 dealId: string;
 triggered: boolean;
 clawbackPercentage: number;
@@ -91,7 +91,7 @@ return { shouldCheck: false, day: 0 };
 * Day 15-21: 25% clawback
 * Day 22-30: 15% clawback (late removal, still penalized)
 */
-function calculateClawbackPercentage(
+export function calculateClawbackPercentage(
 daysSinceCompletion: number,
 ): number {
 if (daysSinceCompletion <= 3) return 100;
@@ -102,7 +102,7 @@ if (daysSinceCompletion <= 30) return 15;
 return 0; // Past monitoring window
 }
 
-async function verifyPostStatus(
+export async function verifyPostStatus(
 dealId: string,
 ): Promise<PostStatusResult> {
 const deal = await prisma.deal.findUnique({
@@ -272,7 +272,169 @@ monitoringDay,
 };
 }
 
-// 3. Post is alive and active: Reset consecutive missing count
+// 3. Option 4: ASCI & CCPA 2024 24-Hour Remediation & Escrow Freeze Loop
+const isDisclosureMissing = checkResult.flags.some((f) => f.rule === "NO_AD_DISCLOSURE");
+const currentTerms = (deal.contractTerms as Record<string, unknown>) || {};
+const asciAudit = (currentTerms.asciComplianceAudit as Record<string, unknown>) || {};
+const previousAsciViolations = Number(asciAudit.consecutiveViolations) || 0;
+
+if (isDisclosureMissing) {
+  const newAsciViolations = previousAsciViolations + 1;
+
+  if (newAsciViolations < 2) {
+    // 1st Detection of missing #ad disclosure: 24h grace period warning issued, escrow payout held
+    const graceExpiresAt = new Date(Date.now() + 24 * 3600 * 1000);
+    const updatedTerms = {
+      ...currentTerms,
+      asciComplianceAudit: {
+        consecutiveViolations: 1,
+        status: "REMEDIATION_REQUIRED",
+        firstViolationAt: new Date().toISOString(),
+        graceExpiresAt: graceExpiresAt.toISOString(),
+        isEscrowHoldActive: true,
+      },
+    };
+
+    await prisma.deal.update({
+      where: { id: dealId },
+      data: {
+        lastPostCheck: new Date(),
+        postCheckCount: { increment: 1 },
+        isPostAlive: true,
+        contractTerms: updatedTerms as Prisma.InputJsonValue,
+      },
+    });
+
+    if (deal.influencer?.userId) {
+      await NotificationService.createNotification({
+        userId: deal.influencer.userId,
+        type: "trust_warning",
+        title: "CRITICAL: ASCI #ad Disclosure Missing (24h Grace Period)",
+        message: `Our live crawler detected that mandatory #ad disclosure is missing or was removed from your post for deal #${deal.id.slice(-6)}. Under CCPA 2024 regulations, you must add #ad in the first 150 characters within 24 hours to prevent permanent escrow freeze and deal clawback.`,
+        data: { dealId: deal.id, monitoringDay, checkNumber: 1, graceHours: 24 },
+      });
+
+      await createActivityLog({
+        userId: deal.influencer.userId,
+        action: "ASCI_DISCLOSURE_GRACE_PERIOD_ISSUED",
+        metadata: {
+          dealId: deal.id,
+          monitoringDay,
+          graceExpiresAt: graceExpiresAt.toISOString(),
+        },
+      });
+    }
+
+    logger.warn("ASCI disclosure missing on live post; 24h grace period warning issued to creator", {
+      dealId,
+      monitoringDay,
+      consecutiveViolations: 1,
+    });
+
+    return {
+      dealId,
+      isAlive: true,
+      status: "DISCLOSURE_WARNING",
+      message: "First detected missing #ad disclosure; 24h grace warning issued to creator",
+      monitoringDay,
+    };
+  }
+
+  // 2+ Consecutive Checks Without #ad Disclosure: Permanent compliance breach -> freeze escrow and execute clawback
+  const updatedTerms = {
+    ...currentTerms,
+    asciComplianceAudit: {
+      consecutiveViolations: newAsciViolations,
+      status: "PERMANENT_BREACH_FROZEN",
+      breachAt: new Date().toISOString(),
+      isEscrowHoldActive: true,
+    },
+  };
+
+  await prisma.deal.update({
+    where: { id: dealId },
+    data: {
+      lastPostCheck: new Date(),
+      postCheckCount: { increment: 1 },
+      isPostAlive: true,
+      contractTerms: updatedTerms as Prisma.InputJsonValue,
+    },
+  });
+
+  let clawback: ClawbackResult | null = null;
+  if (monitoringDay <= 30) {
+    clawback = await executeClawback(deal.id, monitoringDay, "ASCI_DISCLOSURE_REMOVED");
+  }
+
+  if (deal.influencer?.userId) {
+    const clawbackMsg = clawback?.triggered
+      ? ` ₹${(clawback.clawbackAmountPaise / 100).toFixed(2)} (${clawback.clawbackPercentage}%) has been clawed back.`
+      : "";
+    await NotificationService.createNotification({
+      userId: deal.influencer.userId,
+      type: "trust_warning",
+      title: "Escrow Frozen: ASCI Compliance Breach",
+      message: `24-hour grace period expired without required #ad disclosure for deal #${deal.id.slice(-6)}.${clawbackMsg} This compliance breach penalizes your DRS trust score.`,
+      data: { dealId: deal.id, monitoringDay },
+    });
+
+    try {
+      await applyProgressivePenalty(
+        deal.influencer.userId,
+        "OTHER",
+        `Post missing mandatory ASCI #ad disclosure across multiple monitoring checks for deal ${deal.id}`,
+        deal.postUrl || undefined,
+      );
+    } catch (penErr) {
+      logger.error("Failed to apply penalty for ASCI disclosure breach", { dealId, error: penErr });
+    }
+
+    await createActivityLog({
+      userId: deal.influencer.userId,
+      action: "ASCI_DISCLOSURE_BREACH_ENFORCED",
+      metadata: {
+        dealId: deal.id,
+        monitoringDay,
+        clawbackTriggered: clawback?.triggered || false,
+        clawbackAmountPaise: clawback?.clawbackAmountPaise || 0,
+      },
+    });
+  }
+
+  return {
+    dealId,
+    isAlive: true,
+    status: "DISCLOSURE_BREACH",
+    message: `ASCI #ad disclosure missing across ${newAsciViolations} consecutive checks; escrow frozen and clawback executed`,
+    monitoringDay,
+  };
+}
+
+// 4. Remediation Recovery: If post is compliant, check if it previously had a remediation hold and lift it!
+let finalTerms: Prisma.InputJsonValue = (deal.contractTerms as Prisma.InputJsonValue) ?? {};
+if (asciAudit.status === "REMEDIATION_REQUIRED") {
+  finalTerms = {
+    ...currentTerms,
+    asciComplianceAudit: {
+      consecutiveViolations: 0,
+      status: "COMPLIANT",
+      restoredAt: new Date().toISOString(),
+      isEscrowHoldActive: false,
+    },
+  } as Prisma.InputJsonValue;
+
+  if (deal.influencer?.userId) {
+    await NotificationService.createNotification({
+      userId: deal.influencer.userId,
+      type: "system",
+      title: "ASCI Compliance Verified",
+      message: `Our crawler verified that #ad disclosure is now present on your post for deal #${deal.id.slice(-6)}. Escrow hold has been lifted.`,
+      data: { dealId: deal.id },
+    });
+  }
+}
+
+// 5. Post is alive, compliant, and active: Reset consecutive missing count
 await prisma.deal.update({
 where: { id: dealId },
 data: {
@@ -280,6 +442,7 @@ lastPostCheck: new Date(),
 postCheckCount: { increment: 1 },
 isPostAlive: true,
 consecutiveMissingChecks: 0,
+contractTerms: finalTerms as Prisma.InputJsonValue,
 },
 });
 
@@ -755,13 +918,19 @@ postCheckCount: { increment: 1 },
 async function checkRegularPost(
 dealId: string,
 referenceDate: Date,
-counters: { alive: number; failed: number; clawbacksTriggered: number },
+counters: { alive: number; failed: number; clawbacksTriggered: number; disclosureWarnings: number },
 ): Promise<void> {
 const { shouldCheck, day } = shouldCheckToday(referenceDate);
 if (!shouldCheck) return;
 
 const result = await verifyPostStatus(dealId);
-if (result.isAlive) {
+if (result.status === "DISCLOSURE_WARNING") {
+counters.disclosureWarnings++;
+counters.alive++;
+} else if (result.status === "DISCLOSURE_BREACH") {
+counters.failed++;
+if (day <= 30) counters.clawbacksTriggered++;
+} else if (result.isAlive) {
 counters.alive++;
 } else {
 counters.failed++;
@@ -774,6 +943,7 @@ totalChecked: number;
 alive: number;
 failed: number;
 clawbacksTriggered: number;
+disclosureWarnings: number;
 skipped: number;
 }
 
@@ -808,11 +978,12 @@ return;
 }
 
 try {
-const regularCounters = { alive: counters.alive, failed: counters.failed, clawbacksTriggered: counters.clawbacksTriggered };
+const regularCounters = { alive: counters.alive, failed: counters.failed, clawbacksTriggered: counters.clawbacksTriggered, disclosureWarnings: counters.disclosureWarnings };
 await checkRegularPost(deal.id, referenceDate, regularCounters);
 counters.alive = regularCounters.alive;
 counters.failed = regularCounters.failed;
 counters.clawbacksTriggered = regularCounters.clawbacksTriggered;
+counters.disclosureWarnings = regularCounters.disclosureWarnings;
 counters.totalChecked++;
 } catch (error) {
 logger.error("Daily monitoring check failed", error instanceof Error ? error : new Error(String(error)), { dealId: deal.id });
@@ -828,6 +999,7 @@ export async function runDailyPostMonitoring(): Promise<{
   alive: number;
   failed: number;
   clawbacksTriggered: number;
+  disclosureWarnings: number;
   skipped: number;
 }> {
   const thirtyOneDaysAgo = new Date(Date.now() - 31 * 86400 * 1000);
@@ -864,6 +1036,7 @@ export async function runDailyPostMonitoring(): Promise<{
     alive: 0,
     failed: 0,
     clawbacksTriggered: 0,
+    disclosureWarnings: 0,
     skipped: 0,
   };
 
