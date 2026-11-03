@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ReactNode, useState, useEffect } from "react";
+import { ReactNode, useState, useEffect, useCallback } from "react";
 import Logo from "@/components/Logo";
 import { signOut } from "next-auth/react";
 import { Button } from "@/components/ui";
@@ -79,6 +79,23 @@ export default function AdminFrame({ children, user }: Readonly<AdminFrameProps>
     }
   }, []);
 
+  const closeSidebar = useCallback(() => {
+    setSidebarOpen(false);
+    if (typeof window !== "undefined" && window.innerWidth >= 1024) {
+      localStorage.setItem("admin_sidebar_open", "false");
+    }
+  }, []);
+
+  const toggleSidebar = useCallback(() => {
+    setSidebarOpen((prev) => {
+      const next = !prev;
+      if (typeof window !== "undefined" && window.innerWidth >= 1024) {
+        localStorage.setItem("admin_sidebar_open", String(next));
+      }
+      return next;
+    });
+  }, []);
+
   // Keyboard shortcut: Escape closes sidebar
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -88,24 +105,7 @@ export default function AdminFrame({ children, user }: Readonly<AdminFrameProps>
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [sidebarOpen]);
-
-  const closeSidebar = () => {
-    setSidebarOpen(false);
-    if (typeof window !== "undefined" && window.innerWidth >= 1024) {
-      localStorage.setItem("admin_sidebar_open", "false");
-    }
-  };
-
-  const toggleSidebar = () => {
-    setSidebarOpen((prev) => {
-      const next = !prev;
-      if (typeof window !== "undefined" && window.innerWidth >= 1024) {
-        localStorage.setItem("admin_sidebar_open", String(next));
-      }
-      return next;
-    });
-  };
+  }, [sidebarOpen, closeSidebar]);
 
   const handleNavClick = () => {
     if (typeof window !== "undefined" && window.innerWidth < 1024) {
