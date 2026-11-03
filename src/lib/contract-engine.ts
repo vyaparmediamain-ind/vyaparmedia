@@ -366,25 +366,105 @@ version: 3,
 };
 }
 
-/**
- * Validates whether content caption contains required ASCI & CCPA advertising disclosure hashtags.
- * Recognizes #ad, #sponsored, #collab, #paidpartnership, #advertisement.
- */
-export function validateAscidisclosure(captionOrContent: string): {
+export interface AsciDisclosureValidationResult {
   isCompliant: boolean;
   matchedTags: string[];
+  prominenceCompliant: boolean;
+  prohibitedTagsDetected: string[];
   missingRequirement?: string | undefined;
-} {
-  const recognizedTags = ["#ad", "#sponsored", "#collab", "#paidpartnership", "#advertisement"];
-  const lower = captionOrContent.toLowerCase();
-  const matched = recognizedTags.filter((tag) => lower.includes(tag));
+  detectionMethod: "NATIVE_PAID_PARTNERSHIP" | "CAPTION_ABOVE_FOLD" | "CAPTION_BELOW_FOLD" | "NONE";
+}
+
+/**
+ * Validates whether content caption complies with ASCI & CCPA 2024 advertising disclosure norms.
+ * Enforces the strict "Above the fold / Prominence" rule:
+ * 1. Disclosure must be within the first 150 characters or on the first line before line breaks.
+ * 2. Recognizes approved full disclosure tags: #ad, #sponsored, #collab, #paidpartnership, #advertisement, #partnership, #paidcollab.
+ * 3. Prohibits non-compliant abbreviations: #sp, #spon, #pr, #gifted.
+ * 4. Recognizes Instagram/YouTube native Paid Partnership label.
+ */
+export function validateAscidisclosure(
+  captionOrContent: string,
+  isPaidPartnership: boolean = false,
+): AsciDisclosureValidationResult {
+  if (isPaidPartnership) {
+    return {
+      isCompliant: true,
+      matchedTags: ["NATIVE_PAID_PARTNERSHIP_LABEL"],
+      prominenceCompliant: true,
+      prohibitedTagsDetected: [],
+      detectionMethod: "NATIVE_PAID_PARTNERSHIP",
+    };
+  }
+
+  const recognizedTags = [
+    "#ad",
+    "#sponsored",
+    "#collab",
+    "#paidpartnership",
+    "#advertisement",
+    "#partnership",
+    "#paidcollab",
+  ];
+
+  // Prohibited ambiguous abbreviations under ASCI 2023/2024 & CCPA guidelines
+  const prohibitedTags = ["#sp", "#spon", "#pr", "#collabo", "#gifted"];
+
+  const text = (captionOrContent || "").trim();
+  const lower = text.toLowerCase();
+
+  const foundProhibited = prohibitedTags.filter((tag) => {
+    const regex = new RegExp(`(?:^|\\s|[.,!?;])${tag}(?:\\s|$|[.,!?;])`, "i");
+    return regex.test(lower);
+  });
+
+  const matched = recognizedTags.filter((tag) => {
+    const regex = new RegExp(`(?:^|\\s|[.,!?;])${tag}(?:\\s|$|[.,!?;])`, "i");
+    return regex.test(lower);
+  });
+
+  if (matched.length === 0) {
+    let missingReason = "Content caption must include an ASCI/CCPA compliant disclosure tag (e.g. #ad, #sponsored, #collab, or #paidpartnership) or enable Instagram's native Paid Partnership label.";
+    if (foundProhibited.length > 0) {
+      missingReason = `Prohibited abbreviation(s) detected: ${foundProhibited.join(", ")}. ASCI & CCPA 2024 require explicit full disclosures such as #ad, #sponsored, or #paidpartnership.`;
+    }
+    return {
+      isCompliant: false,
+      matchedTags: [],
+      prominenceCompliant: false,
+      prohibitedTagsDetected: foundProhibited,
+      missingRequirement: missingReason,
+      detectionMethod: "NONE",
+    };
+  }
+
+  // ASCI 2024 Prominence Rule:
+  // Disclosures must be prominent and placed 'above the fold' (within first 150 characters
+  // AND before any early line breaks) so consumers see them without clicking 'more'.
+  const first150 = text.slice(0, 150);
+  const firstLine = text.split(/[\r\n]+/)[0] || "";
+  const isAboveTheFold = matched.some((tag) => {
+    const regex = new RegExp(`(?:^|\\s|[.,!?;])${tag}(?:\\s|$|[.,!?;])`, "i");
+    return regex.test(first150) && regex.test(firstLine);
+  });
+
+  if (!isAboveTheFold) {
+    return {
+      isCompliant: false,
+      matchedTags: matched,
+      prominenceCompliant: false,
+      prohibitedTagsDetected: foundProhibited,
+      missingRequirement: "PROMINENCE_VIOLATION: ASCI & CCPA 2024 norms mandate that disclosure tags (#ad, #sponsored, #collab) must appear above the fold (within the first 150 characters or on the first line) so that consumers see them without clicking 'more', not buried at the end of the caption.",
+      detectionMethod: "CAPTION_BELOW_FOLD",
+    };
+  }
+
   return {
-    isCompliant: matched.length > 0,
+    isCompliant: true,
     matchedTags: matched,
-    missingRequirement:
-      matched.length === 0
-        ? "Content caption must include an ASCI/CCPA compliant disclosure tag (e.g. #ad, #sponsored, #collab, or #paidpartnership)."
-        : undefined,
+    prominenceCompliant: true,
+    prohibitedTagsDetected: foundProhibited,
+    detectionMethod: "CAPTION_ABOVE_FOLD",
   };
 }
 

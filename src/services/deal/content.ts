@@ -1,6 +1,6 @@
 import { addUserXp } from "@/lib/gamification-engine";
 import { checkChallengeProgress } from "@/lib/weekly-challenges";
-import { ContractTerms } from "@/lib/contract-engine";
+import { ContractTerms, validateAscidisclosure } from "@/lib/contract-engine";
 import { assertSufficientBalance } from "@/lib/utils";
 import { checkMessageForContacts } from "@/lib/contact-filter";
 import { updateTrustAndLevel } from "@/lib/trust-engine";
@@ -84,6 +84,14 @@ export async function submitContent(
 ) {
   if (notes && checkMessageForContacts(notes).hasContactInfo) {
     throw AppError.badRequest("Contact details (phone, email, links, social handles, or UPI) are not allowed in submission notes.");
+  }
+
+  // Pre-Submission ASCI & CCPA 2024 Gate:
+  // If notes contain proposed captions with hashtags, enforce disclosure compliance upfront
+  if (notes && notes.includes("#") && !validateAscidisclosure(notes).isCompliant) {
+    throw AppError.badRequest(
+      "ASCI & CCPA Legal Compliance Error: Your proposed caption in submission notes must include an approved disclosure tag (such as #ad, #sponsored, or #collab) prominently in the first 150 characters.",
+    );
   }
 
   try {

@@ -6,6 +6,7 @@ import { fetchInstagramPostDataDetailed, fetchYouTubePostDataDetailed } from "./
 import { findPostByUrl, getFreshInstagramAccessToken } from "../instagram";
 import { extractVideoId, getYouTubeVideo } from "../youtube";
 import { resolveFraudAction } from "./utils";
+import { validateAscidisclosure } from "../contract-engine";
 import { formatNumber } from "../utils-client";
 
 export async function checkPostVerification(
@@ -568,27 +569,21 @@ function performPostContentChecks(
     score += 60;
   }
 
-  const captionLower = verifiedPostData.caption.toLowerCase();
-  const hasAdDisclosure =
-    verifiedPostData.isPaidPartnership === true ||
-    captionLower.includes("#ad") ||
-    captionLower.includes("#sponsored") ||
-    captionLower.includes("#paidpartnership") ||
-    captionLower.includes("#collab") ||
-    captionLower.includes("#partnership") ||
-    captionLower.includes("#paidcollab") ||
-    captionLower.includes("#gifted");
+  const asciResult = validateAscidisclosure(
+    verifiedPostData.caption,
+    verifiedPostData.isPaidPartnership === true,
+  );
 
-  if (!hasAdDisclosure) {
+  if (!asciResult.isCompliant) {
     flags.push({
       rule: "NO_AD_DISCLOSURE",
-      severity: "HIGH",
+      severity: "CRITICAL",
       description:
-        "Paid partnership disclosure missing required by FTC and Indian ASCI guidelines. " +
-        "Add #ad, #sponsored, #paidpartnership, #collab, #partnership, #paidcollab, or #gifted, " +
-        "or enable Instagram's native Paid Partnership label.",
+        asciResult.missingRequirement ||
+        "Paid partnership disclosure missing or non-compliant under Indian ASCI & CCPA 2024 guidelines. Must include prominent #ad, #sponsored, or native Paid Partnership label.",
     });
-    score += 70;
+    // Critical legal violation: push risk score >= 80 to trigger immediate BLOCK
+    score += 85;
   }
 
   if (verifiedPostData.postTimestamp > params.postingDeadline) {
