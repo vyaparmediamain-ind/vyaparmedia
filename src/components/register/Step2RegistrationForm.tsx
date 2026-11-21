@@ -36,6 +36,7 @@ setShowConfirmPassword,
 isLoading,
 getVerificationStatusText,
 renderSubmitButtonContent,
+requireReferral,
 } = registration;
 
 return (
@@ -110,9 +111,9 @@ error={fieldErrors.confirmPassword}
 <div className="auth-form-group mb-6">
 <Input
 id="referralCode"
-label="Referral Code (optional)"
+label={requireReferral ? "Invite / Referral Code *" : "Referral Code (optional)"}
 type="text"
-placeholder="Enter if you have one"
+placeholder={requireReferral ? "Enter your exclusive invite code" : "Enter if you have one"}
 value={formData.referralCode}
 onChange={(e) =>
 setFormData({
@@ -123,6 +124,12 @@ referralCode: e.target.value.toUpperCase(),
 error={fieldErrors.referralCode}
 fullWidth
 />
+{requireReferral && (
+  <div className="mt-1.5 flex items-center gap-1.5 text-xs text-amber-500 font-medium bg-amber-500/10 px-3 py-1.5 rounded-lg border border-amber-500/20">
+    <span>🔒</span>
+    <span>VyaparMedia is currently in Invite-Only Beta. A referral code is required to register.</span>
+  </div>
+)}
 </div>
 
 {/* Terms */}

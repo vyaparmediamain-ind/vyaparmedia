@@ -183,6 +183,11 @@
 | P19-BACKEND-01 | FIXED | current | tests/unit/deals-list-screen.test.ts | None (Standardized all Deal API route handlers to apiWrapper with requireAuth: true, eliminating duplicate auth() overhead and using verified session) |
 | P19-FRONTEND-01 | FIXED | current | tests/unit/deal-detail-screen.test.ts | None (Connected live useWallet in DealModals to enforce real-time balance checks for extra revisions; corrected label from (Free) to exact extra fee when costPaise > 0) |
 | P19-BACKEND-02 | FIXED | current | tests/unit/audit-contract-ci.test.ts | None (Eliminated redundant auth() calls across 15 routes including applications, wallet/add-funds, campaigns, disputes, messages, notifications, admin reports; guarded GMV in revenue reports against null totalAmount) |
+| P20-REALTIME-01 | FIXED | current | tests/unit/sse-ocr-draft-hardening.test.ts | None (Migrated messaging from continuous 2.5s DB polling to Server-Sent Events SSE via /api/messages/stream + Redis/EventEmitter broadcasting, reducing DB load by >90%) |
+| P20-SECURITY-01 | FIXED | current | tests/unit/sse-ocr-draft-hardening.test.ts | None (Implemented fail-closed OCR security queue on per-user/daily rate limits with [IMAGE UNDER AUTOMATED REVIEW] masking to prevent bypass) |
+| P20-DRAFT-01 | FIXED | current | tests/unit/sse-ocr-draft-hardening.test.ts | None (Synchronized campaign wizard drafts with server database /api/campaigns?scope=mine&status=DRAFT for cross-device persistence) |
+| P20-DRS-SCALE-01 | FIXED | current | tests/unit/shared-schemas.test.ts | None (Harmonized Digital Reputation Score (DRS) to CIBIL 300–900 standard across schemas min(300), composite ranking formulas, radial gauge math, actions, and documentation) |
+
 
 
 

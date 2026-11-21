@@ -4,7 +4,10 @@ import { invalidate } from "@/lib/cache";
 import { ContractTerms } from "@/lib/contract-engine";
 
 export async function invalidateDealCache(dealId: string) {
-await invalidate(`deal:${dealId}`);
+  await Promise.all([
+    invalidate(`deal:${dealId}`),
+    invalidate(`deal:contract:${dealId}`),
+  ]);
 }
 
 export async function lockAndFetchDealForAction(tx: Prisma.TransactionClient, dealId: string) {

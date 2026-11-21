@@ -280,12 +280,14 @@ export function CampaignRoiReport({ data, campaignId, onRefresh }: CampaignRoiRe
           <Logo asLink={false} showTagline={true} size="md" />
           <div className="text-right text-xs text-muted-foreground space-y-0.5 font-sans">
             <div className="font-bold text-foreground text-xs uppercase">
-              {PLATFORM_CONFIG.legalName.toUpperCase()}
+              {PLATFORM_CONFIG.tradeName ? `${PLATFORM_CONFIG.tradeName.toUpperCase()} (${PLATFORM_CONFIG.legalName.toUpperCase()})` : PLATFORM_CONFIG.legalName.toUpperCase()}
             </div>
             <div>
               {PLATFORM_CONFIG.cin && !["N/A", "NONE", "PROPRIETORSHIP"].includes(PLATFORM_CONFIG.cin.toUpperCase()) ? `CIN: ${PLATFORM_CONFIG.cin} | ` : ""}
               {PLATFORM_CONFIG.udyam ? `Udyam: ${PLATFORM_CONFIG.udyam} | ` : ""}
-              GSTIN: {PLATFORM_CONFIG.gstin} | SAC: 998365
+              GSTIN: {PLATFORM_CONFIG.gstin}
+              {PLATFORM_CONFIG.pan ? ` | PAN: ${PLATFORM_CONFIG.pan}` : ""}
+              {PLATFORM_CONFIG.sacCode ? ` | SAC: ${PLATFORM_CONFIG.sacCode}` : ""}
             </div>
             <div>{PLATFORM_CONFIG.address}</div>
           </div>

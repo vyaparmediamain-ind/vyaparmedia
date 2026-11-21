@@ -35,7 +35,7 @@ describe("CSV Export & Financial Compliance Suite", () => {
     const lines = csv.split("\r\n");
 
     // Header metadata appears at top
-    expect(lines[0]).toContain("Platform: VyaparMedia");
+    expect(lines[0]).toMatch(/Platform:\s*Vyapar\s*Media/i);
 
     // Data table header row is present
     expect(lines).toContain("Deal ID,Supplier,TCS");

@@ -13,7 +13,9 @@ export const walletSummarySchema = z.object({
   totalHeld: z.number().int().default(0),
   totalSpent: z.number().int().default(0),
   totalDeposited: z.number().int().default(0),
+  debt: z.number().int().default(0).optional(),
   isFrozen: z.boolean().default(false),
+  frozenReason: z.string().nullable().optional(),
 });
 
 export type WalletSummary = z.infer<typeof walletSummarySchema>;

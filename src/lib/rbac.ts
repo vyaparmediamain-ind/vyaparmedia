@@ -152,6 +152,20 @@ INFLUENCER: [
 "VIEW_SETTINGS",
 "MANAGE_SETTINGS",
 ],
+SCOUT: [
+// Dashboard & Navigation
+"VIEW_DASHBOARD",
+"VIEW_ANALYTICS",
+// Finance
+"VIEW_OWN_FINANCE",
+"WITHDRAW_FUNDS",
+"VIEW_TRANSACTIONS",
+// Verification & KYC
+"SUBMIT_VERIFICATION",
+// Settings
+"VIEW_SETTINGS",
+"MANAGE_SETTINGS",
+],
 };
 
 type RbacUserType = UserType | string | null | undefined;
@@ -218,6 +232,13 @@ return userType === "BRAND";
 */
 export function isInfluencer(userType: RbacUserType): boolean {
 return userType === "INFLUENCER";
+}
+
+/**
+* Check if user is scout
+*/
+export function isScout(userType: RbacUserType): boolean {
+return userType === "SCOUT";
 }
 
 

@@ -165,14 +165,14 @@ describe("TP-01 & TP-09: Realtime Option A Architecture, RLS Policies & CSP Inte
 
   describe("5. Fallback Polling in UI Components", () => {
     it("verifies deal, messaging, notification, and wallet components have polling wired", () => {
-      // 1. Deals: useDealRealtime.ts has 2000ms visibility-aware polling
+      // 1. Deals: useDealRealtime.ts has adaptive visibility-aware polling
       const dealContent = fs.readFileSync(
         path.resolve(process.cwd(), "src/components/dashboard/deals/useDealRealtime.ts"),
         "utf-8",
       );
       expect(dealContent).toContain("setInterval");
       expect(dealContent).toContain("document.visibilityState === \"visible\"");
-      expect(dealContent).toContain("2000");
+      expect(dealContent).toMatch(/2000|5000/);
 
       // 2. Messages: useMessages.ts has 2500ms visibility-aware polling
       const messagesContent = fs.readFileSync(

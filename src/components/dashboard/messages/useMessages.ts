@@ -37,6 +37,7 @@ export function useMessages() {
 
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [selectedConversation, setSelectedConversation] = useState<string | null>(withParam || null);
+  const lastSelectedParamRef = useRef<string | null>(withParam || null);
   const [currentDealId, setCurrentDealId] = useState<string | null>(dealIdParam || null);
   const [dealDetails, setDealDetails] = useState<DealContextData | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -134,10 +135,27 @@ export function useMessages() {
   );
 
   useEffect(() => {
-    if (withParam && withParam !== selectedConversation) {
+    if (withParam && withParam !== lastSelectedParamRef.current) {
+      lastSelectedParamRef.current = withParam;
       setSelectedConversation(withParam);
     }
-  }, [withParam, selectedConversation]);
+  }, [withParam]);
+
+  const handleBackToConversations = useCallback(() => {
+    setSelectedConversation(null);
+    setCurrentDealId(null);
+    setDealDetails(null);
+    lastSelectedParamRef.current = null;
+    if (typeof window !== "undefined") {
+      const url = new URL(window.location.href);
+      url.searchParams.delete("with");
+      url.searchParams.delete("userId");
+      url.searchParams.delete("recipientId");
+      url.searchParams.delete("deal");
+      url.searchParams.delete("dealId");
+      window.history.replaceState({}, "", url.pathname);
+    }
+  }, []);
 
   useEffect(() => {
     if (dealIdParam) {
@@ -279,18 +297,29 @@ export function useMessages() {
     [selectedConversation, session, currentDealId]
   );
 
-  // 1. Initial message load & Fast Fallback Polling (2.5s for fast delivery)
+  // 1. Initial message load & Slow Safety Sync (SSE handles instant delivery; 60s low-frequency fallback reduces DB load by >90%)
   useEffect(() => {
     if (!selectedConversation || !session) return;
 
     fetchMessages(true);
+
+    const onVisibilityChange = () => {
+      if (typeof document !== "undefined" && document.visibilityState === "visible") {
+        fetchMessages(false);
+      }
+    };
+    document.addEventListener("visibilitychange", onVisibilityChange);
+
     const interval = globalThis.setInterval(() => {
       if (typeof document !== "undefined" && document.visibilityState === "visible") {
         fetchMessages(false);
       }
-    }, 2500);
+    }, 60000);
 
-    return () => globalThis.clearInterval(interval);
+    return () => {
+      document.removeEventListener("visibilitychange", onVisibilityChange);
+      globalThis.clearInterval(interval);
+    };
   }, [fetchMessages, selectedConversation, session]);
 
   // 2. Real-time Incoming Message Subscription (Supabase Realtime)
@@ -338,8 +367,7 @@ export function useMessages() {
     const currentUserId = session?.user?.id;
     if (!currentUserId || !selectedConversation) return;
 
-    const convKey = [currentUserId, selectedConversation].sort().join("-");
-    const { broadcastTyping, unsubscribe } = subscribeToTypingPresence(convKey, (isTyping) => {
+    const { broadcastTyping, unsubscribe } = subscribeToTypingPresence(selectedConversation, (isTyping) => {
       setIsPeerTyping(isTyping);
     });
 
@@ -593,6 +621,7 @@ export function useMessages() {
     refreshConversations,
     selectedConversation,
     setSelectedConversation,
+    handleBackToConversations,
     currentDealId,
     dealDetails,
     messages,

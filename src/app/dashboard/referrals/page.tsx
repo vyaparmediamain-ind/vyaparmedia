@@ -221,11 +221,12 @@ function ShareModal({ open, onClose, referralCode, referralLink, onOpenStory }: 
 /* ─────────────────────────── Tier definition ─────────────────────────────── */
 
 const TIERS = [
-  { name: "BRONZE",   label: "Bronze",   min: 10,   reward: "1%",      accent: "border-pending-border  bg-pending-muted  text-pending"  },
-  { name: "SILVER",   label: "Silver",   min: 50,   reward: "1.5%",    accent: "border-border          bg-muted          text-muted-foreground" },
-  { name: "GOLD",     label: "Gold",     min: 100,  reward: "2%",      accent: "border-pending-border  bg-pending-muted  text-pending"  },
-  { name: "PLATINUM", label: "Platinum", min: 500,  reward: "1% GMV",  accent: "border-escrow-border   bg-escrow-muted   text-escrow"   },
-  { name: "DIAMOND",  label: "Diamond",  min: 1000, reward: "2% GMV",  accent: "border-verified-border bg-verified-muted text-verified" },
+  { name: "STARTER",  label: "Starter",  min: 0,    reward: "1% Deal Cut",           accent: "border-border          bg-card           text-foreground" },
+  { name: "BRONZE",   label: "Bronze",   min: 10,   reward: "1% Fee Off + 1% Cut",   accent: "border-pending-border  bg-pending-muted  text-pending"  },
+  { name: "SILVER",   label: "Silver",   min: 50,   reward: "1.5% Fee Off + 1% Cut", accent: "border-border          bg-muted          text-muted-foreground" },
+  { name: "GOLD",     label: "Gold",     min: 100,  reward: "2% Fee Off + 1% Cut",   accent: "border-pending-border  bg-pending-muted  text-pending"  },
+  { name: "PLATINUM", label: "Platinum", min: 500,  reward: "2% Fee Off + 1% Cut",   accent: "border-escrow-border   bg-escrow-muted   text-escrow"   },
+  { name: "DIAMOND",  label: "Diamond",  min: 1000, reward: "2% Fee Off + 1% Cut",   accent: "border-verified-border bg-verified-muted text-verified" },
 ] as const;
 
 /* ─────────────────────────── Main Page ──────────────────────────────────── */
@@ -316,7 +317,7 @@ export default function ReferralsPage() {
               <Gift className="w-5 h-5 text-pending" />
             </div>
           }
-          subtitle="Expand the VyaparMedia ecosystem and build lifetime passive rewards"
+          subtitle="Invite creators & brands to earn 1% lifetime cash royalty on all their deals + up to 2% discount on your own deals."
           actions={
             <span
               className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold border ${
@@ -341,9 +342,9 @@ export default function ReferralsPage() {
             },
             {
               icon: <Zap className="w-5 h-5 text-pending" />,
-              label: stats.tier.revenueShare > 0 ? "Revenue Share" : "Fee Discount",
+              label: stats.tier.feeDiscount > 0 ? "Fee Off + Deal Cut" : "Deal Royalty Cut",
               value: stats.tier.revenueShare > 0
-                ? `${(stats.tier.revenueShare * 100).toFixed(1).replace(/\.0$/, "")}% GMV`
+                ? `${stats.tier.feeDiscount > 0 ? `${stats.tier.feeDiscount}% Off + ` : ""}${(stats.tier.revenueShare * 100).toFixed(0)}% Deal Cut`
                 : `${stats.tier.feeDiscount}%`,
               bg: "bg-pending/10 border-pending-border",
             },

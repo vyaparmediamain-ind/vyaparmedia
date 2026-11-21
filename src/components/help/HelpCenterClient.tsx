@@ -96,8 +96,16 @@ export const FAQ_DATA: FaqItem[] = [
     category: "PAYMENTS_ESCROW",
     question: "What platform fees does VyaparMedia charge?",
     answer:
-      `VyaparMedia charges a transparent ${DEFAULT_BRAND_PLATFORM_FEE_PERCENT}% platform escrow protection fee to brands upon deal funding. Creators receive 100% of their quoted rate minus applicable statutory TDS. There are zero subscription or listing fees.`,
+      `VyaparMedia charges a transparent ${DEFAULT_BRAND_PLATFORM_FEE_PERCENT}% platform escrow protection fee to brands upon deal funding (or 7.5% on volume plans). For 100% product-seeding or barter collaborations, a 10% Product Handling Fee applies on the declared product retail value (min ₹500 value). Creators receive 100% of their quoted commercial rate minus statutory TDS with zero platform deductions. There are no monthly subscriptions.`,
     badgeText: "Fee Transparency",
+  },
+  {
+    id: "pe-5",
+    category: "PAYMENTS_ESCROW",
+    question: "How do Product-Only (Barter / Gifting) campaigns work?",
+    answer:
+      "Brands can launch barter campaigns with ₹0 cash payout pool where influencers receive free physical products instead of money. The platform charges a 10% Product Handling Fee based on the combined retail product value (minimum required value of ₹500). Shiprocket courier logistics are integrated directly into the brand wallet. Creators retain the gifted products and their content deadline begins only after the delivery is confirmed.",
+    badgeText: "Barter Campaigns",
   },
 
   // 3. Disputes & Revisions
@@ -130,17 +138,17 @@ export const FAQ_DATA: FaqItem[] = [
   {
     id: "kyc-1",
     category: "KYC_SECURITY",
-    question: "Why is Aadhaar & PAN KYC mandatory for creators?",
+    question: "Why is Aadhaar & PAN KYC mandatory, and what are the verification tiers?",
     answer:
-      "To prevent fraud, impersonation, and sybil attacks, VyaparMedia requires government identity verification (Aadhaar OTP + PAN verification) before wallet withdrawals can be unlocked. Identity data is encrypted and verified against government databases without storing raw biometric data.",
-    badgeText: "Identity Verification",
+      "To prevent fraud, impersonation, and comply with Indian regulatory norms (Rule 114B & RBI KYC), VyaparMedia implements 3 simple tiers: Tier 1 (Aadhaar OTP + Selfie) unlocks up to ₹50,000/month; Tier 2 (PAN + Bank Statement) unlocks up to ₹1,00,000/month for Brands and Unlimited for Creators; Tier 3 (GST, MSME/Udyam, CIN, or Startup India Certificate) unlocks Unlimited campaigns for Brands. Raw biometric data is never stored.",
+    badgeText: "Identity & Tiers",
   },
   {
     id: "kyc-2",
     category: "KYC_SECURITY",
     question: "What is the Creator DRS (Dynamic Reliability Score)?",
     answer:
-      "The DRS is a 0–900 trust index calculated from on-time delivery rates, revision compliance, brand ratings, and dispute-free history. Creators with 800+ DRS earn the 'Elite Creator' badge and receive priority placement in brand discovery feeds.",
+      "The DRS is a 300–900 trust index calculated from on-time delivery rates, revision compliance, brand ratings, and dispute-free history. Creators with 800+ DRS earn the 'Elite Creator' badge and receive priority placement in brand discovery feeds.",
     badgeText: "DRS Trust Score",
   },
   {

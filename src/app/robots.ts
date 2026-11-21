@@ -1,7 +1,8 @@
 import { MetadataRoute } from "next";
 
 export default function robots(): MetadataRoute.Robots {
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://vyaparmedia-nine.vercel.app";
+  const rawBaseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://vyaparmedia-nine.vercel.app";
+  const baseUrl = rawBaseUrl.replace(/\/+$/, "");
 
   return {
     rules: [
@@ -19,6 +20,9 @@ export default function robots(): MetadataRoute.Robots {
           "/refund",
           "/cookie-policy",
           "/legal",
+          "/status",
+          "/login",
+          "/register",
           "/creator/",
           "/brand/",
           "/og-image.png",
@@ -31,8 +35,44 @@ export default function robots(): MetadataRoute.Robots {
           "/admin/",
           "/dashboard/",
           "/_next/",
+          "/onboarding/",
           "/reset-password/",
           "/forgot-password/",
+        ],
+      },
+      // Allow AI search engines to index public brand and creator knowledge
+      {
+        userAgent: [
+          "GPTBot",
+          "ChatGPT-User",
+          "PerplexityBot",
+          "ClaudeBot",
+          "anthropic-ai",
+          "Google-Extended",
+        ],
+        allow: [
+          "/",
+          "/pricing",
+          "/blog",
+          "/about",
+          "/help",
+          "/contact",
+          "/terms",
+          "/privacy",
+          "/refund",
+          "/cookie-policy",
+          "/legal",
+          "/status",
+          "/register",
+          "/creator/",
+          "/brand/",
+        ],
+        disallow: [
+          "/api/",
+          "/admin/",
+          "/dashboard/",
+          "/_next/",
+          "/onboarding/",
         ],
       },
     ],

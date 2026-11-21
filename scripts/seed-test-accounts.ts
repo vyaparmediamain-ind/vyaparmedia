@@ -15,7 +15,7 @@ import { seedBadges } from "./seed-badges";
 const PASSWORD = process.env.TEST_ACCOUNT_PASSWORD ?? "Test@1234";
 const BRAND_WALLET_PAISE = 100_000 * 100; // Rs 1,00,000
 
-async function upsertUser(email: string, phone: string, userType: "INFLUENCER" | "BRAND" | "ADMIN") {
+async function upsertUser(email: string, phone: string, userType: "INFLUENCER" | "BRAND" | "ADMIN" | "SCOUT") {
   const passwordHash = await bcrypt.hash(PASSWORD, 12);
   const existing = await prisma.user.findFirst({
     where: {
@@ -260,6 +260,78 @@ async function main() {
   await seedTaxCompliance(influencer.id, false);
   await seedBankAccount(influencer.id, "Priya Sharma", "ICICI Bank");
 
+  // --- SCOUT ---
+  const scout = await upsertUser("scout@test.vyaparmedia.in", "+919000000004", "SCOUT");
+  await prisma.user.update({
+    where: { id: scout.id },
+    data: { referralCode: "SCOUT-CAMPUS" },
+  });
+
+  await prisma.scoutProfile.upsert({
+    where: { userId: scout.id },
+    update: {
+      scoutCode: "SCOUT-CAMPUS",
+      fullName: "Amit Kumar",
+      phone: "+919000000004",
+      city: "New Delhi",
+      state: "Delhi",
+      college: "Delhi University (SRCC)",
+      panNumber: "ABCDE9999K",
+      aadhaarNumber: "987654321098",
+      verificationStatus: "APPROVED",
+      verifiedAt: new Date(),
+      royaltyPercent: 1.0,
+      isRoyaltyPaused: false,
+    },
+    create: {
+      userId: scout.id,
+      scoutCode: "SCOUT-CAMPUS",
+      fullName: "Amit Kumar",
+      phone: "+919000000004",
+      city: "New Delhi",
+      state: "Delhi",
+      college: "Delhi University (SRCC)",
+      panNumber: "ABCDE9999K",
+      aadhaarNumber: "987654321098",
+      verificationStatus: "APPROVED",
+      verifiedAt: new Date(),
+      royaltyPercent: 1.0,
+      isRoyaltyPaused: false,
+    },
+  });
+  console.log("  + ScoutProfile upserted (Code: SCOUT-CAMPUS, Status: APPROVED)");
+
+  const SCOUT_WALLET_PAISE = 5_000 * 100; // Rs 5,000 pre-loaded royalty earnings
+  const scoutWallet = await prisma.wallet.upsert({
+    where: { userId: scout.id },
+    update: { balance: SCOUT_WALLET_PAISE, totalEarned: SCOUT_WALLET_PAISE },
+    create: { userId: scout.id, balance: SCOUT_WALLET_PAISE, totalEarned: SCOUT_WALLET_PAISE },
+  });
+
+  await prisma.transaction.upsert({
+    where: { id: "seed-scout-royalty-" + scout.id },
+    update: {},
+    create: {
+      id: "seed-scout-royalty-" + scout.id,
+      walletId: scoutWallet.id,
+      type: "CREDIT",
+      amount: SCOUT_WALLET_PAISE,
+      status: "COMPLETED",
+      description: "Initial Vyapar Scout 1% network deal royalty payout",
+    },
+  });
+  console.log("  + Scout Wallet: Rs 5,000 royalty balance seeded");
+
+  // Seed KYC Docs for Scout
+  await seedDoc(scout.id, "seed-scout-pan-" + scout.id, "PAN_CARD", "Scout PAN");
+  await seedDoc(scout.id, "seed-scout-aadhaar-" + scout.id, "AADHAAR", "Scout Aadhaar");
+  await seedDoc(scout.id, "seed-scout-selfie-" + scout.id, "SELFIE", "Scout Campus ID");
+  await seedDoc(scout.id, "seed-scout-bank-" + scout.id, "BANK_STATEMENT", "Scout Bank Statement");
+
+  // Seed Tax and Bank details for Scout
+  await seedTaxCompliance(scout.id, false);
+  await seedBankAccount(scout.id, "Amit Kumar", "HDFC Bank");
+
   // Seed badges definitions
   await seedBadges();
 
@@ -268,8 +340,10 @@ async function main() {
   console.log("  Admin:       admin@test.vyaparmedia.in       | Test@1234");
   console.log("  Brand:       brand@test.vyaparmedia.in       | Test@1234");
   console.log("  Influencer:  influencer@test.vyaparmedia.in  | Test@1234");
+  console.log("  Scout:       scout@test.vyaparmedia.in       | Test@1234");
   console.log("------------------------------------------------------");
   console.log("  Brand wallet: Rs 1,00,000 pre-loaded");
+  console.log("  Scout wallet: Rs 5,000 royalty earnings pre-loaded (Code: SCOUT-CAMPUS)");
   console.log("  All accounts: KYC FULL, email + phone verified, Tax READY");
   console.log("------------------------------------------------------\n");
 }

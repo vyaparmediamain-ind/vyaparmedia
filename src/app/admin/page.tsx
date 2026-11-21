@@ -15,6 +15,7 @@ import {
   ArrowRight,
   LayoutDashboard,
   Target,
+  Power,
 } from "lucide-react";
 
 export const dynamic = "force-dynamic";
@@ -112,6 +113,12 @@ export default async function AdminOverviewPage() {
       desc: "Tune dynamic & database baselines for relative ROI matching across creator niches.",
       href: "/admin/benchmarks",
       icon: Target,
+    },
+    {
+      title: "Kill Switches & Circuit Breakers",
+      desc: "Real-time emergency control center to pause withdrawals, deposits, signups, and vendor APIs.",
+      href: "/admin/system",
+      icon: Power,
     },
   ];
 

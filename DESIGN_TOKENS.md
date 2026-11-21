@@ -311,7 +311,7 @@ All primitive components consume `@base-ui/react` (v1.8.0) and export via `@/com
 ### 7.1 Dynamic Reliability Score (DRS) Radial Gauge
 - **Component**: Circular SVG radial progress ring embedded in `InfluencerProfileClient.tsx`.
 - **Geometry**: SVG viewport `160x160`, coordinate radius `r=68`, circumference `2 * π * 68 ≈ 427.26`.
-- **Stroke Dashoffset**: `circumference - (score / 900) * circumference`.
+- **Stroke Dashoffset**: `circumference * (1 - Math.min(Math.max((score - 300) / 600, 0), 1))` (CIBIL 300–900 scale).
 - **Tier Styling**:
   - `800–900`: Elite Tier (`text-verified` / Emerald gradient stroke).
   - `650–799`: Trusted Tier (`text-escrow` / Sapphire stroke).

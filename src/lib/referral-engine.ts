@@ -17,121 +17,121 @@ import { env } from "@/env";
 * Bronze (10 referrals): +250 XP, 1% fee discount
 * Silver (50 referrals): +1500 XP, 1.5% fee discount
 * Gold (100 referrals): +3500 XP, 2% fee discount
-* Platinum(500 referrals): 1% GMV revenue share (lifetime)
-* Diamond (1000 referrals): 2% GMV revenue share (lifetime) + equity option
+* Platinum(500 referrals): 1% GMV revenue share (lifetime) + 2% fee discount
+* Diamond (1000 referrals): 1% GMV revenue share (lifetime) + 2% fee discount + partner status
 */
 
 interface ReferralTier {
-name: string;
-min: number;
-commission: number; // For backward compatibility / generic use
-feeDiscount: number; // % discount on user's own platform fees
-revenueShare: number; // % of ALL referral revenue (lifetime)
-xpReward: number; // XP granted on reaching tier
-label: string;
-color: string;
-icon: string;
+  name: string;
+  min: number;
+  commission: number; // For backward compatibility / generic use
+  feeDiscount: number; // % discount on user's own platform fees
+  revenueShare: number; // % of ALL referral revenue (lifetime)
+  xpReward: number; // XP granted on reaching tier
+  label: string;
+  color: string;
+  icon: string;
 }
 
 const REFERRAL_TIERS: Record<"STARTER" | "BRONZE" | "SILVER" | "GOLD" | "PLATINUM" | "DIAMOND", ReferralTier> = {
-STARTER: {
-name: "STARTER",
-min: 0,
-commission: 0,
-feeDiscount: 0,
-revenueShare: 0,
-xpReward: 0,
-label: "Starter",
-color: "#6b7280",
-icon: "★",
-},
-BRONZE: {
-name: "BRONZE",
-min: 10,
-commission: 0,
-feeDiscount: 1,
-revenueShare: 0,
-xpReward: 250,
-label: "Bronze",
-color: "#cd7f32",
-icon: "🥉",
-},
-SILVER: {
-name: "SILVER",
-min: 50,
-commission: 0,
-feeDiscount: 1.5,
-revenueShare: 0,
-xpReward: 1500,
-label: "Silver",
-color: "#c0c0c0",
-icon: "🥈",
-},
-GOLD: {
-name: "GOLD",
-min: 200,
-commission: 0,
-feeDiscount: 2,
-revenueShare: 0,
-xpReward: 5000,
-label: "Gold",
-color: "#ffd700",
-icon: "🥇",
-},
-PLATINUM: {
-name: "PLATINUM",
-min: 500,
-commission: 0,
-feeDiscount: 2, // Retains Gold discount
-revenueShare: 0.01, // 1% of GMV
-xpReward: 0,
-label: "Platinum",
-color: "#e5e4e2",
-icon: "🏆",
-},
-DIAMOND: {
-name: "DIAMOND",
-min: 1000,
-commission: 0,
-feeDiscount: 2, // Retains Gold discount
-revenueShare: 0.02, // 2% of GMV
-xpReward: 0,
-label: "Diamond",
-color: "#b9f2ff",
-icon: "💎",
-},
+  STARTER: {
+    name: "STARTER",
+    min: 0,
+    commission: 0.01,
+    feeDiscount: 0,
+    revenueShare: 0.01, // 1% Lifetime GMV Deal Royalty from Referral #1!
+    xpReward: 0,
+    label: "Starter",
+    color: "#6b7280",
+    icon: "★",
+  },
+  BRONZE: {
+    name: "BRONZE",
+    min: 10,
+    commission: 0.01,
+    feeDiscount: 1, // 1% fee discount on own deals
+    revenueShare: 0.01, // 1% Lifetime GMV Deal Royalty
+    xpReward: 250,
+    label: "Bronze",
+    color: "#cd7f32",
+    icon: "🥉",
+  },
+  SILVER: {
+    name: "SILVER",
+    min: 50,
+    commission: 0.01,
+    feeDiscount: 1.5, // 1.5% fee discount on own deals
+    revenueShare: 0.01, // 1% Lifetime GMV Deal Royalty
+    xpReward: 1500,
+    label: "Silver",
+    color: "#c0c0c0",
+    icon: "🥈",
+  },
+  GOLD: {
+    name: "GOLD",
+    min: 100,
+    commission: 0.01,
+    feeDiscount: 2, // 2% fee discount on own deals
+    revenueShare: 0.01, // 1% Lifetime GMV Deal Royalty
+    xpReward: 3500,
+    label: "Gold",
+    color: "#ffd700",
+    icon: "🥇",
+  },
+  PLATINUM: {
+    name: "PLATINUM",
+    min: 500,
+    commission: 0.01,
+    feeDiscount: 2, // Retains Gold discount
+    revenueShare: 0.01, // Flat 1% Lifetime GMV Deal Royalty
+    xpReward: 0,
+    label: "Platinum",
+    color: "#e5e4e2",
+    icon: "🏆",
+  },
+  DIAMOND: {
+    name: "DIAMOND",
+    min: 1000,
+    commission: 0.01,
+    feeDiscount: 2, // Retains Gold discount
+    revenueShare: 0.01, // Flat 1% Lifetime GMV Deal Royalty
+    xpReward: 0,
+    label: "Diamond",
+    color: "#b9f2ff",
+    icon: "💎",
+  },
 };
 
 /**
 * Determine referral tier from active referral count.
 */
-function getTierFromCount(activeReferrals: number): ReferralTier {
-if (activeReferrals >= REFERRAL_TIERS.DIAMOND.min)
-return REFERRAL_TIERS.DIAMOND;
-if (activeReferrals >= REFERRAL_TIERS.PLATINUM.min)
-return REFERRAL_TIERS.PLATINUM;
-if (activeReferrals >= REFERRAL_TIERS.GOLD.min) return REFERRAL_TIERS.GOLD;
-if (activeReferrals >= REFERRAL_TIERS.SILVER.min)
-return REFERRAL_TIERS.SILVER;
-if (activeReferrals >= REFERRAL_TIERS.BRONZE.min)
-return REFERRAL_TIERS.BRONZE;
-return REFERRAL_TIERS.STARTER;
+export function getTierFromCount(activeReferrals: number): ReferralTier {
+  if (activeReferrals >= REFERRAL_TIERS.DIAMOND.min)
+    return REFERRAL_TIERS.DIAMOND;
+  if (activeReferrals >= REFERRAL_TIERS.PLATINUM.min)
+    return REFERRAL_TIERS.PLATINUM;
+  if (activeReferrals >= REFERRAL_TIERS.GOLD.min) return REFERRAL_TIERS.GOLD;
+  if (activeReferrals >= REFERRAL_TIERS.SILVER.min)
+    return REFERRAL_TIERS.SILVER;
+  if (activeReferrals >= REFERRAL_TIERS.BRONZE.min)
+    return REFERRAL_TIERS.BRONZE;
+  return REFERRAL_TIERS.STARTER;
 }
 
 /**
 * Get next tier info for progression display.
 */
 function getNextTier(currentTier: ReferralTier): ReferralTier | null {
-const tierOrder: ReferralTier[] = [
-REFERRAL_TIERS.STARTER,
-REFERRAL_TIERS.BRONZE,
-REFERRAL_TIERS.SILVER,
-REFERRAL_TIERS.GOLD,
-REFERRAL_TIERS.PLATINUM,
-REFERRAL_TIERS.DIAMOND,
-];
-const idx = tierOrder.findIndex((t) => t.name === currentTier.name);
-return idx >= 0 && idx < tierOrder.length - 1 ? tierOrder[idx + 1] ?? null : null;
+  const tierOrder: ReferralTier[] = [
+    REFERRAL_TIERS.STARTER,
+    REFERRAL_TIERS.BRONZE,
+    REFERRAL_TIERS.SILVER,
+    REFERRAL_TIERS.GOLD,
+    REFERRAL_TIERS.PLATINUM,
+    REFERRAL_TIERS.DIAMOND,
+  ];
+  const idx = tierOrder.findIndex((t) => t.name === currentTier.name);
+  return idx >= 0 && idx < tierOrder.length - 1 ? tierOrder[idx + 1] ?? null : null;
 }
 
 async function getCachedReferralStats(cacheKey: string) {
@@ -179,15 +179,42 @@ type RawReferredUserRecord = {
   userType: string;
   createdAt: Date;
   influencerProfile: { displayName: string | null; completedDeals: number; totalEarnings: number } | null;
-  brandProfile: { companyName: string | null; totalCampaigns: number; totalSpent: number; campaigns: Array<{ id: string }> } | null;
+  brandProfile: {
+    companyName: string | null;
+    totalCampaigns: number;
+    totalSpent: number;
+    campaigns: Array<{ id: string }>;
+    deals: Array<{ id: string }>;
+  } | null;
 };
+
+function buildActiveReferralWhere(referrerId: string): Prisma.UserWhereInput {
+  return {
+    referredBy: referrerId,
+    OR: [
+      { influencerProfile: { completedDeals: { gt: 0 } } },
+      {
+        brandProfile: {
+          OR: [
+            { campaigns: { some: { status: "COMPLETED" } } },
+            { deals: { some: { status: "COMPLETED" } } },
+            { totalSpent: { gt: 0 } },
+          ],
+        },
+      },
+    ],
+  };
+}
 
 function formatReferredUser(ru: RawReferredUserRecord) {
   let isActive = false;
   if (ru.influencerProfile) {
     isActive = ru.influencerProfile.completedDeals > 0;
   } else if (ru.brandProfile) {
-    isActive = ru.brandProfile.totalSpent > 0 || ru.brandProfile.campaigns.length > 0;
+    isActive =
+      ru.brandProfile.totalSpent > 0 ||
+      (ru.brandProfile.campaigns && ru.brandProfile.campaigns.length > 0) ||
+      (ru.brandProfile.deals && ru.brandProfile.deals.length > 0);
   }
 
   const fallbackName = ru.influencerProfile?.displayName || ru.brandProfile?.companyName || ru.email.split("@")[0];
@@ -223,6 +250,11 @@ async function fetchReferredUsersList(userId: string, offset: number, limit: num
           totalCampaigns: true,
           totalSpent: true,
           campaigns: {
+            where: { status: "COMPLETED" },
+            select: { id: true },
+            take: 1,
+          },
+          deals: {
             where: { status: "COMPLETED" },
             select: { id: true },
             take: 1,
@@ -267,20 +299,7 @@ export async function getReferralStats(
   const totalReferrals = user._count.referredUsers;
 
   const activeReferrals = await prisma.user.count({
-    where: {
-      referredBy: userId,
-      OR: [
-        { influencerProfile: { completedDeals: { gt: 0 } } },
-        {
-          brandProfile: {
-            OR: [
-              { campaigns: { some: { status: "COMPLETED" } } },
-              { totalSpent: { gt: 0 } },
-            ],
-          },
-        },
-      ],
-    },
+    where: buildActiveReferralWhere(userId),
   });
 
   const currentTier = getTierFromCount(activeReferrals);
@@ -307,10 +326,10 @@ export async function getReferralStats(
     nextTier,
     progressToNext: nextTier
       ? {
-          current: activeReferrals,
-          needed: nextTier.min,
-          percentage: Math.min(100, Math.round((activeReferrals / nextTier.min) * 100)),
-        }
+        current: activeReferrals,
+        needed: nextTier.min,
+        percentage: Math.min(100, Math.round((activeReferrals / nextTier.min) * 100)),
+      }
       : null,
     earnings: referralTx._sum.amount || 0,
     referralCode: activeReferralCode,
@@ -319,14 +338,14 @@ export async function getReferralStats(
     feeDiscount: currentTier.feeDiscount,
   };
 
-// Cache the result for 5 minutes
-try {
-await redis.setex(cacheKey, 300, JSON.stringify(result));
-} catch (err) {
-logger.warn("Redis write failed for getReferralStats", err instanceof Error ? { error: err.message } : { error: String(err) });
-}
+  // Cache the result for 5 minutes
+  try {
+    await redis.setex(cacheKey, 300, JSON.stringify(result));
+  } catch (err) {
+    logger.warn("Redis write failed for getReferralStats", err instanceof Error ? { error: err.message } : { error: String(err) });
+  }
 
-return result;
+  return result;
 }
 
 /**
@@ -370,31 +389,31 @@ async function checkWasActiveBefore(
 }
 
 interface PayoutReferralMonetaryRewardConfig {
-db: Prisma.TransactionClient;
-referrerId: string;
-userId: string;
-dealId?: string | undefined;
-dealAmount: number;
-totalReward: number;
-revenueShareAmount: number;
-currentTier: ReferralTier;
-treasuryWalletId?: string | undefined;
-tierUpgraded: boolean;
+  db: Prisma.TransactionClient;
+  referrerId: string;
+  userId: string;
+  dealId?: string | undefined;
+  dealAmount: number;
+  totalReward: number;
+  revenueShareAmount: number;
+  currentTier: ReferralTier;
+  treasuryWalletId?: string | undefined;
+  tierUpgraded: boolean;
 }
 
 async function payoutReferralMonetaryReward(config: PayoutReferralMonetaryRewardConfig) {
-const {
-db,
-referrerId,
-userId,
-dealId,
-dealAmount,
-totalReward,
-revenueShareAmount,
-currentTier,
-treasuryWalletId,
-tierUpgraded,
-} = config;
+  const {
+    db,
+    referrerId,
+    userId,
+    dealId,
+    dealAmount,
+    totalReward,
+    revenueShareAmount,
+    currentTier,
+    treasuryWalletId,
+    tierUpgraded,
+  } = config;
 
   const referrerWallet = await db.wallet.upsert({
     where: { userId: referrerId },
@@ -402,155 +421,137 @@ tierUpgraded,
     update: {},
   });
 
-// Double-payment protection
-const rewardKey = dealId ? `ref_reward:${dealId}:${userId}` : null;
-if (dealId) {
-  if (rewardKey) {
-    const existingByKey = await db.transaction.findUnique({
-      where: { razorpayPaymentId: rewardKey },
+  // Double-payment protection
+  const rewardKey = dealId ? `ref_reward:${dealId}:${userId}` : null;
+  if (dealId) {
+    if (rewardKey) {
+      const existingByKey = await db.transaction.findUnique({
+        where: { razorpayPaymentId: rewardKey },
+      });
+      if (existingByKey) {
+        logger.info("Referral reward already processed for this deal (by rewardKey)", { dealId, referrerId, userId });
+        return;
+      }
+    }
+
+    const existing = await db.transaction.findFirst({
+      where: {
+        dealId,
+        walletId: referrerWallet.id,
+        type: "CREDIT",
+        description: { startsWith: "Referral Bonus" },
+      },
     });
-    if (existingByKey) {
-      logger.info("Referral reward already processed for this deal (by rewardKey)", { dealId, referrerId, userId });
+    if (existing) {
+      logger.info("Referral reward already processed for this deal", { dealId, referrerId });
       return;
     }
   }
 
-  const existing = await db.transaction.findFirst({
+  // Double-entry bookkeeping: debit the PLATFORM_TREASURY wallet.
+  let treasuryWallet: { id: string } | null = null;
+
+  if (treasuryWalletId) {
+    treasuryWallet = { id: treasuryWalletId };
+  } else {
+    treasuryWallet = await ensurePlatformTreasury(db);
+  }
+
+  if (!treasuryWallet) {
+    throw AppError.badRequest("Treasury wallet could not be resolved");
+  }
+
+  // Floor-guard: match the updateMany+gte pattern used in all other wallet debit paths.
+  const treasuryDebitResult = await db.wallet.updateMany({
     where: {
-      dealId,
-      walletId: referrerWallet.id,
-      type: "CREDIT",
-      description: { startsWith: "Referral Bonus" },
+      id: treasuryWallet.id,
+      balance: { gte: totalReward },
+      isFrozen: false,
+    },
+    data: { balance: { decrement: totalReward } },
+  });
+
+  if (treasuryDebitResult.count === 0) {
+    logger.error(
+      "CRITICAL: PLATFORM_TREASURY underfunded or frozen during referral payout. Operation aborted to uphold check_wallet_balance_nonnegative constraint.",
+      {
+        treasuryWalletId: treasuryWallet.id,
+        totalReward,
+        referrerId,
+        userId,
+        tier: currentTier.name,
+      },
+    );
+    throw AppError.badRequest("TREASURY_INSUFFICIENT_FUNDS: Platform treasury has insufficient funds or is frozen for referral payout");
+  }
+
+  // Record DEBIT transaction for treasury
+  await db.transaction.create({
+    data: {
+      walletId: treasuryWallet.id,
+      dealId: dealId ?? null,
+      type: "DEBIT",
+      amount: totalReward,
+      status: "COMPLETED",
+      description: `Referral Payout Debit for Referrer ${referrerId} (Deal Amount: ${dealAmount} Paise)`,
+      metadata: {
+        referralUserId: userId,
+        referrerId,
+        tier: currentTier.name,
+      },
     },
   });
-  if (existing) {
-    logger.info("Referral reward already processed for this deal", { dealId, referrerId });
-    return;
-  }
-}
 
-// Double-entry bookkeeping: debit the PLATFORM_TREASURY wallet.
-let treasuryWallet: { id: string } | null = null;
+  await db.wallet.update({
+    where: { id: referrerWallet.id },
+    data: {
+      balance: { increment: totalReward },
+      totalEarned: { increment: totalReward },
+    },
+  });
 
-if (treasuryWalletId) {
-treasuryWallet = { id: treasuryWalletId };
-} else {
-treasuryWallet = await ensurePlatformTreasury(db);
-}
-
-if (!treasuryWallet) {
-throw AppError.badRequest("Treasury wallet could not be resolved");
-}
-
-    // Floor-guard: match the updateMany+gte pattern used in all other wallet debit paths.
-    const treasuryDebitResult = await db.wallet.updateMany({
-      where: {
-        id: treasuryWallet.id,
-        balance: { gte: totalReward },
-        isFrozen: false,
+  await db.transaction.create({
+    data: {
+      walletId: referrerWallet.id,
+      dealId: dealId ?? null,
+      type: "CREDIT",
+      amount: totalReward,
+      status: "COMPLETED",
+      razorpayPaymentId: rewardKey,
+      metadata: {
+        referralUserId: userId,
+        tier: currentTier.name,
+        revenueShareAmount,
+        rewardKey,
       },
-      data: { balance: { decrement: totalReward } },
-    });
+      description: `Referral Bonus (${currentTier.label} Tier): ${(totalReward / 100).toFixed(2)} GMV share`,
+    },
+  });
 
-    if (treasuryDebitResult.count === 0) {
-      logger.error(
-        "CRITICAL: PLATFORM_TREASURY underfunded or frozen during referral payout. Operation aborted to uphold check_wallet_balance_nonnegative constraint.",
-        {
-          treasuryWalletId: treasuryWallet.id,
-          totalReward,
-          referrerId,
-          userId,
-          tier: currentTier.name,
-        },
-      );
-      throw AppError.badRequest("TREASURY_INSUFFICIENT_FUNDS: Platform treasury has insufficient funds or is frozen for referral payout");
-    }
+  // 5. Notify referrer
+  await NotificationService.createNotification({
+    userId: referrerId,
+    type: "referral_bonus",
+    title: `${currentTier.icon} Referral Bonus Earned!`,
+    message: tierUpgraded
+      ? `You leveled up to ${currentTier.label} (+${currentTier.xpReward} XP) and earned ₹${(totalReward / 100).toFixed(2)} lifetime passive deal royalty!`
+      : `You earned ₹${(totalReward / 100).toFixed(2)} lifetime passive income from a referred partner's completed deal!`,
+    data: structuredClone({
+      amount: totalReward,
+      tier: currentTier.label,
+      revenueShare: revenueShareAmount,
+    }),
+  }, db);
 
-// Record DEBIT transaction for treasury
-await db.transaction.create({
-data: {
-walletId: treasuryWallet.id,
-dealId: dealId ?? null,
-type: "DEBIT",
-amount: totalReward,
-status: "COMPLETED",
-description: `Referral Payout Debit for Referrer ${referrerId} (Deal Amount: ${dealAmount} Paise)`,
-metadata: {
-referralUserId: userId,
-referrerId,
-tier: currentTier.name,
-},
-},
-});
-
-await db.wallet.update({
-where: { id: referrerWallet.id },
-data: {
-balance: { increment: totalReward },
-totalEarned: { increment: totalReward },
-},
-});
-
-await db.transaction.create({
-data: {
-walletId: referrerWallet.id,
-dealId: dealId ?? null,
-type: "CREDIT",
-amount: totalReward,
-status: "COMPLETED",
-razorpayPaymentId: rewardKey,
-metadata: {
-referralUserId: userId,
-tier: currentTier.name,
-revenueShareAmount,
-rewardKey,
-},
-description: `Referral Bonus (${currentTier.label} Tier): ${(totalReward / 100).toFixed(2)} GMV share`,
-},
-});
-
-// 5. Notify referrer
-await NotificationService.createNotification({
-userId: referrerId,
-type: "referral_bonus",
-title: `${currentTier.icon} Referral Bonus Earned!`,
-message: tierUpgraded
-? `You leveled up to ${currentTier.label} (+${currentTier.xpReward} XP) and earned ${(totalReward / 100).toFixed(2)} GMV share lifetime passive income!`
-: `You earned ${(totalReward / 100).toFixed(2)} lifetime passive income from a referral's deal!`,
-data: structuredClone({
-amount: totalReward,
-tier: currentTier.label,
-revenueShare: revenueShareAmount,
-}),
-}, db);
-
-logger.info("Referral reward processed", {
-referrerId,
-userId,
-totalReward,
-tier: currentTier.label,
-revenueShareAmount,
-tierUpgraded,
-xpAwarded: tierUpgraded ? currentTier.xpReward : 0
-});
-}
-
-function buildActiveReferralWhere(referrerId: string): Prisma.UserWhereInput {
-  return {
-    referredBy: referrerId,
-    OR: [
-      { influencerProfile: { completedDeals: { gt: 0 } } },
-      {
-        brandProfile: {
-          OR: [
-            { campaigns: { some: { status: "COMPLETED" } } },
-            { deals: { some: { status: "COMPLETED" } } },
-            { totalSpent: { gt: 0 } },
-          ],
-        },
-      },
-    ],
-  };
+  logger.info("Referral reward processed", {
+    referrerId,
+    userId,
+    totalReward,
+    tier: currentTier.label,
+    revenueShareAmount,
+    tierUpgraded,
+    xpAwarded: tierUpgraded ? currentTier.xpReward : 0
+  });
 }
 
 async function checkDuplicateReferral(
@@ -660,31 +661,47 @@ export async function processReferralReward(
     return;
   }
 
+  // Deduplication guard: If referrer is an active Scout, ScoutService handles their royalty via the Scout engine
+  const dbClient = db as unknown as {
+    scoutProfile?: {
+      findUnique: (args: { where: { userId: string }; select: { verificationStatus: true } }) => Promise<{ verificationStatus: string } | null>;
+    };
+  };
+  const scout = dbClient.scoutProfile?.findUnique
+    ? await dbClient.scoutProfile.findUnique({
+        where: { userId: referrerId },
+        select: { verificationStatus: true },
+      })
+    : null;
+  if (scout && scout.verificationStatus === "APPROVED") {
+    return { referrerId };
+  }
+
   // P5-LOGIC-08 FIX: Prevent Sybil self-referral via matching PAN or Bank Account hashes
   const [userTax, referrerTax, userBank, referrerBank] = await Promise.all([
     db.indiaTaxCompliance?.findUnique
       ? db.indiaTaxCompliance.findUnique({
-          where: { userId },
-          select: { panNumberHash: true },
-        })
+        where: { userId },
+        select: { panNumberHash: true },
+      })
       : Promise.resolve(null),
     db.indiaTaxCompliance?.findUnique
       ? db.indiaTaxCompliance.findUnique({
-          where: { userId: referrerId },
-          select: { panNumberHash: true },
-        })
+        where: { userId: referrerId },
+        select: { panNumberHash: true },
+      })
       : Promise.resolve(null),
     db.bankAccount?.findFirst
       ? db.bankAccount.findFirst({
-          where: { userId, deletedAt: null },
-          select: { accountNumberHash: true },
-        })
+        where: { userId, deletedAt: null },
+        select: { accountNumberHash: true },
+      })
       : Promise.resolve(null),
     db.bankAccount?.findFirst
       ? db.bankAccount.findFirst({
-          where: { userId: referrerId, deletedAt: null },
-          select: { accountNumberHash: true },
-        })
+        where: { userId: referrerId, deletedAt: null },
+        select: { accountNumberHash: true },
+      })
       : Promise.resolve(null),
   ]);
 
@@ -813,47 +830,47 @@ export async function processReferralReward(
 * Calculate the effective platform fee for a user considering referral tier discounts.
 */
 export async function getEffectivePlatformFee(
-userId: string,
+  userId: string,
 ): Promise<{
-baseFee: number;
-discount: number;
-effectiveFee: number;
-tier: string;
+  baseFee: number;
+  discount: number;
+  effectiveFee: number;
+  tier: string;
 }> {
-const cacheKey = `platform_fee:effective:${userId}`;
-try {
-const cached = await redis.get(cacheKey);
-if (cached) {
-return JSON.parse(cached);
-}
-} catch (err) {
-logger.warn("Redis read failed for getEffectivePlatformFee", { error: getErrorMessage(err) });
-}
+  const cacheKey = `platform_fee:effective:${userId}`;
+  try {
+    const cached = await redis.get(cacheKey);
+    if (cached) {
+      return JSON.parse(cached);
+    }
+  } catch (err) {
+    logger.warn("Redis read failed for getEffectivePlatformFee", { error: getErrorMessage(err) });
+  }
 
-const baseFee = env.PLATFORM_FEE_PERCENTAGE;
+  const baseFee = env.PLATFORM_FEE_PERCENTAGE;
 
-const activeReferrals = await prisma.user.count({
-where: buildActiveReferralWhere(userId),
-});
+  const activeReferrals = await prisma.user.count({
+    where: buildActiveReferralWhere(userId),
+  });
 
-const tier = getTierFromCount(activeReferrals);
-const ABSOLUTE_MIN_FEE = 1;
-const effectiveFee = Math.max(ABSOLUTE_MIN_FEE, baseFee - tier.feeDiscount);
+  const tier = getTierFromCount(activeReferrals);
+  const ABSOLUTE_MIN_FEE = 7;
+  const effectiveFee = Math.max(ABSOLUTE_MIN_FEE, baseFee - tier.feeDiscount);
 
-const result = {
-baseFee,
-discount: tier.feeDiscount,
-effectiveFee,
-tier: tier.label,
-};
+  const result = {
+    baseFee,
+    discount: tier.feeDiscount,
+    effectiveFee,
+    tier: tier.label,
+  };
 
-try {
-await redis.setex(cacheKey, 300, JSON.stringify(result));
-} catch (err) {
-logger.warn("Redis write failed for getEffectivePlatformFee", { error: getErrorMessage(err) });
-}
+  try {
+    await redis.setex(cacheKey, 300, JSON.stringify(result));
+  } catch (err) {
+    logger.warn("Redis write failed for getEffectivePlatformFee", { error: getErrorMessage(err) });
+  }
 
-return result;
+  return result;
 }
 
 // Inversion of control registration for gamification deal completion hooks

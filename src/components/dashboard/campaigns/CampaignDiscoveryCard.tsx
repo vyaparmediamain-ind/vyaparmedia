@@ -16,6 +16,7 @@ import {
   Sparkles,
   TrendingUp,
   XCircle,
+  Package,
 } from "lucide-react";
 import { Badge, Button } from "@/components/ui";
 
@@ -67,6 +68,13 @@ export function CampaignDiscoveryCard({
   }, [isInactive, campaign.postingDeadline]);
 
   const isDeadlineUrgent = !isInactive && daysLeft !== null && daysLeft > 0 && daysLeft <= 3;
+
+  const isProductOnly = Boolean(
+    campaign.requiresProduct && (!campaign.perInfluencerBudget || campaign.perInfluencerBudget === 0)
+  );
+  const hasProductSeeding = Boolean(
+    campaign.requiresProduct && campaign.perInfluencerBudget && campaign.perInfluencerBudget > 0
+  );
 
   const brandIdentifier =
     campaign.brand.id ||
@@ -138,6 +146,16 @@ export function CampaignDiscoveryCard({
                   {item.count}× {deliverableLabels[item.type] || item.type.replaceAll("_", " ")}
                 </Badge>
               ))}
+              {isProductOnly && (
+                <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-md bg-verified/10 text-verified border border-verified/25">
+                  <Package className="w-2.5 h-2.5" /> Barter Product
+                </span>
+              )}
+              {hasProductSeeding && (
+                <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-md bg-verified/10 text-verified border border-verified/25">
+                  <Package className="w-2.5 h-2.5" /> + Free Product
+                </span>
+              )}
               {isCancelled ? (
                 <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-md bg-destructive/10 text-destructive border border-destructive/20">
                   <XCircle className="w-2.5 h-2.5" /> Cancelled
@@ -167,9 +185,11 @@ export function CampaignDiscoveryCard({
         {/* Right: Budget + deadline + CTA */}
         <div className="flex items-center gap-2.5 shrink-0">
           <div className="text-right hidden sm:block">
-            <div className="text-xs text-muted-foreground">Budget</div>
+            <div className="text-xs text-muted-foreground">{isProductOnly ? "Compensation" : "Budget"}</div>
             <div className="text-base font-extrabold font-mono tabular-nums text-foreground">
-              {formatCurrency(campaign.perInfluencerBudget || 0)}
+              {isProductOnly
+                ? (campaign.productValue ? `${formatCurrency(campaign.productValue)} Product` : "Free Product")
+                : formatCurrency(campaign.perInfluencerBudget || 0)}
             </div>
           </div>
           <div className="text-right hidden md:block">
@@ -301,10 +321,12 @@ export function CampaignDiscoveryCard({
             ) : null}
             <div>
               <div className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
-                Budget
+                {isProductOnly ? "Compensation" : "Budget"}
               </div>
               <div className="text-base sm:text-lg font-extrabold font-mono tabular-nums text-foreground">
-                {formatCurrency(campaign.perInfluencerBudget || 0)}
+                {isProductOnly
+                  ? (campaign.productValue ? `${formatCurrency(campaign.productValue)} Product` : "Free Product")
+                  : formatCurrency(campaign.perInfluencerBudget || 0)}
               </div>
             </div>
           </div>
@@ -322,6 +344,16 @@ export function CampaignDiscoveryCard({
 
         {/* Deliverables & Category Tags */}
         <div className="flex flex-wrap items-center gap-1.5 pt-1">
+          {isProductOnly && (
+            <Badge variant="success" className="text-[10px] font-bold py-0.5 px-2 bg-verified/10 text-verified border-verified/30">
+              <Package className="w-2.5 h-2.5 mr-1" /> Barter Product
+            </Badge>
+          )}
+          {hasProductSeeding && (
+            <Badge variant="success" className="text-[10px] font-bold py-0.5 px-2 bg-verified/10 text-verified border-verified/30">
+              <Package className="w-2.5 h-2.5 mr-1" /> + Gifted Product
+            </Badge>
+          )}
           {campaign.deliverables.slice(0, 3).map((item, index) => (
             <Badge
               key={`${campaign.id}-del-${index}`}

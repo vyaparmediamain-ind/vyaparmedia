@@ -16,6 +16,7 @@ import { useNotificationCenter } from "@/hooks/useNotificationCenter";
 import ActivityFeedDrawer from "@/components/notifications/ActivityFeedDrawer";
 import NotificationToastBanner from "@/components/notifications/NotificationToastBanner";
 import { BackButton } from "@/components/ui/BackButton";
+import CreatorAppealBanner from "@/components/dashboard/CreatorAppealBanner";
 
 type TopbarIconName = "bell" | "menu";
 
@@ -147,6 +148,8 @@ export default function DashboardShell({
     subtitleText = "Brand Dashboard";
   } else if (isInfluencer(userType)) {
     subtitleText = "Influencer Dashboard";
+  } else if (userType === "SCOUT") {
+    subtitleText = "Campus Partner";
   }
 
   return (
@@ -197,14 +200,15 @@ export default function DashboardShell({
           onMarkAsRead={markAsRead}
         />
 
-        {/* Escrow Status Stories Bar (Active on Home View) */}
-        {pathname === "/dashboard" && (
+        {/* Escrow Status Stories Bar (Active on Home View for Creators and Brands only) */}
+        {pathname === "/dashboard" && (isBrand(userType) || isInfluencer(userType)) && (
           <EscrowStoriesBar userType={user?.userType} />
         )}
 
         {/* Dashboard Page Content with Client-side Role Guard */}
         <main className="flex-1 w-full pb-[calc(4.5rem+env(safe-area-inset-bottom,0px))] md:pb-6 animate-fade-in">
           <RoleGuard userType={user?.userType}>
+            <CreatorAppealBanner userType={user?.userType} />
             {children}
           </RoleGuard>
         </main>

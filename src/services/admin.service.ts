@@ -18,6 +18,7 @@ type AdminSessionUser,
 import { createActivityLog, createAuditLog, ActivityAction } from "@/lib/audit";
 import { NotificationService } from "@/services/notification.service";
 import { checkFraudAppealEligibility } from "@/lib/action-eligibility";
+import { invalidateBrandPlatformFeeCache, ABSOLUTE_MIN_PLATFORM_FEE } from "@/lib/platform-fees";
 
 export class AdminService {
 static async checkAdminAccess(input: AdminSessionUser | null | undefined) {
@@ -112,7 +113,7 @@ influencerProfile: {
     youtubeEngagementRate: true,
   },
 },
-brandProfile: { select: { companyName: true, logo: true } },
+brandProfile: { select: { companyName: true, logo: true, customPlatformFee: true } },
 taxCompliance: {
 select: {
 status: true,
@@ -730,5 +731,79 @@ take: 100,
 
       return { success: true, message: "Fraud flag confirmed." };
     }
+  }
+
+  static async setBrandCustomPlatformFee(params: {
+    adminUserId: string;
+    targetUserId: string;
+    customPlatformFee: number | null;
+    reason?: string | undefined;
+  }) {
+    const user = await prisma.user.findUnique({
+      where: { id: params.targetUserId },
+      include: { brandProfile: true },
+    });
+
+    if (!user) {
+      throw AppError.notFound("User not found");
+    }
+
+    if (user.userType !== "BRAND" || !user.brandProfile) {
+      throw AppError.badRequest("Custom platform fee can only be configured for Brand or Agency accounts");
+    }
+
+    let finalFee: number | null = null;
+    if (params.customPlatformFee !== null) {
+      const num = Number(params.customPlatformFee);
+      if (isNaN(num)) {
+        throw AppError.badRequest("Invalid fee percentage");
+      }
+      if (num < ABSOLUTE_MIN_PLATFORM_FEE) {
+        throw AppError.badRequest(
+          `Platform fee cannot be less than the absolute minimum floor of ${ABSOLUTE_MIN_PLATFORM_FEE}%`
+        );
+      }
+      if (num > 10.0) {
+        throw AppError.badRequest("Platform fee cannot exceed standard 10.0%");
+      }
+      finalFee = Math.round(num * 100) / 100;
+    }
+
+    await prisma.brandProfile.update({
+      where: { userId: params.targetUserId },
+      data: { customPlatformFee: finalFee },
+    });
+
+    await invalidateBrandPlatformFeeCache(params.targetUserId);
+
+    await createActivityLog({
+      userId: params.adminUserId,
+      action: "UPDATE_BRAND_CUSTOM_FEE",
+      entityId: params.targetUserId,
+      entityType: "USER",
+      metadata: {
+        targetUserId: params.targetUserId,
+        previousFee: user.brandProfile.customPlatformFee,
+        newFee: finalFee,
+        reason: params.reason || "Admin fee tier adjustment",
+        updatedAt: new Date().toISOString(),
+      },
+    });
+
+    const displayFee = finalFee !== null ? `${finalFee}%` : "Standard (10%)";
+    await NotificationService.createNotification({
+      userId: params.targetUserId,
+      type: "system",
+      title: "Platform Escrow Fee Updated",
+      message: `Your platform escrow fee has been updated to ${displayFee}${
+        finalFee !== null ? " under our Agency & Volume Partner tier." : "."
+      }`,
+    });
+
+    return {
+      success: true,
+      message: `Brand platform fee successfully updated to ${displayFee}.`,
+      customPlatformFee: finalFee,
+    };
   }
 }

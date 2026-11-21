@@ -132,7 +132,7 @@ To protect the marketplace from disintermediation (users taking deals off-platfo
    - 10-digit Indian phone numbers (`(\+91[\-\s]?)?[6-9]\d{9}`).
    - Email addresses (`[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}`).
    - UPI IDs (`[a-zA-Z0-9.\-_]{2,256}@[a-zA-Z]{2,64}`).
-2. **Google Cloud Vision OCR**: Deliverable images and attachments are scanned via OCR to detect phone numbers written on paper or payment QR codes.
+2. **Google Cloud Vision OCR & Fail-Closed Review Queue**: Deliverable images and attachments are scanned via OCR to detect phone numbers written on paper or payment QR codes. To prevent evasion, per-user rate limiting (>10 scans/min) and daily quotas (>1,000/day) trigger **fail-closed** protection, holding suspicious images under `[IMAGE UNDER AUTOMATED REVIEW: PENDING SECURITY CLEARANCE]` until cleared.
 3. **Automated Warning & Freezing**: Detected violations automatically issue a warning to the user; repeated attempts freeze the user's messaging privileges and flag the account for admin review.
 
 ---
@@ -408,6 +408,14 @@ The platform provides live printable, PDF-exportable statements (`StatementPrint
 - `POST /api/deals/[id]/dispatch`: Brand initiates Shiprocket courier dispatch.
 - `POST /api/deals/[id]/submit-content`: Creator uploads published post/video links.
 - `POST /api/deals/[id]/approve`: Brand approves deliverables and triggers escrow release.
+
+### Real-Time Messaging & Notifications
+- `GET /api/messages`: List paginated conversation history and active deal context.
+- `POST /api/messages`: Send real-time direct message with contact leak/OCR detection.
+- `GET /api/messages/stream`: Server-Sent Events (SSE) persistent stream for instant message and typing push.
+- `POST /api/messages/typing`: Publish typing presence indicator to recipient.
+- `GET /api/notifications`: Retrieve unread and historical notifications feed.
+- `POST /api/notifications/push-subscription`: Register Web Push subscription.
 
 ### Financial Wallet & Payouts
 - `GET /api/wallet/balance`: Active balance, locked escrow holds, and ledger statement.

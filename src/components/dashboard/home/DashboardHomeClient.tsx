@@ -20,6 +20,7 @@ import { ActiveDealsFeed, filterActiveDeals } from "./ActiveDealsFeed";
 import { QuickDiscoveryRow } from "./QuickDiscoveryRow";
 import { DashboardStoriesBar } from "./DashboardStoriesBar";
 import { AuthenticityAppealBanner } from "@/components/dashboard/AuthenticityAppealBanner";
+import WeeklyChallengesCard from "@/components/dashboard/WeeklyChallengesCard";
 import AnalyticsPageClient from "@/app/dashboard/analytics/AnalyticsPageClient";
 import { PageHeader } from "@/components/ui";
 import type { InfluencerAnalyticsData } from "@/components/analytics/InfluencerDashboard";
@@ -208,6 +209,9 @@ export default function DashboardHomeClient({
             trustScore={trustScore}
             level={level}
           />
+
+          {/* Weekly Gamification Quests */}
+          <WeeklyChallengesCard compact />
 
           {/* Active Collaborations Pipeline */}
           <ActiveDealsFeed

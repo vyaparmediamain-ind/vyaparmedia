@@ -7,7 +7,7 @@ import { DEFAULT_BRAND_PLATFORM_FEE_PERCENT } from "@/constants";
 interface FAQItem {
   question: string;
   answer: string;
-  category: "Escrow & Safety" | "Creators" | "Brands" | "Taxes & Legals";
+  category: "Escrow & Safety" | "Creators" | "Brands" | "Taxes & Legals" | "Scouts & Referrals";
 }
 
 const FAQS: FAQItem[] = [
@@ -37,9 +37,9 @@ const FAQS: FAQItem[] = [
   },
   {
     category: "Brands",
-    question: `How does the ${DEFAULT_BRAND_PLATFORM_FEE_PERCENT}% platform fee work for brands?`,
+    question: `How does platform pricing work for Paid and Barter campaigns?`,
     answer:
-      `VyaparMedia charges a flat, transparent ${DEFAULT_BRAND_PLATFORM_FEE_PERCENT}% escrow processing and mediation fee on the funded campaign budget. This covers digital smart contracts, KYC verification, live post crawling, dispute arbitration, and GST compliance. There are no monthly retainer fees or setup costs.`,
+      `VyaparMedia charges a flat, transparent ${DEFAULT_BRAND_PLATFORM_FEE_PERCENT}% escrow protection fee on cash campaign budgets. For product-only (barter) campaigns, a 10% Product Handling Fee applies on the declared product retail value (minimum ₹500 value). This covers digital smart contracts, KYC verification, live post link tracking, Shiprocket courier integration, and dispute arbitration. There are no recurring subscriptions.`,
   },
   {
     category: "Taxes & Legals",
@@ -47,9 +47,21 @@ const FAQS: FAQItem[] = [
     answer:
       "VyaparMedia provides automated B2B GST tax invoices for all campaign transactions. For compliance under Section 194-O and Section 194J, our system generates automated quarterly TDS credit schedules and tax reports.",
   },
+  {
+    category: "Scouts & Referrals",
+    question: "What is the Vyapar Scout (Campus Partner) program?",
+    answer:
+      "Vyapar Scout is our campus partner program for students and community leaders (aged 18+). Scouts onboard local creators and emerging D2C brands to earn an automated 1% lifetime cash royalty on all deals executed by their network. Scouts receive a dedicated distraction-free portal with real-time earnings analytics and WhatsApp invite cards.",
+  },
+  {
+    category: "Scouts & Referrals",
+    question: "How does the Creator & Brand Referral Program work?",
+    answer:
+      "Every creator and brand on VyaparMedia receives a unique referral code. From your very first referral, you earn a 1% lifetime cash royalty on all completed deal volume. Active referrers also unlock up to a 2% platform fee discount on their own deals (Bronze: 1%, Silver: 1.5%, Gold/Platinum/Diamond: 2% off).",
+  },
 ];
 
-const CATEGORIES = ["All", "Escrow & Safety", "Creators", "Brands", "Taxes & Legals"] as const;
+const CATEGORIES = ["All", "Escrow & Safety", "Creators", "Brands", "Taxes & Legals", "Scouts & Referrals"] as const;
 
 export function LandingFAQ() {
   const [selectedCategory, setSelectedCategory] = useState<string>("All");

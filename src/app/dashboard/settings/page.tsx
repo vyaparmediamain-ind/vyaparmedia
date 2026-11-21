@@ -41,6 +41,7 @@ import {
   TrendingUp,
   Globe,
   Copy,
+  Award,
 } from "lucide-react";
 import StoryShareModal from "@/components/share/StoryShareModal";
 
@@ -213,12 +214,18 @@ export default function SettingsPage() {
     }
   };
 
+  const isScoutUser = user?.userType === "SCOUT" || session?.user?.userType === "SCOUT";
+
   const visibleTabs = ALL_TABS.filter((t) => {
+    if (isScoutUser) {
+      return ["profile", "bank", "notifications", "appearance", "security"].includes(t.id);
+    }
     if (t.influencerOnly && user?.userType !== "INFLUENCER") return false;
     return true;
   });
 
-  const activeTabDef = visibleTabs.find((t) => t.id === activeTab);
+  const effectiveActiveTab = isScoutUser && activeTab === "tax" ? "profile" : activeTab;
+  const activeTabDef = visibleTabs.find((t) => t.id === effectiveActiveTab) || visibleTabs[0];
   const isSelfManaged = activeTabDef?.selfManaged ?? false;
 
   // Account health metrics calculation
@@ -241,6 +248,9 @@ export default function SettingsPage() {
   }, [profile, isKycVerified]);
 
   const publicProfileUrl = useMemo(() => {
+    if (user?.userType === "SCOUT" || session?.user?.userType === "SCOUT") {
+      return null;
+    }
     const isBrandUser = user?.userType === "BRAND" || session?.user?.userType === "BRAND";
     if (isBrandUser) {
       const brandId =
@@ -321,24 +331,24 @@ export default function SettingsPage() {
 
         {/* ── 1. ACCOUNT HEALTH SUMMARY BANNER ─────────── */}
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3 p-4 rounded-2xl bg-card border border-border shadow-xs text-xs">
-          {/* KYC Status Tile */}
+          {/* KYC / Scout Status Tile */}
           <div className="p-3 rounded-xl bg-muted/40 flex items-center justify-between gap-2 min-w-0">
             <div className="flex items-center gap-2.5 min-w-0">
               <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${
-                isKycVerified ? "bg-verified-muted text-verified" : "bg-pending-muted text-pending"
+                isScoutUser || isKycVerified ? "bg-verified-muted text-verified" : "bg-pending-muted text-pending"
               }`}>
-                {isKycVerified ? <ShieldCheck className="w-4 h-4" /> : <AlertCircle className="w-4 h-4" />}
+                {isScoutUser || isKycVerified ? <ShieldCheck className="w-4 h-4" /> : <AlertCircle className="w-4 h-4" />}
               </div>
               <div className="min-w-0">
                 <span className="font-bold text-foreground block whitespace-nowrap">
-                  {isKycVerified ? "KYC Verified" : "KYC Pending"}
+                  {isScoutUser ? "Verified Campus Partner" : isKycVerified ? "KYC Verified" : "KYC Pending"}
                 </span>
                 <span className="text-[11px] text-muted-foreground block whitespace-nowrap">
-                  {isKycVerified ? "Full payout access" : "Action required"}
+                  {isScoutUser ? "1% Lifetime Royalty Active" : isKycVerified ? "Full payout access" : "Action required"}
                 </span>
               </div>
             </div>
-            {!isKycVerified && (
+            {!isScoutUser && !isKycVerified && (
               <button
                 type="button"
                 onClick={() => setActiveTab("verification")}
@@ -347,9 +357,14 @@ export default function SettingsPage() {
                 Verify
               </button>
             )}
+            {isScoutUser && (
+              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-verified-muted text-verified font-mono shrink-0 whitespace-nowrap">
+                Active
+              </span>
+            )}
           </div>
 
-          {/* DRS Trust Score Tile */}
+          {/* DRS Trust / Scout Network Tier Tile */}
           <div className="p-3 rounded-xl bg-muted/40 flex items-center justify-between gap-2 min-w-0">
             <div className="flex items-center gap-2.5 min-w-0">
               <div className="w-8 h-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0">
@@ -357,15 +372,15 @@ export default function SettingsPage() {
               </div>
               <div className="min-w-0">
                 <span className="font-bold text-foreground block whitespace-nowrap">
-                  DRS Trust: {trustScore} / 900
+                  {isScoutUser ? "Campus Scout Tier" : `DRS Trust: ${trustScore} / 900`}
                 </span>
                 <span className="text-[11px] text-muted-foreground block whitespace-nowrap">
-                  Reputation index (300-900)
+                  {isScoutUser ? "Official Partner Network" : "Reputation index (300-900)"}
                 </span>
               </div>
             </div>
             <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-verified-muted text-verified font-mono shrink-0 whitespace-nowrap">
-              Tier 1
+              {isScoutUser ? "1% GMV" : "Tier 1"}
             </span>
           </div>
 
@@ -392,57 +407,93 @@ export default function SettingsPage() {
             </div>
           </div>
 
-          {/* Public Profile View (Live on Web) */}
-          <div className="p-3 rounded-xl bg-muted/40 flex items-center justify-between gap-2 min-w-0">
-            <div className="flex items-center gap-2 min-w-0">
-              <div className="w-8 h-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0">
-                <Globe className="w-4 h-4" />
+          {/* Public Profile View (Live on Web) OR Scout Invite Link */}
+          {isScoutUser ? (
+            <div className="p-3 rounded-xl bg-muted/40 flex items-center justify-between gap-2 min-w-0">
+              <div className="flex items-center gap-2 min-w-0">
+                <div className="w-8 h-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                  <Award className="w-4 h-4" />
+                </div>
+                <div className="min-w-0">
+                  <span className="font-bold text-foreground block text-xs whitespace-nowrap">
+                    Scout Invite Code
+                  </span>
+                  <span className="text-[11px] text-muted-foreground block whitespace-nowrap font-mono font-bold text-primary">
+                    {referralCode || "CAMPUS-SCOUT"}
+                  </span>
+                </div>
               </div>
-              <div className="min-w-0">
-                <span className="font-bold text-foreground block text-xs whitespace-nowrap">
-                  Public Profile
-                </span>
-                <span className="text-[11px] text-muted-foreground block whitespace-nowrap">
-                  Live on web
-                </span>
+              <div className="flex items-center gap-1.5 shrink-0">
+                <button
+                  type="button"
+                  onClick={async () => {
+                    if (typeof window !== "undefined") {
+                      const refLink = `${window.location.origin}/register?ref=${encodeURIComponent(referralCode || "CAMPUS-SCOUT")}`;
+                      await copyToClipboard(refLink);
+                      showToast("Scout referral link copied to clipboard!", "success");
+                    }
+                  }}
+                  className="inline-flex items-center justify-center gap-1 px-2.5 py-1.5 rounded-lg bg-card border border-border text-foreground font-semibold text-xs hover:bg-muted transition-all cursor-pointer shadow-2xs shrink-0"
+                  title="Copy Scout referral link"
+                  aria-label="Copy Scout referral link"
+                >
+                  <Copy className="w-3.5 h-3.5 text-muted-foreground" />
+                  <span className="hidden sm:inline">Copy Link</span>
+                </button>
               </div>
             </div>
-            <div className="flex items-center gap-1.5 shrink-0">
-              {publicProfileUrl ? (
-                <>
-                  <button
-                    type="button"
-                    onClick={async () => {
-                      if (typeof window !== "undefined") {
-                        const fullUrl = `${window.location.origin}${publicProfileUrl}`;
-                        await copyToClipboard(fullUrl);
-                        showToast("Public profile link copied to clipboard!", "success");
-                      }
-                    }}
-                    className="inline-flex items-center justify-center gap-1 px-2.5 py-1.5 rounded-lg bg-card border border-border text-foreground font-semibold text-xs hover:bg-muted transition-all cursor-pointer shadow-2xs shrink-0"
-                    title="Copy public profile link to clipboard"
-                    aria-label="Copy public profile link to clipboard"
-                  >
-                    <Copy className="w-3.5 h-3.5 text-muted-foreground" />
-                    <span className="hidden sm:inline">Copy Link</span>
-                  </button>
-                  <Link
-                    href={publicProfileUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center justify-center gap-1 px-2.5 py-1.5 rounded-lg bg-card border border-border text-foreground font-bold text-xs hover:bg-primary hover:text-primary-foreground hover:border-primary transition-all cursor-pointer shadow-2xs shrink-0 whitespace-nowrap"
-                    title="View public profile on web"
-                    aria-label="View public profile on web"
-                  >
-                    <span>View</span>
-                    <ExternalLink className="w-3.5 h-3.5" />
-                  </Link>
-                </>
-              ) : (
-                <span className="text-[11px] text-muted-foreground font-medium">Pending Setup</span>
-              )}
+          ) : (
+            <div className="p-3 rounded-xl bg-muted/40 flex items-center justify-between gap-2 min-w-0">
+              <div className="flex items-center gap-2 min-w-0">
+                <div className="w-8 h-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                  <Globe className="w-4 h-4" />
+                </div>
+                <div className="min-w-0">
+                  <span className="font-bold text-foreground block text-xs whitespace-nowrap">
+                    Public Profile
+                  </span>
+                  <span className="text-[11px] text-muted-foreground block whitespace-nowrap">
+                    Live on web
+                  </span>
+                </div>
+              </div>
+              <div className="flex items-center gap-1.5 shrink-0">
+                {publicProfileUrl ? (
+                  <>
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        if (typeof window !== "undefined") {
+                          const fullUrl = `${window.location.origin}${publicProfileUrl}`;
+                          await copyToClipboard(fullUrl);
+                          showToast("Public profile link copied to clipboard!", "success");
+                        }
+                      }}
+                      className="inline-flex items-center justify-center gap-1 px-2.5 py-1.5 rounded-lg bg-card border border-border text-foreground font-semibold text-xs hover:bg-muted transition-all cursor-pointer shadow-2xs shrink-0"
+                      title="Copy public profile link to clipboard"
+                      aria-label="Copy public profile link to clipboard"
+                    >
+                      <Copy className="w-3.5 h-3.5 text-muted-foreground" />
+                      <span className="hidden sm:inline">Copy Link</span>
+                    </button>
+                    <Link
+                      href={publicProfileUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center justify-center gap-1 px-2.5 py-1.5 rounded-lg bg-card border border-border text-foreground font-bold text-xs hover:bg-primary hover:text-primary-foreground hover:border-primary transition-all cursor-pointer shadow-2xs shrink-0 whitespace-nowrap"
+                      title="View public profile on web"
+                      aria-label="View public profile on web"
+                    >
+                      <span>View</span>
+                      <ExternalLink className="w-3.5 h-3.5" />
+                    </Link>
+                  </>
+                ) : (
+                  <span className="text-[11px] text-muted-foreground font-medium">Pending Setup</span>
+                )}
+              </div>
             </div>
-          </div>
+          )}
         </div>
 
         {/* ── 2. SETTINGS MAIN LAYOUT ───────────────────────────────────────── */}
@@ -527,7 +578,7 @@ export default function SettingsPage() {
           <main
             className="settings-content-area"
             role="tabpanel"
-            aria-labelledby={`settings-tab-${activeTab}`}
+            aria-labelledby={`settings-tab-${effectiveActiveTab}`}
           >
             <div className="settings-content-header">
               <div>
@@ -535,7 +586,7 @@ export default function SettingsPage() {
                   {activeTabDef?.label ?? "Settings"}
                 </h2>
                 <p className="text-xs text-muted-foreground mt-0.5">
-                  {getTabSubtitle(activeTab, user.userType)}
+                  {getTabSubtitle(effectiveActiveTab, user.userType)}
                 </p>
               </div>
 
@@ -556,29 +607,29 @@ export default function SettingsPage() {
             </div>
 
             <div className="settings-panel-body">
-              {activeTab === "profile" && (
+              {effectiveActiveTab === "profile" && (
                 <ProfileTab profile={profile} setProfile={setProfile} user={user} referralCode={referralCode} badgesCount={badgesCount} showToast={showToast} />
               )}
-              {activeTab === "social" && (
+              {effectiveActiveTab === "social" && (
                 <SocialTab profile={profile} setProfile={setProfile} socialConnections={socialConnections} setSocialConnections={setSocialConnections} isSaving={isSaving} setIsSaving={setIsSaving} showToast={showToast} />
               )}
-              {activeTab === "rates" && (
+              {effectiveActiveTab === "rates" && (
                 <RatesTab profile={profile} setProfile={setProfile} />
               )}
-              {activeTab === "bank" && (
+              {effectiveActiveTab === "bank" && (
                 <div className="max-w-4xl">
                   <BankAccountManager />
                 </div>
               )}
-              {activeTab === "verification" && (
+              {effectiveActiveTab === "verification" && (
                 <VerificationTab user={user} verificationData={verificationData} setVerificationData={setVerificationData} showToast={showToast} />
               )}
-              {activeTab === "tax" && <IndiaTaxCompliancePanel />}
-              {activeTab === "notifications" && <NotificationPreferencesPanel />}
-              {activeTab === "appearance" && (
+              {effectiveActiveTab === "tax" && !isScoutUser && <IndiaTaxCompliancePanel />}
+              {effectiveActiveTab === "notifications" && <NotificationPreferencesPanel />}
+              {effectiveActiveTab === "appearance" && (
                 <AppearanceTab user={user} showToast={showToast} />
               )}
-              {activeTab === "security" && (
+              {effectiveActiveTab === "security" && (
                 <SecurityTab user={user} setUser={setUser} isSaving={isSaving} setIsSaving={setIsSaving} showToast={showToast} />
               )}
             </div>

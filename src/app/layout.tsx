@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import Script from "next/script";
 import { headers } from "next/headers";
 import { Inter, Outfit, Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
@@ -22,7 +23,8 @@ const plusJakartaSans = Plus_Jakarta_Sans({
   display: "swap",
 });
 
-const siteUrl = process.env.NEXT_PUBLIC_APP_URL || "https://vyaparmedia-nine.vercel.app";
+const rawSiteUrl = process.env.NEXT_PUBLIC_APP_URL || "https://vyaparmedia-nine.vercel.app";
+const siteUrl = rawSiteUrl.replace(/\/+$/, "");
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
@@ -190,7 +192,9 @@ return (
             }),
           }}
         />
-        <script
+        <Script
+          id="before-install-prompt"
+          strategy="afterInteractive"
           nonce={nonce}
           dangerouslySetInnerHTML={{
             __html: `

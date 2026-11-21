@@ -16,6 +16,7 @@ import {
   GST_STANDARD_RATE,
 } from "@/constants";
 import { PLATFORM_CONFIG } from "@/lib/platform-config";
+import { extractAllDealHashtagsAndMentions } from "./DealDetailHelpers";
 
 export interface ContractPrintViewProps {
   deal: {
@@ -103,6 +104,11 @@ export function ContractPrintView({ deal, onClose }: ContractPrintViewProps) {
     afterPosting?: number;
   };
 
+  // Comprehensive hashtag, brand mention and statutory ASCI tag extraction
+  const allHashtags = useMemo(() => {
+    return extractAllDealHashtagsAndMentions(deal, terms);
+  }, [deal, terms]);
+
   const handlePrint = () => {
     window.print();
   };
@@ -110,14 +116,14 @@ export function ContractPrintView({ deal, onClose }: ContractPrintViewProps) {
   if (!mounted) return null;
 
   return createPortal(
-    <div className="printable-modal-overlay fixed inset-0 z-[100] overflow-y-auto bg-background/90 backdrop-blur-sm flex items-center justify-center p-3 sm:p-6 pt-[max(0.75rem,env(safe-area-inset-top,0px))] pb-[max(0.75rem,env(safe-area-inset-bottom,0px))] pl-[max(0.75rem,env(safe-area-inset-left,0px))] pr-[max(0.75rem,env(safe-area-inset-right,0px))] print:p-0 print:bg-card print:static print:inset-auto">
+    <div className="printable-modal-overlay fixed inset-0 z-[100] overflow-y-auto bg-background/90 backdrop-blur-sm flex items-start justify-center p-3 sm:p-6 pt-16 pb-12 print:p-0 print:bg-card print:static print:inset-auto print:block">
       {/* Floating Action Bar (Hidden on Print) */}
-      <div className="fixed top-[max(1rem,calc(env(safe-area-inset-top,0px)+8px))] right-[max(1rem,calc(env(safe-area-inset-right,0px)+8px))] z-[110] flex items-center gap-2.5 no-print bg-card/90 backdrop-blur-md p-2 rounded-2xl border border-border shadow-xl">
+      <div className="fixed top-4 right-4 z-[110] flex items-center gap-2.5 no-print bg-card/90 backdrop-blur-md p-2 rounded-2xl border border-border shadow-xl">
         <Button
           onClick={handlePrint}
           variant="primary"
           size="sm"
-          className="gap-1.5 font-bold shadow-xs"
+          className="gap-1.5 font-bold shadow-xs cursor-pointer"
         >
           <Printer className="w-4 h-4" />
           <span>Print / Save PDF</span>
@@ -133,7 +139,7 @@ export function ContractPrintView({ deal, onClose }: ContractPrintViewProps) {
       </div>
 
       {/* Official Legal Document Container */}
-      <div className="printable-document w-full max-w-4xl bg-card text-foreground rounded-2xl shadow-2xl p-8 sm:p-12 border border-border print:border-none print:shadow-none print:p-0 print:rounded-none">
+      <div className="printable-document w-full max-w-4xl bg-card text-foreground rounded-2xl shadow-2xl p-6 sm:p-10 my-auto border border-border print:border-none print:shadow-none print:p-0 print:my-0 print:rounded-none">
         
         {/* Document Header & Platform Letterhead */}
         <div className="border-b-2 border-border pb-6 mb-8 flex flex-col sm:flex-row sm:items-start justify-between gap-4">
@@ -153,7 +159,9 @@ export function ContractPrintView({ deal, onClose }: ContractPrintViewProps) {
           </div>
 
           <div className="text-left sm:text-right text-xs text-muted-foreground space-y-0.5 font-sans">
-            <div className="font-bold text-foreground">{PLATFORM_CONFIG.legalName.toUpperCase()}</div>
+            <div className="font-bold text-foreground">
+              {PLATFORM_CONFIG.tradeName ? `${PLATFORM_CONFIG.tradeName.toUpperCase()} (${PLATFORM_CONFIG.legalName.toUpperCase()})` : PLATFORM_CONFIG.legalName.toUpperCase()}
+            </div>
             <div>
               {PLATFORM_CONFIG.cin && !["N/A", "NONE", "PROPRIETORSHIP"].includes(PLATFORM_CONFIG.cin.toUpperCase()) ? `CIN: ${PLATFORM_CONFIG.cin} | ` : ""}
               {PLATFORM_CONFIG.udyam ? `Udyam: ${PLATFORM_CONFIG.udyam} | ` : ""}
@@ -213,26 +221,26 @@ export function ContractPrintView({ deal, onClose }: ContractPrintViewProps) {
             <span>1. Scope of Work &amp; Deliverables Matrix</span>
           </h2>
           
-          <div className="overflow-x-auto">
-            <table className="w-full text-xs text-left border-collapse border border-border">
+          <div className="overflow-x-auto print:overflow-visible">
+            <table className="w-full text-xs text-left border-collapse border border-border print:text-2xs print:table-fixed">
               <thead>
                 <tr className="bg-muted text-foreground">
-                  <th className="border border-border p-2.5 font-bold">Deliverable</th>
-                  <th className="border border-border p-2.5 font-bold">Quantity</th>
-                  <th className="border border-border p-2.5 font-bold">Platform</th>
-                  <th className="border border-border p-2.5 font-bold">Specifications &amp; Guidelines</th>
+                  <th className="border border-border p-2.5 font-bold w-[25%]">Deliverable</th>
+                  <th className="border border-border p-2.5 font-bold w-[12%] whitespace-nowrap">Quantity</th>
+                  <th className="border border-border p-2.5 font-bold w-[20%] whitespace-nowrap">Platform</th>
+                  <th className="border border-border p-2.5 font-bold w-[43%]">Specifications &amp; Guidelines</th>
                 </tr>
               </thead>
               <tbody>
                 {deliverables.length > 0 ? (
                   deliverables.map((item, idx) => (
                     <tr key={idx} className="border-t border-border">
-                      <td className="border border-border p-2.5 font-semibold text-foreground">
+                      <td className="border border-border p-2 font-semibold text-foreground break-words">
                         {item.type ? item.type.replaceAll("_", " ") : "Sponsored Post / Reel"}
                       </td>
-                      <td className="border border-border p-2.5 text-muted-foreground">{item.count || 1}x</td>
-                      <td className="border border-border p-2.5 text-muted-foreground">{item.platform || "Instagram / YouTube"}</td>
-                      <td className="border border-border p-2.5 text-muted-foreground">
+                      <td className="border border-border p-2 text-muted-foreground whitespace-nowrap">{item.count || 1}x</td>
+                      <td className="border border-border p-2 text-muted-foreground break-words">{item.platform || "Instagram / YouTube"}</td>
+                      <td className="border border-border p-2 text-muted-foreground break-words">
                         {item.specs || item.details || "As per agreed campaign guidelines, creative brief and brand hashtags."}
                       </td>
                     </tr>
@@ -262,6 +270,44 @@ export function ContractPrintView({ deal, onClose }: ContractPrintViewProps) {
               <span className="font-bold text-foreground">{(terms.includedRevisions as number) ?? DEFAULT_INCLUDED_REVISIONS} Complimentary rounds</span>
             </div>
           </div>
+
+          {/* Physical Product Seeding Provision (if applicable) */}
+          {(Boolean(terms.requiresProduct) || Boolean((deal as Record<string, unknown>).requiresProduct)) && (
+            <div className="p-3.5 bg-verified/5 border border-verified/30 rounded-xl text-2xs space-y-1.5 mt-2">
+              <div className="flex items-center justify-between font-bold text-foreground">
+                <span className="uppercase tracking-wider text-verified font-bold">📦 Physical Product Seeding / Barter Provision</span>
+                <span className="font-mono text-muted-foreground">
+                  Retail Value: {formatCurrency(((terms.productValue as number) || ((deal as Record<string, unknown>).productValue as number) || 0))}
+                </span>
+              </div>
+              <div className="text-foreground font-semibold">
+                Product: {((terms.productName as string) || ((deal as Record<string, unknown>).productName as string) || "Brand Sponsored Product Sample")}
+              </div>
+              <p className="text-muted-foreground leading-relaxed">
+                The Advertiser shall dispatch the physical product samples via tracked courier (Shiprocket / integrated AWB). Content production deadlines shall commence only upon confirmed receipt by the creator. Creator retains gifted product samples permanently unless the brief explicitly specifies return logistics.
+              </p>
+            </div>
+          )}
+
+          {/* Mandatory Brand Tags & ASCI Disclosure Compliance */}
+          <div className="p-3.5 bg-muted/30 border border-border rounded-xl text-2xs space-y-2">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 font-semibold text-foreground border-b border-border/60 pb-2">
+              <span className="uppercase tracking-wider font-bold">Mandatory Brand Hashtags &amp; Tags ({allHashtags.length}):</span>
+              <div className="flex flex-wrap gap-1.5 pt-1 sm:pt-0">
+                {allHashtags.map((tag) => (
+                  <span
+                    key={tag}
+                    className="font-mono px-2 py-0.5 rounded-md bg-primary/10 text-primary border border-primary/20 text-2xs font-semibold"
+                  >
+                    {tag}
+                  </span>
+                ))}
+              </div>
+            </div>
+            <p className="text-muted-foreground leading-relaxed">
+              <strong>ASCI &amp; CCPA Compliance Notice:</strong> The creator is legally required to include all specified mandatory hashtags and official disclosures (such as #ad, #sponsored, or the platform’s native Paid Partnership tag) prominently above the fold in the published post caption.
+            </p>
+          </div>
         </section>
 
         {/* Section 2: Financial Consideration & Escrow Lock Schedule */}
@@ -277,31 +323,43 @@ export function ContractPrintView({ deal, onClose }: ContractPrintViewProps) {
                 Total Contract Consideration
               </span>
               <div className="text-2xl font-black text-foreground">
-                {formatCurrency(deal.amount)}
+                {deal.amount > 0
+                  ? formatCurrency(deal.amount)
+                  : ((terms.productValue as number) || ((deal as Record<string, unknown>).productValue as number))
+                  ? `${formatCurrency(((terms.productValue as number) || ((deal as Record<string, unknown>).productValue as number) || 0))} (Barter Product)`
+                  : "Product Barter"}
               </div>
               <p className="text-muted-foreground text-2xs mt-0.5">
-                Funds deposited and secured in RBI-compliant escrow trust account prior to commencement of work.
+                {deal.amount > 0
+                  ? "Funds deposited and secured in RBI-compliant escrow trust account prior to commencement of work."
+                  : `Non-monetary consideration: Brand gifts physical product sample${terms.productName ? ` (${terms.productName})` : ""} valued at ${formatCurrency(((terms.productValue as number) || ((deal as Record<string, unknown>).productValue as number) || 0))}.`}
               </p>
             </div>
 
             <div className="sm:text-right space-y-1">
               <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-verified-muted text-verified font-bold text-2xs border border-verified-border shrink-0 whitespace-nowrap">
                 <ShieldCheck className="w-3.5 h-3.5" />
-                100% Escrow Secured
+                {deal.amount > 0 ? "100% Escrow Secured" : "Barter Verified"}
               </span>
               <div className="text-muted-foreground text-2xs">
-                TDS compliance: Deducted under Section 194-J / 194-O as applicable.
+                {deal.amount > 0
+                  ? "TDS compliance: Deducted under Section 194-J / 194-O as applicable."
+                  : "Physical delivery tracked via Shiprocket logistics integration."}
               </div>
             </div>
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-2xs p-3 bg-muted/40 border border-border rounded-lg mt-2">
             <div>
-              <span className="text-muted-foreground block font-medium">Creator Payout:</span>
-              <span className="font-bold text-foreground">{formatCurrency(deal.amount)}</span>
+              <span className="text-muted-foreground block font-medium">Creator Compensation:</span>
+              <span className="font-bold text-foreground">
+                {deal.amount > 0 ? formatCurrency(deal.amount) : "Gifted Product"}
+              </span>
             </div>
             <div>
-              <span className="text-muted-foreground block font-medium">Platform Fee (10%):</span>
+              <span className="text-muted-foreground block font-medium">
+                {deal.amount > 0 ? "Platform Fee (10%):" : "Product Handling Fee:"}
+              </span>
               <span className="font-bold text-foreground">{formatCurrency(deal.platformFee || 0)}</span>
             </div>
             <div>

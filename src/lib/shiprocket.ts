@@ -4,6 +4,7 @@ import { env } from "@/env";
 import { withCircuitBreaker } from "@/lib/circuit-breaker";
 import { redis } from "@/lib/redis";
 import { logger } from "@/lib/logger";
+import { assertKillSwitchInactive } from "@/lib/kill-switch";
 
 const SHIPROCKET_REQUEST_TIMEOUT_MS = 10000;
 
@@ -12,6 +13,7 @@ async function shiprocketFetch(
   init?: RequestInit,
   timeoutMs = SHIPROCKET_REQUEST_TIMEOUT_MS,
 ): Promise<Response> {
+  await assertKillSwitchInactive("killswitch:vendor:shiprocket");
   return withCircuitBreaker(
     "shiprocket:api",
     async () => {

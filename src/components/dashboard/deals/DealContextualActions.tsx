@@ -12,6 +12,7 @@ import {
   MessageSquare,
   ExternalLink,
   Lock,
+  Star,
 } from "lucide-react";
 import { DealDetail, getFlatDeliverablesList, ContentUrlEntry } from "./DealDetailHelpers";
 import {
@@ -41,6 +42,7 @@ export interface DealContextualActionsProps {
   setShowVerifyModal: (v: boolean) => void;
   setItemizedReviews: React.Dispatch<React.SetStateAction<Record<string, { status: "APPROVED" | "REVISION_REQUESTED"; feedback: string }>>>;
   setShowReviewModal: (v: boolean) => void;
+  onOpenRatingReviewModal?: (() => void) | undefined;
 }
 
 export function DealContextualActions({
@@ -62,6 +64,7 @@ export function DealContextualActions({
   setShowVerifyModal,
   setItemizedReviews,
   setShowReviewModal,
+  onOpenRatingReviewModal,
 }: DealContextualActionsProps) {
   const contractSignature = (deal?.contractSignature && typeof deal.contractSignature === "object"
     ? deal.contractSignature
@@ -408,6 +411,19 @@ export function DealContextualActions({
             </div>
           )}
           </>
+          )}
+
+          {dealStatus === "COMPLETED" && onOpenRatingReviewModal && (
+            <Button
+              type="button"
+              variant="primary"
+              size="sm"
+              onClick={onOpenRatingReviewModal}
+              className="gap-1.5 text-xs font-bold shadow-xs bg-amber-500 hover:bg-amber-600 text-white border-amber-600"
+            >
+              <Star className="w-3.5 h-3.5 fill-current" />
+              <span>Rate &amp; Review</span>
+            </Button>
           )}
 
           <Button

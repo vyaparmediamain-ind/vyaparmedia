@@ -1,4 +1,5 @@
 import { apiWrapper, ApiResponse, ValidatedNextRequest } from "@/lib/api-wrapper";
+import { cache } from "@/lib/cache";
 import { Prisma } from "@prisma/client";
 import {
   DEFAULT_CANCELLATION_FEE_AFTER_APPROVAL_PERCENT,
@@ -347,48 +348,54 @@ if (!session?.user?.id) {
 return ApiResponse.unauthorized();
 }
 
-const deal = await prisma.deal.findUnique({
-where: { id: dealId },
-include: {
-influencer: {
-select: {
-userId: true,
-displayName: true,
-instagramHandle: true,
-user: {
-select: {
-taxCompliance: {
-select: {
-panLast4: true,
-},
-},
-},
-},
-},
-},
-brand: {
-select: {
-userId: true,
-companyName: true,
-user: {
-select: {
-taxCompliance: {
-select: {
-gstin: true,
-},
-},
-},
-},
-},
-},
-campaign: {
-select: {
-title: true,
-targetCategories: true,
-},
-},
-},
-});
+  const deal = await cache(
+    `deal:contract:${dealId}`,
+    async () => {
+      return await prisma.deal.findUnique({
+        where: { id: dealId },
+        include: {
+          influencer: {
+            select: {
+              userId: true,
+              displayName: true,
+              instagramHandle: true,
+              user: {
+                select: {
+                  taxCompliance: {
+                    select: {
+                      panLast4: true,
+                    },
+                  },
+                },
+              },
+            },
+          },
+          brand: {
+            select: {
+              userId: true,
+              companyName: true,
+              user: {
+                select: {
+                  taxCompliance: {
+                    select: {
+                      gstin: true,
+                    },
+                  },
+                },
+              },
+            },
+          },
+          campaign: {
+            select: {
+              title: true,
+              targetCategories: true,
+            },
+          },
+        },
+      });
+    },
+    120,
+  );
 
 if (!deal) {
 return ApiResponse.error("Deal not found", 404);

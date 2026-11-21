@@ -142,6 +142,20 @@ export default function DiscoverInfluencersPage() {
     { revalidateOnFocus: false },
   );
 
+  const { data: bookmarkData } = useSWR<{ success: boolean; savedIds: string[] }>(
+    isBrandOrAdmin ? "/api/bookmarks" : null,
+    async (url: string) => {
+      const res = await fetch(url);
+      if (!res.ok) return { success: false, savedIds: [] };
+      return res.json();
+    },
+    { revalidateOnFocus: false }
+  );
+
+  const savedSet = useMemo(() => {
+    return new Set(bookmarkData?.savedIds || []);
+  }, [bookmarkData]);
+
   const creators = useMemo(() => {
     const raw = payload?.influencers || payload?.data?.influencers;
     const rawInfluencers: RawInfluencerApiItem[] = Array.isArray(raw)
@@ -151,12 +165,13 @@ export default function DiscoverInfluencersPage() {
       : [];
     return rawInfluencers.map((raw) => {
       const normalized = normalizeCreatorItem(raw);
-      if (typeof savedOverrides[normalized.id] === "boolean") {
-        return { ...normalized, isSaved: savedOverrides[normalized.id] };
-      }
-      return normalized;
+      const isSaved =
+        typeof savedOverrides[normalized.id] === "boolean"
+          ? savedOverrides[normalized.id]
+          : savedSet.has(normalized.id);
+      return { ...normalized, isSaved };
     });
-  }, [payload, savedOverrides]);
+  }, [payload, savedOverrides, savedSet]);
 
   const savedCount = useMemo(() => {
     return creators.filter((c) => Boolean(c.isSaved)).length;

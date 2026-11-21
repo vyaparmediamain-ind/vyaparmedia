@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { formatCurrency } from "@/lib/utils-client";
@@ -55,6 +55,10 @@ export default function CreatorDiscoveryCard({
   const [isSaved, setIsSaved] = useState(Boolean(creator.isSaved));
   const [isSaving, setIsSaving] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    setIsSaved(Boolean(creator.isSaved));
+  }, [creator.isSaved]);
 
   const handleBookmarkClick = async (e: React.MouseEvent) => {
     e.preventDefault();

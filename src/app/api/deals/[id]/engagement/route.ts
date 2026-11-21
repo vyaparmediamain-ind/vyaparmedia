@@ -4,7 +4,7 @@ import { apiWrapper, ValidatedNextRequest } from "@/lib/api-wrapper";
 * GET: Fetch engagement metrics for a deal
 * POST: Manually trigger engagement capture (admin/cron)
 */
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import prisma from "@/lib/db";
 import {
 getEngagementReport,

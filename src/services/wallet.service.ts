@@ -25,12 +25,17 @@ export interface GetWalletResult {
 }
 
 const WALLET_INCLUDE = {
-withdrawals: {
-orderBy: { createdAt: "desc" as const },
-take: 5,
-},
+  withdrawals: {
+    orderBy: { createdAt: "desc" as const },
+    take: 5,
+  },
   user: {
-    select: { userType: true },
+    select: {
+      userType: true,
+      brandProfile: {
+        select: { id: true },
+      },
+    },
   },
 } as const;
 
@@ -106,14 +111,8 @@ throw toError(createError);
 }
 }
 
-  private static async getBrandEscrowHeld(userId: string, userType: string): Promise<number> {
-    if (userType !== "BRAND") return 0;
-
-    const brandProfile = await prisma.brandProfile.findUnique({
-      where: { userId },
-      select: { id: true },
-    });
-    if (!brandProfile) return 0;
+  private static async getBrandEscrowHeld(brandProfileId?: string | null): Promise<number> {
+    if (!brandProfileId) return 0;
 
     const activeDealsAggregate = await prisma.deal.aggregate({
       _sum: {
@@ -121,7 +120,7 @@ throw toError(createError);
         totalAmount: true,
       },
       where: {
-        brandId: brandProfile.id,
+        brandId: brandProfileId,
         status: {
           in: ESCROW_HELD_STATUSES as DealStatus[],
         },
@@ -136,59 +135,86 @@ throw toError(createError);
     limit: number = 20,
     filters?: WalletTransactionFilters,
   ): Promise<GetWalletResult> {
-try {
-const safePage = Math.max(1, page);
-const safeLimit = Math.min(100, Math.max(1, limit));
+    try {
+      const safePage = Math.max(1, page);
+      const safeLimit = Math.min(100, Math.max(1, limit));
 
-const walletData = await this.findOrCreateWallet(userId);
+      const walletData = await this.findOrCreateWallet(userId);
 
-const transactionWhere: Prisma.TransactionWhereInput = {
-walletId: walletData.id,
-};
+      const transactionWhere: Prisma.TransactionWhereInput = {
+        walletId: walletData.id,
+      };
 
-if (filters?.type) {
-transactionWhere.type = filters.type;
-}
+      if (filters?.type) {
+        transactionWhere.type = filters.type;
+      }
 
-if (filters?.status) {
-transactionWhere.status = filters.status;
-}
+      if (filters?.status) {
+        transactionWhere.status = filters.status;
+      }
 
-if (filters?.startDate || filters?.endDate) {
-transactionWhere.createdAt = {
-...(filters?.startDate ? { gte: filters.startDate } : {}),
-...(filters?.endDate ? { lte: filters.endDate } : {}),
-};
-}
+      if (filters?.startDate || filters?.endDate) {
+        transactionWhere.createdAt = {
+          ...(filters?.startDate ? { gte: filters.startDate } : {}),
+          ...(filters?.endDate ? { lte: filters.endDate } : {}),
+        };
+      }
 
-const transactions = await prisma.transaction.findMany({
-where: transactionWhere,
-orderBy: { createdAt: "desc" },
-skip: (safePage - 1) * safeLimit,
-take: safeLimit,
-});
+      const brandProfileId = walletData.user.userType === "BRAND"
+        ? (walletData.user as { brandProfile?: { id: string } | null }).brandProfile?.id
+        : null;
 
-let totalTransactions = transactions.length;
-if (safePage > 1 || transactions.length === safeLimit) {
-  totalTransactions = await prisma.transaction.count({ where: transactionWhere });
-}
+      let transactions: Transaction[];
+      let totalTransactions: number;
+      let totalHeld: number;
 
-const totalHeld = await this.getBrandEscrowHeld(userId, walletData.user.userType);
+      if (safePage > 1) {
+        // Parallel execution: fetch page slice + count + escrow held concurrently
+        const [txs, count, held] = await Promise.all([
+          prisma.transaction.findMany({
+            where: transactionWhere,
+            orderBy: { createdAt: "desc" },
+            skip: (safePage - 1) * safeLimit,
+            take: safeLimit,
+          }),
+          prisma.transaction.count({ where: transactionWhere }),
+          this.getBrandEscrowHeld(brandProfileId),
+        ]);
+        transactions = txs;
+        totalTransactions = count;
+        totalHeld = held;
+      } else {
+        // Page 1: fetch first page slice and escrow held concurrently
+        const [txs, held] = await Promise.all([
+          prisma.transaction.findMany({
+            where: transactionWhere,
+            orderBy: { createdAt: "desc" },
+            skip: 0,
+            take: safeLimit,
+          }),
+          this.getBrandEscrowHeld(brandProfileId),
+        ]);
+        transactions = txs;
+        totalHeld = held;
+        totalTransactions = transactions.length === safeLimit
+          ? await prisma.transaction.count({ where: transactionWhere })
+          : transactions.length;
+      }
 
-logger.info("Wallet fetched successfully", {
-userId,
-transactionCount: totalTransactions,
-});
+      logger.info("Wallet fetched successfully", {
+        userId,
+        transactionCount: totalTransactions,
+      });
 
-return {
-wallet: {
-...walletData,
-transactions,
-totalHeld,
-},
-totalTransactions,
-totalPages: Math.ceil(totalTransactions / safeLimit),
-};
+      return {
+        wallet: {
+          ...walletData,
+          transactions,
+          totalHeld,
+        },
+        totalTransactions,
+        totalPages: Math.ceil(totalTransactions / safeLimit),
+      };
 } catch (error: unknown) {
 logger.error("Error fetching wallet", toError(error), { userId });
 if (error instanceof AppError) throw error;

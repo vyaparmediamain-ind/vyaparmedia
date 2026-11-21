@@ -129,12 +129,20 @@ _sum: {
 balance: true,
 totalEarned: true,
 totalWithdrawn: true,
+debt: true,
 },
 where: {
 // PLATFORM_TREASURY is the platform's own operating wallet, NOT a
 // user liability. Excluding it gives accurate liability figures.
 userId: { not: "PLATFORM_TREASURY" },
 },
+});
+
+// Outstanding Unrecovered Debt Claims
+const pendingDebtClaims = await prisma.debtClaim.aggregate({
+_sum: { amount: true },
+_count: true,
+where: { status: "PENDING" },
 });
 
 // Withdrawal Stats
@@ -229,6 +237,11 @@ wallets: {
 totalBalance: walletAgg._sum.balance || 0,
 totalEarned: walletAgg._sum.totalEarned || 0,
 totalWithdrawn: walletAgg._sum.totalWithdrawn || 0,
+totalDebt: walletAgg._sum.debt || 0,
+},
+debtClaims: {
+pendingAmount: pendingDebtClaims._sum.amount || 0,
+pendingCount: pendingDebtClaims._count || 0,
 },
 withdrawals: {
 completedAmount: totalWithdrawals._sum.amount || 0,

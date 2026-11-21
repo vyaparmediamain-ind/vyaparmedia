@@ -18,6 +18,7 @@ import { TierError, DirectInviteParams, estimateCampaignDealSlots, safeStringCas
 import { createDealAndReserveFunds } from "@/services/deal/helpers";
 import { checkMessageForContacts } from "@/lib/contact-filter";
 import { BlockService } from "@/services/block.service";
+import { assertKillSwitchInactive } from "@/lib/kill-switch";
 import { invalidateCampaignSearchCache } from "@/lib/search";
 import { encodeMatchingPriority, type MatchingPriorityPreset, type MatchingWeights } from "@/services/matching.service";
 
@@ -40,27 +41,20 @@ async function checkBrandVerificationTiers(
   fundedDealSlots: number,
   productHandlingFee: number
 ) {
-  const campaignValue = totalBudgetPaise > 0
-    ? totalBudgetPaise
-    : (productValuePaise || 0) * fundedDealSlots;
-
-  const tierCheck = await checkVerificationTierForAmount(userId, "BRAND", campaignValue);
-  if (!tierCheck.allowed) {
-    throw new TierError(tierCheck.reason || "Verification required", tierErrorResponse(tierCheck));
-  }
-
   const campaignFundingAmounts = calculateTotalAmount(
     totalBudgetPaise,
     campaignBrandFee.effectivePlatformFee,
     productHandlingFee * fundedDealSlots
   );
-  const fundingTierCheck = await checkVerificationTierForAmount(
-    userId,
-    "BRAND",
-    campaignFundingAmounts.totalAmount
-  );
-  if (!fundingTierCheck.allowed) {
-    throw new TierError(fundingTierCheck.reason || "Verification required", tierErrorResponse(fundingTierCheck));
+
+  const campaignValue = totalBudgetPaise > 0
+    ? totalBudgetPaise
+    : (productValuePaise || 0) * fundedDealSlots;
+
+  const requiredThreshold = Math.max(campaignValue, campaignFundingAmounts.totalAmount);
+  const tierCheck = await checkVerificationTierForAmount(userId, "BRAND", requiredThreshold);
+  if (!tierCheck.allowed) {
+    throw new TierError(tierCheck.reason || "Verification required", tierErrorResponse(tierCheck));
   }
 
   return campaignFundingAmounts;
@@ -509,6 +503,8 @@ async function handlePostCampaignCreationTasks(params: PostCampaignTasksParams) 
 
 export async function createCampaign(userId: string, userType: UserType, data: Record<string, unknown>) {
   try {
+    await assertKillSwitchInactive("killswitch:campaigns");
+
     if (!isBrand(userType)) {
       throw AppError.badRequest("Only brands can create campaigns");
     }

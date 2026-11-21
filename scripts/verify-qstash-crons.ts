@@ -13,7 +13,7 @@
 
 import fs from "node:fs";
 import path from "node:path";
-import { CRON_JOBS, type CronJobDefinition } from "./setup-qstash-crons";
+import { CRON_JOBS } from "./setup-qstash-crons";
 
 interface CronScheduleInfo {
   id: string;
@@ -36,7 +36,7 @@ function explainSchedule(cron: string): { utc: string; ist: string } {
     return { utc: "Invalid cron expression", ist: "Invalid cron expression" };
   }
 
-  const [minute, hour, dom, month, dow] = parts;
+  const [_minute, _hour, _dom, _month, _dow] = parts;
 
   if (cron === "*/30 * * * *") {
     return {

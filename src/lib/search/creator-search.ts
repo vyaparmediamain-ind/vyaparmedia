@@ -279,7 +279,7 @@ export async function searchCreators(
       ip."totalReviews",
       ip."createdAt",
       ip."updatedAt",
-      COALESCE(u."trustScore", 50) AS "userTrustScore",
+      COALESCE(u."trustScore", 600) AS "userTrustScore",
       COALESCE(u.level, 1) AS "userLevel",
       COALESCE(u.xp, 0) AS "userXp"
       ${selectRankSql}

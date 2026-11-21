@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
@@ -82,9 +82,14 @@ export default function DesktopSidebar({
   activeDealsCount = 0,
 }: Readonly<DesktopSidebarProps>) {
   const shouldReduceMotion = useReducedMotion();
+  const [mounted, setMounted] = useState(false);
   const pathname = usePathname();
   const navItems = getNavigationItems(userType);
   const createAction = getCreateActionConfig(userType);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const isActive = (item: NavItemConfig) => {
     if (item.href === "/dashboard") {
@@ -95,7 +100,8 @@ export default function DesktopSidebar({
 
   const isBrand = (userType || "").toUpperCase() === "BRAND";
   const isAdmin = (userType || "").toUpperCase() === "ADMIN";
-  const roleLabel = isAdmin ? "Admin" : isBrand ? "Brand" : "Creator";
+  const isScout = (userType || "").toUpperCase() === "SCOUT";
+  const roleLabel = isAdmin ? "Admin" : isBrand ? "Brand" : isScout ? "Scout" : "Creator";
 
   return (
     <aside
@@ -150,7 +156,7 @@ export default function DesktopSidebar({
             >
               {/* Sliding Background Indicator (Framer Motion) */}
               {active && (
-                shouldReduceMotion ? (
+                !mounted || shouldReduceMotion ? (
                   <div
                     className="absolute inset-0 bg-primary/10 rounded-xl border border-primary/20"
                     aria-hidden="true"
@@ -198,66 +204,68 @@ export default function DesktopSidebar({
           );
         })}
 
-        {/* Quick Ecosystem Links */}
-        <div className="pt-2 mt-2 border-t border-border/60 space-y-1">
-          <Link
-            href="/dashboard/wallet"
-            className="flex items-center gap-3 px-3.5 py-2 rounded-xl text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors"
-          >
-            <Wallet className="w-4 h-4 stroke-[1.75]" />
-            <span className="flex-1 tracking-tight">Escrow Wallet</span>
-          </Link>
-
-          <Link
-            href="/dashboard/leaderboard"
-            className="flex items-center gap-3 px-3.5 py-2 rounded-xl text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors"
-          >
-            <Trophy className="w-4 h-4 stroke-[1.75]" />
-            <span className="flex-1 tracking-tight">Leaderboard</span>
-          </Link>
-
-          <Link
-            href="/dashboard/badges"
-            className="flex items-center gap-3 px-3.5 py-2 rounded-xl text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors"
-          >
-            <Award className="w-4 h-4 stroke-[1.75]" />
-            <span className="flex-1 tracking-tight">Badges & Level</span>
-          </Link>
-
-          {!isBrand && (
+        {/* Quick Ecosystem Links (Creators & Brands only) */}
+        {!isScout && (
+          <div className="pt-2 mt-2 border-t border-border/60 space-y-1">
             <Link
-              href="/dashboard/applications"
+              href="/dashboard/wallet"
               className="flex items-center gap-3 px-3.5 py-2 rounded-xl text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors"
             >
-              <FileText className="w-4 h-4 stroke-[1.75]" />
-              <span className="flex-1 tracking-tight">My Applications</span>
+              <Wallet className="w-4 h-4 stroke-[1.75]" />
+              <span className="flex-1 tracking-tight">Escrow Wallet</span>
             </Link>
-          )}
 
-          <Link
-            href="/dashboard/analytics"
-            className="flex items-center gap-3 px-3.5 py-2 rounded-xl text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors"
-          >
-            <BarChart3 className="w-4 h-4 stroke-[1.75]" />
-            <span className="flex-1 tracking-tight">Analytics & Reports</span>
-          </Link>
+            <Link
+              href="/dashboard/leaderboard"
+              className="flex items-center gap-3 px-3.5 py-2 rounded-xl text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors"
+            >
+              <Trophy className="w-4 h-4 stroke-[1.75]" />
+              <span className="flex-1 tracking-tight">Leaderboard</span>
+            </Link>
 
-          <Link
-            href="/dashboard/referrals"
-            className="flex items-center gap-3 px-3.5 py-2 rounded-xl text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors"
-          >
-            <Share2 className="w-4 h-4 stroke-[1.75]" />
-            <span className="flex-1 tracking-tight">Refer & Earn</span>
-          </Link>
+            <Link
+              href="/dashboard/badges"
+              className="flex items-center gap-3 px-3.5 py-2 rounded-xl text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors"
+            >
+              <Award className="w-4 h-4 stroke-[1.75]" />
+              <span className="flex-1 tracking-tight">Badges & Level</span>
+            </Link>
 
-          <Link
-            href="/dashboard/support"
-            className="flex items-center gap-3 px-3.5 py-2 rounded-xl text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors"
-          >
-            <HelpCircle className="w-4 h-4 stroke-[1.75]" />
-            <span className="flex-1 tracking-tight">Support & Help</span>
-          </Link>
-        </div>
+            {!isBrand && (
+              <Link
+                href="/dashboard/applications"
+                className="flex items-center gap-3 px-3.5 py-2 rounded-xl text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors"
+              >
+                <FileText className="w-4 h-4 stroke-[1.75]" />
+                <span className="flex-1 tracking-tight">My Applications</span>
+              </Link>
+            )}
+
+            <Link
+              href="/dashboard/analytics"
+              className="flex items-center gap-3 px-3.5 py-2 rounded-xl text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors"
+            >
+              <BarChart3 className="w-4 h-4 stroke-[1.75]" />
+              <span className="flex-1 tracking-tight">Analytics & Reports</span>
+            </Link>
+
+            <Link
+              href="/dashboard/referrals"
+              className="flex items-center gap-3 px-3.5 py-2 rounded-xl text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors"
+            >
+              <Share2 className="w-4 h-4 stroke-[1.75]" />
+              <span className="flex-1 tracking-tight">Refer & Earn</span>
+            </Link>
+
+            <Link
+              href="/dashboard/support"
+              className="flex items-center gap-3 px-3.5 py-2 rounded-xl text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors"
+            >
+              <HelpCircle className="w-4 h-4 stroke-[1.75]" />
+              <span className="flex-1 tracking-tight">Support & Help</span>
+            </Link>
+          </div>
+        )}
       </nav>
 
       {/* User Profile Footer */}
@@ -294,7 +302,7 @@ export default function DesktopSidebar({
               {user?.name || "My Account"}
             </p>
             <p className="text-[11px] text-muted-foreground truncate">
-              {user?.email || "Signed in"}
+              {isScout ? "Campus Partner" : user?.email || "Signed in"}
             </p>
           </div>
         </Link>

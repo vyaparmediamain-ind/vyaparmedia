@@ -54,6 +54,11 @@ const rows = [
 "Description": "Total amount withdrawn by users",
 },
 {
+"Metric": "Unrecovered Debt Claims",
+"Value ()": paiseToRupees(financials.wallets.totalDebt),
+"Description": "Total unrecovered debt liability from post deletions/disputes",
+},
+{
 "Metric": "Completed Withdrawals",
 "Value ()": paiseToRupees(financials.withdrawals.completedAmount),
 "Description": "Total successful withdrawals",

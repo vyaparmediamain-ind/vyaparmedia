@@ -68,7 +68,7 @@ export function setup() {
     try {
       const parsed = JSON.parse(csrfRes.body);
       csrfToken = parsed.csrfToken || "";
-    } catch (e) {
+    } catch (_e) {
       // fallback
     }
   }
@@ -81,7 +81,7 @@ export function setup() {
   };
 }
 
-export default function (data) {
+export default function handleScenario(data) {
   const commonHeaders = {
     "Accept": "application/json",
     "User-Agent": "k6-load-tester/1.0",
@@ -94,7 +94,7 @@ export default function (data) {
     // 1a. Initial page (top 20 influencers)
     const initialUrl = `${TARGET_URL}/api/influencers?limit=20&sortBy=followers`;
     const res1 = http.get(initialUrl, { headers: commonHeaders });
-    
+
     creatorSearchTrend.add(res1.timings.duration);
     const success1 = check(res1, {
       "discovery status is 200": (r) => r.status === 200,
@@ -114,7 +114,7 @@ export default function (data) {
     try {
       const parsed = JSON.parse(res1.body);
       nextCursor = parsed.data?.nextCursor || parsed.nextCursor || "";
-    } catch (_) {}
+    } catch (_) { }
 
     if (nextCursor) {
       const cursorUrl = `${TARGET_URL}/api/influencers?limit=20&cursor=${encodeURIComponent(nextCursor)}&sortBy=followers`;
@@ -134,7 +134,7 @@ export default function (data) {
   group("2_Campaign_List_Feed", function () {
     const campaignUrl = `${TARGET_URL}/api/campaigns?limit=20&status=ACTIVE&sortBy=createdAt&sortOrder=desc`;
     const res = http.get(campaignUrl, { headers: commonHeaders });
-    
+
     campaignListTrend.add(res.timings.duration);
     const success = check(res, {
       "campaigns status is 200": (r) => r.status === 200,
@@ -176,7 +176,7 @@ export default function (data) {
       const loginRes = http.post(`${TARGET_URL}/api/auth/callback/credentials`, loginPayload, {
         headers: Object.assign({}, commonHeaders, { "Content-Type": "application/json" }),
       });
-      
+
       loginTrend.add(loginRes.timings.duration);
       check(loginRes, {
         "login status acceptable (200, 302, or 429 rate limited)": (r) =>

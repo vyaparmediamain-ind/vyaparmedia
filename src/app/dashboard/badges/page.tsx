@@ -10,6 +10,7 @@ import { BadgeDefinition } from "@/lib/badges";
 import EmptyState from "@/components/ui/EmptyState";
 import { Button, PageContainer, PageHeader, HorizontalScrollArea } from "@/components/ui";
 import { formatNumber } from "@/lib/utils-client";
+import WeeklyChallengesCard from "@/components/dashboard/WeeklyChallengesCard";
 import {
   Trophy,
   Star,
@@ -186,6 +187,9 @@ export default function BadgesPage() {
             ))}
           </div>
         )}
+
+        {/* ── Weekly Challenges / Quests ── */}
+        <WeeklyChallengesCard />
 
         {/* ── Next Badges to Unlock (CRED Style Milestone Track) ── */}
         {!loading && badges.filter((b) => !b.earned).length > 0 && (

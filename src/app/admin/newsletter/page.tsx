@@ -1,15 +1,13 @@
 import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import prisma from "@/lib/db";
-import { Button, Input, Textarea, PageContainer, PageHeader } from "@/components/ui";
+import { PageContainer, PageHeader } from "@/components/ui";
+import NewsletterBroadcastForm from "@/components/admin/newsletter/NewsletterBroadcastForm";
 import {
   Mail,
   Users,
   CheckCircle2,
   Clock,
-  Send,
-  AlertTriangle,
-  FileCode,
 } from "lucide-react";
 
 export const dynamic = "force-dynamic";
@@ -93,64 +91,8 @@ export default async function AdminNewsletterPage() {
         </div>
       </div>
 
-      {/* Form Card */}
-      <div className="p-6 sm:p-8 rounded-2xl bg-card border border-border space-y-6">
-        <form action="/api/admin/newsletter" method="POST" className="space-y-6">
-          <div className="space-y-2">
-            <Input
-              type="text"
-              id="subject"
-              name="subject"
-              label="Subject Line"
-              required
-              placeholder="e.g., New Guide: TDS & GST Compliance for Influencers"
-              fullWidth
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Textarea
-              id="content"
-              name="content"
-              label="Newsletter Content (HTML supported)"
-              required
-              rows={12}
-              className="text-sm font-mono resize-y"
-              placeholder="<h1>Hello Creators,</h1><p>Here is your weekly roundup of brand deals and legal escrow insights...</p>"
-              fullWidth
-            />
-            <div className="flex items-center gap-1.5 text-xs text-muted-foreground mt-1">
-              <FileCode className="w-3.5 h-3.5" />
-              <span>
-                Tip: Standard HTML tags like &lt;p&gt;, &lt;strong&gt;, &lt;em&gt;, &lt;a&gt;, &lt;ul&gt;, and &lt;li&gt; are supported.
-              </span>
-            </div>
-          </div>
-
-          {/* Broadcast Confirmation / Warning Alert */}
-          <div className="flex items-start gap-3 p-4 rounded-xl bg-warning/10 border border-warning-border text-foreground">
-            <AlertTriangle className="w-5 h-5 text-warning shrink-0 mt-0.5" />
-            <div className="text-xs leading-relaxed">
-              <span className="font-bold text-warning block mb-0.5">
-                Production Broadcast Notice
-              </span>
-              This action will dispatch transactional emails immediately to all{" "}
-              <strong>{stats.verified}</strong> verified subscribers via Resend/SMTP. Please proofread thoroughly before broadcasting.
-            </div>
-          </div>
-
-          <Button
-            type="submit"
-            variant="primary"
-            size="lg"
-            className="w-full justify-center gap-2 font-black shadow-md"
-            disabled={stats.verified === 0}
-          >
-            <Send className="w-4 h-4" />
-            Broadcast Newsletter to {stats.verified} Subscribers
-          </Button>
-        </form>
-      </div>
+      {/* Interactive Broadcast Form */}
+      <NewsletterBroadcastForm verifiedSubscribersCount={stats.verified} />
     </PageContainer>
   );
 }

@@ -45,7 +45,7 @@ export function validateTargetSafety(urlStr = TARGET_URL) {
   let parsed;
   try {
     parsed = new URL(urlStr);
-  } catch (err) {
+  } catch (_err) {
     throw new Error(`[SAFETY_VIOLATION] Invalid TARGET_URL: "${urlStr}". Must be a valid URL.`);
   }
 

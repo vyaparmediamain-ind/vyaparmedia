@@ -200,3 +200,83 @@ export function getFlatDeliverablesList(dealObj: DealDetail | null | undefined) 
   return list;
 }
 
+/**
+ * Comprehensive hashtag, brand mention and ASCI compliance tag extractor.
+ * Scans:
+ * 1. Contract Terms: terms.mandatoryTags & terms.mandatoryElements
+ * 2. Campaign Details: requirements, guidelines, description, title
+ * 3. Deliverables Matrix: specifications, briefs, and labels
+ * 4. Official Brand Handle: @brandname
+ * 5. Statutory ASCI Compliance Tags: #ad, #sponsored, #collab, #vyaparmedia
+ */
+export function extractAllDealHashtagsAndMentions(
+  deal: {
+    campaign?: {
+      title?: string | null | undefined;
+      description?: string | null | undefined;
+      requirements?: string | null | undefined;
+      guidelines?: string | null | undefined;
+      deliverables?: unknown;
+    } | null | undefined;
+    contractTerms?: unknown;
+    brand?: {
+      companyName?: string | null | undefined;
+    } | null | undefined;
+  } | null | undefined,
+  terms?: {
+    mandatoryTags?: unknown;
+    mandatoryElements?: unknown;
+    deliverables?: unknown;
+  } | null | undefined
+): string[] {
+  const set = new Set<string>();
+
+  const resolvedTerms = terms || (deal?.contractTerms ? parseContractTerms(deal.contractTerms) : null);
+
+  // [1] Contract Terms: mandatoryTags & mandatoryElements
+  const rawTermsTags = [
+    ...(Array.isArray(resolvedTerms?.mandatoryTags) ? (resolvedTerms.mandatoryTags as unknown[]) : []),
+    ...(Array.isArray(resolvedTerms?.mandatoryElements) ? (resolvedTerms.mandatoryElements as unknown[]) : []),
+  ];
+  for (const t of rawTermsTags) {
+    if (typeof t === "string" && t.trim()) {
+      const cleaned = t.trim();
+      set.add(cleaned.startsWith("#") || cleaned.startsWith("@") ? cleaned : `#${cleaned}`);
+    }
+  }
+
+  // [2 & 3] Campaign Details & Deliverables Matrix scanning
+  const campaignTexts = [
+    deal?.campaign?.title,
+    deal?.campaign?.description,
+    deal?.campaign?.requirements,
+    deal?.campaign?.guidelines,
+  ].filter(Boolean).join(" ");
+
+  const deliverables = resolvedTerms?.deliverables || deal?.campaign?.deliverables;
+  const deliverablesText = deliverables ? JSON.stringify(deliverables) : "";
+  const allScanText = `${campaignTexts} ${deliverablesText}`;
+
+  const textMatches = allScanText.match(/[#@][A-Za-z0-9_.-]{2,50}/g) || [];
+  for (const m of textMatches) {
+    set.add(m.trim());
+  }
+
+  // [4] Official Brand Handle: @brandname
+  const brandName = deal?.brand?.companyName;
+  if (brandName && brandName.trim() && !["brand", "brand partner", "client"].includes(brandName.trim().toLowerCase())) {
+    const sanitizedBrand = brandName.toLowerCase().replace(/[^a-z0-9_]/g, "");
+    if (sanitizedBrand.length >= 2) {
+      set.add(`@${sanitizedBrand}`);
+    }
+  }
+
+  // [5] Statutory ASCI Compliance Tags (Guaranteed for legal escrow safety)
+  set.add("#ad");
+  set.add("#sponsored");
+  set.add("#collab");
+  set.add("#vyaparmedia");
+
+  return Array.from(set);
+}
+

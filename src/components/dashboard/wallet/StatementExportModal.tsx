@@ -3,8 +3,8 @@
 import React, { useState } from "react";
 import { apiClient } from "@/lib/api-client";
 import { formatUserError } from "@/lib/user-messages";
-import { Download, FileText, Calendar, Filter, CheckCircle2, AlertCircle, Printer, Loader2 } from "lucide-react";
-import { Button, Input, Modal } from "@/components/ui";
+import { Download, FileText, Calendar, Filter, CheckCircle2, AlertCircle, Printer, Loader2, FileSpreadsheet } from "lucide-react";
+import { Button, Input, Modal, Badge } from "@/components/ui";
 import Logo from "@/components/Logo";
 import { StatementPrintView, type StatementTransaction } from "./StatementPrintView";
 
@@ -307,6 +307,39 @@ export function StatementExportModal({
               </button>
             ))}
           </div>
+        </div>
+
+        {/* Annual India Compliance Statements (TDS / GST ITC) */}
+        <div className="p-4 rounded-xl bg-card border border-border space-y-2.5">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-bold text-foreground flex items-center gap-1.5">
+              <FileSpreadsheet className="w-4 h-4 text-primary" />
+              {userType === "BRAND"
+                ? "Annual Spend & GST ITC Statement"
+                : "Annual Income & Section 194-O TDS Report"}
+            </span>
+            <Badge variant="ghost">FY 2025-26</Badge>
+          </div>
+          <p className="text-[11px] text-muted-foreground leading-relaxed">
+            {userType === "BRAND"
+              ? "Official audited statement with GSTIN breakdown, input tax credit eligibility, and escrow fee invoices for corporate tax filing."
+              : "Official e-commerce marketplace income statement detailing gross earnings, TDS Section 194-O deductions, and net payouts for filing ITR."}
+          </p>
+          <Button
+            href={
+              userType === "BRAND"
+                ? "/api/reports/brand/spend?fy=2025-26&format=csv"
+                : "/api/reports/influencer/income?fy=2025-26&format=csv"
+            }
+            variant="secondary"
+            size="sm"
+            className="w-full gap-1.5 text-xs font-bold"
+          >
+            <Download className="w-3.5 h-3.5 text-primary" />
+            {userType === "BRAND"
+              ? "Download Annual GST ITC Report (CSV)"
+              : "Download Annual TDS & Income Statement (CSV)"}
+          </Button>
         </div>
 
         {/* Tax Compliance Note */}

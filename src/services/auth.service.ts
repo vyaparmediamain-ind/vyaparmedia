@@ -13,6 +13,7 @@ import { createActivityLog } from "@/lib/audit";
 
 import { generateReferralCode } from "@/lib/utils";
 import type { RegisterInput } from "@/lib/validations";
+import { getRegistrationGateConfig, isMasterInviteCode } from "@/lib/registration-gate";
 
 function hashResetToken(token: string): string {
 return createHash("sha256").update(token).digest("hex");
@@ -137,6 +138,17 @@ await tx.brandProfile.create({
 data: {
 userId: newUser.id,
 companyName: name,
+},
+});
+} else if (userType === "SCOUT") {
+await tx.scoutProfile.create({
+data: {
+userId: newUser.id,
+scoutCode: generateReferralCode(`SC-${name.replace(/[^A-Za-z]/g, "").slice(0, 4).toUpperCase() || "SCT"}`),
+fullName: name,
+phone: phone || "",
+city: "India",
+verificationStatus: "PENDING",
 },
 });
 }
@@ -267,7 +279,32 @@ if (existingByPhone) {
 throw AppError.badRequest("Phone number already registered");
 }
 
-const referrerId = await AuthService.resolveReferrer(referralCodeInput);
+const gateConfig = await getRegistrationGateConfig();
+let referrerId: string | undefined = undefined;
+
+if (gateConfig.requireReferral) {
+  if (!referralCodeInput) {
+    throw AppError.badRequest("VyaparMedia is currently in invite-only beta. A valid referral code is required to sign up.");
+  }
+  if (isMasterInviteCode(referralCodeInput, gateConfig.masterInviteCode)) {
+    logger.info("Registration using Master VIP Invite Code", { code: referralCodeInput, email });
+    referrerId = undefined;
+  } else {
+    referrerId = await AuthService.resolveReferrer(referralCodeInput);
+    if (!referrerId) {
+      throw AppError.badRequest("Invalid referral code. Please provide an active invite code.");
+    }
+  }
+} else {
+  if (referralCodeInput) {
+    if (isMasterInviteCode(referralCodeInput, gateConfig.masterInviteCode)) {
+      referrerId = undefined;
+    } else {
+      referrerId = await AuthService.resolveReferrer(referralCodeInput);
+    }
+  }
+}
+
 const passwordHash = await hash(password, 12);
 const referralSeed = name || email.split("@")[0] || "user";
 let user: { id: string };

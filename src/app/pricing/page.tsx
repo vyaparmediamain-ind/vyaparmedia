@@ -24,21 +24,24 @@ const CREATOR_FEATURES = [
 ];
 
 const BRAND_FEATURES = [
-  { label: "Unlimited campaign creation & briefs", included: true },
+  { label: "Unlimited campaign creation & briefs (Paid & Barter)", included: true },
+  { label: "Product-only / Barter campaigns (10% handling fee, min ₹500 value)", included: true },
+  { label: "Integrated Shiprocket courier tracking & address privacy", included: true },
   { label: "Government KYC & social fraud verification", included: true },
-  { label: "Automated smart contracts & revision limits", included: true },
+  { label: "Automated smart contracts & 2 free revision rounds", included: true },
   { label: "Secure milestone escrow (UPI / Card / NetBanking)", included: true },
   { label: "Live post link tracking & engagement metrics", included: true },
   { label: "GST-compliant automated invoicing & TDS summaries", included: true },
-  { label: "Multi-creator campaign management", included: true },
-  { label: "Dispute resolution with audit trail", included: true },
+  { label: "Dispute resolution with immutable audit trail", included: true },
 ];
 
 const COMPARISON = [
-  { feature: "Platform fee", creator: "Free forever", brand: `${DEFAULT_BRAND_PLATFORM_FEE_PERCENT}% per deal` },
+  { feature: "Platform fee (Paid deals)", creator: "Free forever", brand: `${DEFAULT_BRAND_PLATFORM_FEE_PERCENT}% per deal` },
+  { feature: "Product-only / Barter deals", creator: "Keep free products", brand: "10% handling fee (min ₹500 value)" },
+  { feature: "Included content revisions", creator: "2 included free", brand: "2 included free (then ₹500/edit)" },
   { feature: "Escrow protection", creator: "✓", brand: "✓" },
   { feature: "KYC verification", creator: "✓", brand: "✓" },
-  { feature: "Smart contracts", creator: "✓", brand: "✓" },
+  { feature: "Smart contracts & legal SOW", creator: "✓", brand: "✓" },
   { feature: "TDS / GST compliance", creator: "✓", brand: "✓" },
   { feature: "Live post monitoring", creator: "View only", brand: "Full control" },
   { feature: "Dispute resolution", creator: "✓", brand: "✓" },
@@ -76,6 +79,18 @@ const FAQS = [
   {
     q: `Is the ${DEFAULT_BRAND_PLATFORM_FEE_PERCENT}% brand fee inclusive or exclusive of GST?`,
     a: `The platform service fee is subject to GST at ${GST_STANDARD_RATE_PERCENT_STRING} as per applicable Indian tax law. The fee is charged only on successful deal completion — not on campaign creation, applications, or contract signing.`,
+  },
+  {
+    q: "How does pricing work for Product-Only (Barter / Gifting) campaigns?",
+    a: "For 100% product-seeding or barter collaborations where creators receive free products instead of cash payouts (total budget = ₹0), VyaparMedia charges a flat 10% Product Handling Fee based on the declared retail product value (with a minimum product value of ₹500). If multiple products or hampers are gifted, the fee is calculated on the combined package value per creator slot. Integrated Shiprocket courier charges are billed transparently to the brand wallet.",
+  },
+  {
+    q: "How many content revisions are included in a deal?",
+    a: "Every smart contract includes 2 free rounds of content revisions as standard. If a brand requests additional re-shoots or edits beyond the 2 included rounds, an automated revision fee of ₹500 per extra revision is charged to compensate creators for additional production time.",
+  },
+  {
+    q: "Can I reduce platform fees through referrals?",
+    a: "Yes! Both creators and brands earn milestone fee discounts by referring colleagues and partners: 1% fee discount at 10+ referrals (Bronze), 1.5% at 50+ referrals (Silver), and 2% maximum fee discount at 100+ referrals (Gold/Platinum/Diamond). In addition, referrers and verified Vyapar Scouts earn a 1% lifetime cash royalty on all deals executed by their referred network starting from Day 1.",
   },
 ];
 
@@ -231,7 +246,7 @@ export default function PricingPage() {
                   <div className="text-xs text-muted-foreground mt-1.5">
                     {billingCycle === "volume"
                       ? "Dedicated CA tax support · Dedicated account executive"
-                      : "Only charged on success · No upfront cost"}
+                      : "Paid campaigns: 10% fee · Product barter: 10% handling fee (min ₹500)"}
                   </div>
                 </div>
 

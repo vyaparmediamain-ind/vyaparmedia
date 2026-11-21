@@ -63,7 +63,7 @@ async function getAuthSessionCookie(baseUrl) {
 /**
  * Executes a load test run using either installed autocannon or npx autocannon fallback.
  */
-async function runAutocannonScenario({ title, url, connections, duration, headers, method = "GET", body }) {
+async function runAutocannonScenario({ _title, url, connections, duration, headers, method = "GET", body }) {
   assertSafeEndpoint(new URL(url).pathname);
 
   // Try programmatic import first
@@ -134,7 +134,7 @@ async function runAutocannonScenario({ title, url, connections, duration, header
         try {
           const parsed = JSON.parse(stdout.trim());
           resolve(parsed);
-        } catch (e) {
+        } catch (_e) {
           reject(new Error(`Failed to parse autocannon JSON output: ${stdout || stderr}`));
         }
       });

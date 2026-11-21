@@ -1,6 +1,6 @@
 # VyaparMedia — India's Premier Influencer Marketing & Escrow Marketplace
 
-> **Production Platform Baseline** | Next.js 16.2.6 (App Router) · React 19.2.6 · TypeScript 5 · Prisma ORM 7.10.0 · Base UI · Tailwind CSS · Upstash Redis & ioredis · Razorpay & Route · Shiprocket
+> **Production Platform Baseline** | Next.js 16.2.6 (App Router) · React 19.2.6 · TypeScript 5 · Prisma ORM 6.19.3 · Base UI · Tailwind CSS · Upstash Redis & ioredis · Razorpay & Route · Shiprocket
 
 VyaparMedia is an enterprise-grade fintech and marketing marketplace connecting direct-to-consumer (D2C) brands, digital marketing agencies, and corporate sponsors with verified content creators through legally binding digital contracts, milestone-based escrow payments, automated Indian tax compliance (TDS Section 194-O, GST, PAN), and integrated courier logistics.
 
@@ -9,7 +9,7 @@ VyaparMedia is an enterprise-grade fintech and marketing marketplace connecting 
 ## 1. Key Value Propositions
 
 - **100% Escrow Protection**: Upfront brand funding locked in double-entry ledger escrow holds. Eliminates creator payment default and brand delivery risks.
-- **Digital Reputation Score (DRS 0–900)**: Algorithmic creator credibility rating based on on-time delivery rates, verified review sentiment, dispute history, and fraud flags with time-decay recency.
+- **Digital Reputation Score (DRS 300–900)**: Algorithmic creator credibility rating (CIBIL standard 300–900) based on on-time delivery rates, verified review sentiment, dispute history, and fraud flags with time-decay recency.
 - **Legally Binding Digital Contracts**: Cryptographic SHA-256 contracts with itemized deliverables, revision terms, and dual digital signatures.
 - **Automated Indian Tax Compliance**: Real-time Section 194-O (0.1%), Section 206AA (5%), and Section 194J TDS calculations, GST state-code extraction, and encrypted PAN verification.
 - **Physical Product Seeding Logistics**: End-to-end Shiprocket courier booking, AWB generation, automated tracking webhooks, and brand wallet courier billing.
@@ -152,16 +152,16 @@ npm install
 # Run development server (http://localhost:3000)
 npm run dev
 
-# Run action-button premature exposure regression guard (47 mutating buttons verified)
+# Run action-button premature exposure regression guard (48 mutating buttons verified)
 npm run lint:actions
 
-# Run semantic design token consistency check (595 source files verified)
+# Run semantic design token consistency check (609 source files verified)
 npm run lint:theme
 
 # Run full project validation (ESLint + Theme + Actions + TypeScript + Prisma)
 npm run validate
 
-# Run automated Vitest test battery (136 test files, 1,117 passed tests)
+# Run automated Vitest test battery (140 test files, 1,142 passed tests)
 npm test
 
 # Run full pre-deployment pipeline (validate + test + build)

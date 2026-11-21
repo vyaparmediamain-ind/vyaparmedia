@@ -103,7 +103,8 @@ export default function RefundPage() {
           <li>Third-party payment gateway transaction processing charges (Razorpay fees incurred on credit cards/net-banking).</li>
           <li>Statutory taxes (such as GST or TDS) already deposited with the respective tax authorities for completed transactions.</li>
           <li>Milestones where content was officially approved and payment was authorized to the creator&apos;s wallet.</li>
-          <li>Physical product samples shipped by brands directly to creators for gifting or review campaigns.</li>
+          <li>Physical product samples shipped by brands directly to creators for gifting, seeding, or barter campaigns (including consumed courier logistics fees once dispatched).</li>
+          <li>Product handling fees for barter campaigns where the physical products have already been dispatched by the brand or received by the creator.</li>
         </ul>
       </LegalSection>
 

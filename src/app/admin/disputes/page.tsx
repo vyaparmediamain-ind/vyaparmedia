@@ -42,7 +42,12 @@ function DisputeItem({
   const userEmail = dispute.raisedBy?.email || "Unknown user";
   const createdDate = formatDate(dispute.createdAt);
   const badgeVariant = showHistory ? "success" : "danger";
-  const formattedAmount = formatCurrency(dispute.deal?.amount);
+  const dealAmount = dispute.deal?.amount ?? 0;
+  const formattedAmount = dealAmount > 0
+    ? formatCurrency(dealAmount)
+    : dispute.deal?.productValue
+    ? `Barter (${formatCurrency(dispute.deal.productValue)})`
+    : "Barter Deal";
 
   return (
     <div className="flex justify-between items-center gap-4 flex-wrap p-4 rounded-xl bg-card border border-border shadow-sm hover:border-primary/30 hover:shadow-md transition-all">

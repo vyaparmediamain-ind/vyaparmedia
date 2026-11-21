@@ -4,7 +4,6 @@ import {
   isPushEndpointAllowed,
   dispatchPushNotification,
   savePushSubscription,
-  removePushSubscription,
 } from "@/lib/push-notifications";
 import prisma from "@/lib/db";
 
@@ -72,9 +71,9 @@ describe("PUSH-01: Web Push Security, SSRF Allowlist & Resilience", () => {
       const mockUserId = `user_fifo_${Date.now()}`;
       
       // Mock prisma.pushSubscription.count and findMany/deleteMany/upsert
-      const countSpy = vi.spyOn(prisma.pushSubscription, "count").mockResolvedValue(5);
+      const _countSpy = vi.spyOn(prisma.pushSubscription, "count").mockResolvedValue(5);
       const deleteManySpy = vi.spyOn(prisma.pushSubscription, "deleteMany").mockResolvedValue({ count: 1 });
-      const findManySpy = vi.spyOn(prisma.pushSubscription, "findMany").mockResolvedValue([
+      const _findManySpy = vi.spyOn(prisma.pushSubscription, "findMany").mockResolvedValue([
         { id: "sub_oldest", userId: mockUserId, endpoint: "https://fcm.googleapis.com/1", p256dh: "p", auth: "a", userAgent: null, createdAt: new Date(0), lastSeen: new Date(0) },
       ]);
       const upsertSpy = vi.spyOn(prisma.pushSubscription, "upsert").mockResolvedValue({} as any);

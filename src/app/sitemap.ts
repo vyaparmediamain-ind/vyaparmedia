@@ -5,7 +5,8 @@ export const revalidate = 86400; // Cache and revalidate daily
 export const dynamic = "force-dynamic";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://vyaparmedia-nine.vercel.app";
+  const rawBaseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://vyaparmedia-nine.vercel.app";
+  const baseUrl = rawBaseUrl.replace(/\/+$/, "");
   const now = new Date();
 
   const staticRoutes: MetadataRoute.Sitemap = [
@@ -93,20 +94,52 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: "monthly",
       priority: 0.4,
     },
+    {
+      url: `${baseUrl}/status`,
+      lastModified: now,
+      changeFrequency: "hourly",
+      priority: 0.6,
+    },
+    {
+      url: `${baseUrl}/register`,
+      lastModified: now,
+      changeFrequency: "monthly",
+      priority: 0.7,
+    },
+    {
+      url: `${baseUrl}/login`,
+      lastModified: now,
+      changeFrequency: "monthly",
+      priority: 0.6,
+    },
   ];
 
   let creatorRoutes: MetadataRoute.Sitemap = [];
+  let brandRoutes: MetadataRoute.Sitemap = [];
+
   try {
-    const creators = await prisma.influencerProfile.findMany({
-      where: {
-        instagramHandle: { not: null },
-      },
-      select: {
-        instagramHandle: true,
-        updatedAt: true,
-      },
-      take: 500,
-    });
+    const [creators, brands] = await Promise.all([
+      prisma.influencerProfile.findMany({
+        where: {
+          instagramHandle: { not: null },
+        },
+        select: {
+          instagramHandle: true,
+          updatedAt: true,
+        },
+        take: 500,
+      }),
+      prisma.brandProfile.findMany({
+        where: {
+          deletedAt: null,
+        },
+        select: {
+          id: true,
+          updatedAt: true,
+        },
+        take: 200,
+      }),
+    ]);
 
     creatorRoutes = creators
       .filter((c) => Boolean(c.instagramHandle))
@@ -116,9 +149,16 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         changeFrequency: "weekly",
         priority: 0.7,
       }));
+
+    brandRoutes = brands.map((b) => ({
+      url: `${baseUrl}/brand/${encodeURIComponent(b.id)}`,
+      lastModified: b.updatedAt || now,
+      changeFrequency: "weekly",
+      priority: 0.7,
+    }));
   } catch {
     // If DB is offline during build time, gracefully return staticRoutes
   }
 
-  return [...staticRoutes, ...creatorRoutes];
+  return [...staticRoutes, ...creatorRoutes, ...brandRoutes];
 }

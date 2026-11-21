@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion, useReducedMotion } from "framer-motion";
@@ -55,7 +55,12 @@ export default function MobileBottomBar({
 }: Readonly<MobileBottomBarProps>) {
   const pathname = usePathname();
   const shouldReduceMotion = useReducedMotion();
+  const [mounted, setMounted] = useState(false);
   const navItems = getNavigationItems(userType);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const isActive = (item: NavItemConfig) => {
     if (item.href === "/dashboard") {
@@ -94,20 +99,23 @@ export default function MobileBottomBar({
               >
                 {/* Active Tab Sliding Pill Indicator (Framer Motion) */}
                 {active && (
-                  <motion.div
-                    layoutId="activeTabMobile"
-                    className="absolute -top-1 w-8 h-1 bg-primary rounded-full"
-                    transition={
-                      shouldReduceMotion
-                        ? { duration: 0 }
-                        : {
-                            type: "spring",
-                            stiffness: 500,
-                            damping: 35,
-                          }
-                    }
-                    aria-hidden="true"
-                  />
+                  !mounted || shouldReduceMotion ? (
+                    <div
+                      className="absolute -top-1 w-8 h-1 bg-primary rounded-full"
+                      aria-hidden="true"
+                    />
+                  ) : (
+                    <motion.div
+                      layoutId="activeTabMobile"
+                      className="absolute -top-1 w-8 h-1 bg-primary rounded-full"
+                      transition={{
+                        type: "spring",
+                        stiffness: 500,
+                        damping: 35,
+                      }}
+                      aria-hidden="true"
+                    />
+                  )
                 )}
 
                 {/* Icon Container with Badge */}

@@ -3,6 +3,7 @@ import { LegalLayout, LegalSection } from "@/components/legal/LegalLayout";
 import { AlertTriangle } from "lucide-react";
 import {
   DEFAULT_BRAND_REVIEW_PERIOD_HOURS,
+  DEFAULT_BRAND_PLATFORM_FEE_PERCENT,
   TDS_194O_RATE_PERCENT_STRING,
   GST_STANDARD_RATE_PERCENT_STRING,
 } from "@/constants";
@@ -86,11 +87,12 @@ export default function TermsPage() {
       {/* 3 */}
       <LegalSection id="verification" heading="3. Verification &amp; KYC Requirements">
         <p>
-          To maintain an ecosystem free of fraud and bot manipulation, VyaparMedia implements tiered identity verification:
+          To maintain an ecosystem free of fraud and bot manipulation, VyaparMedia implements tiered identity verification aligned with Indian regulatory standards (Income Tax Rule 114B &amp; RBI KYC guidelines):
         </p>
         <ul className="list-disc pl-6 space-y-2 my-3">
-          <li><strong className="text-foreground">Creator Verification:</strong> Mobile OTP verification, PAN record matching, and social handle authentication. High-value tiers require bank account verification via IMPS penny drop.</li>
-          <li><strong className="text-foreground">Brand Verification:</strong> Official corporate email domain, GSTIN certificate validation, and registered company address matching.</li>
+          <li><strong className="text-foreground">Tier 1 (Basic · Up to ₹50,000/month):</strong> Mobile &amp; Email OTP verification, masked Aadhaar token matching, and live selfie check.</li>
+          <li><strong className="text-foreground">Tier 2 (Standard · Up to ₹1,00,000/month for Brands; Unlimited for Creators):</strong> PAN Card validation and verified Bank Account statement / IMPS penny drop confirmation.</li>
+          <li><strong className="text-foreground">Tier 3 (Institutional · Unlimited Spend for Brands):</strong> Verified business legal proof — GST Certificate, MSME (Udyam) Registration, Certificate of Incorporation (CIN), or DPIIT Startup India Certificate.</li>
         </ul>
         <p>
           Any attempt to forge KYC documents or submit synthetic identity credentials will lead to immediate account termination, forfeiture of unlawful gains, and reporting to financial authorities.
@@ -101,6 +103,8 @@ export default function TermsPage() {
       <LegalSection id="campaigns" heading="4. Campaigns, Deliverables &amp; SOW">
         <ul className="list-disc pl-6 space-y-2">
           <li>Campaign briefs must contain explicit creative requirements, deliverable formats (e.g. 60s Reel, 3-frame Story), brand tags, and mandatory talking points.</li>
+          <li><strong className="text-foreground">Product-Only &amp; Barter Campaigns:</strong> For campaigns involving physical product seeding or barter collaborations, the declared retail value must be at least ₹500 per creator. Production and submission deadlines begin only after the physical product delivery is confirmed (via Shiprocket / tracked courier AWB). Creators retain gifted products permanently unless the brief explicitly specifies return logistics.</li>
+          <li><strong className="text-foreground">Content Revisions:</strong> Every contract includes 2 free revision rounds for brand review against original brief specifications. Additional reshoots or modifications beyond the 2 included rounds incur a standard ₹500 revision fee.</li>
           <li>Creators must deliver original, non-infringing creative assets by the contractual milestone deadlines.</li>
           <li>Brands are allotted a standard review window (typically {DEFAULT_BRAND_REVIEW_PERIOD_HOURS} hours) upon submission. If no revision or dispute is initiated within this window, the platform may trigger automated approval.</li>
           <li>Promotional posts must remain live on the creator&apos;s authenticated profile for the contractual retention period (standard 30–60 days).</li>
@@ -116,7 +120,7 @@ export default function TermsPage() {
           <li><strong className="text-foreground">Upfront Escrow Lock:</strong> Brands fund 100% of the agreed milestone budget prior to creator commencement. Funds remain safeguarded in an RBI-compliant escrow account.</li>
           <li><strong className="text-foreground">Milestone Release:</strong> Funds are disbursed to the creator&apos;s platform wallet immediately upon brand approval of the verified deliverable.</li>
           <li><strong className="text-foreground">Instant Withdrawals:</strong> Creators can withdraw wallet balances to their verified Indian bank accounts via IMPS/NEFT 24/7.</li>
-          <li><strong className="text-foreground">Transparent Platform Fees:</strong> VyaparMedia deducts a nominal platform facilitation fee clearly disclosed during campaign creation.</li>
+          <li><strong className="text-foreground">Transparent Platform Fees:</strong> VyaparMedia charges a standard platform fee on cash campaign budgets ({DEFAULT_BRAND_PLATFORM_FEE_PERCENT}% standard / 7.5% volume). For product-only barter campaigns, a 10% Product Handling Fee applies on the declared retail product value. Creators always join and receive payouts 100% free of platform deduction.</li>
         </ul>
       </LegalSection>
 
@@ -181,7 +185,21 @@ export default function TermsPage() {
       </LegalSection>
 
       {/* 11 */}
-      <LegalSection id="contact" heading="11. Corporate Disclosure, Legal Inquiries &amp; Jurisdiction">
+      <LegalSection id="scout-and-referral" heading="11. Vyapar Scout &amp; Referral Program Terms">
+        <p>
+          VyaparMedia operates an automated Referral and Campus Partner (Vyapar Scout) incentive program subject to the following statutory terms:
+        </p>
+        <ul className="list-disc pl-6 space-y-2 my-3">
+          <li><strong className="text-foreground">Eligibility &amp; Age Gate (18+):</strong> All participants enrolling as Vyapar Scouts must be at least 18 years of age and complete full government identity verification (valid Permanent Account Number [PAN] and Aadhaar authentication) prior to accessing dashboard analytics, referral codes, or withdrawing royalties.</li>
+          <li><strong className="text-foreground">1% Lifetime GMV Deal Royalty:</strong> Verified Scouts and eligible referrers receive an automated 1% lifetime cash royalty computed on the gross transactional value of all successfully completed, non-disputed campaigns executed by referred creators and brands. Royalties are credited directly from platform reserves into the participant&apos;s wallet upon final milestone approval.</li>
+          <li><strong className="text-foreground">Active Monthly Quota:</strong> To maintain active royalty status, Vyapar Scouts are required to onboard at least one (1) newly verified creator and one (1) verified business brand per calendar month, unless granted an administrative academic/exam grace period.</li>
+          <li><strong className="text-foreground">Sybil &amp; Self-Referral Prohibition:</strong> Self-referral, circular account creation, or creating multiple accounts using matching PAN, bank accounts, or device fingerprints to harvest referral credits is strictly prohibited under our Anti-Fraud Policy. Any detected violations result in immediate account termination, forfeiture of accrued earnings, and potential legal recovery.</li>
+          <li><strong className="text-foreground">Administrative Discretion:</strong> VyaparMedia reserves the right to audit network activity, pause royalty accrual during compliance investigations, or tune custom royalty rates based on community contribution and ecosystem trust.</li>
+        </ul>
+      </LegalSection>
+
+      {/* 12 */}
+      <LegalSection id="contact" heading="12. Corporate Disclosure, Legal Inquiries &amp; Jurisdiction">
         <p>
           These Terms of Service are governed by and construed under the laws of the Republic of India. Any legal proceedings or dispute claims shall be subject to the exclusive jurisdiction of the competent courts in Bengaluru, Karnataka, India.
         </p>

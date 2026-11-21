@@ -34,6 +34,7 @@ import { DealContractCard } from "@/components/dashboard/deals/DealContractCard"
 import { EngagementCard } from "@/components/dashboard/deals/EngagementCard";
 import { ContentSubmissionsCard } from "@/components/dashboard/deals/ContentSubmissionsCard";
 import { ContentSubmissionModal } from "@/components/dashboard/deals/ContentSubmissionModal";
+import { DealRatingReviewModal } from "@/components/dashboard/deals/DealRatingReviewModal";
 import { DealModals } from "@/components/dashboard/deals/DealModals";
 import { ContractPrintView } from "@/components/dashboard/deals/ContractPrintView";
 import { Button, Skeleton, Textarea, ToastContainer, PageContainer, PageHeader } from "@/components/ui";
@@ -243,6 +244,7 @@ export default function DealDetailPage() {
   const isInfluencer = session?.user?.userType === "INFLUENCER";
   const [showContractPrint, setShowContractPrint] = React.useState(false);
   const [showTrackingModal, setShowTrackingModal] = React.useState(false);
+  const [showRatingReviewModal, setShowRatingReviewModal] = React.useState(false);
 
   const disputeEligibility = React.useMemo(() => {
     if (!deal) return { allowed: false };
@@ -577,6 +579,7 @@ export default function DealDetailPage() {
               setShowVerifyModal={setShowVerifyModal}
               setItemizedReviews={setItemizedReviews}
               setShowReviewModal={setShowReviewModal}
+              onOpenRatingReviewModal={() => setShowRatingReviewModal(true)}
             />
 
             {/* Collabr Anti-Leak Safety Chip */}
@@ -641,6 +644,22 @@ export default function DealDetailPage() {
             fetchDeal();
             showToast("success", "Content submitted for review!");
           }}
+        />
+      )}
+
+      {deal && (
+        <DealRatingReviewModal
+          isOpen={showRatingReviewModal}
+          onClose={() => setShowRatingReviewModal(false)}
+          dealId={deal.id}
+          partnerName={isClient ? (deal.influencer?.displayName || "Creator") : (deal.brand?.companyName || "Brand")}
+          partnerAvatar={isClient ? deal.influencer?.avatar : deal.brand?.logo}
+          partnerRole={isClient ? "Creator" : "Brand"}
+          existingReview={((deal as { reviews?: Array<{ reviewerId: string; rating: number; comment?: string | null; createdAt: string | Date }> }).reviews || []).find(r => r.reviewerId === session?.user?.id)}
+          onReviewSubmitted={() => {
+            fetchDeal();
+          }}
+          showToast={showToast}
         />
       )}
 

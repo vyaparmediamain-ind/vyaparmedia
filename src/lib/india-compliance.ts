@@ -124,7 +124,7 @@ message: "GSTIN embedded PAN does not match the PAN number",
 });
 
 type IndiaTaxSummaryInput = {
-  userType: "BRAND" | "INFLUENCER" | "ADMIN";
+  userType: "BRAND" | "INFLUENCER" | "ADMIN" | "SCOUT";
   panPresent: boolean;
   gstinPresent: boolean;
   itrPresent: boolean;

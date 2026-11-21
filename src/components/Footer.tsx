@@ -7,6 +7,7 @@ import { PLATFORM_CONFIG } from "@/lib/platform-config";
 const platformLinks = [
 { label: "For Influencers", href: "/register?type=influencer" },
 { label: "For Brands", href: "/register?type=brand" },
+{ label: "Vyapar Scout (Campus Partner)", href: "/register?type=scout" },
 { label: "Pricing", href: "/pricing" },
 ];
 
@@ -101,10 +102,10 @@ export function Footer() {
 
         <div className="flex justify-between items-center flex-wrap gap-3">
           <p className="text-muted-foreground text-sm">
-            © 2026 VyaparMedia Technologies Pvt Ltd. All rights reserved.
+            © 2026 {PLATFORM_CONFIG.legalName}. All rights reserved.
           </p>
           <p className="text-muted-foreground text-xs">
-            CIN: {PLATFORM_CONFIG.cin} • Registered Office: {PLATFORM_CONFIG.address}
+            {PLATFORM_CONFIG.cin && !["N/A", "NONE", "PROPRIETORSHIP"].includes(PLATFORM_CONFIG.cin.toUpperCase()) ? `CIN: ${PLATFORM_CONFIG.cin} • ` : `GSTIN: ${PLATFORM_CONFIG.gstin} • `}Registered Office: {PLATFORM_CONFIG.address}
           </p>
         </div>
       </div>

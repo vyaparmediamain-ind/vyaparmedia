@@ -20,7 +20,9 @@ import {
   Target,
   AlertTriangle,
   ShieldAlert,
+  GraduationCap,
   Mail,
+  Power,
   LogOut,
   Menu,
   X,
@@ -43,11 +45,13 @@ const navItems = [
   { icon: FileText,        label: "Applications",     href: "/admin/applications" },
   { icon: Scale,           label: "Disputes",         href: "/admin/disputes" },
   { icon: Users,           label: "Users",            href: "/admin/users" },
+  { icon: GraduationCap,   label: "Campus Scouts",    href: "/admin/scouts" },
   { icon: Banknote,        label: "Payouts",          href: "/admin/payouts" },
   { icon: ScrollText,      label: "Audit Logs",       href: "/admin/audit-logs" },
   { icon: Target,          label: "CPV Benchmarks",   href: "/admin/benchmarks" },
   { icon: AlertTriangle,   label: "Violations",       href: "/admin/violations" },
   { icon: ShieldAlert,     label: "Review Collusion", href: "/admin/suspicious-reviews" },
+  { icon: Power,           label: "System Controls",  href: "/admin/system" },
   { icon: Mail,            label: "Newsletter",       href: "/admin/newsletter" },
 ] as const;
 

@@ -84,7 +84,7 @@ graph TD
 
 ### 1.1 Seven Fundamental Value Pillars
 1. **100% Escrow Guarantee**: Upfront brand funding locked in dedicated escrow with double-entry ledger settlement and RBI Payment Aggregator compliant Razorpay Route split settlement. Neither party bears unilateral counterparty credit risk.
-2. **Digital Reputation Score (DRS 0–900)**: Transparent, algorithmic reputation scoring replacing vanity follower counts with on-time delivery rates, review scores, fraud flags, and time-decay recency.
+2. **Digital Reputation Score (DRS 300–900)**: Transparent, algorithmic reputation scoring (CIBIL standard 300–900) replacing vanity follower counts with on-time delivery rates, review scores, fraud flags, and time-decay recency.
 3. **Legally Binding Digital Contracts**: Cryptographic SHA-256 contracts capturing itemized deliverables, revision limits, licensing, and deadlines with dual digital timestamps.
 4. **Physical Product Seeding Logistics**: Native Shiprocket courier integration with automated rate computation, brand wallet shipping fee debits, AWB generation, and webhook tracking.
 5. **Automated India Tax & Regulatory Compliance**: Real-time Section 194-O (0.1%), Section 206AA (5%), and Section 194J TDS calculation with FY tracking, GSTIN structure verification, and encrypted PAN storage.
@@ -118,7 +118,7 @@ graph TD
 | **Payment Gateway** | Razorpay SDK & Route | 2.9.6 | UPI, Netbanking, Cards top-up, Razorpay Route split settlement, and RazorpayX instant payouts |
 | **Contract Safety** | Zod Schemas | 4.3.6 | Shared schemas across API routes and client fetchers with fail-fast runtime drift rejection |
 | **Observability** | Sentry + Winston | 10.59.0 | Distributed request tracing, structured JSON logging, error tracking |
-| **Testing Suite** | Vitest + Testing Library | 5.0.0 | 136 test files, 1,117 passed unit, integration & e2e tests (100% pass rate) |
+| **Testing Suite** | Vitest + Testing Library | 5.0.0 | 140 test files, 1,142 passed unit, integration & e2e tests (100% pass rate) |
 
 
 ### 2.2 Database Read/Write Segregation (`src/lib/db-read.ts`)
@@ -182,7 +182,7 @@ erDiagram
   - `passwordHash` (String)
   - `role` (Enum: `INFLUENCER`, `BRAND`, `ADMIN`)
   - `verificationLevel` (Enum: `NONE`, `BASIC`, `IDENTITY`, `FULL`)
-  - `trustScore` (Float, Default 600.0, DRS score 0–900)
+  - `trustScore` (Float, Default 600.0, DRS score 300–900)
   - `drsTier` (Enum: `FLAGGED`, `LIMITED`, `NORMAL`, `TRUSTED`, `ELITE`)
   - `twoFactorEnabled` (Boolean, Default false)
   - `twoFactorSecret` (String, Encrypted AES-256-GCM)
@@ -794,7 +794,7 @@ $$\text{Score} = \left( 0.35 R_{\text{text}} + 0.25 T_{\text{DRS}} + 0.20 E_{\te
 
 Where:
 - $R_{\text{text}}$: Full-text search relevance ($70\%$ `ts_rank_cd` + $30\%$ `pg_trgm` similarity).
-- $T_{\text{DRS}}$: DRS reputation normalized ($\text{trustScore} / 900$).
+- $T_{\text{DRS}}$: DRS reputation normalized ($(\text{trustScore} - 300) / 600$).
 - $E_{\text{eng}}$: Engagement rate normalized ($10\%$ engagement $= 1.0$).
 - $S_{\text{rating}}$: Average star rating normalized ($5.0 \text{ stars} = 1.0$).
 - $D_{\text{deals}}$: Completed deals normalized ($30+ \text{ deals} = 1.0$).
@@ -805,7 +805,7 @@ $$\text{Score} = 0.35 R_{\text{text}} + 0.30 B_{\text{budget}} + 0.20 T_{\text{b
 
 Where:
 - $B_{\text{budget}}$: Budget appeal (₹10,000 $= 1.0$).
-- $T_{\text{brand}}$: Brand trust score normalized ($\text{brandTrust} / 900$).
+- $T_{\text{brand}}$: Brand trust score normalized ($(\text{brandTrust} - 300) / 600$).
 - $D_{\text{recency}}$: Linear time decay over 60 days ($\max(0, 1 - \text{ageDays} / 60)$).
 
 ### 15.2 Technical Implementation
@@ -819,8 +819,8 @@ Where:
 
 ## 16. Digital Reputation Score (DRS) & Gamification
 
-### 16.1 DRS Scoring Tiers (0–900 Scale)
-- **`FLAGGED` (0 – 450)**: Deal Cap: ₹0 (Account locked).
+### 16.1 DRS Scoring Tiers (300–900 Scale)
+- **`FLAGGED` (300 – 450)**: Deal Cap: ₹0 (Account locked).
 - **`LIMITED` (451 – 550)**: Deal Cap: ₹5,00,000 (₹5,000).
 - **`NORMAL` (551 – 750)**: Deal Cap: ₹25,00,000 (₹25,000).
 - **`TRUSTED` (751 – 850)**: Deal Cap: ₹1,00,00,000 (₹1,00,000).
@@ -1031,7 +1031,7 @@ The UI rebuild established four primary high-impact page flows:
 - **Architecture**: Dynamic Next.js Server Component fetching `InfluencerProfile` joined with verified `User` trust metrics, rendering the interactive `InfluencerProfileClient.tsx`. Fully publicly accessible without requiring session authentication.
 - **Key Capabilities**:
   - *Public Dossier & Verified Badges*: Creator display name, bio, niche category pills, city/state chips, verified KYC badge (`ShieldCheck`), and Instagram/YouTube channel badges.
-  - *DRS Trust Gauge*: Circular SVG radial gauge visualizing the 0–900 Dynamic Reliability Score with status badge tiers (e.g., *Elite Creator* for 800+).
+  - *DRS Trust Gauge*: Circular SVG radial gauge visualizing the 300–900 Dynamic Reliability Score with status badge tiers (e.g., *Elite Creator* for 800+).
   - *Instagram 3-Column Square Portfolio Grid*: Content-first 3-column square grid showcasing past campaign deliverables with hover overlay metrics (reach, engagement rate, INR payout).
   - *Proof of Work Modal (`CampaignProofModal`)*: Rich modal allowing brands to inspect full creative deliverables, verified escrow payouts, and client feedback.
   - *Itemized Transparent Rate Card*: Deliverable-based pricing slabs (Instagram Reels, Instagram Stories, YouTube Dedicated Videos, YouTube Shorts) with turnaround times and allowed revision rounds.
@@ -1249,6 +1249,8 @@ Every route is guarded by `apiWrapper` (`src/lib/api-wrapper.ts`) enforcing sess
 | **Upload** | POST | `/api/upload/presign` | Authenticated | Generate presigned S3/R2 upload URL |
 | **Messages** | GET | `/api/messages` | Authenticated | List conversations & unread count |
 | | POST | `/api/messages` | Authenticated | Send message (contact leak checked) |
+| | GET | `/api/messages/stream` | Authenticated | Real-time Server-Sent Events (SSE) stream for instant messages & typing |
+| | POST | `/api/messages/typing` | Authenticated | Publish typing presence status to chat partner |
 | **Notifications**| GET/PATCH| `/api/notifications` | Authenticated | Notification feed & mark read |
 | | GET/PUT | `/api/notifications/preferences`| Authenticated | Granular notification preferences |
 | | POST | `/api/notifications/push-subscription`| Authenticated | Register Web Push subscription |
@@ -1291,7 +1293,7 @@ Every route is guarded by `apiWrapper` (`src/lib/api-wrapper.ts`) enforcing sess
 
 ## 25. Testing, Verification & Quality Assurance Suite
 
-### 26.1 Vitest Unit & Integration Test Matrix (50 Test Suites, 546 Passing Tests)
+### 26.1 Vitest Unit & Integration Test Matrix (140 Test Suites, 1,142 Passing Tests)
 
 The repository enforces a comprehensive automated test battery covering core financial accounting, state machines, edge security, rate limiting, and user messages:
 
@@ -1326,8 +1328,8 @@ The repository enforces a comprehensive automated test battery covering core fin
 | `tests/unit/health-check.test.ts` | Health Endpoints | Database ping, Redis latency, service readiness probe | 3 tests |
 | `tests/e2e/deal-lifecycle.e2e.test.ts` | Real E2E Deal Lifecycle | Full end-to-end deal flow: contract -> escrow -> address -> dispatch -> webhook -> approval -> payout | 1 test |
 | `tests/integration/db-transactions.test.ts` | Database ACID | Real transactional constraints, rollback on failure, foreign key integrity, concurrent locks | 15 tests |
-| *Additional Unit & Integration Suites (21)* | System Workflows | Application lifecycle, dispute settlement, referral rewards, tax reporting, creator profiles | 189 tests |
-| **Total Automated Suite** | **Full Application** | **Zero failures across all core modules (`npm test`)** | **546 tests** |
+| *Additional Unit & Integration Suites (111)* | System Workflows | Realtime messaging SSE, OCR fail-closed queues, draft sync, contract safety, tax & KYC fraud | 785 tests |
+| **Total Automated Suite** | **Full Application** | **Zero failures across all core modules (`npm test`)** | **140 files / 1,142 tests** |
 
 ### 26.2 TypeScript Type-Safety Verification
 - Enforces strict TypeScript configuration (`tsconfig.json`): `strict: true`, `noImplicitAny: true`, `noUncheckedIndexedAccess: true`, `exactOptionalPropertyTypes: true`.
@@ -1399,10 +1401,43 @@ To eliminate magic numbers, prevent drift between frontend validation and backen
 | **`tax.ts`** | `TDS_194O_RATE = 0.001` (0.1%)<br>`TDS_194O_THRESHOLD_PAISE = 50_000_000`<br>`TDS_206AA_PENAL_RATE = 0.05` (5%)<br>`TDS_194J_RATE = 0.10` (10%)<br>`GST_STANDARD_RATE = 0.18` (18%) | Income Tax Act 1961 Section 194-O: 0.1% TDS on creator GMV exceeding ₹5,00,000 per FY.<br>Section 206AA: 5% penal rate for missing/unfurnished PAN.<br>Section 194J: 10% on technical services.<br>CGST/SGST: 18% on platform commissions. |
 | **`auth.ts`** | `AUTH_OTP_EXPIRY_SECONDS = 900` (15m)<br>`CONTACT_UPDATE_OTP_EXPIRY_SECONDS = 600` (10m)<br>`OTP_RESEND_COOLDOWN_SECONDS = 60`<br>`INACTIVITY_LOGOUT_MS = 1_800_000` (30m)<br>`SENSITIVE_ACTION_MAX_SESSION_AGE_MS = 600_000` (10m) | User onboarding OTP valid 15m; sensitive profile update OTP valid 10m.<br>60s resend throttle.<br>30m idle session forced logout with 5m advance modal warning.<br>Sensitive actions (withdraw, sign deal) require fresh auth (<10m). |
 | **`deals.ts`** | `DEFAULT_BRAND_REVIEW_PERIOD_HOURS = 48`<br>`MAX_BRAND_REVIEW_PERIOD_HOURS = 168`<br>`DEAL_SIGNING_WINDOW_HOURS = 72`<br>`POST_MONITORING_WINDOW_DAYS = 30`<br>`DEFAULT_INCLUDED_REVISIONS = 2`<br>`MIN_INFLUENCER_FOLLOWERS_TO_APPLY = 1000` | 48-hour brand review window before auto-approval (campaigns can customize up to 7 days).<br>72-hour contract signing window before expiration.<br>30-day post retention monitoring against deletion/clawbacks.<br>1,000 minimum followers/subscribers required to apply to any campaign. |
-| **`drs.ts`** | `MIN_TRUST_SCORE = 0`<br>`MAX_TRUST_SCORE = 900`<br>`IST_OFFSET_MS = 19_800_000` (UTC+5:30)<br>`DRS_DEAL_CAP_LIMITED_PAISE = 500_000`<br>`DRS_DEAL_CAP_NORMAL_PAISE = 2_500_000` | Reputation score bounds 0–900; Indian Standard Time synchronization.<br>Limited tier deal cap: ₹5,000; Normal tier: ₹25,000; Trusted: ₹1,00,000. |
+| **`drs.ts`** | `MIN_TRUST_SCORE = 300`<br>`MAX_TRUST_SCORE = 900`<br>`IST_OFFSET_MS = 19_800_000` (UTC+5:30)<br>`DRS_DEAL_CAP_LIMITED_PAISE = 500_000`<br>`DRS_DEAL_CAP_NORMAL_PAISE = 2_500_000` | Reputation score bounds 300–900; Indian Standard Time synchronization.<br>Limited tier deal cap: ₹5,000; Normal tier: ₹25,000; Trusted: ₹1,00,000. |
 | **`files.ts`** | `MAX_IMAGE_SIZE_BYTES = 5MB`<br>`MAX_DOCUMENT_SIZE_BYTES = 10MB`<br>`MAX_VIDEO_SIZE_BYTES = 50MB`<br>`MAX_DELIVERABLE_SIZE_BYTES = 100MB` | File upload limits strictly enforced across S3/Supabase upload presigned routes and UI dropzones. |
 | **`network.ts`** | `SMS_GATEWAY_TIMEOUT_MS = 15_000`<br>`IPINFO_TIMEOUT_MS = 3_000`<br>`CRON_LOCK_KEYS.CONTENT_AUTO_APPROVE`<br>`CRON_LOCK_TTLS.AUTO_APPROVE = 300` | Outgoing HTTP timeouts prevent hung worker threads.<br>Centralized Redis distributed lock keys with 5-minute TTL prevent concurrent cron overlap. |
 | **`ui.ts`** | `DEFAULT_TOAST_DURATION_MS = 5000`<br>`SHORT_TOAST_DURATION_MS = 3000`<br>`COPIED_FEEDBACK_DURATION_MS = 2000`<br>`NAVIGATION_REDIRECT_DELAY_MS = 2000` | Uniform notification auto-dismiss and navigation transition timings. |
+
+### 26.4 Vyapar Scout (Campus Partner) & Dual-Incentive Referral Architecture
+
+VyaparMedia operates an enterprise incentive engine divided into two distinct, deduplicated channels:
+
+#### 1. Vyapar Scout (Campus Partner) Program
+- **Role & Target Persona**: University students, college ambassadors, and community builders (UserType: `SCOUT`).
+- **18+ Statutory KYC Gate**: Mandatory submission of PAN (10-character regex), Aadhaar (12-digit number), Date of Birth (evaluated for $\ge 18$ years), and College/City name. The Scout portal and referral capabilities remain locked until Admin approval.
+- **Dedicated Distraction-Free Portal (`/dashboard/scout`)**: Scouts have zero access to brand campaign creation or creator application browsing. The interface exclusively features referral links, network roster, WhatsApp invite cards, and wallet ledger.
+- **Active Monthly Quota (1+1 Rule)**: To maintain active royalty status, a Scout must onboard at least 1 newly verified Creator and 1 verified Brand per calendar month. Quota exemptions (e.g. 30-day exam grace pass) can be granted by Admins via `/admin/scouts`.
+- **1% Lifetime GMV Deal Royalty**: On completion of any campaign executed by an onboarded Creator or Brand, 1% of deal GMV is credited to the Scout's wallet via atomic double-entry ledger debit from the platform treasury wallet.
+- **Admin Management Hub (`/admin/scouts`)**: Real-time review queue, royalty pause/unpause, custom royalty percent tuning (1% to 2.5%), and audit logging.
+
+#### 2. Creator & Brand Dual-Incentive Referral Engine (`src/lib/referral-engine.ts`)
+- **Hybrid Reward Structure**:
+  - **Flat 1% Lifetime GMV Deal Royalty**: Starts from Day 1 / Referral #1 across all tiers (`STARTER`, `BRONZE`, `SILVER`, `GOLD`, `PLATINUM`, `DIAMOND`).
+  - **Tiered Platform Fee Discounts on Own Deals**:
+    - **Bronze (10+ referrals)**: 1% Fee Off + 250 XP
+    - **Silver (50+ referrals)**: 1.5% Fee Off + 1500 XP
+    - **Gold (100+ referrals)**: 2% Fee Off (Max Discount) + 3500 XP
+    - **Platinum (500+ referrals)**: 2% Fee Off + 1% Cash Royalty
+    - **Diamond (1000+ referrals)**: 2% Fee Off + 1% Cash Royalty + Partner status
+- **Scout Deduplication Guard**: If a user is referred by an active Scout, `ScoutService.processDealRoyalty` executes the royalty, preventing duplicate debit from the creator/brand referral runner.
+- **Sybil Resistance**: Matching PAN or Bank Account hash matching blocks self-referral attempts (`P5-LOGIC-08`).
+
+### 26.5 Social Media Authenticity & Bot Engagement Engine (`src/services/creator-audit.service.ts`)
+
+Pure mathematical & NLP audit engine evaluating up to 25 historical Instagram & YouTube media posts:
+- **Winsorized Engagement Rate**: Caps outlier post spikes to 2.5x median, eliminating the effect of single-post bought bot views.
+- **Like-to-Comment Organic Ratio**: Healthy organic baseline is 1% to 8%. Ratios $<0.3\%$ trigger `BOT_LIKES_SUSPECTED` (-30 score penalty). Ratios $>40\%$ trigger `COMMENT_POD_SUSPECTED` (-25 penalty).
+- **Ghost Followers Detection**: Sub-0.2% engagement rate on accounts with $\ge 40,000$ followers triggers `GHOST_FOLLOWERS_SUSPECTED`.
+- **Comment NLP Quality**: Filters generic bot spam (repetitive emojis, single words, foreign Cyrillic/Arabic script bursts on Indian accounts).
+- **Creator Authenticity Score (0–100)**: Categorizes profiles into `EXCELLENT` ($\ge 85$), `GOOD` (70–84), `SUSPICIOUS` (50–69), and `HIGH_RISK` ($<50$).
 
 ---
 

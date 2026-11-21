@@ -265,11 +265,18 @@ findings,
 
 const MAX_OCR_IMAGE_BYTES = 4 * 1024 * 1024; // 4MB maximum payload limit before base64
 
+export interface ImageContactCheckResult {
+  hasContactInfo: boolean;
+  findings: string[];
+  needsReview?: boolean;
+  detectedText?: string;
+}
+
 export async function checkImageBufferForContacts(
   buffer: Buffer,
   filename: string,
   options?: { userId?: string }
-): Promise<{ hasContactInfo: boolean; findings: string[]; detectedText?: string }> {
+): Promise<ImageContactCheckResult> {
   // 1. Enforce size limit to prevent memory exhaustion and excessive cloud billing
   if (buffer.length > MAX_OCR_IMAGE_BYTES) {
     logger.warn("[contact-filter] Image buffer exceeds 4MB limit; skipping Vision OCR", {
@@ -297,13 +304,18 @@ export async function checkImageBufferForContacts(
           const currentRate = await redis.incr(userRateKey);
           if (currentRate === 1) await redis.expire(userRateKey, 60);
           if (currentRate > 10) {
-            logger.warn("[contact-filter] Per-user OCR rate limit exceeded (10/min); failing open", {
+            logger.warn("[contact-filter] Per-user OCR rate limit exceeded (10/min); queuing image for automated review", {
               userId: options.userId,
             });
-            return { hasContactInfo: false, findings: [] };
+            return {
+              hasContactInfo: true,
+              findings: ["image_pending_review"],
+              needsReview: true,
+              detectedText: "Image held for automated security review due to upload frequency.",
+            };
           }
         } catch {
-          // Redis down => fail-open
+          // Redis down => proceed
         }
       }
 
@@ -314,11 +326,16 @@ export async function checkImageBufferForContacts(
         const dailyCount = await redis.incr(dailyKey);
         if (dailyCount === 1) await redis.expire(dailyKey, 86400 * 2);
         if (dailyCount > 1000) {
-          logger.warn("[contact-filter] Global daily OCR budget cap exceeded (1000/day); failing open");
-          return { hasContactInfo: false, findings: [] };
+          logger.warn("[contact-filter] Global daily OCR budget cap exceeded (1000/day); queuing image for automated review");
+          return {
+            hasContactInfo: true,
+            findings: ["image_pending_review"],
+            needsReview: true,
+            detectedText: "Image held for automated security review due to daily scan quota.",
+          };
         }
       } catch {
-        // Redis down => fail-open
+        // Redis down => proceed
       }
 
       // 4. Execute Vision API with Circuit Breaker and X-Goog-Api-Key Header
@@ -395,7 +412,7 @@ export async function checkImageBufferForContacts(
     }
   }
 
-  const result: { hasContactInfo: boolean; findings: string[]; detectedText?: string } = {
+  const result: ImageContactCheckResult = {
     hasContactInfo: findings.length > 0,
     findings,
   };

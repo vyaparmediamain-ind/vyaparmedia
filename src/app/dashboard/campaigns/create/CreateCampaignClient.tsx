@@ -45,6 +45,8 @@ import {
   Wallet,
   AlertTriangle,
   ArrowUpRight,
+  Cloud,
+  Check,
 } from "lucide-react";
 
 const INITIAL_FORM_DATA: CampaignFormData = {
@@ -192,6 +194,25 @@ export default function CreateCampaignClient() {
   const [customCategory, setCustomCategory] = useState("");
   const [categories, setCategories] = useState<string[]>([...ALL_CATEGORIES]);
 
+  const [activeCampaignId, setActiveCampaignId] = useState<string | null>(editCampaignId || null);
+  const [isSavingCloudDraft, setIsSavingCloudDraft] = useState(false);
+  const [lastCloudSync, setLastCloudSync] = useState<string | null>(null);
+  const [dismissedServerDraft, setDismissedServerDraft] = useState(false);
+
+  // Sync activeCampaignId if URL query changes
+  useEffect(() => {
+    if (editCampaignId && editCampaignId !== activeCampaignId) {
+      setActiveCampaignId(editCampaignId);
+      setIsEditDraftLoading(true);
+    }
+  }, [editCampaignId, activeCampaignId]);
+
+  // Check for existing database drafts to resume cross-device
+  const { data: serverDraftsData } = useSWR<{
+    campaigns?: Array<{ id: string; title: string; updatedAt: string }>;
+  }>(!activeCampaignId ? "/api/campaigns?scope=mine&status=DRAFT&limit=1" : null, fetcher);
+  const existingServerDraft = serverDraftsData?.campaigns?.[0];
+
   // Restore draft from sessionStorage on client mount to prevent SSR hydration mismatch
   useEffect(() => {
     if (!editCampaignId && typeof window !== "undefined") {
@@ -296,7 +317,7 @@ export default function CreateCampaignClient() {
   }, [invitedInfluencerId]);
 
   const { data: draftData } = useSWR<DraftCampaignResponse>(
-    editCampaignId ? `/api/campaigns/${editCampaignId}` : null,
+    activeCampaignId ? `/api/campaigns/${activeCampaignId}` : null,
     fetcher
   );
 
@@ -405,6 +426,66 @@ export default function CreateCampaignClient() {
     }
   };
 
+  const handleSaveDraft = async () => {
+    setIsSavingCloudDraft(true);
+    setError("");
+    try {
+      let applicationDeadline: Date | null = null;
+      if (formData.applicationDeadline) {
+        applicationDeadline = new Date(formData.applicationDeadline);
+        applicationDeadline.setHours(23, 59, 59, 999);
+      }
+      const now = Date.now();
+      const contentDeadline = new Date(formData.contentDeadline || now + 14 * 86400000);
+      contentDeadline.setHours(23, 59, 59, 999);
+      const postingDeadline = new Date(formData.postingDeadline || now + 21 * 86400000);
+      postingDeadline.setHours(23, 59, 59, 999);
+
+      const payload = {
+        ...formData,
+        title: formData.title.trim() || "Draft Campaign",
+        description: formData.description.trim() || "Campaign description in progress",
+        requirements: formData.requirements.trim() || "Requirements in progress",
+        targetCategories: formData.targetCategories.length > 0 ? formData.targetCategories : ["Fashion & Style"],
+        totalBudget: Math.round(formData.totalBudget || 5000),
+        perInfluencerBudget: Math.round(formData.perInfluencerBudget || 1000),
+        productValue: Math.round(formData.productValue || 0),
+        deliverables: formData.deliverables.map((d) => ({
+          ...d,
+          rate: Math.round(d.rate || 0),
+        })),
+        maxFollowers: formData.maxFollowers || 0,
+        maxInfluencers: formData.maxInfluencers || 1,
+        applicationDeadline: applicationDeadline?.toISOString(),
+        contentDeadline: contentDeadline.toISOString(),
+        postingDeadline: postingDeadline.toISOString(),
+        invitedInfluencerId: invitedInfluencerId || undefined,
+        status: "DRAFT" as const,
+      };
+
+      if (activeCampaignId) {
+        await apiClient.campaigns.update(activeCampaignId, payload);
+      } else {
+        const res = await apiClient.campaigns.create(payload);
+        const resData = res as { campaign?: { id: string }; data?: { id?: string }; id?: string } | null | undefined;
+        const createdId = resData?.campaign?.id || resData?.data?.id || resData?.id;
+        if (createdId) {
+          setActiveCampaignId(createdId);
+          const params = new URLSearchParams(searchParams.toString());
+          params.set("edit", createdId);
+          router.replace(`?${params.toString()}`);
+        }
+      }
+
+      setLastCloudSync(new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }));
+    } catch (err: unknown) {
+      logger.error("Failed to save cloud draft", err);
+      setError("Failed to sync draft to cloud database. Please check required fields.");
+    } finally {
+      setIsSavingCloudDraft(false);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent, isDraft = false) => {
     e.preventDefault();
     setError("");
@@ -448,8 +529,8 @@ export default function CreateCampaignClient() {
         status: isDraft ? "DRAFT" : "ACTIVE",
       };
 
-      if (editCampaignId) {
-        await apiClient.campaigns.update(editCampaignId, payload);
+      if (activeCampaignId) {
+        await apiClient.campaigns.update(activeCampaignId, payload);
       } else {
         await apiClient.campaigns.create(payload);
       }
@@ -554,6 +635,50 @@ export default function CreateCampaignClient() {
               @{invitedInfluencer.instagramHandle || invitedInfluencer.youtubeHandle || invitedInfluencer.displayName}
             </strong>{" "}
             ({invitedInfluencer.displayName})
+          </div>
+        </div>
+      )}
+
+      {/* Existing Cloud Draft Recovery Banner */}
+      {existingServerDraft && !activeCampaignId && !dismissedServerDraft && (
+        <div className="p-4 rounded-2xl bg-primary/10 border border-primary/30 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-sm">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-primary/20 text-primary flex items-center justify-center shrink-0">
+              <Cloud className="w-5 h-5" />
+            </div>
+            <div>
+              <p className="font-bold text-foreground">
+                Cloud Draft Found: &ldquo;{existingServerDraft.title || "Untitled Campaign"}&rdquo;
+              </p>
+              <p className="text-xs text-muted-foreground">
+                Last synced on {new Date(existingServerDraft.updatedAt).toLocaleDateString()} — ready to resume cross-device.
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 shrink-0 self-end sm:self-auto">
+            <Button
+              type="button"
+              size="sm"
+              variant="primary"
+              onClick={() => {
+                setActiveCampaignId(existingServerDraft.id);
+                const params = new URLSearchParams(searchParams.toString());
+                params.set("edit", existingServerDraft.id);
+                router.replace(`?${params.toString()}`);
+              }}
+              className="text-xs font-bold"
+            >
+              Resume Cloud Draft
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              variant="ghost"
+              onClick={() => setDismissedServerDraft(true)}
+              className="text-xs"
+            >
+              Dismiss
+            </Button>
           </div>
         </div>
       )}
@@ -891,15 +1016,29 @@ export default function CreateCampaignClient() {
                       Cancel
                     </Button>
 
-                    <Button
-                      type="button"
-                      variant="primary"
-                      onClick={goToNextStep}
-                      className="inline-flex items-center gap-1.5 text-xs font-bold shadow-md shadow-primary/20"
-                    >
-                      <span>Next: Deliverables & Targeting</span>
-                      <ArrowRight className="w-4 h-4" />
-                    </Button>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        disabled={isSavingCloudDraft}
+                        onClick={handleSaveDraft}
+                        className="inline-flex items-center gap-1.5 text-xs font-bold"
+                        title="Save progress to cloud database for cross-device access"
+                      >
+                        {lastCloudSync ? <Check className="w-3.5 h-3.5 text-emerald-500" /> : <Cloud className="w-3.5 h-3.5 text-primary" />}
+                        <span>{isSavingCloudDraft ? "Syncing..." : lastCloudSync ? `Synced ${lastCloudSync}` : "Save Draft"}</span>
+                      </Button>
+
+                      <Button
+                        type="button"
+                        variant="primary"
+                        onClick={goToNextStep}
+                        className="inline-flex items-center gap-1.5 text-xs font-bold shadow-md shadow-primary/20"
+                      >
+                        <span>Next: Deliverables & Targeting</span>
+                        <ArrowRight className="w-4 h-4" />
+                      </Button>
+                    </div>
                   </div>
                 </div>
               )}
@@ -1010,15 +1149,29 @@ export default function CreateCampaignClient() {
                       <span>Back: Overview</span>
                     </Button>
 
-                    <Button
-                      type="button"
-                      variant="primary"
-                      onClick={goToNextStep}
-                      className="inline-flex items-center gap-1.5 text-xs font-bold shadow-md shadow-primary/20"
-                    >
-                      <span>Next: Budget & Escrow Lock</span>
-                      <ArrowRight className="w-4 h-4" />
-                    </Button>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        disabled={isSavingCloudDraft}
+                        onClick={handleSaveDraft}
+                        className="inline-flex items-center gap-1.5 text-xs font-bold"
+                        title="Save progress to cloud database for cross-device access"
+                      >
+                        {lastCloudSync ? <Check className="w-3.5 h-3.5 text-emerald-500" /> : <Cloud className="w-3.5 h-3.5 text-primary" />}
+                        <span>{isSavingCloudDraft ? "Syncing..." : lastCloudSync ? `Synced ${lastCloudSync}` : "Save Draft"}</span>
+                      </Button>
+
+                      <Button
+                        type="button"
+                        variant="primary"
+                        onClick={goToNextStep}
+                        className="inline-flex items-center gap-1.5 text-xs font-bold shadow-md shadow-primary/20"
+                      >
+                        <span>Next: Budget & Escrow Lock</span>
+                        <ArrowRight className="w-4 h-4" />
+                      </Button>
+                    </div>
                   </div>
                 </div>
               )}
@@ -1214,9 +1367,10 @@ export default function CreateCampaignClient() {
                         variant="secondary"
                         onClick={(e) => handleSubmit(e, true)}
                         disabled={isLoading}
-                        className="text-xs font-bold flex-1 sm:flex-initial"
+                        className="text-xs font-bold flex-1 sm:flex-initial inline-flex items-center gap-1.5"
                       >
-                        {isLoading ? <span className="loading" /> : "Save as Draft"}
+                        {lastCloudSync ? <Check className="w-3.5 h-3.5 text-emerald-500" /> : <Cloud className="w-3.5 h-3.5 text-primary" />}
+                        <span>{isLoading ? <span className="loading" /> : lastCloudSync ? `Synced ${lastCloudSync}` : "Save as Draft"}</span>
                       </Button>
 
                       <Button

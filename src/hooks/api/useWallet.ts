@@ -50,7 +50,9 @@ export function useWallet(_enableRealtime = false): UseWalletResult {
           totalHeld: Number(raw.totalHeld ?? 0),
           totalSpent: Number(raw.totalSpent ?? 0),
           totalDeposited: Number(raw.totalDeposited ?? 0),
+          debt: Number(raw.debt ?? 0),
           isFrozen: Boolean(raw.isFrozen),
+          frozenReason: raw.frozenReason ?? null,
         };
       })()
     : null;

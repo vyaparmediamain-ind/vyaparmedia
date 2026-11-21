@@ -30,6 +30,7 @@ import {
   formatContractDate,
   getIncludedRevisions,
   formatCurrency,
+  extractAllDealHashtagsAndMentions,
 } from "./DealDetailHelpers";
 import { checkProductFulfillmentEligibility } from "@/lib/action-eligibility";
 import {
@@ -138,12 +139,11 @@ export function DealContractCard({
       ? (deal.campaign.deliverables as Array<{ type: string; count?: number; rate?: number }>)
       : [{ type: "INSTAGRAM_POST", count: 1 }];
 
-  // Mandatory elements / tags
-  const mandatoryTags: string[] = Array.isArray(terms?.mandatoryTags)
-    ? terms.mandatoryTags
-    : Array.isArray(terms?.mandatoryElements)
-    ? terms.mandatoryElements
-    : ["#ad", "#sponsored", "#vyaparmedia", `@${deal.brand?.companyName?.toLowerCase().replace(/\s+/g, "") || "brand"}`];
+  // Mandatory elements / tags & ASCI statutory disclosures (Full Extractor)
+  const mandatoryTags = React.useMemo(
+    () => extractAllDealHashtagsAndMentions(deal, terms),
+    [deal, terms]
+  );
 
   const handleCopyTag = async (tag: string) => {
     const ok = await copyToClipboard(tag);
@@ -351,7 +351,7 @@ export function DealContractCard({
                   <div className="flex items-center gap-2">
                     <Sparkles className="w-4 h-4 text-primary shrink-0" />
                     <h5 className="font-bold text-xs text-foreground uppercase tracking-wider">
-                      Mandatory Tags &amp; ASCI Disclosures
+                      Mandatory Tags &amp; ASCI Disclosures ({mandatoryTags.length})
                     </h5>
                   </div>
                   <span className="text-[10px] text-muted-foreground">

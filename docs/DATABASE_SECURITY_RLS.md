@@ -22,7 +22,7 @@ VyaparMedia adopts **Option A**:
    - Removed `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` from the client environment bundle and `src/env.ts`.
 2. **Adaptive Visibility-Aware SWR Polling:**
    - **Deals (`useDealRealtime.ts`):** 2.0s adaptive polling when the browser tab is visible during active deal stages; halts when tab is backgrounded or deal reaches terminal states (`COMPLETED`, `CANCELLED`).
-   - **Messages (`useMessages.ts`):** 2.5s adaptive polling when a conversation is actively open and focused; typing indicators leverage Redis `/api/messages/typing`.
+   - **Messages (`useMessages.ts`):** High-frequency polling eliminated. Real-time Server-Sent Events (SSE) via `/api/messages/stream` with Redis/EventEmitter broadcast delivers incoming messages and typing presence with <100ms latency, backed by a 60s passive background visibility sync.
    - **Notifications (`useNotificationCenter.ts`):** 30s background poll with instant reconciliation on window focus and network `online` events.
    - **Wallet (`useWallet.ts`):** Wrapped in `useSWR` with `revalidateOnFocus: true` and optimistic local mutations.
 3. **Benefits:**

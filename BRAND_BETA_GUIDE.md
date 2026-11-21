@@ -235,7 +235,7 @@ Chhote vyapari (local retailers, cafes, salons, gyms) aur D2C brands ke paas mar
 * **Sample Product Ka Nuksan**:
   D2C brands jab kisi creator ko ₹2,000 ka leather jacket ya ₹1,500 ka skincare kit courier karte hain, toh creator sample rakh leta hai aur video banana cancel kar deta hai. Brand ka product aur courier charges dono doob jaate hain.
 * **VyaparMedia Integrated Logistics**:
-  VyaparMedia ke platform me **Shiprocket API directly integrated** hai. Brand dashboard se 1-click me shipping label generate karta hai. Jaise hi AWB status "Delivered" hota hai, system creator ke dashboard par 5-day video shoot timer trigger karta hai. Agar creator video nahi deta, toh uska DRS score 0 ho jata hai, payout forfeit ho jata hai, aur platform use permanent blacklist kar deta hai.
+  VyaparMedia ke platform me **Shiprocket API directly integrated** hai. Brand dashboard se 1-click me shipping label generate karta hai. Jaise hi AWB status "Delivered" hota hai, system creator ke dashboard par 5-day video shoot timer trigger karta hai. Agar creator video nahi deta, toh uska DRS score gir kar 300 (FLAGGED tier) ho jata hai, payout forfeit ho jata hai, aur platform use permanent blacklist kar deta hai.
 
 ---
 

@@ -24,6 +24,7 @@ import { MatchingService } from "@/services/matching.service";
 import { PaymentService } from "@/services/payment.service";
 import { transitionDealState } from "@/lib/deal-state-machine";
 import { invalidateDealCache } from "@/services/deal/helpers";
+import { MIN_TRUST_SCORE } from "@/constants/drs";
 
 async function requireAdmin() {
 const session = await auth();
@@ -64,7 +65,7 @@ where: { id: userId },
 data: {
 status: "ACTIVE",
 verificationLevel: "FULL",
-trustScore: Math.max(currentTrustScore, 50),
+trustScore: Math.max(currentTrustScore, MIN_TRUST_SCORE),
 },
 });
 
@@ -141,7 +142,7 @@ where: { id: userId },
 data: {
 status: "PENDING_VERIFICATION", // Needs more actions
 verificationLevel: "BASIC", // Downgraded to BASIC instead of invalid PARTIAL
-trustScore: Math.max(user.trustScore, 50),
+trustScore: Math.max(user.trustScore, MIN_TRUST_SCORE),
 },
 });
 
@@ -200,7 +201,7 @@ export async function rejectUser(userId: string, reason: string) {
       data: {
         status: "PENDING_VERIFICATION",
         verificationLevel: "NONE",
-        trustScore: 0,
+        trustScore: MIN_TRUST_SCORE,
       },
     });
 
@@ -732,4 +733,27 @@ export async function rejectDeliverableVerification(dealId: string, reason: stri
 
   return { success: true, message: "Deliverable rejected and moved to disputed state" };
 }
+
+export async function setBrandCustomFeeAction(
+  targetUserId: string,
+  customFee: number | null,
+  reason?: string,
+) {
+  const session = await requireAdmin();
+
+  if (!targetUserId || typeof targetUserId !== "string") {
+    throw AppError.badRequest("targetUserId is required");
+  }
+
+  const result = await AdminService.setBrandCustomPlatformFee({
+    adminUserId: session.user.id,
+    targetUserId,
+    customPlatformFee: customFee,
+    reason,
+  });
+
+  revalidatePath("/admin/users");
+  return result;
+}
+
 

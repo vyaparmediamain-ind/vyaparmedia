@@ -9,7 +9,7 @@ import { Prisma, InfluencerProfile, BrandProfile } from "@prisma/client";
 import { logger } from "@/lib/logger";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { parseNotificationPreferences, notificationPreferencesSchema } from "@/lib/utils";
-import { isBrand, isInfluencer, hasPermission, hasAnyPermission, getPermissions } from "@/lib/rbac";
+import { isBrand, isInfluencer, isScout, hasPermission, hasAnyPermission, getPermissions } from "@/lib/rbac";
 import { invalidateCreatorSearchCache } from "@/lib/search";
 
 const updateProfileSchema = z.object({
@@ -142,6 +142,7 @@ where: { id: session.user.id },
 include: {
 influencerProfile: true,
 brandProfile: true,
+scoutProfile: true,
 badges: {
 include: { badge: true },
 orderBy: { earnedAt: "desc" },
@@ -162,6 +163,14 @@ if (isInfluencer(userType)) {
 profileData = user.influencerProfile || {};
 } else if (isBrand(userType)) {
 profileData = user.brandProfile || {};
+} else if (isScout(userType)) {
+profileData = (user.scoutProfile
+  ? {
+      displayName: user.scoutProfile.fullName,
+      city: user.scoutProfile.city,
+      state: user.scoutProfile.state || "",
+    }
+  : {}) as unknown as Partial<InfluencerProfile & BrandProfile>;
 }
 
 const instagramOAuth = user.oauthAccounts?.find((a) => a.provider === "instagram");
@@ -457,11 +466,27 @@ function parseAndValidateProfileBody(body: unknown) {
   return data;
 }
 
+async function updateScoutProfile(userId: string, data: z.infer<typeof updateProfileSchema>) {
+  const updateData: { fullName?: string; city?: string; state?: string } = {};
+  if (data.displayName?.trim()) updateData.fullName = data.displayName.trim();
+  if (data.city !== undefined && data.city !== null) updateData.city = data.city;
+  if (data.state !== undefined && data.state !== null) updateData.state = data.state;
+
+  if (Object.keys(updateData).length > 0) {
+    await prisma.scoutProfile.updateMany({
+      where: { userId },
+      data: updateData,
+    });
+  }
+}
+
 async function updateUserRoleProfile(userType: string, userId: string, email: string, data: z.infer<typeof updateProfileSchema>) {
   if (isInfluencer(userType)) {
     await updateInfluencerProfile(userId, email, data);
   } else if (isBrand(userType)) {
     await updateBrandProfile(userId, email, data);
+  } else if (isScout(userType)) {
+    await updateScoutProfile(userId, data);
   }
 }
 

@@ -109,6 +109,9 @@ export const dashboardCampaignSchema = z.object({
   deliverables: z.array(z.object({ type: z.string(), count: z.number() })),
   maxInfluencers: z.number().nullable(),
   acceptedCount: z.number(),
+  requiresProduct: z.boolean().optional(),
+  productName: z.string().nullable().optional(),
+  productValue: z.number().nullable().optional(),
 });
 
 export type DashboardCampaign = z.infer<typeof dashboardCampaignSchema>;

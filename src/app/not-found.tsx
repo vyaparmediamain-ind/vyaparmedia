@@ -9,6 +9,8 @@ export const metadata = {
   description: "The page you are looking for does not exist or has been moved.",
 };
 
+import { PLATFORM_CONFIG } from "@/lib/platform-config";
+
 export default function NotFound() {
   return (
     <div className="min-h-screen flex flex-col justify-between bg-background text-foreground">
@@ -111,7 +113,7 @@ export default function NotFound() {
           <span className="font-semibold text-foreground">100% Escrow Security Guaranteed</span>
         </div>
         <div>
-          &copy; {new Date().getFullYear()} VyaparMedia Technologies Pvt Ltd. All rights reserved.
+          &copy; {new Date().getFullYear()} {PLATFORM_CONFIG.legalName}. All rights reserved.
         </div>
       </footer>
     </div>

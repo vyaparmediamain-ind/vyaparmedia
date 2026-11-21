@@ -78,14 +78,15 @@ function ChatHeader({ state }: Readonly<ChatPanelProps>) {
       <div className="flex items-center justify-between gap-3 px-4 sm:px-5 py-3">
         {/* Left: back + avatar + name */}
         <div className="flex items-center gap-3 min-w-0">
-          {/* Mobile back */}
+          {/* Back to all conversations */}
           <button
             type="button"
-            onClick={() => setSelectedConversation(null)}
+            onClick={state.handleBackToConversations || (() => setSelectedConversation(null))}
             aria-label="Back to conversations"
-            className="sm:hidden w-11 h-11 min-h-[44px] min-w-[44px] flex items-center justify-center -ml-2 text-muted-foreground hover:text-foreground rounded-xl hover:bg-muted transition-colors cursor-pointer"
+            title="Back to all conversations"
+            className="flex items-center justify-center w-10 h-10 min-h-[44px] min-w-[44px] rounded-xl border border-border/80 bg-muted/40 hover:bg-muted text-foreground hover:text-primary active:scale-95 transition-all cursor-pointer -ml-1 shrink-0 shadow-2xs"
           >
-            <ChevronLeft className="w-5 h-5" />
+            <ChevronLeft className="w-5 h-5 stroke-[2.5]" />
           </button>
 
           {/* Avatar with online dot */}

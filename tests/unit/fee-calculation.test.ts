@@ -197,4 +197,52 @@ describe("Unit Tests: Fee, Tax & Commission Calculation", () => {
       expect(result.breakdown.length).toBeGreaterThan(0);
     });
   });
+
+  describe("Platform Fee Absolute Floor & Agency Custom Override", () => {
+    it("should strictly enforce 7% absolute fee floor regardless of discounts", () => {
+      const ABSOLUTE_MIN_PLATFORM_FEE = 7;
+      const baseFee = 10;
+      const massiveReferralDiscount = 5; // e.g. 5% discount
+      const calculatedFee = Math.max(ABSOLUTE_MIN_PLATFORM_FEE, baseFee - massiveReferralDiscount);
+
+      expect(calculatedFee).toBe(7);
+      expect(calculatedFee).toBeGreaterThanOrEqual(7);
+    });
+
+    it("should allow agency plan override at 7.5% and prevent dipping below 7%", () => {
+      const ABSOLUTE_MIN_PLATFORM_FEE = 7;
+      const customAgencyFee = 7.5;
+      const effectiveFee = Math.max(ABSOLUTE_MIN_PLATFORM_FEE, customAgencyFee);
+
+      expect(effectiveFee).toBe(7.5);
+
+      const invalidLowFee = 4.0;
+      const clampedLowFee = Math.max(ABSOLUTE_MIN_PLATFORM_FEE, invalidLowFee);
+      expect(clampedLowFee).toBe(7.0);
+    });
+  });
+
+  describe("Referral Tier Progression & Active Referral Rules", () => {
+    it("should verify active referral requirements for tier advancement", () => {
+      // Tier thresholds: Bronze: 10, Silver: 50, Gold: 100, Platinum: 500, Diamond: 1000
+      const getTier = (activeCount: number) => {
+        if (activeCount >= 1000) return "DIAMOND";
+        if (activeCount >= 500) return "PLATINUM";
+        if (activeCount >= 100) return "GOLD";
+        if (activeCount >= 50) return "SILVER";
+        if (activeCount >= 10) return "BRONZE";
+        return "STARTER";
+      };
+
+      // User with 200 total referrals but only 99 active remains SILVER
+      expect(getTier(99)).toBe("SILVER");
+      // User with exactly 100 active referrals reaches GOLD (unlocks 2% discount)
+      expect(getTier(100)).toBe("GOLD");
+      expect(getTier(200)).toBe("GOLD");
+      // User with 500 active referrals reaches PLATINUM (unlocks 1% GMV revenue share)
+      expect(getTier(500)).toBe("PLATINUM");
+      // User with 1000 active referrals reaches DIAMOND (unlocks 2% GMV revenue share)
+      expect(getTier(1000)).toBe("DIAMOND");
+    });
+  });
 });

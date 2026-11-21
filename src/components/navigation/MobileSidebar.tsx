@@ -99,7 +99,8 @@ export default function MobileSidebar({
 
   const isBrand = (userType || "").toUpperCase() === "BRAND";
   const isAdmin = (userType || "").toUpperCase() === "ADMIN";
-  const roleLabel = isAdmin ? "Admin" : isBrand ? "Brand" : "Creator";
+  const isScout = (userType || "").toUpperCase() === "SCOUT";
+  const roleLabel = isAdmin ? "Admin" : isBrand ? "Brand" : isScout ? "Scout" : "Creator";
   const shouldReduceMotion = useReducedMotion();
 
   return (
@@ -202,105 +203,107 @@ export default function MobileSidebar({
                 );
               })}
 
-              {/* Platform Ecosystem Shortcuts */}
-              <div className="pt-3 mt-3 border-t border-border/60 space-y-1">
-                <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider px-2 block mb-1">
-                  Workspace & Finance
-                </span>
+              {/* Platform Ecosystem Shortcuts (Creators & Brands only) */}
+              {!isScout && (
+                <div className="pt-3 mt-3 border-t border-border/60 space-y-1">
+                  <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider px-2 block mb-1">
+                    Workspace & Finance
+                  </span>
 
-                <Link
-                  href="/dashboard/wallet"
-                  onClick={onClose}
-                  className={`flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium transition-colors ${
-                    isActive("/dashboard/wallet")
-                      ? "bg-primary/10 text-primary font-bold border border-primary/20"
-                      : "text-muted-foreground hover:text-foreground hover:bg-muted/60"
-                  }`}
-                >
-                  <Wallet className="w-4 h-4 stroke-[1.75]" />
-                  <span className="flex-1 truncate">Escrow Wallet</span>
-                </Link>
-
-                <Link
-                  href="/dashboard/leaderboard"
-                  onClick={onClose}
-                  className={`flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium transition-colors ${
-                    isActive("/dashboard/leaderboard")
-                      ? "bg-primary/10 text-primary font-bold border border-primary/20"
-                      : "text-muted-foreground hover:text-foreground hover:bg-muted/60"
-                  }`}
-                >
-                  <Trophy className="w-4 h-4 stroke-[1.75]" />
-                  <span className="flex-1 truncate">Leaderboard</span>
-                </Link>
-
-                <Link
-                  href="/dashboard/badges"
-                  onClick={onClose}
-                  className={`flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium transition-colors ${
-                    isActive("/dashboard/badges")
-                      ? "bg-primary/10 text-primary font-bold border border-primary/20"
-                      : "text-muted-foreground hover:text-foreground hover:bg-muted/60"
-                  }`}
-                >
-                  <Award className="w-4 h-4 stroke-[1.75]" />
-                  <span className="flex-1 truncate">Badges & Level</span>
-                </Link>
-
-                {!isBrand && (
                   <Link
-                    href="/dashboard/applications"
+                    href="/dashboard/wallet"
                     onClick={onClose}
                     className={`flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium transition-colors ${
-                      isActive("/dashboard/applications")
+                      isActive("/dashboard/wallet")
                         ? "bg-primary/10 text-primary font-bold border border-primary/20"
                         : "text-muted-foreground hover:text-foreground hover:bg-muted/60"
                     }`}
                   >
-                    <FileText className="w-4 h-4 stroke-[1.75]" />
-                    <span className="flex-1 truncate">My Applications</span>
+                    <Wallet className="w-4 h-4 stroke-[1.75]" />
+                    <span className="flex-1 truncate">Escrow Wallet</span>
                   </Link>
-                )}
 
-                <Link
-                  href="/dashboard/analytics"
-                  onClick={onClose}
-                  className={`flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium transition-colors ${
-                    isActive("/dashboard/analytics")
-                      ? "bg-primary/10 text-primary font-bold border border-primary/20"
-                      : "text-muted-foreground hover:text-foreground hover:bg-muted/60"
-                  }`}
-                >
-                  <BarChart3 className="w-4 h-4 stroke-[1.75]" />
-                  <span className="flex-1 truncate">Analytics & Reports</span>
-                </Link>
+                  <Link
+                    href="/dashboard/leaderboard"
+                    onClick={onClose}
+                    className={`flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium transition-colors ${
+                      isActive("/dashboard/leaderboard")
+                        ? "bg-primary/10 text-primary font-bold border border-primary/20"
+                        : "text-muted-foreground hover:text-foreground hover:bg-muted/60"
+                    }`}
+                  >
+                    <Trophy className="w-4 h-4 stroke-[1.75]" />
+                    <span className="flex-1 truncate">Leaderboard</span>
+                  </Link>
 
-                <Link
-                  href="/dashboard/referrals"
-                  onClick={onClose}
-                  className={`flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium transition-colors ${
-                    isActive("/dashboard/referrals")
-                      ? "bg-primary/10 text-primary font-bold border border-primary/20"
-                      : "text-muted-foreground hover:text-foreground hover:bg-muted/60"
-                  }`}
-                >
-                  <Share2 className="w-4 h-4 stroke-[1.75]" />
-                  <span className="flex-1 truncate">Refer & Earn</span>
-                </Link>
+                  <Link
+                    href="/dashboard/badges"
+                    onClick={onClose}
+                    className={`flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium transition-colors ${
+                      isActive("/dashboard/badges")
+                        ? "bg-primary/10 text-primary font-bold border border-primary/20"
+                        : "text-muted-foreground hover:text-foreground hover:bg-muted/60"
+                    }`}
+                  >
+                    <Award className="w-4 h-4 stroke-[1.75]" />
+                    <span className="flex-1 truncate">Badges & Level</span>
+                  </Link>
 
-                <Link
-                  href="/dashboard/support"
-                  onClick={onClose}
-                  className={`flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium transition-colors ${
-                    isActive("/dashboard/support")
-                      ? "bg-primary/10 text-primary font-bold border border-primary/20"
-                      : "text-muted-foreground hover:text-foreground hover:bg-muted/60"
-                  }`}
-                >
-                  <HelpCircle className="w-4 h-4 stroke-[1.75]" />
-                  <span className="flex-1 truncate">Support & Disputes</span>
-                </Link>
-              </div>
+                  {!isBrand && (
+                    <Link
+                      href="/dashboard/applications"
+                      onClick={onClose}
+                      className={`flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium transition-colors ${
+                        isActive("/dashboard/applications")
+                          ? "bg-primary/10 text-primary font-bold border border-primary/20"
+                          : "text-muted-foreground hover:text-foreground hover:bg-muted/60"
+                      }`}
+                    >
+                      <FileText className="w-4 h-4 stroke-[1.75]" />
+                      <span className="flex-1 truncate">My Applications</span>
+                    </Link>
+                  )}
+
+                  <Link
+                    href="/dashboard/analytics"
+                    onClick={onClose}
+                    className={`flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium transition-colors ${
+                      isActive("/dashboard/analytics")
+                        ? "bg-primary/10 text-primary font-bold border border-primary/20"
+                        : "text-muted-foreground hover:text-foreground hover:bg-muted/60"
+                    }`}
+                  >
+                    <BarChart3 className="w-4 h-4 stroke-[1.75]" />
+                    <span className="flex-1 truncate">Analytics & Reports</span>
+                  </Link>
+
+                  <Link
+                    href="/dashboard/referrals"
+                    onClick={onClose}
+                    className={`flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium transition-colors ${
+                      isActive("/dashboard/referrals")
+                        ? "bg-primary/10 text-primary font-bold border border-primary/20"
+                        : "text-muted-foreground hover:text-foreground hover:bg-muted/60"
+                    }`}
+                  >
+                    <Share2 className="w-4 h-4 stroke-[1.75]" />
+                    <span className="flex-1 truncate">Refer & Earn</span>
+                  </Link>
+
+                  <Link
+                    href="/dashboard/support"
+                    onClick={onClose}
+                    className={`flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium transition-colors ${
+                      isActive("/dashboard/support")
+                        ? "bg-primary/10 text-primary font-bold border border-primary/20"
+                        : "text-muted-foreground hover:text-foreground hover:bg-muted/60"
+                    }`}
+                  >
+                    <HelpCircle className="w-4 h-4 stroke-[1.75]" />
+                    <span className="flex-1 truncate">Support & Disputes</span>
+                  </Link>
+                </div>
+              )}
             </nav>
 
             {/* User Profile Footer */}
@@ -338,8 +341,22 @@ export default function MobileSidebar({
                     {user?.name || "My Account"}
                   </p>
                   <div className="flex items-center gap-1 text-[10px] text-muted-foreground truncate">
-                    <Sparkles className="w-3 h-3 text-primary" />
-                    <span>DRS {user?.trustScore || 600}</span>
+                    {isScout ? (
+                      <>
+                        <Sparkles className="w-3 h-3 text-primary" />
+                        <span>Campus Partner</span>
+                      </>
+                    ) : isBrand ? (
+                      <>
+                        <Sparkles className="w-3 h-3 text-primary" />
+                        <span>Brand Account</span>
+                      </>
+                    ) : (
+                      <>
+                        <Sparkles className="w-3 h-3 text-primary" />
+                        <span>DRS {user?.trustScore || 600}</span>
+                      </>
+                    )}
                   </div>
                 </div>
               </Link>

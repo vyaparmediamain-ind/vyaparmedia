@@ -68,7 +68,7 @@ describe("Shared Zod Schemas & Runtime Validation", () => {
     });
 
     it("fails fast if trustScore is out of bounds or negative starting rate", () => {
-      const invalid = {
+      const invalidAbove = {
         id: "creator_789",
         name: "Priya Sharma",
         handle: "priyastyle",
@@ -78,7 +78,19 @@ describe("Shared Zod Schemas & Runtime Validation", () => {
         startingRatePaise: -100, // min is 0
       };
 
-      expect(() => creatorDiscoveryItemSchema.parse(invalid)).toThrow(ZodError);
+      expect(() => creatorDiscoveryItemSchema.parse(invalidAbove)).toThrow(ZodError);
+
+      const invalidBelow = {
+        id: "creator_789",
+        name: "Priya Sharma",
+        handle: "priyastyle",
+        followers: 120000,
+        engagementRate: 4.5,
+        trustScore: 250, // min is 300 (CIBIL standard)
+        startingRatePaise: 50000,
+      };
+
+      expect(() => creatorDiscoveryItemSchema.parse(invalidBelow)).toThrow(ZodError);
     });
   });
 

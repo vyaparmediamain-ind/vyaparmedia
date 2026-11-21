@@ -1,4 +1,4 @@
-export type NavRoleId = "INFLUENCER" | "BRAND" | "ADMIN";
+export type NavRoleId = "INFLUENCER" | "BRAND" | "ADMIN" | "SCOUT";
 
 export type NavIconType =
   | "home"
@@ -25,7 +25,7 @@ export interface CreateActionConfig {
   shortLabel: string;
   href: string;
   ariaLabel: string;
-  actionType: "create-campaign" | "submit-content";
+  actionType: "create-campaign" | "submit-content" | "invite-partner";
 }
 
 /**
@@ -172,12 +172,53 @@ export const ADMIN_NAV_ITEMS: NavItemConfig[] = [
 ];
 
 /**
+ * Scout / Campus Partner Navigation (Distraction-Free)
+ */
+export const SCOUT_NAV_ITEMS: NavItemConfig[] = [
+  {
+    id: "scout-home",
+    label: "Dashboard",
+    href: "/dashboard",
+    icon: "home",
+    allowedRoles: ["SCOUT"],
+    ariaLabel: "Scout Royalty Dashboard",
+  },
+  {
+    id: "scout-network",
+    label: "My Network",
+    href: "/dashboard/referrals",
+    icon: "creators",
+    allowedRoles: ["SCOUT"],
+    ariaLabel: "Onboarded Creators and Brands",
+  },
+  {
+    id: "scout-wallet",
+    label: "Wallet",
+    href: "/dashboard/wallet",
+    icon: "deals",
+    allowedRoles: ["SCOUT"],
+    ariaLabel: "Royalty Payouts and Balance",
+  },
+  {
+    id: "scout-settings",
+    label: "Settings",
+    href: "/dashboard/settings",
+    icon: "profile",
+    allowedRoles: ["SCOUT"],
+    ariaLabel: "Account & Verification Settings",
+  },
+];
+
+/**
  * Resolves the primary 5-item navigation list for the user role
  */
 export function getNavigationItems(userType: string | null | undefined): NavItemConfig[] {
   const normalized = (userType || "").toUpperCase();
   if (normalized === "ADMIN") {
     return ADMIN_NAV_ITEMS;
+  }
+  if (normalized === "SCOUT") {
+    return SCOUT_NAV_ITEMS;
   }
   if (normalized === "BRAND" || normalized === "INDIVIDUAL") {
     return BRAND_NAV_ITEMS;
@@ -189,9 +230,19 @@ export function getNavigationItems(userType: string | null | undefined): NavItem
  * Context-aware "Create" action configuration
  * Brand -> New Campaign
  * Influencer -> Submit Content
+ * Scout -> Invite Partner
  */
 export function getCreateActionConfig(userType: string | null | undefined): CreateActionConfig {
   const normalized = (userType || "").toUpperCase();
+  if (normalized === "SCOUT") {
+    return {
+      label: "Invite Partner",
+      shortLabel: "Invite",
+      href: "/dashboard/referrals",
+      ariaLabel: "Invite creators and brands to earn 1% lifetime royalty",
+      actionType: "invite-partner",
+    };
+  }
   if (normalized === "BRAND" || normalized === "INDIVIDUAL") {
     return {
       label: "New Campaign",
@@ -216,8 +267,15 @@ export function getCreateActionConfig(userType: string | null | undefined): Crea
  */
 export const RESTRICTED_ROUTES: Record<string, NavRoleId[]> = {
   "/dashboard/campaigns/create": ["BRAND", "ADMIN"],
+  "/dashboard/campaigns": ["BRAND", "INFLUENCER", "ADMIN"],
+  "/dashboard/deals": ["BRAND", "INFLUENCER", "ADMIN"],
   "/dashboard/influencers": ["BRAND", "ADMIN"],
   "/dashboard/applications": ["INFLUENCER", "ADMIN"],
+  "/dashboard/badges": ["INFLUENCER", "BRAND", "ADMIN"],
+  "/dashboard/leaderboard": ["INFLUENCER", "BRAND", "ADMIN"],
+  "/dashboard/disputes": ["INFLUENCER", "BRAND", "ADMIN"],
+  "/dashboard/analytics": ["INFLUENCER", "BRAND", "ADMIN"],
+  "/dashboard/messages": ["INFLUENCER", "BRAND", "ADMIN"],
   "/admin": ["ADMIN"],
 };
 

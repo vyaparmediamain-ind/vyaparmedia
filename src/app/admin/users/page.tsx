@@ -4,7 +4,7 @@ import React, { useState, useMemo } from "react";
 import useSWR from "swr";
 import { useSession } from "next-auth/react";
 import { fetcher } from "@/lib/fetcher";
-import { banUser, unbanUser, awardBadgeAction, resolveFraudAppealAction } from "../actions";
+import { banUser, unbanUser, awardBadgeAction, resolveFraudAppealAction, setBrandCustomFeeAction } from "../actions";
 import { checkAdminBanEligibility } from "@/lib/action-eligibility";
 import { analyzeInfluencerFraudProfile } from "@/lib/social-proof-core";
 import Image from "next/image";
@@ -26,6 +26,7 @@ import {
   CheckCircle2,
   AlertTriangle,
   Clock,
+  Percent,
 } from "lucide-react";
 
 type AdminUserListElement = Prisma.PromiseReturnType<typeof AdminService.listUsers>["users"][number];
@@ -316,16 +317,194 @@ function AuthenticityAuditModal({
   );
 }
 
+interface BrandFeeModalProps {
+  user: AdminUserListElement;
+  onClose: () => void;
+  onSaveFee: (userId: string, fee: number | null, reason: string) => Promise<void>;
+  isLoading: boolean;
+}
+
+function BrandFeeModal({ user, onClose, onSaveFee, isLoading }: BrandFeeModalProps) {
+  const currentCustomFee = user.brandProfile?.customPlatformFee ?? null;
+  const [feeInput, setFeeInput] = useState<string>(
+    currentCustomFee !== null ? String(currentCustomFee) : "7.5"
+  );
+  const [isResetToStandard, setIsResetToStandard] = useState<boolean>(currentCustomFee === null);
+  const [reason, setReason] = useState<string>("");
+  const companyName = user.brandProfile?.companyName || user.email;
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (isResetToStandard) {
+      await onSaveFee(user.id, null, reason || "Reset to standard 10% platform fee");
+    } else {
+      const parsed = parseFloat(feeInput);
+      if (isNaN(parsed) || parsed < 7.0 || parsed > 10.0) {
+        return;
+      }
+      await onSaveFee(user.id, parsed, reason || "Admin agency plan fee override");
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm animate-in fade-in">
+      <div className="bg-card border border-border rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-5">
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <div className="flex items-center gap-2">
+              <div className="p-2 rounded-xl bg-primary/10 border border-primary/20 text-primary">
+                <Percent className="w-5 h-5" />
+              </div>
+              <h2 className="text-lg font-bold text-foreground">Custom Platform Fee Override</h2>
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">
+              Configure partner or agency escrow fee for <strong>{companyName}</strong>
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            className="text-muted-foreground hover:text-foreground text-sm font-bold p-1 rounded-lg hover:bg-muted"
+            aria-label="Close modal"
+          >
+            ✕
+          </button>
+        </div>
+
+        {/* Current status display */}
+        <div className="p-3.5 rounded-xl bg-muted/40 border border-border flex items-center justify-between text-xs">
+          <div>
+            <span className="text-muted-foreground">Current Escrow Fee:</span>
+            <span className="font-bold text-foreground ml-2">
+              {currentCustomFee !== null ? `${currentCustomFee}% (Custom Override)` : "10.0% (Standard)"}
+            </span>
+          </div>
+          <Badge variant={currentCustomFee !== null ? "success" : "ghost"}>
+            {currentCustomFee !== null ? "Agency Tier" : "Default"}
+          </Badge>
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Quick Preset Buttons */}
+          <div>
+            <label className="text-xs font-semibold text-foreground mb-1.5 block">
+              Quick Select Preset Tier
+            </label>
+            <div className="grid grid-cols-3 gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setFeeInput("7.5");
+                  setIsResetToStandard(false);
+                }}
+                className={`px-3 py-2 rounded-xl text-xs font-bold border text-left transition-all ${
+                  !isResetToStandard && feeInput === "7.5"
+                    ? "border-primary bg-primary/15 text-primary"
+                    : "border-border bg-card hover:border-primary/40 text-foreground"
+                }`}
+              >
+                <div className="font-black text-sm">7.5%</div>
+                <div className="text-[10px] text-muted-foreground">Agency Plan (&gt;₹10L)</div>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setFeeInput("8.0");
+                  setIsResetToStandard(false);
+                }}
+                className={`px-3 py-2 rounded-xl text-xs font-bold border text-left transition-all ${
+                  !isResetToStandard && feeInput === "8.0"
+                    ? "border-primary bg-primary/15 text-primary"
+                    : "border-border bg-card hover:border-primary/40 text-foreground"
+                }`}
+              >
+                <div className="font-black text-sm">8.0%</div>
+                <div className="text-[10px] text-muted-foreground">Enterprise Partner</div>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setIsResetToStandard(true);
+                }}
+                className={`px-3 py-2 rounded-xl text-xs font-bold border text-left transition-all ${
+                  isResetToStandard
+                    ? "border-primary bg-primary/15 text-primary"
+                    : "border-border bg-card hover:border-primary/40 text-foreground"
+                }`}
+              >
+                <div className="font-black text-sm">10.0%</div>
+                <div className="text-[10px] text-muted-foreground">Standard Reset</div>
+              </button>
+            </div>
+          </div>
+
+          {!isResetToStandard && (
+            <div>
+              <label htmlFor="custom-fee-input" className="text-xs font-semibold text-foreground mb-1 block">
+                Custom Fee Percentage (Min 7.0%, Max 10.0%)
+              </label>
+              <div className="relative">
+                <Input
+                  id="custom-fee-input"
+                  type="number"
+                  step="0.1"
+                  min="7.0"
+                  max="10.0"
+                  value={feeInput}
+                  onChange={(e) => setFeeInput(e.target.value)}
+                  className="pr-8"
+                  required
+                />
+                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold text-muted-foreground">
+                  %
+                </span>
+              </div>
+              <p className="text-[11px] text-muted-foreground mt-1">
+                Platform safety rule: minimum fee floor is locked at 7.0%. Fee discounts can never fall below 7%.
+              </p>
+            </div>
+          )}
+
+          <div>
+            <label htmlFor="custom-fee-reason" className="text-xs font-semibold text-foreground mb-1 block">
+              Reason / Contract Reference (Audit Trail)
+            </label>
+            <Input
+              id="custom-fee-reason"
+              type="text"
+              placeholder="e.g. Agency partnership tie-up via partnerships@vyaparmedia.in"
+              value={reason}
+              onChange={(e) => setReason(e.target.value)}
+            />
+          </div>
+
+          <div className="flex items-center justify-end gap-2 pt-2 border-t border-border">
+            <Button type="button" variant="ghost" onClick={onClose} disabled={isLoading}>
+              Cancel
+            </Button>
+            <Button type="submit" variant="primary" disabled={isLoading}>
+              {isLoading ? "Saving..." : isResetToStandard ? "Reset to Standard 10%" : `Save ${feeInput}% Fee`}
+            </Button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
 interface UserRowProps {
   readonly user: AdminUserListElement;
   readonly onBan: (id: string) => void;
   readonly onUnban: (id: string) => void;
   readonly onAwardBadge: (e: React.FormEvent<HTMLFormElement>, id: string) => void;
   readonly onInspectFraud: (user: AdminUserListElement) => void;
+  readonly onConfigureFee?: (user: AdminUserListElement) => void;
   readonly isActionLoading?: boolean;
 }
 
-function UserRow({ user, onBan, onUnban, onAwardBadge, onInspectFraud, isActionLoading }: UserRowProps) {
+function UserRow({ user, onBan, onUnban, onAwardBadge, onInspectFraud, onConfigureFee, isActionLoading }: UserRowProps) {
   const { data: session } = useSession();
   const banEligibility = checkAdminBanEligibility(session?.user?.id || "", user.id);
 
@@ -390,6 +569,19 @@ function UserRow({ user, onBan, onUnban, onAwardBadge, onInspectFraud, isActionL
         <Badge variant="primary" className="text-[10px] uppercase font-bold">
           {user.userType}
         </Badge>
+        {user.userType === "BRAND" && (
+          <div className="mt-1">
+            {typeof user.brandProfile?.customPlatformFee === "number" ? (
+              <Badge variant="success" className="text-[9px] font-bold px-1.5 py-0">
+                {user.brandProfile.customPlatformFee}% Agency Fee
+              </Badge>
+            ) : (
+              <Badge variant="ghost" className="text-[9px] text-muted-foreground px-1.5 py-0">
+                10% Std Fee
+              </Badge>
+            )}
+          </div>
+        )}
       </td>
 
       {/* Status */}
@@ -506,6 +698,18 @@ function UserRow({ user, onBan, onUnban, onAwardBadge, onInspectFraud, isActionL
 
           {user.userType !== "ADMIN" && (
             <>
+              {user.userType === "BRAND" && onConfigureFee && (
+                <Button
+                  variant="secondary"
+                  onClick={() => onConfigureFee(user)}
+                  className="min-h-[44px] px-3 font-semibold text-xs flex items-center gap-1.5 cursor-pointer"
+                  title="Configure platform escrow fee (Agency Plan)"
+                  disabled={Boolean(isActionLoading)}
+                >
+                  <Percent className="w-3.5 h-3.5 text-primary" />
+                  Fee
+                </Button>
+              )}
               {user.status === "FLAGGED" && (
                 <Button
                   variant="success"
@@ -552,6 +756,7 @@ export default function AdminUsersPage() {
   const [page, setPage] = useState(1);
   const [loadingAction, setLoadingAction] = useState<string | null>(null);
   const [auditUser, setAuditUser] = useState<AdminUserListElement | null>(null);
+  const [feeUser, setFeeUser] = useState<AdminUserListElement | null>(null);
   const { toasts, showToast, removeToast } = useToasts();
   const limit = 50;
 
@@ -640,6 +845,21 @@ export default function AdminUsersPage() {
     } catch (err) {
       logger.error("[AdminUsers] Failed to resolve appeal", { userId: auditUser.id, decision, error: String(err) });
       showToast("error", formatUserError(err, "Failed to resolve appeal. Please try again."));
+    } finally {
+      setLoadingAction(null);
+    }
+  };
+
+  const handleSaveBrandFee = async (userId: string, fee: number | null, feeReason: string) => {
+    setLoadingAction(userId);
+    try {
+      const res = await setBrandCustomFeeAction(userId, fee, feeReason);
+      showToast("success", res.message || "Brand platform fee updated successfully.");
+      setFeeUser(null);
+      mutate();
+    } catch (err) {
+      logger.error("[AdminUsers] Failed to update brand fee", { userId, error: String(err) });
+      showToast("error", formatUserError(err, "Failed to update brand fee. Please try again."));
     } finally {
       setLoadingAction(null);
     }
@@ -778,6 +998,27 @@ export default function AdminUsersPage() {
                   </div>
                 )}
 
+                {user.userType === "BRAND" && (
+                  <div className="flex items-center justify-between pt-1.5 border-t border-border/60 text-xs">
+                    <div>
+                      <span className="block text-[10px] uppercase font-bold text-muted-foreground">Escrow Fee Tier</span>
+                      <span className="font-bold text-foreground">
+                        {typeof user.brandProfile?.customPlatformFee === "number"
+                          ? `${user.brandProfile.customPlatformFee}% (Agency Override)`
+                          : "10.0% (Standard)"}
+                      </span>
+                    </div>
+                    <Button
+                      variant="secondary"
+                      onClick={() => setFeeUser(user)}
+                      className="min-h-[36px] px-2.5 text-xs font-semibold cursor-pointer flex items-center gap-1"
+                    >
+                      <Percent className="w-3 h-3 text-primary" />
+                      Override Fee
+                    </Button>
+                  </div>
+                )}
+
                 {user.userType !== "ADMIN" && (
                   <div className="flex items-center gap-2 pt-2 border-t border-border">
                     {user.status === "FLAGGED" && (
@@ -845,6 +1086,7 @@ export default function AdminUsersPage() {
                   onUnban={handleUnban}
                   onAwardBadge={handleAwardBadge}
                   onInspectFraud={setAuditUser}
+                  onConfigureFee={setFeeUser}
                 />
               ))}
             </tbody>
@@ -973,6 +1215,16 @@ export default function AdminUsersPage() {
           onClose={() => setAuditUser(null)}
           onResolveAppeal={handleResolveAppeal}
           isLoading={loadingAction === auditUser.id}
+        />
+      )}
+
+      {/* Brand Custom Escrow Fee Override Modal */}
+      {feeUser && (
+        <BrandFeeModal
+          user={feeUser}
+          onClose={() => setFeeUser(null)}
+          onSaveFee={handleSaveBrandFee}
+          isLoading={loadingAction === feeUser.id}
         />
       )}
     </PageContainer>

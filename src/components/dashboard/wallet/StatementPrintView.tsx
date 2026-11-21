@@ -91,14 +91,14 @@ export function StatementPrintView({
   if (!mounted) return null;
 
   return createPortal(
-    <div className="printable-modal-overlay fixed inset-0 z-[100] overflow-y-auto bg-background/90 backdrop-blur-sm flex items-center justify-center p-3 sm:p-6 pt-[max(0.75rem,env(safe-area-inset-top,0px))] pb-[max(0.75rem,env(safe-area-inset-bottom,0px))] pl-[max(0.75rem,env(safe-area-inset-left,0px))] pr-[max(0.75rem,env(safe-area-inset-right,0px))] print:p-0 print:bg-card print:static print:inset-auto">
+    <div className="printable-modal-overlay fixed inset-0 z-[100] overflow-y-auto bg-background/90 backdrop-blur-sm flex items-start justify-center p-3 sm:p-6 pt-16 pb-12 print:p-0 print:bg-card print:static print:inset-auto print:block">
       {/* Floating Action Bar (Hidden on Print) */}
-      <div className="fixed top-[max(1rem,calc(env(safe-area-inset-top,0px)+8px))] right-[max(1rem,calc(env(safe-area-inset-right,0px)+8px))] z-[110] flex items-center gap-2.5 no-print bg-card/90 backdrop-blur-md p-2 rounded-2xl border border-border shadow-xl">
+      <div className="fixed top-4 right-4 z-[110] flex items-center gap-2.5 no-print bg-card/90 backdrop-blur-md p-2 rounded-2xl border border-border shadow-xl">
         <Button
           onClick={handlePrint}
           variant="primary"
           size="sm"
-          className="gap-1.5 font-bold shadow-xs"
+          className="gap-1.5 font-bold shadow-xs cursor-pointer"
         >
           <Printer className="w-4 h-4" />
           <span>Print / Save PDF</span>
@@ -114,7 +114,7 @@ export function StatementPrintView({
       </div>
 
       {/* Official Financial Statement (Stripe & RazorpayX Standard) */}
-      <div className="printable-document w-full max-w-4xl bg-card text-foreground rounded-2xl shadow-2xl p-8 sm:p-12 border border-border print:border-none print:shadow-none print:p-0 print:rounded-none">
+      <div className="printable-document w-full max-w-4xl bg-card text-foreground rounded-2xl shadow-2xl p-6 sm:p-10 my-auto border border-border print:border-none print:shadow-none print:p-0 print:my-0 print:rounded-none">
         
         {/* Header & Platform Corporate Letterhead */}
         <div className="border-b-2 border-border pb-6 mb-8 flex flex-col sm:flex-row sm:items-start justify-between gap-4">
@@ -134,7 +134,9 @@ export function StatementPrintView({
           </div>
 
           <div className="text-left sm:text-right text-xs text-muted-foreground space-y-0.5 font-sans">
-            <div className="font-bold text-foreground">{PLATFORM_CONFIG.legalName.toUpperCase()}</div>
+            <div className="font-bold text-foreground">
+              {PLATFORM_CONFIG.tradeName ? `${PLATFORM_CONFIG.tradeName.toUpperCase()} (${PLATFORM_CONFIG.legalName.toUpperCase()})` : PLATFORM_CONFIG.legalName.toUpperCase()}
+            </div>
             <div>
               {PLATFORM_CONFIG.cin && !["N/A", "NONE", "PROPRIETORSHIP"].includes(PLATFORM_CONFIG.cin.toUpperCase()) ? `CIN: ${PLATFORM_CONFIG.cin} | ` : ""}
               {PLATFORM_CONFIG.udyam ? `Udyam: ${PLATFORM_CONFIG.udyam} | ` : ""}
@@ -236,16 +238,24 @@ export function StatementPrintView({
             </span>
           </div>
 
-          <div className="overflow-x-auto">
-            <table className="w-full text-xs text-left border-collapse border border-border">
+          <div className="overflow-x-auto print:overflow-visible w-full">
+            <table className="wallet-statement-table w-full text-xs text-left border-collapse border border-border print:text-[8pt] print:table-fixed">
+              <colgroup>
+                <col className="w-[14%] print:w-[14%]" style={{ width: "14%" }} />
+                <col className="w-[12%] print:w-[12%]" style={{ width: "12%" }} />
+                <col className="w-[11%] print:w-[11%]" style={{ width: "11%" }} />
+                <col className="w-[37%] print:w-[37%]" style={{ width: "37%" }} />
+                <col className="w-[13%] print:w-[13%]" style={{ width: "13%" }} />
+                <col className="w-[13%] print:w-[13%]" style={{ width: "13%" }} />
+              </colgroup>
               <thead>
                 <tr className="bg-muted text-foreground">
-                  <th className="border border-border p-2.5 font-bold">Date &amp; Time (IST)</th>
-                  <th className="border border-border p-2.5 font-bold">Transaction Ref</th>
-                  <th className="border border-border p-2.5 font-bold">Category</th>
-                  <th className="border border-border p-2.5 font-bold">Description</th>
-                  <th className="border border-border p-2.5 font-bold text-right">Inflow (+)</th>
-                  <th className="border border-border p-2.5 font-bold text-right">Outflow (-)</th>
+                  <th className="border border-border p-2 sm:p-2.5 font-bold print:p-1.5 print:whitespace-normal">Date (IST)</th>
+                  <th className="border border-border p-2 sm:p-2.5 font-bold print:p-1.5 print:whitespace-normal">Ref #</th>
+                  <th className="border border-border p-2 sm:p-2.5 font-bold print:p-1.5 print:whitespace-normal">Type</th>
+                  <th className="border border-border p-2 sm:p-2.5 font-bold print:p-1.5">Description</th>
+                  <th className="border border-border p-2 sm:p-2.5 font-bold text-right print:p-1.5 print:whitespace-normal">Inflow (+)</th>
+                  <th className="border border-border p-2 sm:p-2.5 font-bold text-right print:p-1.5 print:whitespace-normal">Outflow (-)</th>
                 </tr>
               </thead>
               <tbody>
@@ -254,22 +264,22 @@ export function StatementPrintView({
                     const isCredit = ["DEPOSIT", "PAYOUT", "REFUND", "CREDIT"].includes(t.type);
                     return (
                       <tr key={t.id || idx} className="border-t border-border">
-                        <td className="border border-border p-2 font-mono text-2xs text-muted-foreground whitespace-nowrap">
+                        <td className="border border-border p-2 font-mono text-2xs print:text-[7.5pt] print:p-1.5 text-muted-foreground">
                           {formatDate(t.createdAt)}
                         </td>
-                        <td className="border border-border p-2 font-mono text-2xs text-muted-foreground">
+                        <td className="border border-border p-2 font-mono text-2xs print:text-[7.5pt] print:p-1.5 text-muted-foreground">
                           #{t.id.slice(-8).toUpperCase()}
                         </td>
-                        <td className="border border-border p-2 font-semibold text-foreground">
+                        <td className="border border-border p-2 font-semibold text-foreground text-2xs print:text-[7.5pt] print:p-1.5">
                           {t.type.replaceAll("_", " ")}
                         </td>
-                        <td className="border border-border p-2 text-muted-foreground max-w-xs truncate">
+                        <td className="border border-border p-2 text-muted-foreground text-2xs print:text-[7.5pt] print:p-1.5 break-words overflow-hidden text-ellipsis line-clamp-2 print:line-clamp-none">
                           {t.description || "Escrow settlement transaction"}
                         </td>
-                        <td className="border border-border p-2 text-right font-mono font-bold text-verified">
+                        <td className="border border-border p-2 text-right font-mono font-bold text-emerald-600 dark:text-emerald-400 print:text-[7.5pt] print:p-1.5 print:text-black">
                           {isCredit ? `+${formatCurrency(t.amount)}` : "—"}
                         </td>
-                        <td className="border border-border p-2 text-right font-mono font-bold text-destructive">
+                        <td className="border border-border p-2 text-right font-mono font-bold text-rose-600 dark:text-rose-400 print:text-[7.5pt] print:p-1.5 print:text-black">
                           {!isCredit ? `-${formatCurrency(t.amount)}` : "—"}
                         </td>
                       </tr>
@@ -294,9 +304,11 @@ export function StatementPrintView({
               <ShieldCheck className="w-4 h-4 text-verified" />
               <span>Statutory Compliance &amp; Tax Statement Verification</span>
             </div>
-            <div className="font-mono text-muted-foreground">
-              SAC Code: 998365 (Advertising, Marketing &amp; Influencer Services)
-            </div>
+            {PLATFORM_CONFIG.sacCode && (
+              <div className="font-mono text-muted-foreground">
+                SAC Code: {PLATFORM_CONFIG.sacCode} (Advertising, Marketing &amp; Influencer Services)
+              </div>
+            )}
           </div>
 
           <div className="space-y-1.5 leading-relaxed text-muted-foreground">
@@ -308,8 +320,7 @@ export function StatementPrintView({
               2. <strong>Escrow Reassurance:</strong> All campaign funds are held in RBI-compliant escrow accounts and are disbursed strictly upon deliverable approval.
             </p>
             <p>
-              3. <strong>System Certification:</strong> This is a computer-generated statement issued by the automated ledger system of {PLATFORM_CONFIG.legalName} 
-              and does not require a physical signature. For queries, contact {PLATFORM_CONFIG.billingEmail}.
+              3. <strong>System Certification:</strong> This is a computer-generated statement issued by the automated ledger system of {PLATFORM_CONFIG.tradeName ? `${PLATFORM_CONFIG.tradeName} (${PLATFORM_CONFIG.legalName})` : PLATFORM_CONFIG.legalName} and does not require a physical signature. For queries, contact {PLATFORM_CONFIG.billingEmail}.
             </p>
           </div>
         </section>

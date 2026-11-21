@@ -83,7 +83,7 @@ const values = [
     label: "Growth Velocity",
     title: "Performance & Audience Truth",
     description:
-      "Digital Reputation Score (DRS™ 0–900) algorithm evaluates on-time delivery rates, verified review sentiment, and audience authenticity.",
+      "Digital Reputation Score (DRS™ 300–900) algorithm evaluates on-time delivery rates, verified review sentiment, and audience authenticity.",
     color: "text-warning",
     bg: "bg-warning/10",
     border: "border-warning-border",

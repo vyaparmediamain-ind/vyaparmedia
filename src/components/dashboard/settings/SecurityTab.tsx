@@ -5,6 +5,7 @@ import ContactVerificationPanel from "./ContactVerificationPanel";
 import PasswordPanel from "./PasswordPanel";
 import TwoFactorAuthPanel from "./TwoFactorAuthPanel";
 import LoginActivityPanel from "./LoginActivityPanel";
+import BlockedUsersPanel from "./BlockedUsersPanel";
 import DeleteAccountPanel from "./DeleteAccountPanel";
 import { ShieldCheck, Lock, CheckCircle2, AlertTriangle } from "lucide-react";
 
@@ -122,7 +123,10 @@ export default function SecurityTab({
       {/* 5. Active Sessions & Devices */}
       <LoginActivityPanel showToast={showToast} />
 
-      {/* 6. Delete Account Danger Zone */}
+      {/* 6. Blocked Accounts */}
+      <BlockedUsersPanel showToast={showToast} />
+
+      {/* 7. Delete Account Danger Zone */}
       <DeleteAccountPanel
         isSaving={isSaving}
         setIsSaving={setIsSaving}

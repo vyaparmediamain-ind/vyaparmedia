@@ -7,6 +7,7 @@ import { ErrorBoundary } from "@/components/security/ErrorBoundary";
 import PWARegister from "@/components/pwa/PWARegister";
 import OfflineIndicator from "@/components/pwa/OfflineIndicator";
 import CustomInstallBanner from "@/components/pwa/CustomInstallBanner";
+import BetaModeBanner from "@/components/navigation/BetaModeBanner";
 import { SWRConfig } from "swr";
 
 export function Providers({
@@ -39,6 +40,7 @@ export function Providers({
               <PWARegister />
               <OfflineIndicator />
               <CustomInstallBanner />
+              <BetaModeBanner />
               {children}
             </SecurityProvider>
           </ErrorBoundary>

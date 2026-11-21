@@ -42,7 +42,7 @@ export function useDealRealtime({
     return undefined;
   }, [currentStatus, showToast]);
 
-  // Adaptive Visibility-Aware Polling (2 seconds for active in-progress deals)
+  // Adaptive Visibility-Aware Polling (5 seconds for active in-progress deals)
   useEffect(() => {
     if (!dealId) return;
 
@@ -52,12 +52,12 @@ export function useDealRealtime({
     }
 
     const interval = setInterval(() => {
-      // Only poll when document is visible to save battery and network bandwidth
+      // Only poll when document is visible and tab is active
       if (typeof document !== "undefined" && document.visibilityState === "visible") {
         onRefresh();
         setLastSyncTime(new Date());
       }
-    }, 2000);
+    }, 5000);
 
     return () => clearInterval(interval);
   }, [dealId, currentStatus, onRefresh]);

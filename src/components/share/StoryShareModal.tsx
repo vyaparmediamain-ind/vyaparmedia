@@ -50,13 +50,14 @@ export default function StoryShareModal({
   referralCode,
 }: Readonly<StoryShareModalProps>) {
   const isBrand = userType === "BRAND" || profile?.userType === "BRAND";
+  const isScout = userType === "SCOUT" || profile?.userType === "SCOUT";
 
   // Determine available tabs
-  const hasProfile = Boolean(profile?.displayName || profile?.companyName);
+  const hasProfile = !isScout && Boolean(profile?.displayName || profile?.companyName);
   const hasReferral = Boolean(referralCode);
 
   const initialTab =
-    defaultTab === "referral" && hasReferral
+    (isScout || defaultTab === "referral") && hasReferral
       ? "referral"
       : hasProfile
       ? "profile"
@@ -98,12 +99,18 @@ export default function StoryShareModal({
             "Verified Brand Badge",
             "Escrow-secured deliverables",
           ]
+        : isScout
+        ? [
+            "100% Escrow-secured brand deals",
+            "Verified Creator & Brand network",
+            "Official Campus Partner link",
+          ]
         : [
             "0% Commission (Always Free)",
             "Verified Creator Badge",
             "100% Escrow-secured payouts",
           ],
-    [isBrand]
+    [isBrand, isScout]
   );
 
   // Generate QR codes on mount or when URLs change
@@ -447,13 +454,19 @@ export default function StoryShareModal({
 
       ctx.fillStyle = "#F8FAFC";
       ctx.font = "bold 56px sans-serif";
-      const referralHeadline = isBrand ? "Partner With Top Creators" : "Join My Creator Network";
+      const referralHeadline = isBrand
+        ? "Partner With Top Creators"
+        : isScout
+        ? "Vyapar Scout Partner Network"
+        : "Join My Creator Network";
       ctx.fillText(referralHeadline, 540, vmCardLogo ? 470 : 430);
 
       ctx.fillStyle = "#94A3B8";
       ctx.font = "400 30px sans-serif";
       const referralSub = isBrand
         ? "Launch high-ROI influencer campaigns on VyaparMedia"
+        : isScout
+        ? "Official Campus Talent Partner • 100% Escrow Safe"
         : "Get exclusive brand deal access on VyaparMedia";
       ctx.fillText(referralSub, 540, vmCardLogo ? 520 : 485);
 
@@ -783,7 +796,7 @@ export default function StoryShareModal({
 
                   {/* Story Progress Bars */}
                   <div className="absolute top-5 left-0 right-0 z-20 flex gap-1 px-3">
-                    {[0, 1].map((i) => (
+                    {(hasProfile && hasReferral ? [0, 1] : [0]).map((i) => (
                       <div
                         key={i}
                         className="flex-1 h-[2.5px] rounded-full overflow-hidden"
@@ -794,7 +807,9 @@ export default function StoryShareModal({
                           style={{
                             background: "#fff",
                             width:
-                              i === 0
+                              !hasProfile || !hasReferral
+                                ? `${activeProgress}%`
+                                : i === 0
                                 ? activeTab === "profile"
                                   ? `${activeProgress}%`
                                   : "100%"
@@ -985,9 +1000,17 @@ export default function StoryShareModal({
                             className="text-white text-[11px] font-extrabold leading-tight"
                             style={{ textShadow: "0 2px 10px rgba(0,0,0,0.7)" }}
                           >
-                            {isBrand ? "Partner With Top Creators" : "Join My Creator Network"}
+                            {isBrand
+                              ? "Partner With Top Creators"
+                              : isScout
+                              ? "Vyapar Scout Partner Network"
+                              : "Join My Creator Network"}
                           </div>
-                          <div className="text-white/45 text-[8px] mt-0.5">100% Escrow Guaranteed</div>
+                          <div className="text-white/45 text-[8px] mt-0.5">
+                            {isScout
+                              ? "Official Campus Partner • 100% Escrow Safe"
+                              : "100% Escrow Guaranteed"}
+                          </div>
                         </div>
 
                         {/* Invite code */}

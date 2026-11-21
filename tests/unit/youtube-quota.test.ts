@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { checkAndConsumeYouTubeQuota, getPacificDateString, getYouTubeVideoDetailed } from "@/lib/youtube";
+import { checkAndConsumeYouTubeQuota, getPacificDateString } from "@/lib/youtube";
 import redis from "@/lib/redis";
 import { logger } from "@/lib/logger";
 

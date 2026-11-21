@@ -11,6 +11,8 @@ import { logger } from "@/lib/logger";
 import { isAdmin as rbacIsAdmin, isBrand, isInfluencer } from "@/lib/rbac";
 import { Button, PageContainer, PageHeader } from "@/components/ui";
 import DashboardHomeClient from "@/components/dashboard/home/DashboardHomeClient";
+import ScoutDashboardClient from "@/components/scout/ScoutDashboardClient";
+import ScoutVerificationGate from "@/components/scout/ScoutVerificationGate";
 import prisma from "@/lib/db";
 import { cache } from "@/lib/cache";
 
@@ -111,6 +113,24 @@ export default async function DashboardPage({
 
   if (isAdmin) {
     redirect("/admin");
+  }
+
+  // Scout Role: Dedicated Distraction-Free Scout Portal
+  if (userType === "SCOUT") {
+    const scout = await prisma.scoutProfile.findUnique({
+      where: { userId },
+      select: { verificationStatus: true },
+    });
+
+    return (
+      <DashboardShell user={session.user}>
+        {scout?.verificationStatus === "APPROVED" ? (
+          <ScoutDashboardClient />
+        ) : (
+          <ScoutVerificationGate />
+        )}
+      </DashboardShell>
+    );
   }
 
   // Guard: Newly registered users must complete onboarding before entering the dashboard

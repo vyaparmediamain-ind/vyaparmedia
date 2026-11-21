@@ -28,8 +28,10 @@ import { releaseIdempotencyKey } from "@/lib/idempotency";
 import { transitionDealState } from "@/lib/deal-state-machine";
 import { randomUUID } from "node:crypto";
 import { recordPaymentFailure } from "@/lib/observability";
+import { assertKillSwitchInactive } from "@/lib/kill-switch";
 
 import { checkWalletTopUpEligibility } from "@/lib/action-eligibility";
+import { ScoutService } from "@/services/scout.service";
 
 export class PaymentService {
   static async createWalletTopUpOrder(
@@ -462,6 +464,22 @@ sharedReferrerId: influencerReferrer?.referredBy,
 } catch (err) {
 logger.warn("Referral reward failed", { error: err, influencerUserId, brandUserId });
 }
+
+// 4. Process Scout 1% Lifetime Passive Royalty
+try {
+  await ScoutService.processDealRoyalty(
+    tx,
+    deal.id,
+    deal.amount,
+    influencerUserId,
+    brandUserId
+  );
+} catch (scoutErr) {
+  logger.warn("Scout royalty processing error (non-fatal)", {
+    dealId: deal.id,
+    error: scoutErr instanceof Error ? scoutErr.message : String(scoutErr),
+  });
+}
 }, {
       maxWait: 10000,
       timeout: 20000,
@@ -752,6 +770,8 @@ throw error;
     },
     idempotencyKey: string,
   ) {
+    await assertKillSwitchInactive("killswitch:withdrawals");
+
     // Guard: amount must be a positive integer (in paise). Negative or float values
     // would bypass the balance >= check and execute decrement(negative) = balance inflation.
     if (!Number.isInteger(data.amount) || data.amount <= 0) {

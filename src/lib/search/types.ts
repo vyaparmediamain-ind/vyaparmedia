@@ -54,7 +54,7 @@ export interface CampaignSearchParams {
 
 export interface CreatorRankFactors {
   textRelevance: number; // 0 - 1.0 (from ts_rank_cd / similarity)
-  trustScore: number;    // 0 - 900
+  trustScore: number;    // 300 - 900 (CIBIL standard)
   engagementRate: number; // 0 - 100% or basis points
   averageRating: number;  // 0 - 500
   completedDeals: number;

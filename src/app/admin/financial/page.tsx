@@ -126,6 +126,11 @@ export default async function AdminFinancialPage() {
                 value: formatCurrency(data.wallets.totalWithdrawn),
                 valueClass: "font-bold text-foreground",
               },
+              {
+                label: "Unrecovered Debt Claims (Clawbacks / Post Deletions)",
+                value: `${formatCurrency(data.wallets.totalDebt || 0)} (${data.debtClaims?.pendingCount || 0} claims)`,
+                valueClass: (data.wallets.totalDebt || 0) > 0 ? "text-warning font-bold" : "font-bold text-foreground",
+              },
             ].map((row, i) => (
               <div
                 key={i}

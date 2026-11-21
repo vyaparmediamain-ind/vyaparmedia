@@ -523,6 +523,39 @@ export default function WalletPage() {
           border={false}
         />
 
+        {/* ── ALERTS: FROZEN WALLET OR DEBT LIABILITY ──────────────────────── */}
+        {walletData?.isFrozen && (
+          <div className="rounded-2xl border border-destructive/30 bg-destructive/10 p-4 sm:p-5 flex items-start gap-3.5 text-destructive animate-fade-in shadow-xs">
+            <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" />
+            <div className="space-y-1">
+              <h4 className="text-sm font-bold text-foreground">Wallet Account Frozen</h4>
+              <p className="text-xs text-muted-foreground leading-relaxed">
+                {walletData.frozenReason ||
+                  "Your wallet has been placed on administrative hold pending compliance or fraud review. Withdrawals and outgoing transfers are currently locked. If you believe this is in error, please contact compliance at support@vyaparmedia.in."}
+              </p>
+            </div>
+          </div>
+        )}
+
+        {(walletData?.debt ?? 0) > 0 && (
+          <div className="rounded-2xl border border-warning-border bg-warning/10 p-4 sm:p-5 flex items-start gap-3.5 text-warning animate-fade-in shadow-xs">
+            <AlertTriangle className="w-5 h-5 shrink-0 mt-0.5 text-warning" />
+            <div className="space-y-1 flex-1">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <h4 className="text-sm font-bold text-foreground">
+                  Outstanding Debt Liability: <span className="font-mono text-warning">{formatCurrency(walletData?.debt || 0)}</span>
+                </h4>
+                <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-warning/20 text-warning uppercase tracking-wider">
+                  Clawback Pending
+                </span>
+              </div>
+              <p className="text-xs text-muted-foreground leading-relaxed">
+                A dispute settlement or early deliverable deletion resulted in a negative balance clawback. Incoming top-ups or campaign earnings will be automatically directed towards clearing this liability balance.
+              </p>
+            </div>
+          </div>
+        )}
+
         {/* ── 2. DUAL FINTECH BALANCE CARDS (CRED / JUPITER BENCHMARK) ─────── */}
         {isWalletLoading ? (
           <WalletHeroSkeleton />

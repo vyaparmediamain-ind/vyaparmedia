@@ -23,8 +23,8 @@ export const GET = apiWrapper(
     }
     const { id } = parsedParams.data;
 
-    // Cache individual deal for 5 minutes (300 seconds)
-    // Note: Deal updates should invalidate this key: `deal:${id}`
+    // Cache individual deal for 60 seconds
+    // Note: Deal updates invalidate this key: `deal:${id}` via invalidateDealCache()
     const deal = await cache(
       `deal:${id}`,
       async () => {
@@ -63,11 +63,22 @@ export const GET = apiWrapper(
             },
             contentSubmissions: {
               orderBy: { version: "desc" },
+              take: 5,
+            },
+            reviews: {
+              select: {
+                id: true,
+                reviewerId: true,
+                receiverId: true,
+                rating: true,
+                comment: true,
+                createdAt: true,
+              },
             },
           },
         });
       },
-      300,
+      60,
     );
 
     if (!deal) {

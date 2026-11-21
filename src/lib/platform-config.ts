@@ -15,37 +15,33 @@
 * placeholder string so that generated reports are never silently invalid.
 */
 
-function configValue(envKey: string, defaultValue: string): string {
+function configValue(envKey: string, defaultValue = ""): string {
   const clientKey = envKey.startsWith("NEXT_PUBLIC_") ? envKey : `NEXT_PUBLIC_${envKey}`;
   const val =
-    (typeof process !== "undefined" && (process.env[envKey] || process.env[clientKey])) ||
+    (typeof process !== "undefined" && (process.env[clientKey] || process.env[envKey])) ||
     "";
   if (val?.trim() && !val.includes("XXXX")) return val.trim();
   return defaultValue;
 }
 
 export const PLATFORM_CONFIG = {
-  name: configValue("PLATFORM_NAME", "VyaparMedia"),
-  legalName: configValue("PLATFORM_LEGAL_NAME", "VYAPARMEDIA TECHNOLOGIES PRIVATE LIMITED"),
-  address: configValue("PLATFORM_ADDRESS", "Bellandur, Outer Ring Road, Bengaluru 560103"),
-  gstin: configValue("PLATFORM_GSTIN", "29AABCV1234F1Z5"),
-  udyam: configValue("PLATFORM_UDYAM", ""),
-  email:
-    (typeof process !== "undefined" &&
-      (process.env.PLATFORM_EMAIL || process.env.NEXT_PUBLIC_PLATFORM_EMAIL)) ||
-    "support@VyaparMedia.in",
-  phone: configValue("PLATFORM_PHONE", "+91-8045678900"),
-  website:
-    (typeof process !== "undefined" &&
-      (process.env.PLATFORM_WEBSITE || process.env.NEXT_PUBLIC_APP_URL)) ||
-    "https://vyaparmedia-nine.vercel.app",
-  cin: configValue("PLATFORM_CIN", "U74999KA2024PTC123456"),
-  pan: configValue("PLATFORM_PAN", "AABCV1234F"),
-  legalEmail: configValue("PLATFORM_LEGAL_EMAIL", "legal@vyaparmedia.in"),
-  privacyEmail: configValue("PLATFORM_PRIVACY_EMAIL", "privacy@vyaparmedia.in"),
-  billingEmail: configValue("PLATFORM_BILLING_EMAIL", "billing@vyaparmedia.in"),
-  grievanceEmail: configValue("PLATFORM_GRIEVANCE_EMAIL", "grievance@vyaparmedia.in"),
-  grievanceOfficer: configValue("PLATFORM_GRIEVANCE_OFFICER", "Mr. Dhruv Agarwal, Grievance Officer"),
+  name: process.env.NEXT_PUBLIC_PLATFORM_NAME || process.env.PLATFORM_NAME || "",
+  legalName: process.env.NEXT_PUBLIC_PLATFORM_LEGAL_NAME || process.env.PLATFORM_LEGAL_NAME || "",
+  tradeName: process.env.NEXT_PUBLIC_PLATFORM_TRADE_NAME || process.env.PLATFORM_TRADE_NAME || "",
+  address: process.env.NEXT_PUBLIC_PLATFORM_ADDRESS || process.env.PLATFORM_ADDRESS || "",
+  gstin: process.env.NEXT_PUBLIC_PLATFORM_GSTIN || process.env.PLATFORM_GSTIN || "",
+  udyam: process.env.NEXT_PUBLIC_PLATFORM_UDYAM || process.env.PLATFORM_UDYAM || "",
+  email: process.env.NEXT_PUBLIC_PLATFORM_EMAIL || process.env.PLATFORM_EMAIL || "",
+  phone: process.env.NEXT_PUBLIC_PLATFORM_PHONE || process.env.PLATFORM_PHONE || "",
+  website: process.env.NEXT_PUBLIC_APP_URL || process.env.PLATFORM_WEBSITE || "",
+  cin: process.env.NEXT_PUBLIC_PLATFORM_CIN || process.env.PLATFORM_CIN || "",
+  pan: process.env.NEXT_PUBLIC_PLATFORM_PAN || process.env.PLATFORM_PAN || "",
+  legalEmail: process.env.NEXT_PUBLIC_PLATFORM_LEGAL_EMAIL || process.env.PLATFORM_LEGAL_EMAIL || "",
+  privacyEmail: process.env.NEXT_PUBLIC_PLATFORM_PRIVACY_EMAIL || process.env.PLATFORM_PRIVACY_EMAIL || "",
+  billingEmail: process.env.NEXT_PUBLIC_PLATFORM_BILLING_EMAIL || process.env.PLATFORM_BILLING_EMAIL || "",
+  grievanceEmail: process.env.NEXT_PUBLIC_PLATFORM_GRIEVANCE_EMAIL || process.env.PLATFORM_GRIEVANCE_EMAIL || "",
+  grievanceOfficer: process.env.NEXT_PUBLIC_PLATFORM_GRIEVANCE_OFFICER || process.env.PLATFORM_GRIEVANCE_OFFICER || "",
+  sacCode: process.env.NEXT_PUBLIC_PLATFORM_PRIMARY_SAC || process.env.PLATFORM_PRIMARY_SAC || "",
 } as const;
 
 export function getPlatformHeader(): string[] {

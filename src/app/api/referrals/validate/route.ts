@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { AuthService } from "@/services/auth.service";
 import { apiWrapper } from "@/lib/api-wrapper";
+import { getRegistrationGateConfig, isMasterInviteCode } from "@/lib/registration-gate";
 
 async function _handler_GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
@@ -11,6 +12,15 @@ async function _handler_GET(request: NextRequest) {
   }
 
   try {
+    const gateConfig = await getRegistrationGateConfig();
+    if (isMasterInviteCode(code, gateConfig.masterInviteCode)) {
+      return NextResponse.json({
+        valid: true,
+        isMasterCode: true,
+        message: "VIP Master Invite Code accepted",
+      });
+    }
+
     const referrerId = await AuthService.resolveReferrer(code);
     return NextResponse.json({
       valid: Boolean(referrerId),

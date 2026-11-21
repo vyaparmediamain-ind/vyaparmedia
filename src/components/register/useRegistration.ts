@@ -30,6 +30,22 @@ agreeToTerms: false,
 const [error, setError] = useState(initialError);
 const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 const [isLoading, setIsLoading] = useState(false);
+const [requireReferral, setRequireReferral] = useState(false);
+
+useEffect(() => {
+  let isMounted = true;
+  fetch("/api/auth/registration-config")
+    .then((res) => res.json())
+    .then((data) => {
+      if (isMounted && data?.requireReferral) {
+        setRequireReferral(true);
+      }
+    })
+    .catch(() => {});
+  return () => {
+    isMounted = false;
+  };
+}, []);
 
 // OTP verification state
 const [emailOtpSent, setEmailOtpSent] = useState(false);
@@ -249,13 +265,27 @@ setError("Please fix the validation errors below.");
 return;
 }
 
+if (requireReferral && !formData.referralCode?.trim()) {
+  setFieldErrors((prev) => ({
+    ...prev,
+    referralCode: "VyaparMedia is currently in invite-only beta. A valid referral code is required.",
+  }));
+  setError("Please enter a valid invite code to continue.");
+  return;
+}
+
 if (formData.referralCode?.trim()) {
   try {
     const checkRes = await fetch(`/api/referrals/validate?code=${encodeURIComponent(formData.referralCode.trim())}`);
     const checkData = await checkRes.json();
     if (!checkData.valid) {
-      setFieldErrors((prev) => ({ ...prev, referralCode: "Invalid referral code. Please enter a valid code or leave blank." }));
-      setError("The referral code you entered is invalid.");
+      setFieldErrors((prev) => ({
+        ...prev,
+        referralCode: requireReferral
+          ? "Invalid invite code. Please enter a valid referral code to continue."
+          : "Invalid referral code. Please enter a valid code or leave blank.",
+      }));
+      setError("The invite code you entered is invalid.");
       return;
     }
   } catch (checkErr) {
@@ -353,5 +383,6 @@ handleSendPhoneOtp,
 handleVerifyPhoneOtp,
 handleUserTypeSelect,
 handleSubmit,
+requireReferral,
 };
 }

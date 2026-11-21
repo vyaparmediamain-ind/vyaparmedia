@@ -33,7 +33,9 @@ totalWithdrawn: w.totalWithdrawn,
     totalHeld: w.totalHeld ?? 0,
 totalSpent: w.totalSpent,
 totalDeposited: w.totalDeposited,
+debt: w.debt ?? 0,
 isFrozen: w.isFrozen,
+frozenReason: w.frozenReason ?? null,
 };
 
 return NextResponse.json(

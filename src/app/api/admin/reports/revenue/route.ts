@@ -1,4 +1,3 @@
-import { NextRequest } from "next/server";
 import { apiWrapper, ApiResponse, ValidatedNextRequest } from "@/lib/api-wrapper";
 import { requireActiveAdmin } from "@/lib/admin-auth";
 import prisma from "@/lib/db";

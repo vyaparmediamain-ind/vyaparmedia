@@ -11,6 +11,7 @@ import { BlockService } from "./block.service";
 import { logger } from "@/lib/logger";
 import { isAdmin } from "@/lib/rbac";
 import { calculateTotalAmount } from "@/lib/razorpay";
+import { publishMessageToRecipient, publishTypingToRecipient } from "@/lib/messaging-events";
 
 const TYPING_TTL_SECONDS = 7;
 const TYPING_REFRESH_SECONDS = 4;
@@ -40,14 +41,18 @@ return `typing:${conversationKey}:${userId}`;
 }
 
 function redactMessage(message: Message & { sender?: unknown }, isAdmin: boolean) {
-return {
-...message,
-content:
-message.isBlocked && !isAdmin
-? "[MESSAGE REDACTED: SENSITIVE CONTACT INFO]"
-: message.content,
-fileUrl: message.isBlocked && !isAdmin ? null : message.fileUrl,
-};
+  const metadata = message.metadata as { filterReason?: unknown } | null | undefined;
+  const isPendingReview = Array.isArray(metadata?.filterReason) &&
+    metadata.filterReason.includes("image_pending_review");
+
+  return {
+    ...message,
+    content:
+      message.isBlocked && !isAdmin
+        ? (isPendingReview ? "[IMAGE UNDER AUTOMATED REVIEW: PENDING SECURITY CLEARANCE]" : "[MESSAGE REDACTED: SENSITIVE CONTACT INFO]")
+        : message.content,
+    fileUrl: message.isBlocked && !isAdmin ? null : message.fileUrl,
+  };
 }
 
 const userRoleCache = new Map<string, { isAdmin: boolean; expiresAt: number }>();
@@ -502,6 +507,11 @@ refreshAfterSeconds: TYPING_REFRESH_SECONDS,
 };
 }
 
+const otherParticipants = access.participantIds.filter((id) => id !== userId);
+for (const partnerId of otherParticipants) {
+  publishTypingToRecipient(partnerId, userId, data.isTyping, data.dealId).catch(() => {});
+}
+
 return {
 isTyping: data.isTyping,
 refreshAfterSeconds: TYPING_REFRESH_SECONDS,
@@ -623,13 +633,16 @@ receiverId: string,
 messageId: string,
 findings: string[],
 ): Promise<void> {
+const isUnderReview = findings.includes("image_pending_review");
+
 await NotificationService.createNotification({
 userId,
 type: "system_warning",
-title: "Message Blocked",
-message:
-"Your message was blocked for containing contact details. Sharing contact details is not allowed before the contract starts.",
-data: { messageId },
+title: isUnderReview ? "Image Under Automated Review" : "Message Blocked",
+message: isUnderReview
+  ? "Your image upload has been queued for automated security review. It will be delivered once verification checks complete."
+  : "Your message was blocked for containing contact details. Sharing contact details is not allowed before the contract starts.",
+data: { messageId, findings },
 });
 
 const adminUsers = await prisma.user.findMany({
@@ -642,10 +655,12 @@ await NotificationService.createNotifications(
 adminUsers.map((admin) => ({
 userId: admin.id,
 type: "admin_alert",
-title: "Contact Details Shared",
-message: `User ${userId} attempted to share contact details with ${receiverId}.`,
+title: isUnderReview ? "Image Upload Queued for Review" : "Contact Details Shared",
+message: isUnderReview
+  ? `User ${userId} uploaded an image held in review before delivering to ${receiverId}.`
+  : `User ${userId} attempted to share contact details with ${receiverId}.`,
 data: {
-type: "contact_violation",
+type: isUnderReview ? "image_review_queued" : "contact_violation",
 senderId: userId,
 receiverId,
 messageId,
@@ -748,6 +763,23 @@ sender: {
 select: SENDER_SELECT_PROJECTION,
 },
 },
+});
+
+publishMessageToRecipient(data.receiverId, userId, {
+  id: message.id,
+  senderId: message.senderId,
+  receiverId: message.receiverId,
+  content: redactMessage(message, false).content,
+  messageType: message.messageType,
+  fileUrl: message.fileUrl,
+  dealId: message.dealId,
+  metadata: message.metadata,
+  createdAt: message.createdAt.toISOString(),
+  isBlocked: message.isBlocked,
+  hasWarning: message.hasWarning,
+  ...(message.sender ? { sender: message.sender } : {}),
+}).catch((err) => {
+  logger.debug("Failed to dispatch SSE stream message event", { error: err });
 });
 
 await MessageService.setTyping(userId, {

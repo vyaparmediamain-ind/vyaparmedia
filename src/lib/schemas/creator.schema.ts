@@ -15,7 +15,7 @@ export const creatorDiscoveryItemSchema = z.object({
   followers: z.number().int().min(0),
   engagementRate: z.number().min(0),
   isKycVerified: z.boolean().default(true),
-  trustScore: z.number().int().min(0).max(900).default(750),
+  trustScore: z.number().int().min(300).max(900).default(750),
   startingRatePaise: z.number().int().min(0),
   topPostImages: z.array(z.string()).optional(),
   isSaved: z.boolean().optional(),

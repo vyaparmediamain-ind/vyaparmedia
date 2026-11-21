@@ -41,6 +41,18 @@ export function deleteAccount(
   return post("/api/user/delete-account", data, options);
 }
 
+/** POST /api/user/switch-role — Scout account conversion to INFLUENCER or BRAND */
+export function switchRole(
+  data: { targetRole: "INFLUENCER" | "BRAND" },
+  options?: HttpOptions,
+) {
+  return post<{ success: boolean; targetRole: string; redirectUrl: string; message: string }>(
+    "/api/user/switch-role",
+    data,
+    options
+  );
+}
+
 /** POST /api/bookmarks — toggle bookmark on a campaign or creator */
 export function toggleBookmark(
   data: {

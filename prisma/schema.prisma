@@ -38,6 +38,7 @@ enum UserType {
   INFLUENCER
   BRAND
   ADMIN
+  SCOUT
 }
 
 enum UserStatus {
@@ -82,6 +83,7 @@ model User {
   // Relations
   influencerProfile       InfluencerProfile?
   brandProfile            BrandProfile?
+  scoutProfile            ScoutProfile?
   oauthAccounts           OAuthAccount[]
   oauthStates             OAuthState[]
   verificationDocs        VerificationDocument[]
@@ -327,6 +329,7 @@ model BrandProfile {
   totalSpent      Int @default(0)
   averageRating   Int @default(0) // 0-500 (5.00)
   totalReviews    Int @default(0)
+  customPlatformFee Float? // Custom negotiated platform fee % (e.g. 7.5 for Agency Plan). Null = default dynamic calculation.
 
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
@@ -340,6 +343,47 @@ model BrandProfile {
   @@index([deletedAt])
   @@index([industry])
   @@index([city])
+}
+
+// ==================== VYAPAR SCOUT / CAMPUS PARTNER ====================
+
+enum ScoutVerificationStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model ScoutProfile {
+  id                      String                  @id @default(cuid())
+  userId                  String                  @unique
+  user                    User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  scoutCode               String                  @unique
+  fullName                String
+  phone                   String
+  city                    String
+  state                   String?
+  college                 String?
+  panNumber               String?
+  aadhaarNumber           String?
+  panDocumentUrl          String?
+  aadhaarDocumentUrl      String?
+  selfieUrl               String?
+  verificationStatus      ScoutVerificationStatus @default(PENDING)
+  rejectionReason         String?
+  verifiedAt              DateTime?
+  royaltyPercent          Float                   @default(1.0) // Default 1.0% lifetime GMV royalty
+  isRoyaltyPaused         Boolean                 @default(false)
+  royaltyPausedReason     String?
+  monthlyQuotaExemptUntil DateTime?
+  lastActiveMonth         String?                 // e.g. "2026-11"
+  streakMonths            Int                     @default(0)
+  totalRoyaltyEarned      Int                     @default(0) // in Paise
+  createdAt               DateTime                @default(now())
+  updatedAt               DateTime                @updatedAt
+
+  @@index([verificationStatus])
+  @@index([city])
+  @@index([scoutCode])
 }
 
 // ==================== VERIFICATION ====================

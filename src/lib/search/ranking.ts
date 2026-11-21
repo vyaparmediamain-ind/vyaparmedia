@@ -5,7 +5,7 @@ import { CreatorRankFactors, CampaignRankFactors } from "./types";
  * 
  * Replaces naive recency sorting with a multi-factor ranking model:
  * 1. Text Relevance (35%): Full-text search ts_rank_cd + trigram similarity
- * 2. Trust Score (25%): DRS reputation (0-900 normalized)
+ * 2. Trust Score (25%): DRS reputation (300-900 normalized)
  * 3. Engagement & Reliability (20%): Engagement rate & on-time delivery
  * 4. Experience & Reviews (10%): Completed deals and star rating
  * 5. Platform Activity (10%): Recency and account age

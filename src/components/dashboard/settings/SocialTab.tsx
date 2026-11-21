@@ -4,6 +4,7 @@ import { logger } from "@/lib/logger-client";
 import { useEffect, useRef, useState } from "react";
 import type { Profile } from "./ProfileTab";
 import SocialPlatformCard from "./SocialPlatformCard";
+import AuthenticityAuditCard from "./AuthenticityAuditCard";
 import { apiClient } from "@/lib/api-client";
 import { formatUserError } from "@/lib/user-messages";
 
@@ -164,41 +165,49 @@ export default function SocialTab({
   };
 
   return (
-    <div className="grid-2">
-      <SocialPlatformCard
-        platform="instagram"
-        title="Instagram"
-        handle={profile.instagramHandle || ""}
-        onHandleChange={(val) => setProfile({ ...profile, instagramHandle: val })}
-        connected={Boolean(socialConnections?.instagram?.connected)}
-        needsReconnect={Boolean(socialConnections?.instagram?.needsReconnect)}
-        pendingApproval={Boolean(socialConnections?.instagram?.pendingApproval)}
-        lastSynced={socialConnections?.instagram?.lastSynced}
-        followersOrSubscribers={profile.instagramFollowers || 0}
-        engagementRate={profile.instagramEngagementRate || 0}
-        isSaving={isSaving}
-        isRedirecting={redirectingPlatform === "instagram"}
-        onConnect={handleInstagramConnect}
-        onSync={() => verifySocial("instagram")}
-        onDisconnect={handleInstagramDisconnect}
-      />
+    <div className="space-y-6">
+      <div className="grid-2">
+        <SocialPlatformCard
+          platform="instagram"
+          title="Instagram"
+          handle={profile.instagramHandle || ""}
+          onHandleChange={(val) => setProfile({ ...profile, instagramHandle: val })}
+          connected={Boolean(socialConnections?.instagram?.connected)}
+          needsReconnect={Boolean(socialConnections?.instagram?.needsReconnect)}
+          pendingApproval={Boolean(socialConnections?.instagram?.pendingApproval)}
+          lastSynced={socialConnections?.instagram?.lastSynced}
+          followersOrSubscribers={profile.instagramFollowers || 0}
+          engagementRate={profile.instagramEngagementRate || 0}
+          isSaving={isSaving}
+          isRedirecting={redirectingPlatform === "instagram"}
+          onConnect={handleInstagramConnect}
+          onSync={() => verifySocial("instagram")}
+          onDisconnect={handleInstagramDisconnect}
+        />
 
-      <SocialPlatformCard
-        platform="youtube"
-        title="YouTube"
-        handle={profile.youtubeHandle || ""}
-        onHandleChange={(val) => setProfile({ ...profile, youtubeHandle: val })}
-        connected={Boolean(socialConnections?.youtube?.connected)}
-        needsReconnect={Boolean(socialConnections?.youtube?.needsReconnect)}
-        pendingApproval={Boolean(socialConnections?.youtube?.pendingApproval)}
-        lastSynced={socialConnections?.youtube?.lastSynced}
-        followersOrSubscribers={profile.youtubeSubscribers ?? 0}
-        engagementRate={profile.youtubeEngagementRate || 0}
-        isSaving={isSaving}
-        isRedirecting={redirectingPlatform === "youtube"}
-        onConnect={handleYouTubeConnect}
-        onSync={() => verifySocial("youtube")}
-        onDisconnect={handleYouTubeDisconnect}
+        <SocialPlatformCard
+          platform="youtube"
+          title="YouTube"
+          handle={profile.youtubeHandle || ""}
+          onHandleChange={(val) => setProfile({ ...profile, youtubeHandle: val })}
+          connected={Boolean(socialConnections?.youtube?.connected)}
+          needsReconnect={Boolean(socialConnections?.youtube?.needsReconnect)}
+          pendingApproval={Boolean(socialConnections?.youtube?.pendingApproval)}
+          lastSynced={socialConnections?.youtube?.lastSynced}
+          followersOrSubscribers={profile.youtubeSubscribers ?? 0}
+          engagementRate={profile.youtubeEngagementRate || 0}
+          isSaving={isSaving}
+          isRedirecting={redirectingPlatform === "youtube"}
+          onConnect={handleYouTubeConnect}
+          onSync={() => verifySocial("youtube")}
+          onDisconnect={handleYouTubeDisconnect}
+        />
+      </div>
+
+      {/* CAS™ Follower & Bot Authenticity Audit */}
+      <AuthenticityAuditCard
+        isInstagramConnected={Boolean(socialConnections?.instagram?.connected)}
+        showToast={showToast}
       />
     </div>
   );

@@ -7,7 +7,7 @@ import Image from "next/image";
 import { useSession } from "next-auth/react";
 import { type NotificationPreferences } from "./NotificationPreferencesPanel";
 import { isBrand, isInfluencer } from "@/lib/rbac";
-import { Button, Input, Select, Textarea } from "@/components/ui";
+import { Button, Input, Select, Textarea, Modal } from "@/components/ui";
 import { ALL_CATEGORIES } from "@/lib/categories";
 import { apiClient, ApiClientError } from "@/lib/api-client";
 import { formatUserError } from "@/lib/user-messages";
@@ -27,6 +27,8 @@ import {
   Smartphone,
   ShieldCheck,
   ExternalLink,
+  ArrowRight,
+  ArrowLeftRight,
 } from "lucide-react";
 import StoryShareModal from "@/components/share/StoryShareModal";
 
@@ -127,6 +129,35 @@ export default function ProfileTab({
   const [customLanguage, setCustomLanguage] = useState("");
   const [localCategories, setLocalCategories] = useState<string[]>([...allCategories]);
   const [localLanguages, setLocalLanguages] = useState<string[]>([...allLanguages]);
+  const [switchRoleModalOpen, setSwitchRoleModalOpen] = useState(false);
+  const [targetRole, setTargetRole] = useState<"INFLUENCER" | "BRAND" | null>(null);
+  const [isSwitchingRole, setIsSwitchingRole] = useState(false);
+
+  const handleSwitchRole = async () => {
+    if (!targetRole) return;
+    setIsSwitchingRole(true);
+    try {
+      const res = await apiClient.users.switchRole({
+        targetRole,
+      });
+      showToast(
+        res?.message || `Account successfully converted to ${targetRole === "INFLUENCER" ? "Creator" : "Brand"}!`,
+        "success"
+      );
+      try {
+        await update();
+      } catch (e) {
+        logger.warn("[ProfileTab] Session update error after switch role:", { error: String(e) });
+      }
+      setTimeout(() => {
+        window.location.href = res?.redirectUrl || "/dashboard";
+      }, 600);
+    } catch (err: unknown) {
+      const message = formatUserError(err, "Failed to convert account role. Please try again.");
+      showToast(message, "error");
+      setIsSwitchingRole(false);
+    }
+  };
 
   // Profile strength score
   const completenessScore = useMemo(() => {
@@ -284,6 +315,8 @@ export default function ProfileTab({
                 <p className="text-xs text-muted-foreground mt-0.5">
                   {isBrand(user.userType)
                     ? "Your brand's public profile visible to creators on the marketplace"
+                    : user.userType === "SCOUT"
+                    ? "Your verified Campus Partner & Talent Scout account details"
                     : "Your creator media kit and portfolio visible to prospective brands"}
                 </p>
               </div>
@@ -299,45 +332,53 @@ export default function ProfileTab({
                 <span className="inline-flex items-center gap-1 text-xs font-bold text-primary bg-primary/10 px-2.5 py-1 rounded-full border border-primary/20">
                   <Building2 className="w-3.5 h-3.5" /> Brand Account
                 </span>
+              ) : user.userType === "SCOUT" ? (
+                <span className="inline-flex items-center gap-1 text-xs font-bold text-primary bg-primary/10 px-2.5 py-1 rounded-full border border-primary/20">
+                  <Award className="w-3.5 h-3.5" /> Campus Partner (Scout)
+                </span>
               ) : (
                 <span className="inline-flex items-center gap-1 text-xs font-bold text-verified bg-verified-muted px-2.5 py-1 rounded-full border border-verified-border">
                   <Sparkles className="w-3.5 h-3.5" /> Creator Account
                 </span>
               )}
             </div>
-            <span className="text-[11px] text-muted-foreground mt-1 block">
-              {badgesCount} Badges Earned
-            </span>
-            <div className="mt-2 flex items-center sm:justify-end">
-              {isBrand(user.userType) ? (() => {
-                const brandTarget =
-                  user?.id ||
-                  session?.user?.id ||
-                  (profile as unknown as { id?: string })?.id ||
-                  (profile.displayName ? encodeURIComponent(profile.displayName.trim()) : "") ||
-                  (user.name ? encodeURIComponent(user.name.trim()) : "");
-                if (!brandTarget || brandTarget === "undefined") return null;
-                return (
+            {user.userType !== "SCOUT" && (
+              <span className="text-[11px] text-muted-foreground mt-1 block">
+                {badgesCount} Badges Earned
+              </span>
+            )}
+            {user.userType !== "SCOUT" && (
+              <div className="mt-2 flex items-center sm:justify-end">
+                {isBrand(user.userType) ? (() => {
+                  const brandTarget =
+                    user?.id ||
+                    session?.user?.id ||
+                    (profile as unknown as { id?: string })?.id ||
+                    (profile.displayName ? encodeURIComponent(profile.displayName.trim()) : "") ||
+                    (user.name ? encodeURIComponent(user.name.trim()) : "");
+                  if (!brandTarget || brandTarget === "undefined") return null;
+                  return (
+                    <Link
+                      href={`/brand/${brandTarget}`}
+                      target="_blank"
+                      className="inline-flex items-center gap-1.5 text-xs font-semibold text-primary hover:underline transition-colors"
+                    >
+                      <span>View Public Profile</span>
+                      <ExternalLink className="w-3.5 h-3.5" />
+                    </Link>
+                  );
+                })() : profile.instagramHandle ? (
                   <Link
-                    href={`/brand/${brandTarget}`}
+                    href={`/creator/${encodeURIComponent(profile.instagramHandle)}`}
                     target="_blank"
-                    className="inline-flex items-center gap-1.5 text-xs font-semibold text-primary hover:underline transition-colors"
+                    className="inline-flex items-center gap-1.5 text-xs font-semibold text-verified hover:underline transition-colors"
                   >
                     <span>View Public Profile</span>
                     <ExternalLink className="w-3.5 h-3.5" />
                   </Link>
-                );
-              })() : profile.instagramHandle ? (
-                <Link
-                  href={`/creator/${encodeURIComponent(profile.instagramHandle)}`}
-                  target="_blank"
-                  className="inline-flex items-center gap-1.5 text-xs font-semibold text-verified hover:underline transition-colors"
-                >
-                  <span>View Public Profile</span>
-                  <ExternalLink className="w-3.5 h-3.5" />
-                </Link>
-              ) : null}
-            </div>
+                ) : null}
+              </div>
+            )}
           </div>
         </div>
 
@@ -476,25 +517,47 @@ export default function ProfileTab({
               </div>
             </div>
 
-            <div className="p-3.5 rounded-xl bg-muted/30 border border-border flex flex-col justify-between">
-              <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider mb-1">
-                Marketplace Badges
-              </span>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-1.5">
-                  <Award className="w-4 h-4 text-verified" />
-                  <span className="text-base font-extrabold text-foreground">
-                    {badgesCount}
-                  </span>
+            {user.userType === "SCOUT" ? (
+              <div className="p-3.5 rounded-xl bg-muted/30 border border-border flex flex-col justify-between">
+                <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider mb-1">
+                  Scout Partnership
+                </span>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-1.5">
+                    <Award className="w-4 h-4 text-primary" />
+                    <span className="text-base font-extrabold text-foreground">
+                      1.0% Royalty
+                    </span>
+                  </div>
+                  <Link
+                    href="/dashboard"
+                    className="text-xs font-semibold text-primary hover:underline"
+                  >
+                    Scout Portal →
+                  </Link>
                 </div>
-                <Link
-                  href="/dashboard/badges"
-                  className="text-xs font-semibold text-primary hover:underline"
-                >
-                  View All Badges →
-                </Link>
               </div>
-            </div>
+            ) : (
+              <div className="p-3.5 rounded-xl bg-muted/30 border border-border flex flex-col justify-between">
+                <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider mb-1">
+                  Marketplace Badges
+                </span>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-1.5">
+                    <Award className="w-4 h-4 text-verified" />
+                    <span className="text-base font-extrabold text-foreground">
+                      {badgesCount}
+                    </span>
+                  </div>
+                  <Link
+                    href="/dashboard/badges"
+                    className="text-xs font-semibold text-primary hover:underline"
+                  >
+                    View All Badges →
+                  </Link>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -668,12 +731,16 @@ export default function ProfileTab({
               label={
                 isBrand(user.userType)
                   ? "Warehouse / Pickup Street Address"
+                  : user.userType === "SCOUT"
+                  ? "Residential / Campus Address"
                   : "Default Delivery Street Address"
               }
               type="text"
               placeholder={
                 isBrand(user.userType)
                   ? "Street address, building, landmark"
+                  : user.userType === "SCOUT"
+                  ? "Hostel / Flat / Street address"
                   : "House / Flat No., Street, Area"
               }
               value={profile.address || ""}
@@ -687,6 +754,8 @@ export default function ProfileTab({
               label={
                 isBrand(user.userType)
                   ? "Pickup PIN Code (6 digits)"
+                  : user.userType === "SCOUT"
+                  ? "Postal PIN Code (6 digits)"
                   : "Delivery PIN Code (6 digits)"
               }
               type="text"
@@ -918,6 +987,170 @@ export default function ProfileTab({
           </div>
         </div>
       )}
+
+      {/* Scout Account Role Conversion / Upgrade Card */}
+      {user.userType === "SCOUT" && (
+        <div className="p-5 sm:p-6 rounded-2xl border border-primary/20 bg-primary/5 shadow-xs space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-primary/15">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-primary/20 text-primary flex items-center justify-center shrink-0">
+                <ArrowLeftRight className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="text-sm sm:text-base font-bold text-foreground">
+                  Convert / Upgrade Account Role
+                </h3>
+                <p className="text-xs text-muted-foreground">
+                  Want to launch brand campaigns or take sponsorships as a creator? Convert your role anytime.
+                </p>
+              </div>
+            </div>
+
+            <span className="inline-flex items-center gap-1 text-[11px] font-bold text-primary bg-primary/10 px-2.5 py-1 rounded-full border border-primary/20 shrink-0 self-start sm:self-auto">
+              <ShieldCheck className="w-3.5 h-3.5" /> 1% Royalties Always Protected
+            </span>
+          </div>
+
+          <div className="p-3.5 rounded-xl bg-card border border-border text-xs text-muted-foreground flex items-start gap-2.5">
+            <ShieldCheck className="w-4 h-4 text-primary shrink-0 mt-0.5" />
+            <p>
+              <strong className="text-foreground">Zero Risk Guarantee:</strong> Converting your account to a Creator or Brand account will <span className="text-foreground font-semibold">never erase your Scout referral network</span>. Your 1% lifetime passive royalties on all referred creators and brands continue to earn and credit directly to your wallet!
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
+            {/* Convert to Creator */}
+            <div className="p-4 rounded-xl border border-border bg-card flex flex-col justify-between gap-3 hover:border-verified/50 transition-all">
+              <div className="space-y-1.5">
+                <div className="flex items-center gap-2">
+                  <div className="w-7 h-7 rounded-lg bg-verified/10 text-verified flex items-center justify-center">
+                    <Sparkles className="w-4 h-4" />
+                  </div>
+                  <h4 className="text-sm font-bold text-foreground">Creator Account</h4>
+                </div>
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  Build your media kit, link Instagram / YouTube channels, set collaboration rates, and receive paid brand deals.
+                </p>
+              </div>
+
+              <Button
+                type="button"
+                variant="secondary"
+                size="md"
+                className="w-full text-xs font-bold justify-center"
+                onClick={() => {
+                  setTargetRole("INFLUENCER");
+                  setSwitchRoleModalOpen(true);
+                }}
+              >
+                <span>Convert to Creator</span>
+                <ArrowRight className="w-3.5 h-3.5 ml-1" />
+              </Button>
+            </div>
+
+            {/* Convert to Brand */}
+            <div className="p-4 rounded-xl border border-border bg-card flex flex-col justify-between gap-3 hover:border-primary/50 transition-all">
+              <div className="space-y-1.5">
+                <div className="flex items-center gap-2">
+                  <div className="w-7 h-7 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
+                    <Building2 className="w-4 h-4" />
+                  </div>
+                  <h4 className="text-sm font-bold text-foreground">Brand Account</h4>
+                </div>
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  Post campaigns, discover verified influencers, fund milestone escrow safely, and scale your business with creator marketing.
+                </p>
+              </div>
+
+              <Button
+                type="button"
+                variant="secondary"
+                size="md"
+                className="w-full text-xs font-bold justify-center"
+                onClick={() => {
+                  setTargetRole("BRAND");
+                  setSwitchRoleModalOpen(true);
+                }}
+              >
+                <span>Convert to Brand</span>
+                <ArrowRight className="w-3.5 h-3.5 ml-1" />
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Scout Role Conversion Confirmation Modal */}
+      <Modal
+        open={switchRoleModalOpen}
+        onClose={() => !isSwitchingRole && setSwitchRoleModalOpen(false)}
+        title={targetRole === "BRAND" ? "Convert Account to Brand" : "Convert Account to Creator"}
+        maxWidth="480px"
+      >
+        <div className="space-y-4 p-1">
+          <div className="flex items-center gap-3 p-3.5 rounded-xl bg-primary/10 border border-primary/20">
+            {targetRole === "BRAND" ? (
+              <Building2 className="w-8 h-8 text-primary shrink-0" />
+            ) : (
+              <Sparkles className="w-8 h-8 text-primary shrink-0" />
+            )}
+            <div>
+              <div className="text-sm font-bold text-foreground">
+                {targetRole === "BRAND" ? "Advertiser & Business Account" : "Content Creator Account"}
+              </div>
+              <div className="text-xs text-muted-foreground">
+                {targetRole === "BRAND"
+                  ? "You will be able to launch escrow campaigns and hire creators."
+                  : "You will be able to receive brand collaborations and build a public portfolio."}
+              </div>
+            </div>
+          </div>
+
+          <div className="p-3.5 rounded-xl bg-card border border-border text-xs space-y-2 text-muted-foreground">
+            <div className="font-semibold text-foreground flex items-center gap-1.5">
+              <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
+              What happens to your Scout account:
+            </div>
+            <ul className="list-disc pl-5 space-y-1 text-[11.5px]">
+              <li>Your Scout referral link and QR code remain active.</li>
+              <li>Your 1% lifetime passive royalties on past and future deals continue without disruption.</li>
+              <li>Your earnings ledger and accumulated payouts remain intact in your wallet.</li>
+            </ul>
+          </div>
+
+          <div className="flex items-center justify-end gap-2.5 pt-2">
+            <Button
+              type="button"
+              variant="ghost"
+              size="md"
+              disabled={isSwitchingRole}
+              onClick={() => setSwitchRoleModalOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              variant="primary"
+              size="md"
+              disabled={isSwitchingRole}
+              onClick={handleSwitchRole}
+              className="gap-2 font-bold"
+            >
+              {isSwitchingRole ? (
+                <>
+                  <div className="w-4 h-4 rounded-full border-2 border-primary-foreground border-t-transparent animate-spin" />
+                  <span>Converting Account...</span>
+                </>
+              ) : (
+                <>
+                  <span>Confirm &amp; Convert</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </>
+              )}
+            </Button>
+          </div>
+        </div>
+      </Modal>
 
       {/* Story Share Modal (Public Profile & Referral Story) */}
       <StoryShareModal

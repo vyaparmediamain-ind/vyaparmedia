@@ -152,3 +152,173 @@ export function getKillSwitchMessage(feature: KillSwitchFeature): string {
     "This service is temporarily undergoing routine maintenance. Please try again shortly."
   );
 }
+
+export interface KillSwitchItem {
+  feature: KillSwitchFeature;
+  title: string;
+  category: "FINANCIAL" | "SECURITY" | "VENDOR";
+  categoryLabel: string;
+  description: string;
+  severity: "CRITICAL" | "HIGH" | "MEDIUM";
+  impact: string;
+  active: boolean;
+  message: string;
+}
+
+export const KILL_SWITCH_METADATA: Record<
+  KillSwitchFeature,
+  Omit<KillSwitchItem, "feature" | "active" | "message">
+> = {
+  "killswitch:withdrawals": {
+    title: "Creator & Brand Withdrawals",
+    category: "FINANCIAL",
+    categoryLabel: "Financial Controls",
+    severity: "CRITICAL",
+    description: "Instant circuit breaker stopping all bank and UPI withdrawal payouts.",
+    impact: "Prevents drain if abnormal payout behavior is detected. Escrow balances remain safe.",
+  },
+  "killswitch:add_funds": {
+    title: "Wallet Top-Ups (Add Funds)",
+    category: "FINANCIAL",
+    categoryLabel: "Financial Controls",
+    severity: "CRITICAL",
+    description: "Pauses incoming wallet payments and deposits via Razorpay.",
+    impact: "Stops inbound money flow during gateway reconciliation or ledger auditing.",
+  },
+  "killswitch:campaigns": {
+    title: "Campaign Creation & Escrow Locks",
+    category: "FINANCIAL",
+    categoryLabel: "Financial Controls",
+    severity: "HIGH",
+    description: "Prevents brands from launching new campaigns or committing new escrow funds.",
+    impact: "Protects platform liability during contract template or compliance updates.",
+  },
+  "killswitch:signups": {
+    title: "New User Registrations",
+    category: "SECURITY",
+    categoryLabel: "Security & User Access",
+    severity: "CRITICAL",
+    description: "Blocks all new creator and brand registrations (anti-bot / spam flood barrier).",
+    impact: "Existing registered users can log in and transact normally.",
+  },
+  "killswitch:otp": {
+    title: "SMS & Mobile OTP Delivery",
+    category: "SECURITY",
+    categoryLabel: "Security & User Access",
+    severity: "HIGH",
+    description: "Halts dispatching 2FA and mobile OTP SMS messages.",
+    impact: "Mitigates SMS toll-fraud attacks or vendor rate limit storms.",
+  },
+  "killswitch:messaging": {
+    title: "In-App Direct Chat & Messaging",
+    category: "SECURITY",
+    categoryLabel: "Security & User Access",
+    severity: "MEDIUM",
+    description: "Pauses real-time messaging between brands and influencers.",
+    impact: "Useful during moderation emergencies or circumvention attack waves.",
+  },
+  "killswitch:auth:google": {
+    title: "Google OAuth Sign-In",
+    category: "SECURITY",
+    categoryLabel: "Security & User Access",
+    severity: "MEDIUM",
+    description: "Disables Google Single Sign-On fallback in case of Google API outages.",
+    impact: "Users log in using their primary email and password instead.",
+  },
+  "killswitch:social:instagram": {
+    title: "Instagram Graph API Integration",
+    category: "VENDOR",
+    categoryLabel: "Third-Party Integrations",
+    severity: "MEDIUM",
+    description: "Disables live Instagram metrics polling and token refreshes.",
+    impact: "Existing follower counts and engagement stats remain safely cached.",
+  },
+  "killswitch:social:youtube": {
+    title: "YouTube Data API Integration",
+    category: "VENDOR",
+    categoryLabel: "Third-Party Integrations",
+    severity: "MEDIUM",
+    description: "Disables YouTube subscriber verification and channel audits.",
+    impact: "Historical YouTube analytics remain accessible in read-only mode.",
+  },
+  "killswitch:vendor:razorpay": {
+    title: "Razorpay Gateway Integration",
+    category: "VENDOR",
+    categoryLabel: "Third-Party Integrations",
+    severity: "CRITICAL",
+    description: "Isolates Razorpay orders, transfers, and route settlement calls.",
+    impact: "Activated when Razorpay reports widespread gateway or webhook degradation.",
+  },
+  "killswitch:vendor:shiprocket": {
+    title: "Shiprocket Courier & Logistics",
+    category: "VENDOR",
+    categoryLabel: "Third-Party Integrations",
+    severity: "HIGH",
+    description: "Pauses automated shipping label generation and courier dispatching.",
+    impact: "Sample kits can still be tracked manually via AWB numbers.",
+  },
+  "killswitch:vendor:surepass": {
+    title: "Surepass KYC & OCR API",
+    category: "VENDOR",
+    categoryLabel: "Third-Party Integrations",
+    severity: "HIGH",
+    description: "Halts automated PAN, GST, and Aadhaar document verification calls.",
+    impact: "Submissions queue safely in the admin manual verification queue.",
+  },
+  "killswitch:vendor:digilocker": {
+    title: "DigiLocker Integration",
+    category: "VENDOR",
+    categoryLabel: "Third-Party Integrations",
+    severity: "MEDIUM",
+    description: "Pauses government DigiLocker document fetch flows.",
+    impact: "Users are seamlessly guided to direct document upload.",
+  },
+  "killswitch:vendor:vision": {
+    title: "Google Cloud Vision AI",
+    category: "VENDOR",
+    categoryLabel: "Third-Party Integrations",
+    severity: "MEDIUM",
+    description: "Bypasses automatic image attachment safety and fraud scanning.",
+    impact: "Images are flagged for manual admin inspection without blocking upload.",
+  },
+  "killswitch:vendor:resend": {
+    title: "Resend Email Notification Delivery",
+    category: "VENDOR",
+    categoryLabel: "Third-Party Integrations",
+    severity: "MEDIUM",
+    description: "Queues outgoing marketing and transaction notification emails.",
+    impact: "Prevents notification bursts during email template maintenance.",
+  },
+  "killswitch:vendor:freeipapi": {
+    title: "FreeIPAPI Geolocation Verification",
+    category: "VENDOR",
+    categoryLabel: "Third-Party Integrations",
+    severity: "MEDIUM",
+    description: "Skips external IP lookup calls and defaults to local country detection.",
+    impact: "Eliminates latency if the external IP service is experiencing rate limits.",
+  },
+};
+
+export async function getAllKillSwitches(): Promise<KillSwitchItem[]> {
+  const features = Object.values(KILL_SWITCH_FEATURES) as KillSwitchFeature[];
+  const results: KillSwitchItem[] = [];
+
+  for (const feature of features) {
+    const active = await isKillSwitchActive(feature);
+    const meta = KILL_SWITCH_METADATA[feature];
+    results.push({
+      feature,
+      title: meta?.title || feature,
+      category: meta?.category || "VENDOR",
+      categoryLabel: meta?.categoryLabel || "Other",
+      description: meta?.description || "Operational circuit breaker",
+      severity: meta?.severity || "MEDIUM",
+      impact: meta?.impact || "",
+      active,
+      message: getKillSwitchMessage(feature),
+    });
+  }
+
+  return results;
+}
+
