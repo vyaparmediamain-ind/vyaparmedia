@@ -13,8 +13,8 @@ const querySchema = z.object({
 
 export const GET = apiWrapper(async (req) => {
   const session = req.session;
-  if (!session?.user?.id || session.user.userType !== "ADMIN") {
-    return NextResponse.json({ success: false, message: "Forbidden" }, { status: 403 });
+  if (!session?.user?.id) {
+    return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
   }
 
   const { searchParams } = req.nextUrl;

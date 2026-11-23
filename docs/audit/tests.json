@@ -1,15 +1,15 @@
 {
-  "generatedAt": "2026-11-23T08:06:15.888Z",
-  "totalModules": 631,
-  "totalCovered": 235,
+  "generatedAt": "2026-11-23T08:40:57.350Z",
+  "totalModules": 632,
+  "totalCovered": 236,
   "totalUncovered": 396,
-  "overallCoveragePercent": 37.2,
+  "overallCoveragePercent": 37.3,
   "summaries": {
     "lib": {
-      "total": 183,
-      "covered": 132,
+      "total": 184,
+      "covered": 133,
       "uncovered": 51,
-      "coveragePercent": 72.1
+      "coveragePercent": 72.3
     },
     "service": {
       "total": 48,
@@ -1683,6 +1683,11 @@
       "covered": true,
       "tests": [
         {
+          "testFile": "tests/unit/admin-authz-active.test.ts",
+          "layer": "unit",
+          "referenceType": "import"
+        },
+        {
           "testFile": "tests/unit/admin-campaign-audit.test.ts",
           "layer": "unit",
           "referenceType": "import"
@@ -2037,6 +2042,58 @@
       "category": "lib",
       "covered": true,
       "tests": [
+        {
+          "testFile": "tests/unit/auth-security.test.ts",
+          "layer": "unit",
+          "referenceType": "import"
+        },
+        {
+          "testFile": "tests/unit/fair-price-service.test.ts",
+          "layer": "unit",
+          "referenceType": "import"
+        },
+        {
+          "testFile": "tests/unit/instagram-callback.test.ts",
+          "layer": "unit",
+          "referenceType": "import"
+        },
+        {
+          "testFile": "tests/unit/oauth-state-security.test.ts",
+          "layer": "unit",
+          "referenceType": "import"
+        },
+        {
+          "testFile": "tests/unit/oauth-trust-killswitch-ui.test.ts",
+          "layer": "unit",
+          "referenceType": "import"
+        },
+        {
+          "testFile": "tests/unit/scout-role-switch.test.ts",
+          "layer": "unit",
+          "referenceType": "import"
+        },
+        {
+          "testFile": "tests/unit/telemetry-track.test.ts",
+          "layer": "unit",
+          "referenceType": "import"
+        },
+        {
+          "testFile": "tests/unit/youtube-disconnect.test.ts",
+          "layer": "unit",
+          "referenceType": "import"
+        }
+      ]
+    },
+    {
+      "modulePath": "src/lib/authz.ts",
+      "category": "lib",
+      "covered": true,
+      "tests": [
+        {
+          "testFile": "tests/unit/admin-authz-active.test.ts",
+          "layer": "unit",
+          "referenceType": "import"
+        },
         {
           "testFile": "tests/unit/auth-security.test.ts",
           "layer": "unit",
@@ -2442,6 +2499,11 @@
           "referenceType": "import"
         },
         {
+          "testFile": "tests/unit/admin-authz-active.test.ts",
+          "layer": "unit",
+          "referenceType": "import"
+        },
+        {
           "testFile": "tests/unit/admin-campaign-audit.test.ts",
           "layer": "unit",
           "referenceType": "import"
@@ -2731,6 +2793,11 @@
         {
           "testFile": "tests/integration/scout-e2e.test.ts",
           "layer": "integration",
+          "referenceType": "import"
+        },
+        {
+          "testFile": "tests/unit/admin-authz-active.test.ts",
+          "layer": "unit",
           "referenceType": "import"
         },
         {
@@ -3232,6 +3299,11 @@
         {
           "testFile": "tests/integration/db-transactions.test.ts",
           "layer": "integration",
+          "referenceType": "import"
+        },
+        {
+          "testFile": "tests/unit/admin-authz-active.test.ts",
+          "layer": "unit",
           "referenceType": "import"
         },
         {
@@ -4670,6 +4742,11 @@
           "referenceType": "import"
         },
         {
+          "testFile": "tests/unit/admin-authz-active.test.ts",
+          "layer": "unit",
+          "referenceType": "import"
+        },
+        {
           "testFile": "tests/unit/auth-security.test.ts",
           "layer": "unit",
           "referenceType": "import"
@@ -5918,6 +5995,11 @@
       "covered": true,
       "tests": [
         {
+          "testFile": "tests/unit/admin-authz-active.test.ts",
+          "layer": "unit",
+          "referenceType": "import"
+        },
+        {
           "testFile": "tests/unit/social-proof-fraud-hardening.test.ts",
           "layer": "unit",
           "referenceType": "import"
@@ -6002,6 +6084,11 @@
       "covered": true,
       "tests": [
         {
+          "testFile": "tests/unit/admin-authz-active.test.ts",
+          "layer": "unit",
+          "referenceType": "import"
+        },
+        {
           "testFile": "tests/unit/campaign-analytics-page.test.ts",
           "layer": "unit",
           "referenceType": "import"
@@ -6035,6 +6122,11 @@
       "category": "service",
       "covered": true,
       "tests": [
+        {
+          "testFile": "tests/unit/admin-authz-active.test.ts",
+          "layer": "unit",
+          "referenceType": "import"
+        },
         {
           "testFile": "tests/unit/campaign-analytics-page.test.ts",
           "layer": "unit",
@@ -6206,6 +6298,11 @@
       "covered": true,
       "tests": [
         {
+          "testFile": "tests/unit/admin-authz-active.test.ts",
+          "layer": "unit",
+          "referenceType": "import"
+        },
+        {
           "testFile": "tests/unit/fair-price-service.test.ts",
           "layer": "unit",
           "referenceType": "import"
@@ -6234,6 +6331,11 @@
       "category": "service",
       "covered": true,
       "tests": [
+        {
+          "testFile": "tests/unit/admin-authz-active.test.ts",
+          "layer": "unit",
+          "referenceType": "import"
+        },
         {
           "testFile": "tests/unit/market-range-report.test.ts",
           "layer": "unit",
@@ -8855,6 +8957,11 @@
       "tests": [
         {
           "testFile": "tests/unit/auth-security.test.ts",
+          "layer": "unit",
+          "referenceType": "route-string"
+        },
+        {
+          "testFile": "tests/unit/authz-guard.test.ts",
           "layer": "unit",
           "referenceType": "route-string"
         },

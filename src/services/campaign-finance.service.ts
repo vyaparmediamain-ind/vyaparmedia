@@ -11,6 +11,7 @@
 
 import prisma from "@/lib/db";
 import { AppError } from "@/lib/errors";
+import { Actor, normalizeActor } from "@/lib/authz";
 import {
   aggregateCampaignFinance,
   extractAvailableFYs,
@@ -30,10 +31,23 @@ export class CampaignFinanceService {
    */
   public static async getCampaignFinance(
     campaignId: string,
-    callerUserId: string,
-    isAdmin = false,
-    fy?: string | null
+    caller: Actor | string,
+    legacyIsAdminOrFy?: boolean | string | null,
+    optionalFy?: string | null
   ): Promise<CampaignFinanceReportData> {
+    let fy: string | null = null;
+    let legacyIsAdmin = false;
+    if (typeof legacyIsAdminOrFy === "boolean") {
+      legacyIsAdmin = legacyIsAdminOrFy;
+      fy = optionalFy || null;
+    } else if (typeof legacyIsAdminOrFy === "string") {
+      fy = legacyIsAdminOrFy;
+    } else if (typeof optionalFy === "string") {
+      fy = optionalFy;
+    }
+
+    const actor = normalizeActor(caller, legacyIsAdmin);
+
     const campaign = await prisma.campaign.findUnique({
       where: { id: campaignId },
       select: {
@@ -57,8 +71,8 @@ export class CampaignFinanceService {
       throw AppError.notFound("Campaign not found");
     }
 
-    const isOwner = campaign.brand?.userId === callerUserId;
-    if (!isOwner && !isAdmin) {
+    const isOwner = campaign.brand?.userId === actor.id;
+    if (!isOwner && !actor.isActiveAdmin) {
       // 404 to avoid revealing campaign existence to attackers
       throw AppError.notFound("Campaign not found");
     }
@@ -166,11 +180,11 @@ export class CampaignFinanceService {
    */
   public static async exportCampaignFinanceCsv(
     campaignId: string,
-    callerUserId: string,
-    isAdmin = false,
-    fy?: string | null
+    caller: Actor | string,
+    legacyIsAdminOrFy?: boolean | string | null,
+    optionalFy?: string | null
   ): Promise<string> {
-    const reportData = await this.getCampaignFinance(campaignId, callerUserId, isAdmin, fy);
+    const reportData = await this.getCampaignFinance(campaignId, caller, legacyIsAdminOrFy, optionalFy);
     return generateCampaignFinanceCsv(reportData);
   }
 }

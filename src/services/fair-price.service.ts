@@ -21,6 +21,7 @@ import prisma from "@/lib/db";
 import { redis } from "@/lib/redis";
 import { AppError } from "@/lib/errors";
 import { logger } from "@/lib/logger";
+import { Actor, normalizeActor } from "@/lib/authz";
 import {
   calculateFairPrice,
   computeInputsHash,
@@ -72,16 +73,17 @@ export class FairPriceService {
    * IDOR Defense: Throws 404 (not 403) so existence is not leaked to unauthorized callers.
    */
   public static async verifyRelationshipOrOwnership(
-    sessionUser: { id: string; userType: string },
+    sessionUser: Actor | { id: string; userType?: string; role?: string; isActiveAdmin?: boolean },
     influencerId: string
   ): Promise<void> {
-    if (sessionUser.userType === "ADMIN") {
+    const actor = normalizeActor(sessionUser);
+    if (actor.isActiveAdmin) {
       return;
     }
 
-    if (sessionUser.userType === "INFLUENCER") {
+    if (actor.role === "INFLUENCER") {
       const ownProfile = await prisma.influencerProfile.findUnique({
-        where: { userId: sessionUser.id },
+        where: { userId: actor.id },
         select: { id: true },
       });
       if (!ownProfile || ownProfile.id !== influencerId) {
@@ -90,9 +92,9 @@ export class FairPriceService {
       return;
     }
 
-    if (sessionUser.userType === "BRAND") {
+    if (actor.role === "BRAND") {
       const brandProfile = await prisma.brandProfile.findUnique({
-        where: { userId: sessionUser.id },
+        where: { userId: actor.id },
         select: { id: true },
       });
       if (!brandProfile) {

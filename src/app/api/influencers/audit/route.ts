@@ -5,6 +5,7 @@ import { AppError } from "@/lib/errors";
 import prisma from "@/lib/db";
 import { CreatorAuditService } from "@/services/creator-audit.service";
 import { isInfluencer } from "@/lib/rbac";
+import { resolveActor } from "@/lib/authz";
 
 export const GET = apiWrapper(async () => {
   const session = await auth();
@@ -52,18 +53,17 @@ export const GET = apiWrapper(async () => {
 
 export const POST = apiWrapper(async () => {
   const session = await auth();
-  const userId = session?.user?.id;
-  const userType = session?.user?.userType;
-
-  if (!userId) {
+  if (!session?.user?.id) {
     throw AppError.unauthorized("Authentication required");
   }
 
-  if (!isInfluencer(userType) && userType !== "ADMIN") {
+  const actor = await resolveActor(session);
+
+  if (!isInfluencer(actor.role) && !actor.isActiveAdmin) {
     throw AppError.forbidden("Only creators or administrators can trigger social audit");
   }
 
-  const auditResult = await CreatorAuditService.auditHistoricalInstagramData(userId);
+  const auditResult = await CreatorAuditService.auditHistoricalInstagramData(actor.id);
 
   if (!auditResult.success) {
     throw AppError.badRequest(auditResult.error || "Failed to execute historical social audit");

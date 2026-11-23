@@ -31,6 +31,7 @@ import { ReportVerificationService } from "@/services/report-verification.servic
 import { resolveFollowerTier, DEFAULT_FAIR_PRICE_CONFIG, CreatorFollowerTier } from "@/lib/fair-price-engine";
 import { MetricViewsQuality } from "@prisma/client";
 import { format } from "date-fns";
+import { Actor, normalizeActor } from "@/lib/authz";
 
 export interface SnapshotReportRow {
   id: string;
@@ -99,14 +100,16 @@ export class MarketRangeReportService {
    * Enforces feature flag gating, object-level authorization, and audit logging.
    */
   public static async generateReport(
-    callerUser: { id: string; userType: string; name?: string | null | undefined; email?: string | null | undefined },
+    callerUser: Actor | { id: string; userType?: string | undefined; role?: string | undefined; name?: string | null | undefined; email?: string | null | undefined; isActiveAdmin?: boolean | undefined },
     influencerId: string,
     opts?: { format?: "json" | "csv" | undefined; clock?: Date | undefined }
   ): Promise<MarketRangeReportData> {
+    const actor = normalizeActor(callerUser);
+
     // 1. Feature Flag Check (branded_reports)
     await assertFeatureEnabled(FEATURE_FLAGS.BRANDED_REPORTS, {
-      userId: callerUser.id,
-      role: callerUser.userType,
+      userId: actor.id,
+      role: actor.role,
     });
 
     // 2. Fetch Creator Profile
@@ -122,11 +125,10 @@ export class MarketRangeReportService {
       throw AppError.notFound("Influencer profile not found");
     }
 
-    // 3. Object-Level Authorization
-    const isAdmin = callerUser.userType === "ADMIN";
-    const isOwner = profile.userId === callerUser.id;
+    // 3. Object-Level Authorization: Only active admins or profile owners may access
+    const isOwner = profile.userId === actor.id;
 
-    if (!isAdmin && !isOwner) {
+    if (!actor.isActiveAdmin && !isOwner) {
       throw AppError.notFound("Influencer profile not found");
     }
 
@@ -144,7 +146,7 @@ export class MarketRangeReportService {
 
     // 5. Run Pure Fair Price Engine Evaluation
     const evalResult = await FairPriceService.evaluateInfluencer(profile.id, {
-      requestedByUserId: callerUser.id,
+      requestedByUserId: actor.id,
       clock: opts?.clock,
     });
     const { evaluation } = evalResult;
@@ -221,10 +223,10 @@ export class MarketRangeReportService {
       scope: scopeIdentifier,
       period: "Past 12 Weeks Assessment",
       user: {
-        id: callerUser.id,
-        name: callerUser.name || profile.displayName,
-        email: callerUser.email || profile.user?.email,
-        role: callerUser.userType,
+        id: actor.id,
+        name: actor.name || profile.displayName,
+        email: actor.email || profile.user?.email || null,
+        role: actor.role,
       },
       dataQualitySummary,
       versions: {
@@ -250,15 +252,15 @@ export class MarketRangeReportService {
     await ReportVerificationService.recordReport({
       id: reportMeta.reportId,
       type: "RANGE",
-      userId: callerUser.id,
+      userId: actor.id,
       scopeId: profile.id,
       payloadHash: reportMeta.integrityCode,
     });
 
     // 12. Audit Trail Logging
-    if (isAdmin) {
+    if (actor.isActiveAdmin) {
       await createAuditLog({
-        actorId: callerUser.id,
+        actorId: actor.id,
         actionType: "REPORT_EXPORT_ADMIN",
         entityType: "InfluencerProfile",
         entityId: profile.id,
@@ -271,7 +273,7 @@ export class MarketRangeReportService {
       }).catch(() => {});
     } else {
       await createActivityLog({
-        userId: callerUser.id,
+        userId: actor.id,
         action: "REPORT_EXPORT",
         entityType: "InfluencerProfile",
         entityId: profile.id,

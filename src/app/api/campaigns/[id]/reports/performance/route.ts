@@ -4,6 +4,7 @@ import { isFeatureEnabled, FEATURE_FLAGS } from "@/lib/feature-flags";
 import { CampaignPerformanceReportService } from "@/services/campaign-performance-report.service";
 import { csvResponse } from "@/lib/csv-export";
 import { ReportVerificationService } from "@/services/report-verification.service";
+import { resolveActor } from "@/lib/authz";
 import prisma from "@/lib/db";
 
 const paramsSchema = z
@@ -17,14 +18,12 @@ export const GET = apiWrapper(
     const rawParams = await params;
     const { id } = paramsSchema.parse(rawParams);
     const session = (req as AuthenticatedRequest).session;
-    const callerUserId = session.user.id;
-    const userRole = session.user.userType;
-    const isAdmin = userRole === "ADMIN";
+    const actor = await resolveActor(session);
 
     // Feature flag gate (branded_reports)
     const isBrandedReportsEnabled = await isFeatureEnabled(FEATURE_FLAGS.BRANDED_REPORTS, {
-      userId: callerUserId,
-      role: userRole,
+      userId: actor.id,
+      role: actor.role,
     });
 
     if (!isBrandedReportsEnabled) {
@@ -35,15 +34,14 @@ export const GET = apiWrapper(
 
     const reportData = await CampaignPerformanceReportService.getCampaignPerformanceReport(
       id,
-      callerUserId,
-      isAdmin
+      actor
     );
 
     // Activity log entry for brand export
     await prisma.activityLog
       .create({
         data: {
-          userId: callerUserId,
+          userId: actor.id,
           action: "CAMPAIGN_PERFORMANCE_REPORT_EXPORT",
           entityType: "Campaign",
           entityId: id,
@@ -60,7 +58,7 @@ export const GET = apiWrapper(
     await ReportVerificationService.recordReport({
       id: reportData.reportMeta.reportId,
       type: "CAMPAIGN_PERFORMANCE",
-      userId: callerUserId,
+      userId: actor.id,
       scopeId: id,
       payloadHash: reportData.reportMeta.integrityCode,
     });

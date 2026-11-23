@@ -396,8 +396,15 @@ export async function trackDealShipping(userId: string, dealId: string) {
     deal.influencer.userId === userId;
 
   if (!isAuthorized) {
-    const user = await prisma.user.findUnique({ where: { id: userId }, select: { userType: true } });
-    if (user?.userType !== "ADMIN") throw AppError.forbidden("Unauthorized to track shipping for this deal");
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { userType: true, status: true, deletedAt: true },
+    });
+    const isActiveAdmin =
+      user?.userType === "ADMIN" && user?.status === "ACTIVE" && !user?.deletedAt;
+    if (!isActiveAdmin) {
+      throw AppError.forbidden("Unauthorized to track shipping for this deal");
+    }
   }
 
   const awbCode = deal.shippingAwbCode || deal.dispatchTrackingNumber;

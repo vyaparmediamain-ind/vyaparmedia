@@ -14,6 +14,7 @@
 import prisma from "@/lib/db";
 import { AppError } from "@/lib/errors";
 import { logger } from "@/lib/logger";
+import { Actor, normalizeActor } from "@/lib/authz";
 import { CampaignRoiService } from "@/services/campaign-roi.service";
 import { CampaignFinanceService } from "@/services/campaign-finance.service";
 import type { CampaignFinanceReportData } from "@/lib/campaign-finance";
@@ -471,13 +472,15 @@ export class CampaignMetricsService {
    */
   public static async getCampaignAnalyticsOverview(
     campaignId: string,
-    callerUserId: string,
-    isAdmin = false
+    caller: Actor | string,
+    legacyIsAdmin = false
   ): Promise<CampaignFullAnalyticsData> {
+    const actor = normalizeActor(caller, legacyIsAdmin);
+
     // 1. Fetch shared ROI report & Finance ledger (enforces ownership and throws 404 on IDOR)
     const [roiReport, finance] = await Promise.all([
-      CampaignRoiService.getCampaignRoiReport(campaignId, callerUserId, isAdmin),
-      CampaignFinanceService.getCampaignFinance(campaignId, callerUserId, isAdmin),
+      CampaignRoiService.getCampaignRoiReport(campaignId, actor),
+      CampaignFinanceService.getCampaignFinance(campaignId, actor),
     ]);
 
     // 2. Parallel queries for daily metrics, pipeline counts, and audience telemetry

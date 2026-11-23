@@ -22,6 +22,7 @@ import { CampaignRoiService, type CreatorRoiBreakdown } from "@/services/campaig
 import { CampaignFinanceService } from "@/services/campaign-finance.service";
 import { buildReportMeta, type ReportMeta, type DataQualitySummary } from "@/lib/report-meta";
 import { assertTaxReportPrerequisites } from "@/lib/platform-config-check";
+import { Actor, normalizeActor } from "@/lib/authz";
 
 export interface BrandLegalDetails {
   companyName: string;
@@ -94,10 +95,12 @@ export class CampaignPerformanceReportService {
    */
   public static async getCampaignPerformanceReport(
     campaignId: string,
-    callerUserId: string,
-    isAdmin = false,
+    caller: Actor | string,
+    legacyIsAdmin = false,
     now?: Date
   ): Promise<CampaignPerformanceReportData> {
+    const actor = normalizeActor(caller, legacyIsAdmin);
+
     // 1. Assert statutory tax prerequisites (legalName, gstin, address)
     assertTaxReportPrerequisites();
 
@@ -138,16 +141,16 @@ export class CampaignPerformanceReportService {
       throw AppError.notFound("Campaign not found");
     }
 
-    const isOwner = campaign.brand?.userId === callerUserId;
-    if (!isOwner && !isAdmin) {
+    const isOwner = campaign.brand?.userId === actor.id;
+    if (!isOwner && !actor.isActiveAdmin) {
       // 404 returned so unauthorized callers cannot detect campaign presence (IDOR protection)
       throw AppError.notFound("Campaign not found");
     }
 
     // 3. Parallel fetch of ROI Performance and Finance Reconciliation
     const [roiReport, financeReport] = await Promise.all([
-      CampaignRoiService.getCampaignRoiReport(campaignId, callerUserId, isAdmin),
-      CampaignFinanceService.getCampaignFinance(campaignId, callerUserId, isAdmin),
+      CampaignRoiService.getCampaignRoiReport(campaignId, actor),
+      CampaignFinanceService.getCampaignFinance(campaignId, actor),
     ]);
 
     // 4. Construct brand legal details
@@ -215,10 +218,10 @@ export class CampaignPerformanceReportService {
       scope: `Campaign: ${campaign.title} (${campaign.id})`,
       period: `FY ${new Date().getFullYear()}-${(new Date().getFullYear() + 1).toString().slice(-2)}`,
       user: {
-        id: callerUserId,
+        id: actor.id,
         name: campaign.brand?.companyName || "Brand Administrator",
         email: brandUser?.email || "billing@brand.in",
-        role: isAdmin ? "ADMIN" : "BRAND",
+        role: actor.isActiveAdmin ? "ADMIN" : "BRAND",
       },
       dataQualitySummary,
       dataSources: ["Meta Graph API", "YouTube Data API", "VyaparMedia Escrow Ledger"],

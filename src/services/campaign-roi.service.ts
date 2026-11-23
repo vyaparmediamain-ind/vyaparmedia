@@ -16,6 +16,7 @@ import { AppError } from "@/lib/errors";
 import { paiseToRupees } from "@/lib/csv-export";
 import { MatchingService } from "@/services/matching.service";
 import { buildReportMeta, type ReportMeta } from "@/lib/report-meta";
+import { Actor, normalizeActor } from "@/lib/authz";
 
 export interface CreatorRoiBreakdown {
   dealId: string;
@@ -106,9 +107,11 @@ export class CampaignRoiService {
    */
   public static async getCampaignRoiReport(
     campaignId: string,
-    callerUserId: string,
-    isAdmin = false
+    caller: Actor | string,
+    legacyIsAdmin = false
   ): Promise<CampaignRoiReportResult> {
+    const actor = normalizeActor(caller, legacyIsAdmin);
+
     // 1. Verify campaign exists and caller owns it or is admin
     const campaign = await prisma.campaign.findUnique({
       where: { id: campaignId },
@@ -146,8 +149,8 @@ export class CampaignRoiService {
       throw AppError.notFound("Campaign not found");
     }
 
-    const isOwner = campaign.brand?.userId === callerUserId;
-    if (!isOwner && !isAdmin) {
+    const isOwner = campaign.brand?.userId === actor.id;
+    if (!isOwner && !actor.isActiveAdmin) {
       // 404 returned so unauthorized callers cannot detect campaign presence
       throw AppError.notFound("Campaign not found");
     }
@@ -351,10 +354,10 @@ export class CampaignRoiService {
       scope: `Campaign: ${campaign.title}`,
       period: "Campaign Lifecycle",
       user: {
-        id: callerUserId,
+        id: actor.id,
         name: campaign.brand?.companyName || "Brand Partner",
         email: "brand@vyaparmedia.in",
-        role: "BRAND",
+        role: actor.isActiveAdmin ? "ADMIN" : "BRAND",
       },
       dataQualitySummary: {
         verifiedPercent: verifiedViewsRatio,

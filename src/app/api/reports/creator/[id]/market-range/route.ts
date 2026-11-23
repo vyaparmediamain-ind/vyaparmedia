@@ -3,6 +3,7 @@ import { apiWrapper, ApiResponse, type AuthenticatedRequest } from "@/lib/api-wr
 import { MarketRangeReportService } from "@/services/market-range-report.service";
 import { csvResponse } from "@/lib/csv-export";
 import { RATE_LIMIT_CONFIGS } from "@/lib/rate-limit";
+import { resolveActor } from "@/lib/authz";
 
 type Context = {
   params: Promise<Record<string, string | string[]>>;
@@ -20,13 +21,9 @@ async function _handler(req: NextRequest, context: Context) {
   const url = new URL(req.url);
   const format = url.searchParams.get("format") === "csv" ? "csv" : "json";
 
+  const actor = await resolveActor(session);
   const reportData = await MarketRangeReportService.generateReport(
-    {
-      id: session.user.id,
-      userType: session.user.userType,
-      name: session.user.name ?? null,
-      email: session.user.email ?? null,
-    },
+    actor,
     id,
     { format }
   );

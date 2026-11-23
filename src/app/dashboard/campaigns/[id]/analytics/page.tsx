@@ -1,6 +1,7 @@
 import { notFound, redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import prisma from "@/lib/db";
+import { resolveActor } from "@/lib/authz";
 import DashboardShell from "@/components/dashboard/DashboardShell";
 import { PageContainer } from "@/components/ui";
 import { CampaignAnalyticsClient } from "./CampaignAnalyticsClient";
@@ -37,8 +38,9 @@ export default async function CampaignAnalyticsPage({ params }: CampaignAnalytic
     notFound();
   }
 
+  const actor = await resolveActor(session);
   const isOwner = campaign.brand?.userId === session.user.id;
-  const isAdmin = session.user.userType === "ADMIN";
+  const isAdmin = actor.isActiveAdmin;
 
   // Return 404 for unauthorized users to prevent campaign enumeration / IDOR attacks
   if (!isOwner && !isAdmin) {

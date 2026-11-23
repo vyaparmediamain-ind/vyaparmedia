@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import prisma from "@/lib/db";
+import { resolveActor } from "@/lib/authz";
 import DashboardShell from "@/components/dashboard/DashboardShell";
 import { PageContainer } from "@/components/ui";
 // PageHeader is rendered inside RoiClient for real-time ROI computation and date-range controls
@@ -33,8 +34,9 @@ export default async function CampaignRoiPage({ params }: CampaignRoiPageProps) 
     redirect("/dashboard/campaigns");
   }
 
+  const actor = await resolveActor(session);
   const isOwner = campaign.brand?.userId === session.user.id;
-  const isAdmin = session.user.userType === "ADMIN";
+  const isAdmin = actor.isActiveAdmin;
 
   if (!isOwner && !isAdmin) {
     redirect(`/dashboard/campaigns/${campaignId}`);

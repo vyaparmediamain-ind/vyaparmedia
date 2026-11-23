@@ -1,15 +1,15 @@
 {
-  "generatedAt": "2026-11-23T08:06:23.555Z",
-  "totalFilesAudited": 731,
+  "generatedAt": "2026-11-23T08:41:04.338Z",
+  "totalFilesAudited": 732,
   "summary": {
-    "totalCatchBlocks": 759,
+    "totalCatchBlocks": 760,
     "catchByClassification": {
       "empty": 0,
       "comment_only": 63,
       "log_only": 196,
       "rethrow": 54,
       "error_response": 81,
-      "fallback_value": 225,
+      "fallback_value": 226,
       "other": 140
     },
     "totalMetricDefaults": 474,
@@ -2862,6 +2862,13 @@
       "snippet": "catch {\n// ignore\n}"
     },
     {
+      "file": "src/lib/authz.ts",
+      "line": 107,
+      "column": 7,
+      "classification": "fallback_value",
+      "snippet": "catch {\n      // Failed admin verification: user is suspended, demoted, or deleted\n      isActiveAdmin = false;\n    }"
+    },
+    {
       "file": "src/lib/blacklist-edge.ts",
       "line": 62,
       "column": 5,
@@ -4774,7 +4781,7 @@
     },
     {
       "file": "src/services/campaign-metrics.service.ts",
-      "line": 288,
+      "line": 289,
       "column": 9,
       "classification": "other",
       "snippet": "catch (err) {\n        failed += 1;\n        logger.error(\"Failed to aggregate campaign daily metrics\", {\n          campaignId: campaign.id,"
@@ -4879,7 +4886,7 @@
     },
     {
       "file": "src/services/deal/product.ts",
-      "line": 520,
+      "line": 527,
       "column": 5,
       "classification": "log_only",
       "snippet": "catch (redisErr) {\n    logger.warn(\"[Shiprocket Webhook] Redis dedup check failed, failing open\", { error: redisErr });\n  }"
@@ -4900,28 +4907,28 @@
     },
     {
       "file": "src/services/fair-price.service.ts",
-      "line": 172,
+      "line": 174,
       "column": 7,
       "classification": "other",
       "snippet": "catch (err) {\n      if (err instanceof AppError) throw err;\n      logger.warn(\"[FairPriceService] Quota check Redis error, failing open\", { userId, error: err });\n    }"
     },
     {
       "file": "src/services/fair-price.service.ts",
-      "line": 340,
+      "line": 342,
       "column": 9,
       "classification": "log_only",
       "snippet": "catch (err) {\n        logger.warn(\"[FairPriceService] Redis cache lookup failed\", { error: err });\n      }"
     },
     {
       "file": "src/services/fair-price.service.ts",
-      "line": 355,
+      "line": 357,
       "column": 9,
       "classification": "log_only",
       "snippet": "catch (err) {\n        logger.warn(\"[FairPriceService] Redis setex failed\", { error: err });\n      }"
     },
     {
       "file": "src/services/fair-price.service.ts",
-      "line": 415,
+      "line": 417,
       "column": 7,
       "classification": "log_only",
       "snippet": "catch (err) {\n      logger.warn(\"[FairPriceService] Redis setex failed\", { error: err });\n    }"
@@ -9170,7 +9177,7 @@
     },
     {
       "file": "src/services/campaign-metrics.service.ts",
-      "line": 575,
+      "line": 578,
       "column": 30,
       "operator": "??",
       "identifier": "deviceCounts.get(dev)",
@@ -9179,7 +9186,7 @@
     },
     {
       "file": "src/services/campaign-roi.service.ts",
-      "line": 176,
+      "line": 179,
       "column": 23,
       "operator": "??",
       "identifier": "snapshot?.estimatedReach",
@@ -9188,7 +9195,7 @@
     },
     {
       "file": "src/services/campaign-roi.service.ts",
-      "line": 177,
+      "line": 180,
       "column": 23,
       "operator": "??",
       "identifier": "snapshot?.views",
@@ -9197,7 +9204,7 @@
     },
     {
       "file": "src/services/campaign-roi.service.ts",
-      "line": 197,
+      "line": 200,
       "column": 40,
       "operator": "||",
       "identifier": "deal.influencer.followerAuthenticityScore",
@@ -9206,7 +9213,7 @@
     },
     {
       "file": "src/services/campaign-roi.service.ts",
-      "line": 284,
+      "line": 287,
       "column": 21,
       "operator": "||",
       "identifier": "deal.influencer.followerAuthenticityScore",
@@ -9332,7 +9339,7 @@
     },
     {
       "file": "src/services/fair-price.service.ts",
-      "line": 224,
+      "line": 226,
       "column": 74,
       "operator": "||",
       "identifier": "influencer.instagramFollowers",
@@ -9341,7 +9348,7 @@
     },
     {
       "file": "src/services/fair-price.service.ts",
-      "line": 256,
+      "line": 258,
       "column": 11,
       "operator": "||",
       "identifier": "influencer.youtubeSubscribers || latestSnapshot?.followers",
@@ -9350,7 +9357,7 @@
     },
     {
       "file": "src/services/fair-price.service.ts",
-      "line": 257,
+      "line": 259,
       "column": 11,
       "operator": "||",
       "identifier": "influencer.instagramFollowers || latestSnapshot?.followers",
@@ -9359,7 +9366,7 @@
     },
     {
       "file": "src/services/fair-price.service.ts",
-      "line": 262,
+      "line": 264,
       "column": 23,
       "operator": "||",
       "identifier": "influencer.youtubeEngagementRate",
@@ -9368,7 +9375,7 @@
     },
     {
       "file": "src/services/fair-price.service.ts",
-      "line": 263,
+      "line": 265,
       "column": 23,
       "operator": "||",
       "identifier": "influencer.instagramEngagementRate",
@@ -9377,7 +9384,7 @@
     },
     {
       "file": "src/services/fair-price.service.ts",
-      "line": 265,
+      "line": 267,
       "column": 31,
       "operator": "??",
       "identifier": "influencer.followerAuthenticityScore",
@@ -9386,7 +9393,7 @@
     },
     {
       "file": "src/services/fair-price.service.ts",
-      "line": 273,
+      "line": 275,
       "column": 22,
       "operator": "??",
       "identifier": "drsSnapshot?.finalScore",
@@ -9395,7 +9402,7 @@
     },
     {
       "file": "src/services/market-range-report.service.ts",
-      "line": 135,
+      "line": 137,
       "column": 7,
       "operator": "||",
       "identifier": "profile.instagramFollowers",
@@ -9404,7 +9411,7 @@
     },
     {
       "file": "src/services/market-range-report.service.ts",
-      "line": 136,
+      "line": 138,
       "column": 7,
       "operator": "||",
       "identifier": "profile.youtubeSubscribers",
@@ -9413,7 +9420,7 @@
     },
     {
       "file": "src/services/market-range-report.service.ts",
-      "line": 167,
+      "line": 169,
       "column": 24,
       "operator": "??",
       "identifier": "s.avgViews",
@@ -9422,7 +9429,7 @@
     },
     {
       "file": "src/services/market-range-report.service.ts",
-      "line": 168,
+      "line": 170,
       "column": 29,
       "operator": "??",
       "identifier": "s.engagementRateBps",
@@ -9431,7 +9438,7 @@
     },
     {
       "file": "src/services/market-range-report.service.ts",
-      "line": 290,
+      "line": 292,
       "column": 8,
       "operator": "||",
       "identifier": "profile.instagramFollowers",
@@ -9440,7 +9447,7 @@
     },
     {
       "file": "src/services/market-range-report.service.ts",
-      "line": 290,
+      "line": 292,
       "column": 45,
       "operator": "||",
       "identifier": "profile.youtubeSubscribers",
@@ -9449,7 +9456,7 @@
     },
     {
       "file": "src/services/market-range-report.service.ts",
-      "line": 295,
+      "line": 297,
       "column": 33,
       "operator": "??",
       "identifier": "profile.followerAuthenticityScore",
@@ -9458,7 +9465,7 @@
     },
     {
       "file": "src/services/market-range-report.service.ts",
-      "line": 309,
+      "line": 311,
       "column": 28,
       "operator": "??",
       "identifier": "profile.followerAuthenticityScore",
@@ -10540,7 +10547,7 @@
     },
     {
       "file": "src/services/campaign-metrics.service.ts",
-      "line": 447,
+      "line": 448,
       "column": 15,
       "type": "non_null_assertion",
       "detail": "Non-null assertion on 'dm.date.toISOString().split(\"T\")[0]'",
@@ -10548,7 +10555,7 @@
     },
     {
       "file": "src/services/campaign-metrics.service.ts",
-      "line": 605,
+      "line": 608,
       "column": 13,
       "type": "non_null_assertion",
       "detail": "Non-null assertion on 'dm.date.toISOString().split(\"T\")[0]'",
