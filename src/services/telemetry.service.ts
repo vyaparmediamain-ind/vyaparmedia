@@ -18,6 +18,7 @@ import {
   TrackEventPayloadSchema,
   canRecordIdentifiedTelemetry,
   createConsentUpdate,
+  computeDailySessionHash,
   TELEMETRY_POLICY_VERSION,
 } from "@/lib/telemetry";
 import { normalizeRouteKey, extractRouteIdentifiers } from "@/lib/route-key";
@@ -48,6 +49,40 @@ export interface TelemetryUserContext {
 export class TelemetryService {
   public static readonly TELEMETRY_QUEUE_KEY = "telemetry:events:queue";
   public static readonly REDIS_CACHE_TTL_SECONDS = 600; // 10 minutes
+  public static readonly CONSENT_CACHE_TTL_SECONDS = 60; // 60 seconds
+
+  /**
+   * Resolves user consent with a 60s Redis snapshot cache.
+   * On cache miss, queries DB and caches result.
+   */
+  public static async resolveUserConsent(userId: string): Promise<boolean> {
+    const cacheKey = `telemetry:consent:${userId}`;
+    try {
+      const cached = await redis.get(cacheKey);
+      if (cached !== null) {
+        return cached === "true";
+      }
+    } catch (err) {
+      logger.warn("Redis read error while fetching consent cache", { error: String(err) });
+    }
+
+    try {
+      const userRecord = await prisma.user.findUnique({
+        where: { id: userId },
+        select: { telemetryConsent: true },
+      });
+      const consent = Boolean(userRecord?.telemetryConsent);
+      try {
+        await redis.set(cacheKey, String(consent), "EX", TelemetryService.CONSENT_CACHE_TTL_SECONDS);
+      } catch (err) {
+        logger.warn("Redis write error while setting consent cache", { error: String(err) });
+      }
+      return consent;
+    } catch (dbErr) {
+      logger.error("DB error resolving user consent", { error: String(dbErr) });
+      return false;
+    }
+  }
 
   /**
    * Resolves targetInfluencerId from username or handle via Redis cache (10 min TTL).
@@ -188,12 +223,8 @@ export class TelemetryService {
       });
 
       if (identifiedFlagEnabled) {
-        const userRecord = await prisma.user.findUnique({
-          where: { id: callerUser.id },
-          select: { telemetryConsent: true },
-        });
-
-        if (canRecordIdentifiedTelemetry(userRecord?.telemetryConsent, identifiedFlagEnabled)) {
+        const hasConsent = await TelemetryService.resolveUserConsent(callerUser.id);
+        if (canRecordIdentifiedTelemetry(hasConsent, identifiedFlagEnabled)) {
           userIdToStore = callerUser.id;
           roleToStore = callerUser.role;
         }
@@ -214,9 +245,17 @@ export class TelemetryService {
       }
     }
 
-    // 6. Build enqueued payload
+    // 6. Compute sessionKey = HMAC(dailySalt, clientTabId) with daily rotation in Asia/Kolkata
+    const rawTabId = input.tabId || input.sessionHash || "unknown_tab";
+    const serverSecret = process.env.TELEMETRY_DAILY_SALT || process.env.NEXTAUTH_SECRET || "vm_telemetry_default_salt";
+    const nowClock = opts?.clock ?? new Date();
+    // Bucket day in Asia/Kolkata
+    const dateStr = nowClock.toLocaleDateString("en-CA", { timeZone: "Asia/Kolkata" }); // YYYY-MM-DD
+    const computedSessionHash = computeDailySessionHash(rawTabId, serverSecret, dateStr);
+
+    // 7. Build enqueued payload
     const eventItem = {
-      sessionHash: input.sessionHash,
+      sessionHash: computedSessionHash,
       userId: userIdToStore,
       role: roleToStore,
       routeKey: canonicalKey,
@@ -226,7 +265,7 @@ export class TelemetryService {
       referrerHost: input.referrerHost ?? null,
       activeMs: input.activeMs,
       maxScrollPct: input.maxScrollPct,
-      createdAt: (opts?.clock ?? new Date()).toISOString(),
+      createdAt: nowClock.toISOString(),
     };
 
     // 7. Push to ioredis list with safe fallback
@@ -281,13 +320,9 @@ export class TelemetryService {
       });
 
       if (identifiedFlagEnabled) {
-        // Query user's current consent preference
-        const userRecord = await prisma.user.findUnique({
-          where: { id: callerUser.id },
-          select: { telemetryConsent: true },
-        });
-
-        if (canRecordIdentifiedTelemetry(userRecord?.telemetryConsent, identifiedFlagEnabled)) {
+        // Query user's current consent preference with Redis cache
+        const hasConsent = await TelemetryService.resolveUserConsent(callerUser.id);
+        if (canRecordIdentifiedTelemetry(hasConsent, identifiedFlagEnabled)) {
           isIdentified = true;
           userIdToStore = callerUser.id;
           roleToStore = callerUser.role;
@@ -378,6 +413,13 @@ export class TelemetryService {
         telemetryConsentVersion: true,
       },
     });
+
+    // Invalidate Redis consent snapshot immediately
+    try {
+      await redis.del(`telemetry:consent:${userId}`);
+    } catch (delErr) {
+      logger.warn("Redis delete error while invalidating consent cache", { error: String(delErr) });
+    }
 
     // Record immutable activity log
     await createActivityLog({

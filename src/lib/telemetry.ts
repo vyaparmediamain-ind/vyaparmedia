@@ -50,15 +50,23 @@ export type PageViewEventInput = z.infer<typeof PageViewEventInputSchema>;
 
 /**
  * Strict schema for /api/telemetry/track beacon payloads.
+ * Accepts `tabId` (preferred) or legacy `sessionHash` (for transition).
  * Maximum activeMs capped at 30 minutes (1,800,000 ms).
  */
 export const TrackEventPayloadSchema = z
   .object({
+    tabId: z
+      .string()
+      .min(8)
+      .max(64)
+      .regex(/^[a-zA-Z0-9_-]+$/, "tabId contains invalid characters")
+      .optional(),
     sessionHash: z
       .string()
       .min(8)
       .max(64)
-      .regex(/^[0-9a-fA-F]+$/, "sessionHash must be a hex string"),
+      .regex(/^[0-9a-fA-F]+$/, "sessionHash must be a hex string")
+      .optional(),
     pathname: z.string().min(1).max(1024).optional(),
     routeKey: z
       .string()
@@ -78,7 +86,10 @@ export const TrackEventPayloadSchema = z
     activeMs: z.number().int().min(0).max(1_800_000), // Capped at 30 min
     maxScrollPct: z.number().int().min(0).max(100),
   })
-  .strict();
+  .strict()
+  .refine((data) => Boolean(data.tabId || data.sessionHash), {
+    message: "Either tabId or sessionHash must be provided",
+  });
 
 export type TrackEventPayload = z.infer<typeof TrackEventPayloadSchema>;
 

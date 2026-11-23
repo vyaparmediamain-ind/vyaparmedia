@@ -77,12 +77,12 @@ export function PageViewTracker() {
 
     // Cap at 30 minutes
     const boundedActiveMs = Math.min(Math.round(totalActiveMs), MAX_ACTIVE_MS);
-    const sessionHash = getOrCreateTabId();
+    const tabId = getOrCreateTabId();
     const deviceType = window.innerWidth < 768 ? "mobile" : "desktop";
     const routeKey = normalizeRouteKey(targetPath);
 
     const payload = JSON.stringify({
-      sessionHash,
+      tabId,
       pathname: targetPath,
       routeKey,
       deviceType,

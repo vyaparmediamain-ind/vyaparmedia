@@ -5,6 +5,7 @@ import { atomicDualRateLimit } from "@/lib/rate-limit";
 import { TrackEventPayloadSchema } from "@/lib/telemetry";
 import { TelemetryService } from "@/services/telemetry.service";
 import { logger } from "@/lib/logger";
+import { telemetryEventsDroppedTotal } from "@/lib/metrics";
 
 export const dynamic = "force-dynamic";
 
@@ -48,80 +49,148 @@ function isOriginAllowed(req: NextRequest): boolean {
   }
 }
 
+/**
+ * Reads stream with a strict byte cap (2KB) to defend against chunked oversized bodies
+ * before JSON parsing.
+ */
+async function readBodyWithCap(req: NextRequest, maxBytes: number): Promise<{ text: string | null; overflow: boolean }> {
+  if (!req.body) {
+    return { text: null, overflow: false };
+  }
+
+  const reader = req.body.getReader();
+  const chunks: Uint8Array[] = [];
+  let totalBytes = 0;
+
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      if (value) {
+        totalBytes += value.byteLength;
+        if (totalBytes > maxBytes) {
+          try {
+            await reader.cancel("Body exceeds maximum byte cap");
+          } catch {
+            // ignore cancel error
+          }
+          return { text: null, overflow: true };
+        }
+        chunks.push(value);
+      }
+    }
+  } catch {
+    return { text: null, overflow: false };
+  }
+
+  const combined = new Uint8Array(totalBytes);
+  let offset = 0;
+  for (const chunk of chunks) {
+    combined.set(chunk, offset);
+    offset += chunk.byteLength;
+  }
+
+  return { text: new TextDecoder().decode(combined), overflow: false };
+}
+
 export async function POST(req: NextRequest): Promise<Response> {
   // Always return 204 No Content for sendBeacon callers
   const noContent = new Response(null, { status: 204 });
 
   // 1. Same-origin validation
   if (!isOriginAllowed(req)) {
-    logger.warn("Telemetry track event rejected: cross-origin or disallowed origin");
+    telemetryEventsDroppedTotal.inc({ reason: "ORIGIN_DISALLOWED" });
+    logger.debug("Telemetry track event dropped: disallowed origin");
     return noContent;
   }
 
-  // 2. Content-Length pre-check
+  // 2. Rate-limit ordering: evaluate per-IP limit BEFORE reading or parsing the body
+  const clientIp = getSecureClientIp(req);
+  try {
+    const ipRateLimit = await atomicDualRateLimit({
+      userKey: `ratelimit:telemetry:ip:${clientIp}`,
+      ipKey: `ratelimit:telemetry:ip:${clientIp}`,
+      userLimit: 120,
+      ipLimit: 120, // Max 120 beacon flushes per minute per IP
+      windowSeconds: 60,
+    });
+
+    if (!ipRateLimit.success) {
+      telemetryEventsDroppedTotal.inc({ reason: "RATE_LIMITED" });
+      logger.debug("Telemetry track event dropped: IP rate limit exceeded");
+      return noContent;
+    }
+  } catch (limiterErr) {
+    // Fail-open for limiter errors (analytics only) but count them
+    telemetryEventsDroppedTotal.inc({ reason: "RATE_LIMITER_ERROR" });
+    logger.debug("Rate limiter evaluation failed for telemetry, continuing gracefully", {
+      error: String(limiterErr),
+    });
+  }
+
+  // 3. Content-Length pre-check
   const contentLength = req.headers.get("content-length");
   if (contentLength && parseInt(contentLength, 10) > MAX_BODY_BYTES) {
-    logger.warn("Telemetry track event rejected: body exceeds 2KB size limit", { contentLength });
+    telemetryEventsDroppedTotal.inc({ reason: "PAYLOAD_TOO_LARGE" });
+    logger.debug("Telemetry track event dropped: content-length exceeds 2KB");
     return noContent;
   }
 
-  // 3. Read raw text (sendBeacon sends text/plain)
-  let rawText: string;
-  try {
-    rawText = await req.text();
-  } catch {
+  // 4. Stream reader with byte cap: enforce 2KB while reading before JSON parse
+  const { text: rawText, overflow } = await readBodyWithCap(req, MAX_BODY_BYTES);
+  if (overflow) {
+    telemetryEventsDroppedTotal.inc({ reason: "PAYLOAD_TOO_LARGE" });
+    logger.debug("Telemetry track event dropped: stream exceeded 2KB byte cap");
     return noContent;
   }
 
-  if (!rawText || rawText.length > MAX_BODY_BYTES) {
+  if (!rawText || rawText.trim().length === 0) {
+    telemetryEventsDroppedTotal.inc({ reason: "EMPTY_BODY" });
     return noContent;
   }
 
-  // 4. Parse JSON
+  // 5. Parse JSON
   let rawJson: unknown;
   try {
     rawJson = JSON.parse(rawText);
   } catch {
+    telemetryEventsDroppedTotal.inc({ reason: "MALFORMED_JSON" });
     return noContent;
   }
 
-  // 5. Strict Zod validation
+  // 6. Strict Zod validation (no zod error trees in logs)
   const parsed = TrackEventPayloadSchema.safeParse(rawJson);
   if (!parsed.success) {
-    logger.warn("Telemetry track event rejected: schema validation failure", {
-      errors: parsed.error.format(),
-    });
+    telemetryEventsDroppedTotal.inc({ reason: "INVALID_SCHEMA" });
+    logger.debug("Telemetry track event dropped: schema validation failure");
     return noContent;
   }
 
   const payload = parsed.data;
 
-  // 6. Dual-Key Sliding-Window Rate Limiting (per-IP + per-session)
-  const clientIp = getSecureClientIp(req);
-  try {
-    const rateLimit = await atomicDualRateLimit({
-      userKey: `ratelimit:telemetry:session:${payload.sessionHash}`,
-      ipKey: `ratelimit:telemetry:ip:${clientIp}`,
-      userLimit: 60, // Max 60 beacon flushes per minute per session
-      ipLimit: 120, // Max 120 beacon flushes per minute per IP
-      windowSeconds: 60,
-    });
-
-    if (!rateLimit.success) {
-      logger.warn("Telemetry track event dropped: rate limit exceeded", {
-        clientIp,
-        sessionHash: payload.sessionHash,
-        blockedBy: rateLimit.blockedBy,
+  // 7. Secondary per-session rate limit (client-provided tabId/sessionHash)
+  const sessionToken = payload.tabId || payload.sessionHash;
+  if (sessionToken) {
+    try {
+      const sessionRateLimit = await atomicDualRateLimit({
+        userKey: `ratelimit:telemetry:session:${sessionToken}`,
+        ipKey: `ratelimit:telemetry:session:${sessionToken}`,
+        userLimit: 60, // Max 60 beacon flushes per minute per session
+        ipLimit: 60,
+        windowSeconds: 60,
       });
-      return noContent;
+
+      if (!sessionRateLimit.success) {
+        telemetryEventsDroppedTotal.inc({ reason: "RATE_LIMITED" });
+        logger.debug("Telemetry track event dropped: session rate limit exceeded");
+        return noContent;
+      }
+    } catch {
+      // Fail-open for session limiter
     }
-  } catch (err) {
-    logger.warn("Rate limiter evaluation failed for telemetry, continuing gracefully", {
-      error: String(err),
-    });
   }
 
-  // 7. Resolve caller context & drop admin events
+  // 8. Resolve caller context & drop admin events
   let callerUser: { id: string; role: string } | null = null;
   try {
     const session = await auth();
@@ -132,15 +201,15 @@ export async function POST(req: NextRequest): Promise<Response> {
       };
     }
   } catch (authErr) {
-    // Auth failures should never crash telemetry ingest
     logger.debug("Failed to resolve auth session during telemetry track", { error: String(authErr) });
   }
 
   if (callerUser?.role === "ADMIN") {
+    telemetryEventsDroppedTotal.inc({ reason: "ADMIN_DROPPED" });
     return noContent;
   }
 
-  // 8. Enqueue event via service (uses Redis cache + ioredis list)
+  // 9. Enqueue event via service (uses Redis cache + HMAC sessionKey + ioredis list)
   await TelemetryService.enqueueTrackEvent(payload, callerUser);
 
   return noContent;
