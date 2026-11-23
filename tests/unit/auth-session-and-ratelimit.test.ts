@@ -97,7 +97,7 @@ describe("O3-T7 / O3-T9: JWT Status Refresh Check & Auth Route Rate Limiting", (
         },
       });
 
-      const res = await POST(req);
+      const res = await POST(req, { params: Promise.resolve({ nextauth: ["callback", "credentials"] }) });
       expect(res.status).toBe(429);
       const data = await res.json();
       expect(data.error).toBe("RateLimitExceeded");
@@ -118,7 +118,7 @@ describe("O3-T7 / O3-T9: JWT Status Refresh Check & Auth Route Rate Limiting", (
         },
       });
 
-      const res = await GET(req);
+      const res = await GET(req, { params: Promise.resolve({ nextauth: ["callback", "google"] }) });
       expect(res.status).toBe(429);
       const data = await res.json();
       expect(data.error).toBe("RateLimitExceeded");
@@ -131,7 +131,7 @@ describe("O3-T7 / O3-T9: JWT Status Refresh Check & Auth Route Rate Limiting", (
         method: "GET",
       });
 
-      await GET(req);
+      await GET(req, { params: Promise.resolve({ nextauth: ["session"] }) });
       expect(rateLimitSpy).not.toHaveBeenCalled();
     });
   });

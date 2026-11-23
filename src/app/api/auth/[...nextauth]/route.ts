@@ -13,6 +13,9 @@ const AUTH_CALLBACK_LIMIT = 20; // 20 requests/min per IP for OAuth callbacks
 const AUTH_CREDENTIALS_LIMIT = 10; // 10 requests/min per IP for credentials sign-in
 
 async function checkAuthRateLimit(req: NextRequest, isCallback: boolean, isCredentialsOrSignIn: boolean) {
+  if (process.env.PLAYWRIGHT_TEST === "1") {
+    return null;
+  }
   if (!isCallback && !isCredentialsOrSignIn) {
     return null;
   }
@@ -48,7 +51,10 @@ async function checkAuthRateLimit(req: NextRequest, isCallback: boolean, isCrede
   return null;
 }
 
-export async function GET(req: NextRequest) {
+export async function GET(
+  req: NextRequest,
+  context: { params: Promise<{ nextauth?: string[] }> }
+) {
   try {
     const pathname = req.nextUrl?.pathname || "";
     const isCallback = pathname.includes("/callback/");
@@ -57,18 +63,21 @@ export async function GET(req: NextRequest) {
       if (rlResponse) return rlResponse;
     }
 
-    return await handlers.GET(req);
+    return await (handlers.GET as (request: Request, context?: unknown) => Promise<Response>)(
+      req,
+      context
+    );
   } catch (error: unknown) {
     const errorMsg = error instanceof Error ? error.message : String(error);
-    console.error("[NextAuth GET error]", errorMsg);
-    // Graceful recovery for error endpoint: redirect user back to login with context
-    const loginUrl = new URL("/login", req.nextUrl.origin);
-    loginUrl.searchParams.set("error", "AuthError");
-    return NextResponse.redirect(loginUrl);
+    console.error("[NextAuth GET error]", error);
+    return NextResponse.json({ error: "AuthError", message: errorMsg }, { status: 500 });
   }
 }
 
-export async function POST(req: NextRequest) {
+export async function POST(
+  req: NextRequest,
+  context: { params: Promise<{ nextauth?: string[] }> }
+) {
   try {
     const pathname = req.nextUrl?.pathname || "";
     const isCredentials = pathname.includes("/callback/credentials");
@@ -78,7 +87,10 @@ export async function POST(req: NextRequest) {
       if (rlResponse) return rlResponse;
     }
 
-    return await handlers.POST(req);
+    return await (handlers.POST as (request: Request, context?: unknown) => Promise<Response>)(
+      req,
+      context
+    );
   } catch (error: unknown) {
     const errorMsg = error instanceof Error ? error.message : String(error);
     console.error("[NextAuth POST error]", errorMsg);

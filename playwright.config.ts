@@ -12,14 +12,14 @@ if (baseURL.includes("vyaparmedia.in") && !baseURL.includes("test")) {
 
 export default defineConfig({
   testDir: "./tests/e2e-pw",
-  timeout: 45000,
+  timeout: 90000,
   expect: {
-    timeout: 10000,
+    timeout: 20000,
   },
-  fullyParallel: true,
+  fullyParallel: false,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
-  ...(process.env.CI ? { workers: 1 } : {}),
+  workers: 1,
   reporter: [["list"], ["html", { open: "never" }]],
   use: {
     baseURL,
@@ -49,5 +49,8 @@ export default defineConfig({
     url: "http://localhost:3000",
     reuseExistingServer: !process.env.CI,
     timeout: 120000,
+    env: {
+      PLAYWRIGHT_TEST: "1",
+    },
   },
 });

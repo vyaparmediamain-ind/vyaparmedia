@@ -52,7 +52,7 @@ export async function seedBadges() {
   console.log(`\nBadge seed complete: ${created} created, ${updated} updated`);
 }
 
-if (require.main === module) {
+if (typeof require !== "undefined" && require.main === module) {
   seedBadges()
     .then(() => {
       console.log("Done!");

@@ -49,7 +49,7 @@ export async function seedTreasury() {
   console.log(`+ PLATFORM_TREASURY wallet seeded (id: ${treasuryWallet.id})`);
 }
 
-if (require.main === module) {
+if (typeof require !== "undefined" && require.main === module) {
   seedTreasury()
     .catch((err) => {
       console.error("Failed to seed treasury:", err);

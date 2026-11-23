@@ -101,6 +101,10 @@ return new AppError(message, 403, ApiErrorCode.CRON_FORBIDDEN);
     return new AppError(message, 413, ApiErrorCode.FILE_TOO_LARGE);
   }
 
+  static payloadTooLarge(message = "Payload exceeds maximum allowed size."): AppError {
+    return new AppError(message, 413, ApiErrorCode.FILE_TOO_LARGE);
+  }
+
   static serviceUnavailable(message = "Security verification service temporarily unavailable. Please try again shortly."): AppError {
     return new AppError(message, 503, ApiErrorCode.SERVICE_UNAVAILABLE);
   }

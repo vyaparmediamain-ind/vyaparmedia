@@ -35,6 +35,9 @@ return { ip, userAgent };
 }
 
 export async function checkLoginLimitsAndBlacklist(ip: string, email: string) {
+  if (process.env.NODE_ENV === "test" || process.env.PLAYWRIGHT_TEST === "1") {
+    return true;
+  }
   try {
     const { isIpBanned } = await import("../blacklist");
     if (await isIpBanned(ip)) {

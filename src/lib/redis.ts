@@ -49,18 +49,19 @@ if (!process.env.REDIS_URL) {
 }
 
 const globalForRedis = globalThis as unknown as { redis?: Redis };
+const isLocalWithoutRedis = !process.env.REDIS_URL && !isProductionRuntime;
 const redisOptions: RedisOptions = {
   lazyConnect: isBuildTime,
-  connectTimeout: 10000,
-  enableOfflineQueue: true,
-  maxRetriesPerRequest: 3,
-  commandTimeout: 5000,
+  connectTimeout: isLocalWithoutRedis ? 1000 : 10000,
+  enableOfflineQueue: !isLocalWithoutRedis,
+  maxRetriesPerRequest: isLocalWithoutRedis ? 1 : 3,
+  commandTimeout: isLocalWithoutRedis ? 500 : 5000,
   keepAlive: 10000, // Sends TCP keep-alive packets every 10s to prevent Upstash TLS idle timeouts
   autoResubscribe: true,
   autoResendUnfulfilledCommands: true,
   enableReadyCheck: !shouldDisableReadyCheck,
   retryStrategy(times: number) {
-    if (isBuildTime) return null;
+    if (isBuildTime || (isLocalWithoutRedis && times > 1)) return null;
 
     // Never return null during server runtime to prevent ioredis from entering terminal "end" state.
     // Exponential backoff capped at 3000ms ensures graceful reconnects when network recovers or idle timeouts occur.

@@ -455,7 +455,7 @@ export default function HomePage() {
                 >
                   <div>
                     {/* Stars */}
-                    <div className="flex items-center gap-1 text-pending mb-4" aria-label={`${t.rating || 5} out of 5 stars`}>
+                    <div role="img" className="flex items-center gap-1 text-pending mb-4" aria-label={`${t.rating || 5} out of 5 stars`}>
                       {[...Array(t.rating || 5)].map((_, i) => (
                         <svg
                           key={i}

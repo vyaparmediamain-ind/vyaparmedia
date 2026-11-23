@@ -190,8 +190,8 @@ export function AuthLayout({
         <footer className="auth-panel-footer">
           <p>
             &copy; {new Date().getFullYear()} VyaparMedia Technologies Pvt Ltd. &middot;{" "}
-            <Link href="/terms">Terms</Link> &middot;{" "}
-            <Link href="/privacy">Privacy</Link>
+            <Link href="/terms" className="underline hover:text-foreground">Terms</Link> &middot;{" "}
+            <Link href="/privacy" className="underline hover:text-foreground">Privacy</Link>
           </p>
         </footer>
       </main>

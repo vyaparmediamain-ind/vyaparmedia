@@ -67,7 +67,7 @@ export async function cache<T>(
 
     return data;
   } catch (error) {
-    logger.debug(`[CACHE] Redis Error ${key}, falling back to fetcher`, { error: String(error) });
+    logger.warn(`[CACHE] Redis Error ${key}, falling back to fetcher`, { error: String(error) });
     // Fail safe: fetch data directly if Redis fails, but still protect with L1 memory cache
     const data = await fetcher();
     if (data !== undefined && data !== null) {

@@ -245,8 +245,7 @@ function LoginContent() {
         setError(processRes.error);
       } else if (processRes.success) {
         setAttemptCount(0);
-        router.push(callbackUrl);
-        router.refresh();
+        window.location.href = callbackUrl;
       }
     } catch (err: unknown) {
       const errorMsg = (err instanceof Error ? err.message : String(err)) || (err instanceof Error ? err.name : "Error") || String(err);

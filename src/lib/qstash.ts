@@ -1,3 +1,69 @@
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 import { Client } from "@upstash/qstash";
 import { logger } from "./logger";
 import prisma from "./db";
@@ -153,8 +219,9 @@ export async function publishJob<T extends Record<string, unknown>>(
   const failureCallbackUrl = `${baseUrl}${categoryConfig.failureCallbackPath}`;
 
   const client = getQStashClient();
+  const isLocalHost = destinationUrl.includes("localhost") || destinationUrl.includes("127.0.0.1");
 
-  if (client) {
+  if (client && !isLocalHost) {
     try {
       const publishHeaders: Record<string, string> = {
         "Upstash-Retries": String(categoryConfig.retries),
@@ -216,35 +283,57 @@ export async function publishJob<T extends Record<string, unknown>>(
         deduplicationId,
         error: error instanceof Error ? error.message : String(error),
       });
-    }
-  }
 
-  // 3. Fallback when QStash is not configured or in local development
-  if (directProcessor) {
-    setTimeout(async () => {
-      try {
-        await directProcessor(payload);
-      } catch (err: unknown) {
-        logger.error("Direct fallback job execution failed", {
-          topic,
-          category,
-          error: err instanceof Error ? err.message : String(err),
-        });
-
-        // Record directly into DLQ so failed fallback operations aren't silently lost
+      if (!isLocalHost) {
         await recordDeadLetterJob({
           endpoint,
           topic,
           category,
           deduplicationId,
           payload,
-          errorMessage: err instanceof Error ? err.message : String(err),
-          errorStack: err instanceof Error ? err.stack : undefined,
+          errorMessage: error instanceof Error ? error.message : String(error),
+          errorStack: error instanceof Error ? error.stack : undefined,
           attempts: 1,
           maxRetries: categoryConfig.retries,
         });
       }
-    });
+    }
+  }
+
+  // 3. Fallback when QStash is not configured or targeting localhost in dev/test
+  if (isLocalHost || !client) {
+    if (directProcessor) {
+      setTimeout(async () => {
+        try {
+          await directProcessor(payload);
+        } catch (err: unknown) {
+          logger.error("Direct fallback job execution failed", {
+            topic,
+            category,
+            error: err instanceof Error ? err.message : String(err),
+          });
+
+          // Record directly into DLQ so failed fallback operations aren't silently lost
+          await recordDeadLetterJob({
+            endpoint,
+            topic,
+            category,
+            deduplicationId,
+            payload,
+            errorMessage: err instanceof Error ? err.message : String(err),
+            errorStack: err instanceof Error ? err.stack : undefined,
+            attempts: 1,
+            maxRetries: categoryConfig.retries,
+          });
+        }
+      });
+    }
+
+    return {
+      enqueued: true,
+      messageId: `msg_dev_${Date.now()}`,
+      deduplicationId,
+    };
   }
 
   return {
@@ -276,8 +365,8 @@ export async function recordDeadLetterJob(entry: DeadLetterJobInput) {
       entry.category === "time-critical"
         ? JobCategory.TIME_CRITICAL
         : entry.category === "scheduled"
-        ? JobCategory.SCHEDULED
-        : JobCategory.BEST_EFFORT;
+          ? JobCategory.SCHEDULED
+          : JobCategory.BEST_EFFORT;
 
     const dlqRecord = await prisma.deadLetterJob.create({
       data: {

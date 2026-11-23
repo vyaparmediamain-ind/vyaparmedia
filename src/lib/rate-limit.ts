@@ -174,9 +174,8 @@ end
       reset: Math.floor((now + window * 1000) / 1000),
     };
   } catch (error) {
-    const isLocalDev =
-      process.env.NODE_ENV === "development" || process.env.NODE_ENV === "test";
-    if (config.securityCritical && !isLocalDev) {
+    const isPlaywright = process.env.PLAYWRIGHT_TEST === "1";
+    if (config.securityCritical && !isPlaywright) {
       logger.error(
         "Rate limit Redis error failing closed on security critical limit",
         error,
@@ -186,7 +185,9 @@ end
       );
     }
 
-    logger.error("Rate limit Redis error failing open", error);
+    logger.warn("Rate limit Redis error failing open", {
+      error: error instanceof Error ? error.message : String(error),
+    });
     return {
       success: true,
       limit,
@@ -295,16 +296,17 @@ return {1, userCount, ipCount, "OK"}
       blockedBy,
     };
   } catch (error) {
-    const isLocalDev =
-      process.env.NODE_ENV === "development" || process.env.NODE_ENV === "test";
-    if (securityCritical && !isLocalDev) {
+    const isPlaywright = process.env.PLAYWRIGHT_TEST === "1";
+    if (securityCritical && !isPlaywright) {
       logger.error("Dual rate limit Redis error failing closed", error);
       throw AppError.serviceUnavailable(
         "Security verification service temporarily unavailable. Please try again shortly.",
       );
     }
 
-    logger.error("Dual rate limit Redis error failing open", error);
+    logger.warn("Dual rate limit Redis error failing open", {
+      error: error instanceof Error ? error.message : String(error),
+    });
     return {
       success: true,
       userCount: 0,

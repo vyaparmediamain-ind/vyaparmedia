@@ -935,7 +935,7 @@
 
 .auth-panel-footer a {
   color: var(--color-text-secondary);
-  text-decoration: none;
+  text-decoration: underline;
 }
 
 .auth-panel-footer a:hover {
