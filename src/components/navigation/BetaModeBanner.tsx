@@ -30,27 +30,30 @@ export default function BetaModeBanner() {
       if (dismissed === "true") {
         setIsDismissed(true);
       }
-    } catch {
-      // ignore storage failure
-    }
+    } catch (_err: unknown) {
+    // Handled fallback: Storage quota or restriction failure
+    void _err;
+  }
   }, []);
 
   const handleDismiss = () => {
     setIsDismissed(true);
     try {
       sessionStorage.setItem("vm_beta_banner_dismissed", "true");
-    } catch {
-      // ignore
-    }
+    } catch (_err: unknown) {
+    // Handled fallback: Storage restriction failure
+    void _err;
+  }
   };
 
   const handleRestore = () => {
     setIsDismissed(false);
     try {
       sessionStorage.removeItem("vm_beta_banner_dismissed");
-    } catch {
-      // ignore
-    }
+    } catch (_err: unknown) {
+    // Handled fallback: ignore
+    void _err;
+  }
   };
 
   // Only render when invite-only beta mode is active

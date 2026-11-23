@@ -164,9 +164,10 @@ export async function uploadFileDirectly(
             if (parsed.data?.url) {
               finalUrl = parsed.data.url;
             }
-          } catch {
-            // Keep fallback fileUrl
-          }
+          } catch (_err: unknown) {
+    // Handled fallback: Keep fallback fileUrl
+    void _err;
+  }
         }
 
         resolve({
@@ -174,7 +175,7 @@ export async function uploadFileDirectly(
           key,
           fileName: file.name,
           fileSize: file.size,
-          mediaType: validation.mediaType!,
+          mediaType: validation.mediaType ?? 'document',
         });
       } else {
         reject(new Error(`Storage upload failed (HTTP ${xhr.status}): ${xhr.statusText || "Server error"}`));

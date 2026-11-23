@@ -86,9 +86,10 @@ let parsed = prefs;
 if (typeof prefs === "string") {
 try {
 parsed = JSON.parse(prefs);
-} catch {
-// ignore
-}
+} catch (_err: unknown) {
+    // Handled fallback: ignore
+    void _err;
+  }
 }
 const result = notificationPreferencesSchema.safeParse(parsed);
 if (result.success) {

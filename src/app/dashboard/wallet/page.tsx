@@ -366,8 +366,8 @@ export default function WalletPage() {
         throw new Error("Failed to initialize payment order");
       }
 
-      const resolvedOrderId = orderData.data?.orderId ?? orderData.orderId!;
-      const resolvedAmount = orderData.data?.amount ?? orderData.amount!;
+      const resolvedOrderId = orderData.data?.orderId ?? orderData.orderId ?? "";
+      const resolvedAmount = orderData.data?.amount ?? orderData.amount ?? 0;
 
       if (resolvedOrderId.startsWith("order_sim_")) {
         const simPayId = `pay_sim_${resolvedOrderId.replace("order_sim_", "")}`;

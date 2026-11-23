@@ -34,9 +34,10 @@ brand: { select: { userId: true } };
 
 
 async function requireAdmin() {
-const session = await auth();
-await requireActiveAdmin(session?.user);
-return session!;
+  const session = await auth();
+  if (!session?.user) throw AppError.unauthorized("Authentication required");
+  await requireActiveAdmin(session.user);
+  return session;
 }
 
 async function determineDisputeConfidence(disputeId: string, dispute: DisputeWithDeal): Promise<string> {

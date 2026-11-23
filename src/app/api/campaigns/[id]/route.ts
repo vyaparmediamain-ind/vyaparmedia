@@ -110,7 +110,7 @@ await requireActiveAdmin(session.user);
 }
 
 const campaign = await CampaignService.getCampaignById(
-id!,
+id ?? '',
 session.user.id,
 userType,
 );
@@ -136,7 +136,7 @@ select: { id: true },
 if (influencerProfile) {
 const application = await prisma.application.findFirst({
 where: {
-campaignId: id!,
+campaignId: id ?? '',
 influencerId: influencerProfile.id,
 },
 select: { status: true, rejectionReason: true },
@@ -147,7 +147,7 @@ applicationStatus = application.status;
 rejectionReason = application.rejectionReason;
 const deal = await prisma.deal.findFirst({
 where: {
-campaignId: id!,
+campaignId: id ?? '',
 influencerId: influencerProfile.id,
 deletedAt: null,
 },
@@ -296,7 +296,7 @@ rate: d.rate === undefined ? undefined : toPaise(d.rate),
 };
 
 const updatedCampaign = await CampaignService.updateDraftCampaign(
-id!,
+id ?? '',
 userId,
 payload,
 );
@@ -305,7 +305,7 @@ let finalCampaign = updatedCampaign;
 let responseMessage = "Campaign updated successfully";
 
 if (parsedBody.data.status === "ACTIVE") {
-  finalCampaign = await CampaignService.activateDraftCampaign(userId, id!);
+  finalCampaign = await CampaignService.activateDraftCampaign(userId, id ?? '');
   responseMessage = "Campaign updated and published successfully";
 }
 

@@ -57,7 +57,7 @@ export const GET = apiWrapper(
     // Third-tier process memory fallback (for offline tests)
     const userSaved = Array.from(memoryBookmarks)
       .filter((k) => k.startsWith(`${userId}:`))
-      .map((k) => k.split(":")[1]!);
+      .map((k) => k.split(":")[1]).filter((id): id is string => Boolean(id));
 
     return NextResponse.json({ success: true, savedIds: userSaved });
   },

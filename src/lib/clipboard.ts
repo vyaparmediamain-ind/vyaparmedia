@@ -12,9 +12,10 @@ export async function copyToClipboard(text: string): Promise<boolean> {
     try {
       await navigator.clipboard.writeText(text);
       return true;
-    } catch {
-      // Fall through to execCommand if permission denied, iframe sandbox, or not focused
-    }
+    } catch (_err: unknown) {
+    // Handled fallback: Fall through to execCommand if permission denied, iframe sandbox, or not focused
+    void _err;
+  }
   }
 
   // Fallback for non-secure contexts (HTTP / old browsers / iframes)

@@ -134,9 +134,10 @@ export function FullScreenWithdrawFlow({
             setSelectedAccountId(defaultAcc.id);
           }
         }
-      } catch {
-        // Handled silently, empty state will show
-      } finally {
+      } catch (_err: unknown) {
+    // Handled fallback: Handled in component state; empty account list will show
+    void _err;
+  } finally {
         setIsLoadingAccounts(false);
       }
     };

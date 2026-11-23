@@ -36,20 +36,30 @@ export default function EscrowStoriesBar({
   const isBrand = (userType || "").toUpperCase() === "BRAND";
   const dealsSource = data?.data?.deals ?? data?.deals;
   const rawDeals: StoryDeal[] = Array.isArray(dealsSource)
-    ? (dealsSource as unknown[]).map((d: any) => ({
-        id: String(d?.id || ""),
-        title: String(d?.campaign?.title || d?.title || "Escrow Deal"),
-        state: String(d?.status || "IN_PROGRESS"),
-        amount: Number(d?.amount || 0),
-        counterpartyName: String(
-          isBrand ? d?.influencer?.displayName || d?.influencer?.user?.name || "Creator" : d?.brand?.companyName || "Brand"
-        ),
-        counterpartyAvatar: isBrand
-          ? d?.influencer?.avatar || d?.influencer?.profileImage || d?.influencer?.user?.image || null
-          : d?.brand?.logo || null,
-        isDisputed: Boolean(d?.isDisputed || d?.status === "DISPUTED"),
-        stageName: String(d?.stageName || d?.status || "In Progress"),
-      }))
+    ? (dealsSource as unknown[]).map((dealItem) => {
+        const d = dealItem as Record<string, unknown> | null | undefined;
+        const campaign = d?.campaign as Record<string, unknown> | null | undefined;
+        const influencer = d?.influencer as Record<string, unknown> | null | undefined;
+        const influencerUser = influencer?.user as Record<string, unknown> | null | undefined;
+        const brand = d?.brand as Record<string, unknown> | null | undefined;
+
+        return {
+          id: String(d?.id ?? ""),
+          title: String(campaign?.title ?? d?.title ?? "Escrow Deal"),
+          state: String(d?.status ?? "IN_PROGRESS"),
+          amount: Number(d?.amount ?? 0),
+          counterpartyName: String(
+            isBrand
+              ? influencer?.displayName ?? influencerUser?.name ?? "Creator"
+              : brand?.companyName ?? "Brand"
+          ),
+          counterpartyAvatar: (isBrand
+            ? (influencer?.avatar ?? influencer?.profileImage ?? influencerUser?.image ?? null)
+            : (brand?.logo ?? null)) as string | null,
+          isDisputed: Boolean(d?.isDisputed || d?.status === "DISPUTED"),
+          stageName: String(d?.stageName ?? d?.status ?? "In Progress"),
+        };
+      })
     : initialDeals;
 
   const createAction = getCreateActionConfig(userType);

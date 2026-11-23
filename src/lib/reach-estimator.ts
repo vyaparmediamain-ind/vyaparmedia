@@ -99,12 +99,14 @@ function resolveBand(
     if (normContent.includes("SHORT")) {
       return (
         bands.YOUTUBE?.SHORT ||
-        PLATFORM_REACH_RATE_BANDS.YOUTUBE.SHORT!
+        PLATFORM_REACH_RATE_BANDS.YOUTUBE.SHORT ||
+        DEFAULT_REACH_RATE_BAND
       );
     }
     return (
       bands.YOUTUBE?.VIDEO ||
-      PLATFORM_REACH_RATE_BANDS.YOUTUBE.VIDEO!
+      PLATFORM_REACH_RATE_BANDS.YOUTUBE.VIDEO ||
+      DEFAULT_REACH_RATE_BAND
     );
   }
 
@@ -112,18 +114,21 @@ function resolveBand(
     if (normContent.includes("STORY")) {
       return (
         bands.INSTAGRAM?.STORY ||
-        PLATFORM_REACH_RATE_BANDS.INSTAGRAM.STORY!
+        PLATFORM_REACH_RATE_BANDS.INSTAGRAM.STORY ||
+        DEFAULT_REACH_RATE_BAND
       );
     }
     if (normContent.includes("POST") || normContent.includes("CAROUSEL")) {
       return (
         bands.INSTAGRAM?.POST ||
-        PLATFORM_REACH_RATE_BANDS.INSTAGRAM.POST!
+        PLATFORM_REACH_RATE_BANDS.INSTAGRAM.POST ||
+        DEFAULT_REACH_RATE_BAND
       );
     }
     return (
       bands.INSTAGRAM?.REEL ||
-      PLATFORM_REACH_RATE_BANDS.INSTAGRAM.REEL!
+      PLATFORM_REACH_RATE_BANDS.INSTAGRAM.REEL ||
+      DEFAULT_REACH_RATE_BAND
     );
   }
 
@@ -194,8 +199,8 @@ export function estimateExpectedViews(input: EstimateExpectedViewsInput): Expect
     const midIdx = Math.floor(sortedViews.length / 2);
     const historicalMedian =
       sortedViews.length % 2 === 0
-        ? ((sortedViews[midIdx - 1] ?? sortedViews[midIdx]!) + sortedViews[midIdx]!) / 2
-        : sortedViews[midIdx]!;
+        ? ((sortedViews[midIdx - 1] ?? (sortedViews[midIdx] ?? 0)) + (sortedViews[midIdx] ?? 0)) / 2
+        : (sortedViews[midIdx] ?? 0);
 
     // 60% historical delivery weight + 40% heuristic estimate weight
     mid = Math.round(0.60 * historicalMedian + 0.40 * rawMid);

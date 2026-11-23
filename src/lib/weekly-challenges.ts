@@ -335,15 +335,19 @@ const hard = pool.filter((c) => c.difficulty === "HARD");
 
 const selected: ChallengeTemplate[] = [];
 
-if (easy.length > 0) selected.push(easy[seed % easy.length]!);
-if (medium.length > 0) selected.push(medium[seed % medium.length]!);
-if (hard.length > 0) selected.push(hard[seed % hard.length]!);
+const easy0 = easy[0];
+const med0 = medium[0];
+const hard0 = hard[0];
+if (easy.length > 0 && easy0) selected.push(easy[seed % easy.length] ?? easy0);
+if (medium.length > 0 && med0) selected.push(medium[seed % medium.length] ?? med0);
+if (hard.length > 0 && hard0) selected.push(hard[seed % hard.length] ?? hard0);
 
 // Fill remaining from full pool (avoiding duplicates)
 const remaining = pool.filter((c) => !selected.some((s) => s.id === c.id));
 while (selected.length < count && remaining.length > 0) {
 const idx = (seed + selected.length) % remaining.length;
-selected.push(remaining.splice(idx, 1)[0]!);
+const item = remaining.splice(idx, 1)[0];
+if (item) selected.push(item);
 }
 
 return selected.slice(0, count);
@@ -658,4 +662,7 @@ return end;
 }
 
 // Inversion of Control hook registration to avoid circular dependency
-registerDealCompletionHooks({ checkChallengeProgress });
+registerDealCompletionHooks({
+  checkChallengeProgress: (userId, type, amount, tx) =>
+    checkChallengeProgress(userId, type as ChallengeType, amount, tx),
+});

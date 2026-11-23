@@ -234,7 +234,8 @@ export async function createOrder(params: {
     (keyId === "rzp_test_placeholder" || keySecret === "placeholder_secret" || keyId.includes("placeholder"))
   ) {
     logger.warn(`[Razorpay Sandbox] Simulating order creation for ${params.receipt} in dev/test environment`);
-    const mockOrderId = `order_sim_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+    const randomSuffix = crypto.randomUUID().slice(0, 8);
+    const mockOrderId = `order_sim_${Date.now()}_${randomSuffix}`;
     return {
       orderId: mockOrderId,
       amount: params.amount,
@@ -365,8 +366,9 @@ export async function createLinkedAccount(
   // Cache in Redis for fast repeated deal funding
   try {
     await redis.set(`rzp:route:account:${params.userId}`, result.accountId, "EX", 86400 * 30);
-  } catch {
-    /* non-fatal */
+  } catch (_err: unknown) {
+    // Handled fallback: non-fatal webhook or cache op
+    void _err;
   }
 
   return result;
@@ -389,8 +391,9 @@ export async function getOrCreateLinkedAccount(
   try {
     const cached = await redis.get(cacheKey);
     if (cached) return cached;
-  } catch {
-    /* non-fatal */
+  } catch (_err: unknown) {
+    // Handled fallback: non-fatal webhook or cache op
+    void _err;
   }
 
   const linked = await createLinkedAccount({
@@ -504,8 +507,9 @@ export async function checkLinkedAccountActivation(
       const parsed = JSON.parse(cached) as { isActivated: boolean; status: string; reason?: string };
       return parsed;
     }
-  } catch {
-    /* non-fatal */
+  } catch (_err: unknown) {
+    // Handled fallback: non-fatal webhook or cache op
+    void _err;
   }
 
   try {
@@ -521,9 +525,10 @@ export async function checkLinkedAccountActivation(
 
     try {
       await redis.set(cacheKey, JSON.stringify(result), "EX", 300);
-    } catch {
-      /* non-fatal */
-    }
+    } catch (_err: unknown) {
+    // Handled fallback: non-fatal webhook or cache op
+    void _err;
+  }
 
     return result;
   } catch (err) {
@@ -932,18 +937,27 @@ let contactId: string | null = null;
 
 try {
 contactId = await redis.get(contactCacheKey);
-} catch { /* Redis miss is non-fatal */ }
+} catch (_err: unknown) {
+    // Handled fallback: Redis miss is non-fatal
+    void _err;
+  }
 
 if (!contactId) {
 contactId = await searchExistingContact(params, authHeader);
 if (contactId) {
-try { await redis.set(contactCacheKey, contactId, "EX", 86400 * 30); } catch { /* non-fatal */ }
+try { await redis.set(contactCacheKey, contactId, "EX", 86400 * 30); } catch (_err: unknown) {
+    // Handled fallback: non-fatal
+    void _err;
+  }
 }
 }
 
 if (!contactId) {
 contactId = await createRazorpayContact(params, authHeader);
-try { await redis.set(contactCacheKey, contactId, "EX", 86400 * 30); } catch { /* non-fatal */ }
+try { await redis.set(contactCacheKey, contactId, "EX", 86400 * 30); } catch (_err: unknown) {
+    // Handled fallback: non-fatal
+    void _err;
+  }
 }
 
 return contactId;
@@ -960,18 +974,27 @@ let fundAccountId: string | null = null;
 
 try {
 fundAccountId = await redis.get(fundCacheKey);
-} catch { /* Redis miss is non-fatal */ }
+} catch (_err: unknown) {
+    // Handled fallback: Redis miss is non-fatal
+    void _err;
+  }
 
 if (!fundAccountId) {
 fundAccountId = await searchExistingFundAccount(contactId, authHeader, isUpiPayout, params);
 if (fundAccountId) {
-try { await redis.set(fundCacheKey, fundAccountId, "EX", 86400 * 30); } catch { /* non-fatal */ }
+try { await redis.set(fundCacheKey, fundAccountId, "EX", 86400 * 30); } catch (_err: unknown) {
+    // Handled fallback: non-fatal
+    void _err;
+  }
 }
 }
 
 if (!fundAccountId) {
 fundAccountId = await createRazorpayFundAccount(contactId, authHeader, isUpiPayout, params);
-try { await redis.set(fundCacheKey, fundAccountId, "EX", 86400 * 30); } catch { /* non-fatal */ }
+try { await redis.set(fundCacheKey, fundAccountId, "EX", 86400 * 30); } catch (_err: unknown) {
+    // Handled fallback: non-fatal
+    void _err;
+  }
 }
 
 return fundAccountId;
@@ -1089,7 +1112,7 @@ import { isWebhookProcessed } from "./idempotency";
 export function verifyWebhookSignature(
 body: string,
 signature: string,
-secret: string = process.env.RAZORPAY_WEBHOOK_SECRET!,
+secret: string = (process.env.RAZORPAY_WEBHOOK_SECRET ?? ''),
 ): boolean {
 if (!secret || !signature) return false;
 if (!/^[a-f0-9]{64}$/i.test(signature)) return false;

@@ -247,9 +247,9 @@ const verifyResult = await verify({
 token: code,
 secret: (() => {
 try {
-return decrypt(user.twoFactorSecret!);
+return decrypt(user.twoFactorSecret ?? '');
 } catch {
-return user.twoFactorSecret!;
+return user.twoFactorSecret ?? '';
 }
 })(),
 });

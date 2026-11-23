@@ -1,6 +1,7 @@
 import { apiWrapper, ApiResponse, type ValidatedNextRequest } from "@/lib/api-wrapper";
 import { requireActiveAdmin } from "@/lib/admin-auth";
 import { AdminAnalyticsService } from "@/services/admin-analytics.service";
+import { logger } from "@/lib/logger";
 import {
   buildBrandedCsv,
   buildReportFilename,
@@ -44,8 +45,11 @@ async function _handler(req: ValidatedNextRequest) {
         integrityCode: meta.integrityCode,
       },
     });
-  } catch {
-    // Non-blocking for audit failures
+  } catch (err: unknown) {
+    logger.warn("Non-blocking audit log creation failed during traffic report export", {
+      reportId: meta.reportId,
+      error: err instanceof Error ? err.message : String(err),
+    });
   }
 
   if (fmt === "csv") {

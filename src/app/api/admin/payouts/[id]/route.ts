@@ -248,8 +248,9 @@ withdrawalId: string,
 adminId: string,
 ) {
 if (action === "REJECT") {
-const result = await handleRejectAction(withdrawalId, failureReason!, adminId);
-return { result, message: "Payout rejected successfully" };
+  const safeReason = failureReason ?? "Administrative rejection";
+  const result = await handleRejectAction(withdrawalId, safeReason, adminId);
+  return { result, message: "Payout rejected successfully" };
 } else {
 const result = await handleApproveAction(withdrawalId, adminId);
 if (typeof result === "object" && result !== null && "isTimeoutOrNetworkError" in result) {

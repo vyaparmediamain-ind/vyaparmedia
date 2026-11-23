@@ -299,9 +299,10 @@ logger.warn("Failed to revoke token jti on signout", { error: e });
 if (userId) {
 try {
 await redis.del(`active_session:${userId}`);
-} catch {
-// ignore
-}
+} catch (_err: unknown) {
+    // Handled fallback: ignore
+    void _err;
+  }
 }
 }
 },

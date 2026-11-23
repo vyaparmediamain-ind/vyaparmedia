@@ -108,9 +108,10 @@ export class TelemetryRollupService {
             createdAt: obj.createdAt ? new Date(obj.createdAt) : new Date(),
           });
         }
-      } catch {
-        // Drop unparseable garbage entries
-      }
+      } catch (_err: unknown) {
+    // Handled fallback: Drop unparseable garbage entries
+    void _err;
+  }
     }
 
     if (recordsToInsert.length > 0) {

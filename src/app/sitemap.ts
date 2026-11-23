@@ -144,7 +144,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     creatorRoutes = creators
       .filter((c) => Boolean(c.instagramHandle))
       .map((c) => ({
-        url: `${baseUrl}/creator/${encodeURIComponent(c.instagramHandle!.replace(/^@/, "").toLowerCase())}`,
+        url: `${baseUrl}/creator/${encodeURIComponent(c.instagramHandle ?? ''.replace(/^@/, "").toLowerCase())}`,
         lastModified: c.updatedAt || now,
         changeFrequency: "weekly",
         priority: 0.7,
@@ -156,8 +156,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: "weekly",
       priority: 0.7,
     }));
-  } catch {
+  } catch (err: unknown) {
     // If DB is offline during build time, gracefully return staticRoutes
+    console.warn("[sitemap] DB query failed during build, falling back to static routes");
   }
 
   return [...staticRoutes, ...creatorRoutes, ...brandRoutes];

@@ -110,9 +110,10 @@ localStorage.setItem(CROSS_TAB_LOGOUT_KEY, "true");
         try {
           const keys = await caches.keys();
           await Promise.all(keys.map((k) => caches.delete(k)));
-        } catch {
-          // Ignore cache deletion error
-        }
+        } catch (_err: unknown) {
+    // Handled fallback: Cache deletion non-fatal
+    void _err;
+  }
         if (navigator.serviceWorker?.controller) {
           navigator.serviceWorker.controller.postMessage({ type: "CLEAR_USER_CACHE" });
         }

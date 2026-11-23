@@ -392,9 +392,10 @@ if (!shouldRequireAuth) {
       if (optSession?.user?.id && !(optSession as { error?: string }).error) {
         (req as NextRequest & { session: Session }).session = optSession;
       }
-    } catch {
-      // Ignore optional auth failure on non-restricted endpoints
-    }
+    } catch (_err: unknown) {
+    // Handled fallback: Optional auth failure on non-restricted endpoints
+    void _err;
+  }
   }
   return null;
 }

@@ -217,7 +217,8 @@ export async function revokeAllUserSessions(userId: string): Promise<void> {
   try {
     const { invalidateUserStatusCache } = await import("./auth/session");
     invalidateUserStatusCache(userId);
-  } catch {
-    // Non-fatal if circular dependency in test runner
+  } catch (_err: unknown) {
+    // Handled fallback: Non-fatal if circular dependency in test runner
+    void _err;
   }
 }

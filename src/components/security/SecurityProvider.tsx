@@ -227,9 +227,10 @@ const topLocation = window.top?.location;
 if (topLocation?.origin === window.location.origin) {
 topLocation.href = window.location.href;
 }
-} catch {
-// Cross-origin frame access blocked by browser; headers already protect framing.
-}
+} catch (_err: unknown) {
+    // Handled fallback: Cross-origin frame access blocked by browser; headers already protect framing.
+    void _err;
+  }
 }
 }, []);
 

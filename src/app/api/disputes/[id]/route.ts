@@ -12,18 +12,23 @@ return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 }
 
 const { id } = await params;
-const disputeId = Array.isArray(id) ? id[0]! : id;
+const firstId = Array.isArray(id) ? id[0] : id;
+const disputeId = firstId ?? "";
 
 let isAdmin = false;
 
 // Check if user is admin to allow unrestricted access
 try {
-if (session.user.email) {
-await AdminService.checkAdminAccess(session.user);
-isAdmin = true;
-}
-} catch {
-// Not admin
+  if (session.user.email) {
+    await AdminService.checkAdminAccess(session.user);
+    isAdmin = true;
+  }
+} catch (authErr: unknown) {
+  // Caller is not an active admin; proceed with regular user object-level authz
+  logger.debug("Dispute detail request evaluated under standard non-admin privileges", {
+    userId: session.user.id,
+    disputeId,
+  });
 }
 
 if (!disputeId) {
@@ -55,7 +60,7 @@ export const PATCH = apiWrapper(async (req: ValidatedNextRequest, { params }) =>
   }
 
   const { id } = await params;
-  const disputeId = Array.isArray(id) ? id[0]! : id;
+  const disputeId = (Array.isArray(id) ? id[0] : id) ?? '';
 
   if (!disputeId) {
     return NextResponse.json({ error: "Invalid dispute ID" }, { status: 400 });

@@ -101,7 +101,7 @@ export function DealContractCard({
   const productHandlingFeePaise =
     terms?.productHandlingFee ??
     (typeof (deal as unknown as { productHandlingFee?: number }).productHandlingFee === "number"
-      ? (deal as unknown as { productHandlingFee?: number }).productHandlingFee!
+      ? ((deal as unknown as { productHandlingFee?: number }).productHandlingFee ?? 0)
       : 0);
   const platformFeePercent =
     terms?.platformFeePercent ??

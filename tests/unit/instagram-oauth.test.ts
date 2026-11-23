@@ -60,7 +60,7 @@ describe("O1-T1: Instagram API with Instagram Login Endpoints", () => {
       }
 
       // Step 2: GET https://graph.instagram.com/access_token?grant_type=ig_exchange_token...
-      if (url.startsWith("https://graph.instagram.com/access_token")) {
+      if (url.includes("graph.instagram.com") && url.includes("/access_token")) {
         const parsed = new URL(url);
         expect(parsed.searchParams.get("grant_type")).toBe("ig_exchange_token");
         expect(parsed.searchParams.get("client_secret")).toBe("test_ig_client_secret_xyz");
@@ -93,7 +93,7 @@ describe("O1-T1: Instagram API with Instagram Login Endpoints", () => {
     const mockFetch = vi.fn().mockImplementation(async (input: RequestInfo | URL) => {
       const url = typeof input === "string" ? input : input.toString();
 
-      if (url.startsWith("https://graph.instagram.com/me")) {
+      if (url.includes("graph.instagram.com") && (url.includes("/me?") || url.endsWith("/me"))) {
         return new Response(
           JSON.stringify({
             user_id: "ig_user_id_9999",
@@ -127,7 +127,7 @@ describe("O1-T1: Instagram API with Instagram Login Endpoints", () => {
     const mockFetch = vi.fn().mockImplementation(async (input: RequestInfo | URL) => {
       const url = typeof input === "string" ? input : input.toString();
 
-      if (url.startsWith("https://graph.instagram.com/me")) {
+      if (url.includes("graph.instagram.com") && (url.includes("/me?") || url.endsWith("/me"))) {
         return new Response(
           JSON.stringify({
             user_id: "ig_user_id_personal",
@@ -152,7 +152,7 @@ describe("O1-T1: Instagram API with Instagram Login Endpoints", () => {
       const mockFetch = vi.fn().mockImplementation(async (input: RequestInfo | URL) => {
         const url = typeof input === "string" ? input : input.toString();
 
-        if (url.startsWith("https://graph.instagram.com/me/media")) {
+        if (url.includes("graph.instagram.com") && url.includes("/me/media")) {
           return new Response(
             JSON.stringify({
               data: [
@@ -192,7 +192,7 @@ describe("O1-T1: Instagram API with Instagram Login Endpoints", () => {
       const mockFetch = vi.fn().mockImplementation(async (input: RequestInfo | URL) => {
         const url = typeof input === "string" ? input : input.toString();
 
-        if (url.startsWith("https://graph.instagram.com/me/media")) {
+        if (url.includes("graph.instagram.com") && url.includes("/me/media")) {
           return new Response(
             JSON.stringify({
               data: [
@@ -224,7 +224,7 @@ describe("O1-T1: Instagram API with Instagram Login Endpoints", () => {
       const mockFetch = vi.fn().mockImplementation(async (input: RequestInfo | URL) => {
         const url = typeof input === "string" ? input : input.toString();
 
-        if (url.startsWith("https://graph.instagram.com/me/media")) {
+        if (url.includes("graph.instagram.com") && url.includes("/me/media")) {
           return new Response(
             JSON.stringify({
               error: {

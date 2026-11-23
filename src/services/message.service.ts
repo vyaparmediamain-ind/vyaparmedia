@@ -268,14 +268,18 @@ data: { isRead: true, readAt: new Date() },
 }
 whereClause = { dealId: params.dealId };
 } else {
+if (!params.with) {
+throw new AppError("Recipient ID required", 400);
+}
+const recipientId = params.with;
 await prisma.message.updateMany({
-where: { senderId: params.with!, receiverId: userId, isRead: false },
+where: { senderId: recipientId, receiverId: userId, isRead: false },
 data: { isRead: true, readAt: new Date() },
 });
 whereClause = {
 OR: [
-{ senderId: userId, receiverId: params.with! },
-{ senderId: params.with!, receiverId: userId },
+{ senderId: userId, receiverId: recipientId },
+{ senderId: recipientId, receiverId: userId },
 ],
 };
 }

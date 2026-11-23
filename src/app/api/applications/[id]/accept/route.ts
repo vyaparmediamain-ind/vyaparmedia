@@ -1,6 +1,7 @@
 import { apiWrapper, ValidatedNextRequest } from "@/lib/api-wrapper";
 import { NextResponse } from "next/server";
 import { z } from "zod";
+import { logger } from "@/lib/logger";
 import { routeParamsSchema } from "@/lib/validations";
 import { ApplicationService } from "@/services/application.service";
 import { handleApplicationError } from "@/lib/application-error-helper";
@@ -67,8 +68,12 @@ return NextResponse.json(
 }
 customRate = parsed.data;
 }
-} catch {
-// Body parsing fails if request has no body, which is expected for default accepts
+} catch (err: unknown) {
+  // Body parsing fails if request has no body (e.g. empty POST), which is expected for default accepts
+  logger.debug("Accept application request body empty or unparseable, proceeding with default rate", {
+    applicationId,
+    error: err instanceof Error ? err.message : String(err),
+  });
 }
 
 const deal = await ApplicationService.acceptApplication(

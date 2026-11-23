@@ -500,10 +500,12 @@ users.forEach((u) => {
   const day = format(u.createdAt, "yyyy-MM-dd");
   if (!growthByDay.has(day))
     growthByDay.set(day, { total: 0, influencer: 0, brand: 0 });
-  const entry = growthByDay.get(day)!;
-  entry.total++;
-  if (u.userType === "INFLUENCER") entry.influencer++;
-  else if (u.userType === "BRAND") entry.brand++;
+  const entry = growthByDay.get(day);
+  if (entry) {
+    entry.total++;
+    if (u.userType === "INFLUENCER") entry.influencer++;
+    else if (u.userType === "BRAND") entry.brand++;
+  }
 });
 
 // Signups trend (last 30d vs previous 30d)

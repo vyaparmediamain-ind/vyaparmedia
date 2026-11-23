@@ -106,7 +106,13 @@ createdAt: { gte: ninetyDaysAgo },
 });
 
 const strike = Math.min(recentViolations + 1, 5);
-const penaltyTier = PENALTY_TIERS[strike]!;
+const fallbackTier = {
+  action: "WARNING" as PenaltyAction,
+  trustReduction: 5,
+  durationDays: null,
+  description: "Official Warning issued.",
+};
+const penaltyTier = PENALTY_TIERS[strike] ?? PENALTY_TIERS[1] ?? fallbackTier;
 
 const expiration: Date | null = penaltyTier.durationDays
 ? new Date(Date.now() + penaltyTier.durationDays * 86400 * 1000)

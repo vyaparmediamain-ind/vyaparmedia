@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { Prisma } from "@prisma/client";
 import { secureQStashEndpoint } from "@/lib/qstash-guard";
 import { logger } from "@/lib/logger";
 import {
@@ -55,6 +56,7 @@ async function _handler_POST(request: NextRequest) {
       return NextResponse.json({
         success: true,
         message: "Duplicate job skipped",
+        deduplicationId: body.deduplicationId ?? null,
         savedResponse: claim.savedResponse,
       });
     }
@@ -68,7 +70,7 @@ async function _handler_POST(request: NextRequest) {
         success: true,
         topic,
         completedAt: new Date().toISOString(),
-        result: (result.result as any) ?? null,
+        result: (result.result as Prisma.InputJsonValue) ?? null,
       });
     }
 

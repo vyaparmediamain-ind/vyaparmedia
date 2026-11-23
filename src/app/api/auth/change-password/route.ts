@@ -74,18 +74,18 @@ return NextResponse.json(
 const body = await request.json();
 const validation = validatePayload(body);
 
-if (!validation.success) {
-return NextResponse.json(
-{
-success: false,
-message: validation.message,
-data: validation.errors
-},
-{ status: 400 }
-);
+if (!validation.success || !validation.data) {
+  return NextResponse.json(
+    {
+      success: false,
+      message: validation.message || "Invalid change password data",
+      data: validation.errors
+    },
+    { status: 400 }
+  );
 }
 
-const { oldPassword, newPassword } = validation.data!;
+const { oldPassword, newPassword } = validation.data;
 
 if (oldPassword === newPassword) {
 return NextResponse.json(

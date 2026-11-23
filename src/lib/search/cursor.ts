@@ -34,8 +34,9 @@ export function decodeCursor(cursorStr?: string | null): CursorPayload | null {
         sortValue: parsed.sortValue,
       };
     }
-  } catch {
-    // Return null if invalid or corrupt cursor
+  } catch (_err: unknown) {
+    // Handled fallback: Return null if invalid or corrupt cursor
+    void _err;
   }
 
   return null;

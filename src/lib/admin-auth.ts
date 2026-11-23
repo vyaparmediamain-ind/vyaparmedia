@@ -86,9 +86,10 @@ throw AppError.forbidden("Unauthorized: Admin access required");
 // Populate the cache so subsequent requests skip the DB for 60 seconds.
 try {
 await redis.set(cacheKey, "1", "EX", ADMIN_CACHE_TTL);
-} catch {
-// Non-fatal the DB check already succeeded.
-}
+} catch (_err: unknown) {
+    // Handled fallback: Non-fatal the DB check already succeeded.
+    void _err;
+  }
 
 return { id: dbAdmin.id, email: dbAdmin.email };
 }
@@ -101,7 +102,8 @@ return { id: dbAdmin.id, email: dbAdmin.email };
 export async function invalidateAdminCache(userId: string): Promise<void> {
 try {
 await redis.del(`admin_verified:${userId}`);
-} catch {
-// Non-fatal.
-}
+} catch (_err: unknown) {
+    // Handled fallback: Non-fatal.
+    void _err;
+  }
 }

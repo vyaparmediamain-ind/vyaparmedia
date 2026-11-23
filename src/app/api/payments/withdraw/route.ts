@@ -66,8 +66,12 @@ async function getPayoutDetailsFromDb(
   let accountNumber = bankAccount.accountNumber;
   try {
     accountNumber = decrypt(bankAccount.accountNumber);
-  } catch {
-    // Support old plain-text records if they still exist.
+  } catch (decErr: unknown) {
+    // Support legacy plain-text records if encryption key mismatch or unencrypted legacy data
+    logger.debug("Bank account decrypt failed, using plain-text fallback", {
+      bankAccountId: bankAccount.id,
+      error: decErr instanceof Error ? decErr.message : String(decErr),
+    });
   }
 
   const isUpiPayout = accountNumber === "UPI_PAYOUT" && bankAccount.ifscCode === "UPI00000000";
@@ -81,11 +85,15 @@ async function getPayoutDetailsFromDb(
   let upiId = bankAccount.upiId;
   if (upiId) {
     try {
-upiId = decrypt(upiId);
-} catch {
-// Support old plain-text records if they still exist.
-}
-}
+      upiId = decrypt(upiId);
+    } catch (upiDecErr: unknown) {
+      // Support legacy plain-text records if encryption key mismatch or unencrypted legacy data
+      logger.debug("Bank account upiId decrypt failed, using plain-text fallback", {
+        bankAccountId: bankAccount.id,
+        error: upiDecErr instanceof Error ? upiDecErr.message : String(upiDecErr),
+      });
+    }
+  }
 
 const details: {
 bankAccountName: string;

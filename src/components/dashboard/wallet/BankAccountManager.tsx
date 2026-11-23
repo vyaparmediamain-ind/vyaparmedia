@@ -753,7 +753,7 @@ export default function BankAccountManager({
                       <span>{checkBankAccountDeleteEligibility(acc).reason}</span>
                       {checkBankAccountDeleteEligibility(acc).ctaText && checkBankAccountDeleteEligibility(acc).ctaHref && (
                         <Link
-                          href={checkBankAccountDeleteEligibility(acc).ctaHref!}
+                          href={(checkBankAccountDeleteEligibility(acc).ctaHref ?? '#')}
                           className="font-bold underline text-primary hover:text-primary/80 whitespace-nowrap"
                         >
                           {checkBankAccountDeleteEligibility(acc).ctaText} →

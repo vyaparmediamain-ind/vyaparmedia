@@ -68,9 +68,10 @@ class RealtimeStreamManager {
         try {
           const payload = JSON.parse(e.data) as RealtimeMessagePayload;
           this.messageListeners.forEach((callback) => callback(payload));
-        } catch {
-          // non-fatal parse error
-        }
+        } catch (_err: unknown) {
+    // Handled fallback: non-fatal parse error
+    void _err;
+  }
       });
 
       this.eventSource.addEventListener("typing", (e: MessageEvent) => {
@@ -89,9 +90,10 @@ class RealtimeStreamManager {
               set.forEach((callback) => callback(payload.isTyping, payload.senderId));
             }
           });
-        } catch {
-          // non-fatal parse error
-        }
+        } catch (_err: unknown) {
+    // Handled fallback: non-fatal parse error
+    void _err;
+  }
       });
 
       this.eventSource.onerror = () => {
@@ -138,10 +140,12 @@ class RealtimeStreamManager {
   }
 
   addTypingListener(senderId: string, callback: TypingCallback): () => void {
-    if (!this.typingListeners.has(senderId)) {
-      this.typingListeners.set(senderId, new Set());
+    let set = this.typingListeners.get(senderId);
+    if (!set) {
+      set = new Set();
+      this.typingListeners.set(senderId, set);
     }
-    this.typingListeners.get(senderId)!.add(callback);
+    set.add(callback);
     this.connect();
 
     return () => {

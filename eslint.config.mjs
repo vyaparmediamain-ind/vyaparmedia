@@ -85,6 +85,9 @@ const eslintConfig = defineConfig([
     },
     rules: {
       "theme-consistency/no-hardcoded-theme-bg": "error",
+      "no-empty": ["error", { "allowEmptyCatch": false }],
+      "@typescript-eslint/no-non-null-assertion": "error",
+      "no-console": ["error", { "allow": ["warn", "error", "info", "debug"] }],
     },
   },
   {

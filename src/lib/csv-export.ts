@@ -80,7 +80,7 @@ export function toCsv(rows: CsvRow[], headers?: string[]): string {
       }
       keys = Array.from(keySet);
     } else {
-      keys = Object.keys(rows[0]!);
+      keys = Object.keys(rows[0] ?? {});
     }
   }
 
@@ -140,7 +140,7 @@ export function getIndianFYBounds(fy: string): { start: Date; end: Date } | null
 const match = /^(\d{4})-(\d{2})$/.exec(fy);
 if (!match) return null;
 
-const startYear = Number.parseInt(match[1]!, 10);
+const startYear = Number.parseInt(match[1] ?? '', 10);
 const endYear = startYear + 1;
 
 // April 1 of startYear, 00:00 IST = March 31 18:30 UTC

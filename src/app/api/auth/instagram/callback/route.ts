@@ -92,8 +92,12 @@ async function _handler_GET(req: NextRequest) {
             capability = "BASIC_ONLY";
           }
         }
-      } catch {
+      } catch (probeErr: unknown) {
         // Fall back gracefully to basic scope if user denied insights or call failed
+        logger.warn("Probe of Instagram insights failed, falling back to basic scope", {
+          userId,
+          error: probeErr instanceof Error ? probeErr.message : String(probeErr),
+        });
         grantedScopes = ["instagram_business_basic"];
         capability = "BASIC_ONLY";
       }

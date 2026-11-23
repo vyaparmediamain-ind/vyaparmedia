@@ -60,7 +60,12 @@ for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
         throw AppError.notFound("Deal not found");
       }
 
-      const lockedStatus = lockedRows[0]!.status;
+      const lockedFirst = lockedRows[0];
+      if (!lockedFirst) {
+        throw AppError.notFound("Deal not found");
+      }
+
+      const lockedStatus = lockedFirst.status;
       if (["COMPLETED", "CANCELLED", "DISPUTED"].includes(lockedStatus)) {
         throw AppError.badRequest(`Deal cannot be cancelled in status ${lockedStatus}`);
       }
@@ -138,8 +143,10 @@ for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
       txError instanceof Prisma.PrismaClientKnownRequestError && txError.code === "P2034";
 
     if (isSerializationFailure && attempt < MAX_RETRIES) {
-      // Jittered exponential backoff: 50-150ms per attempt
-      const backoffMs = 50 + Math.floor(Math.random() * 100);
+      // Jittered exponential backoff: 50-150ms per attempt via Web Crypto
+      const randomBytes = crypto.getRandomValues(new Uint8Array(1));
+      const randomJitter = (randomBytes[0] ?? 0) % 100;
+      const backoffMs = 50 + randomJitter;
       await new Promise((r) => setTimeout(r, backoffMs));
       lastError = txError;
       continue;

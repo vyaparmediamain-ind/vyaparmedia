@@ -807,6 +807,21 @@ export const JOB_TOPICS_REGISTRY: Record<string, JobTopicDefinition<any>> = {
       throw new Error(`Deliberate failure triggered for test: ${payload.metadata?.reason || "Testing DLQ"}`);
     },
   },
+
+  // 14. test.acknowledge (Diagnostic & Integration Test Ping)
+  "test.acknowledge": {
+    topic: "test.acknowledge",
+    category: "best-effort",
+    payloadSchema: z.record(z.string(), z.unknown()),
+    isMoneyImpacting: false,
+    requiresAdminApproval: false,
+    maxReplays: 0,
+    idempotencyKeyFn: () => `dlq:topic:test_ack:${Date.now()}`,
+    handler: async () => ({
+      success: true,
+      result: { acknowledged: true },
+    }),
+  },
 };
 
 export type JobTopicName = keyof typeof JOB_TOPICS_REGISTRY;

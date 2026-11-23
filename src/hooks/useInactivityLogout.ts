@@ -63,7 +63,9 @@ setShowWarning(true);
 countdownRef.current = setInterval(() => {
 setSecondsRemaining((prev) => {
 if (prev <= 1) {
-clearInterval(countdownRef.current!);
+if (countdownRef.current !== null) {
+clearInterval(countdownRef.current);
+}
 return 0;
 }
 return prev - 1;

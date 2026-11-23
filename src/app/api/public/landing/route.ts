@@ -40,8 +40,11 @@ async function _handler_GET() {
           },
         });
       }
-    } catch {
-      // Cache fail-open
+    } catch (cacheErr: unknown) {
+      // Cache fail-open: log and proceed with direct DB query
+      logger.warn("Landing page cache retrieval failed, failing open to DB", {
+        error: cacheErr instanceof Error ? cacheErr.message : String(cacheErr),
+      });
     }
     const [
       userCount,
@@ -337,8 +340,11 @@ async function _handler_GET() {
 
     try {
       await redis.setex("cache:public:landing", 60, JSON.stringify(payload));
-    } catch {
-      // Cache fail-open
+    } catch (cacheErr: unknown) {
+      // Cache fail-open: log and proceed with direct DB query
+      logger.warn("Landing page cache retrieval failed, failing open to DB", {
+        error: cacheErr instanceof Error ? cacheErr.message : String(cacheErr),
+      });
     }
 
     return NextResponse.json(payload, {

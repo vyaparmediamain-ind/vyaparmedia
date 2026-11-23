@@ -588,13 +588,15 @@ export default function LeaderboardPage() {
                     </span>
                   </div>
                   <div className="text-2xs text-muted-foreground truncate">
-                    {activeList.find((u) => u.id === session.user?.id) ? (
-                      <span>
-                        {formatNumber(activeList.find((u) => u.id === session.user?.id)!.score)} {scoreLabel} · Lv.{activeList.find((u) => u.id === session.user?.id)!.level}
-                      </span>
-                    ) : (
-                      <span>Complete escrow deals to climb the leaderboard</span>
-                    )}
+                    {(() => {
+                      const me = activeList.find((u) => u.id === session.user?.id);
+                      if (!me) return <span>Complete escrow deals to climb the leaderboard</span>;
+                      return (
+                        <span>
+                          {formatNumber(me.score)} {scoreLabel} · Lv.{me.level}
+                        </span>
+                      );
+                    })()}
                   </div>
                 </div>
               </div>

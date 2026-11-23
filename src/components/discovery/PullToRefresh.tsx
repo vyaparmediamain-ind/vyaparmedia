@@ -49,7 +49,9 @@ export default function PullToRefresh({
   const handleTouchStart = (e: React.TouchEvent) => {
     if (disabled || isRefreshing) return;
     if (isAtTop()) {
-      startYRef.current = e.touches[0]!.clientY;
+      const touch = e.touches[0];
+      if (!touch) return;
+      startYRef.current = touch.clientY;
       isPullingRef.current = true;
       hasVibratedRef.current = false;
     }
@@ -59,7 +61,9 @@ export default function PullToRefresh({
     (e: React.TouchEvent) => {
       if (!isPullingRef.current || isRefreshing || disabled) return;
 
-      const currentY = e.touches[0]!.clientY;
+      const touch = e.touches[0];
+      if (!touch) return;
+      const currentY = touch.clientY;
       const rawDelta = currentY - startYRef.current;
 
       if (rawDelta > 0) {

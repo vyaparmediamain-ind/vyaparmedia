@@ -75,11 +75,11 @@ return ApiResponse.error("Invalid request body");
 }
 
 const validation = validateRegisterInput(body);
-if (!validation.success) {
-return ApiResponse.error(validation.message!);
+if (!validation.success || !validation.data) {
+  return ApiResponse.error(validation.message ?? 'Invalid registration input');
 }
 
-const parsedData = validation.data!;
+const parsedData = validation.data;
 const emailKey = `email-otp-verified:${parsedData.email}`;
 const phoneKey = `phone-otp-verified:${parsedData.phone}`;
 const [isEmailOtpVerified, isPhoneOtpVerified] = await Promise.all([

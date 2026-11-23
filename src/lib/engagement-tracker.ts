@@ -577,18 +577,18 @@ export async function getEngagementReport(
 * Calculate ROI for a deal based on engagement metrics.
 */
 function calculateROI(
-dealAmountPaise: number,
-snapshot: {
-views: number;
-likes: number;
-comments: number;
-shares: number;
-saves: number;
-clicks: number;
-},
+  dealAmountPaise: number,
+  snapshot: {
+    views: number;
+    likes: number;
+    comments: number;
+    shares: number;
+    saves: number;
+    clicks: number;
+  },
 ): ROICalculation {
-const totalEngagements =
-snapshot.likes + snapshot.comments + snapshot.shares + snapshot.saves;
+  const totalEngagements =
+    snapshot.likes + snapshot.comments + snapshot.shares + snapshot.saves;
 
   // Cost per metrics (in paise)
   const costPerView =
@@ -600,56 +600,56 @@ snapshot.likes + snapshot.comments + snapshot.shares + snapshot.saves;
   const costPerClick =
     snapshot.clicks > 0 ? Math.round(dealAmountPaise / snapshot.clicks) : dealAmountPaise;
 
-// Estimated value (EMV) using weighted coefficients: views = 0.20 (20 paise), engagement = 1.00 (100 paise), clicks = 5.00 (500 paise)
-const estimatedValue = Math.round(
-snapshot.views * 20 +
-totalEngagements * 100 +
-snapshot.clicks * 500
-);
+  // Estimated value (EMV) using weighted coefficients: views = 0.20 (20 paise), engagement = 1.00 (100 paise), clicks = 5.00 (500 paise)
+  const estimatedValue = Math.round(
+    snapshot.views * 20 +
+    totalEngagements * 100 +
+    snapshot.clicks * 500
+  );
 
-// ROI percentage: ((value - cost) / cost) * 100
-const roiPercentage =
-dealAmountPaise > 0
-? Math.round(
-((estimatedValue - dealAmountPaise) / dealAmountPaise) * 10000,
-) / 100
-: 0;
+  // ROI percentage: ((value - cost) / cost) * 100
+  const roiPercentage =
+    dealAmountPaise > 0
+      ? Math.round(
+        ((estimatedValue - dealAmountPaise) / dealAmountPaise) * 10000,
+      ) / 100
+      : 0;
 
-return {
-dealAmount: dealAmountPaise,
-costPerView,
-costPerEngagement,
-costPerClick,
-estimatedValue,
-roiPercentage,
-};
+  return {
+    dealAmount: dealAmountPaise,
+    costPerView,
+    costPerEngagement,
+    costPerClick,
+    estimatedValue,
+    roiPercentage,
+  };
 }
 
 /**
 * Calculate engagement trend based on multiple snapshots.
 */
 function calculateTrend(
-snapshots: Array<{ interval: string; engagementRate: number }>,
+  snapshots: Array<{ interval: string; engagementRate: number }>,
 ): "GROWING" | "STABLE" | "DECLINING" | "INSUFFICIENT_DATA" {
-if (snapshots.length < 2) return "INSUFFICIENT_DATA";
+  if (snapshots.length < 2) return "INSUFFICIENT_DATA";
 
-const ordered = ["24h", "48h", "7d"];
-const sortedSnapshots = snapshots
-.filter((s: { interval: string }) => ordered.includes(s.interval))
-.sort((a, b) => ordered.indexOf(a.interval) - ordered.indexOf(b.interval));
+  const ordered = ["24h", "48h", "7d"];
+  const sortedSnapshots = snapshots
+    .filter((s: { interval: string }) => ordered.includes(s.interval))
+    .sort((a, b) => ordered.indexOf(a.interval) - ordered.indexOf(b.interval));
 
-if (sortedSnapshots.length < 2) return "INSUFFICIENT_DATA";
+  if (sortedSnapshots.length < 2) return "INSUFFICIENT_DATA";
 
-const first = sortedSnapshots[0]?.engagementRate ?? 0;
-const last = sortedSnapshots.at(-1)?.engagementRate ?? 0;
+  const first = sortedSnapshots[0]?.engagementRate ?? 0;
+  const last = sortedSnapshots.at(-1)?.engagementRate ?? 0;
 
-if (first === 0) return "INSUFFICIENT_DATA";
+  if (first === 0) return "INSUFFICIENT_DATA";
 
-const changePercent = ((last - first) / first) * 100;
+  const changePercent = ((last - first) / first) * 100;
 
-if (changePercent > 10) return "GROWING";
-if (changePercent < -10) return "DECLINING";
-return "STABLE";
+  if (changePercent > 10) return "GROWING";
+  if (changePercent < -10) return "DECLINING";
+  return "STABLE";
 }
 
 /**
@@ -657,14 +657,14 @@ return "STABLE";
 * Called by cron job to capture metrics at the right intervals.
 */
 export async function batchCaptureEngagement(): Promise<{
-captured: number;
-skipped: number;
-errors: number;
+  captured: number;
+  skipped: number;
+  errors: number;
 }> {
-const now = new Date();
-let captured = 0;
-let skipped = 0;
-let errors = 0;
+  const now = new Date();
+  let captured = 0;
+  let skipped = 0;
+  let errors = 0;
 
   // Restrict to deals verified/posted within the active window (last 8 days)
   // because snapshots are only captured up to 7 days (168 hours) post-verification.
@@ -688,46 +688,46 @@ let errors = 0;
     take: 100, // Safe batch limit per invocation
   });
 
-for (const deal of deals) {
-if (!deal.postedAt) continue;
+  for (const deal of deals) {
+    if (!deal.postedAt) continue;
 
-const hoursSincePost =
-(now.getTime() - deal.postedAt.getTime()) / (1000 * 60 * 60);
-const capturedIntervals = new Set(
-deal.engagementSnapshots.map((s: { interval: string }) => s.interval),
-);
+    const hoursSincePost =
+      (now.getTime() - deal.postedAt.getTime()) / (1000 * 60 * 60);
+    const capturedIntervals = new Set(
+      deal.engagementSnapshots.map((s: { interval: string }) => s.interval),
+    );
 
-// Determine which interval to capture
-let intervalToCapture: "24h" | "48h" | "7d" | null = null;
+    // Determine which interval to capture
+    let intervalToCapture: "24h" | "48h" | "7d" | null = null;
 
-if (
-hoursSincePost >= 24 &&
-hoursSincePost < 48 &&
-!capturedIntervals.has("24h")
-) {
-intervalToCapture = "24h";
-} else if (
-hoursSincePost >= 48 &&
-hoursSincePost < 168 &&
-!capturedIntervals.has("48h")
-) {
-intervalToCapture = "48h";
-} else if (hoursSincePost >= 168 && !capturedIntervals.has("7d")) {
-intervalToCapture = "7d";
-}
+    if (
+      hoursSincePost >= 24 &&
+      hoursSincePost < 48 &&
+      !capturedIntervals.has("24h")
+    ) {
+      intervalToCapture = "24h";
+    } else if (
+      hoursSincePost >= 48 &&
+      hoursSincePost < 168 &&
+      !capturedIntervals.has("48h")
+    ) {
+      intervalToCapture = "48h";
+    } else if (hoursSincePost >= 168 && !capturedIntervals.has("7d")) {
+      intervalToCapture = "7d";
+    }
 
-if (!intervalToCapture) {
-skipped++;
-continue;
-}
+    if (!intervalToCapture) {
+      skipped++;
+      continue;
+    }
 
-try {
-await captureEngagement(deal.id, intervalToCapture);
-captured++;
-} catch {
-errors++;
-}
-}
+    try {
+      await captureEngagement(deal.id, intervalToCapture);
+      captured++;
+    } catch {
+      errors++;
+    }
+  }
 
-return { captured, skipped, errors };
+  return { captured, skipped, errors };
 }

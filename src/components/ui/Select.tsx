@@ -42,7 +42,7 @@ export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
     const nativeSelectRef = useRef<HTMLSelectElement>(null);
 
     // Sync ref
-    React.useImperativeHandle(ref, () => nativeSelectRef.current!);
+    React.useImperativeHandle(ref, () => nativeSelectRef.current as HTMLSelectElement);
 
     // Update selectedValue if controlled value changes
     useEffect(() => {

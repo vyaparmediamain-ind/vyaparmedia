@@ -28,9 +28,10 @@ import { invalidateDealCache } from "@/services/deal/helpers";
 import { MIN_TRUST_SCORE } from "@/constants/drs";
 
 async function requireAdmin() {
-const session = await auth();
-await requireActiveAdmin(session?.user);
-return session!;
+  const session = await auth();
+  if (!session?.user) throw AppError.unauthorized("Authentication required");
+  await requireActiveAdmin(session.user);
+  return session;
 }
 
 function getMissingVerificationDocs(

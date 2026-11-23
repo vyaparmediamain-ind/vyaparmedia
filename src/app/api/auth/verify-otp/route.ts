@@ -89,11 +89,11 @@ export const PUT = apiWrapper(async function PUT(request: NextRequest) {
     }
 
     const validation = validatePutPayload(body);
-    if (!validation.success) {
-      return ApiResponse.error(validation.message!);
+    if (!validation.success || !validation.data) {
+      return ApiResponse.error(validation.message ?? 'Validation failed');
     }
 
-    const { phone, type } = validation.data!;
+    const { phone, type } = validation.data;
 
     if (type === "registration") {
       await assertKillSwitchInactive("killswitch:signups");
@@ -116,7 +116,7 @@ export const PUT = apiWrapper(async function PUT(request: NextRequest) {
 
     const checkResult = await checkExistingPhoneForOtp(phone, type);
     if (checkResult.handled) {
-      return checkResult.response!;
+      return checkResult.response ?? ApiResponse.error("OTP verification failed", 400);
     }
 
 const sendResult = await sendOTP(phone, { purpose: type });
@@ -192,11 +192,11 @@ export const POST = apiWrapper(async function POST(request: NextRequest) {
     }
 
 const validation = validateRegistrationPayload(body);
-if (!validation.success) {
-return ApiResponse.error(validation.message!);
+if (!validation.success || !validation.data) {
+return ApiResponse.error(validation.message ?? 'Validation failed');
 }
 
-const { phone, otp, type } = validation.data!;
+const { phone, otp, type } = validation.data;
 
     const phoneVerifyLimit = await rateLimit({
       uniqueToken: `otp:verify:phone:${phone}`,

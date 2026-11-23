@@ -22,8 +22,12 @@ function getOrCreateTabId(): string {
     if (!tabId || tabId.length < 8) {
       if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
         tabId = crypto.randomUUID().replaceAll("-", "");
+      } else if (typeof crypto !== "undefined" && typeof crypto.getRandomValues === "function") {
+        const buf = new Uint8Array(16);
+        crypto.getRandomValues(buf);
+        tabId = Array.from(buf, (b) => b.toString(16).padStart(2, "0")).join("");
       } else {
-        tabId = Math.random().toString(16).slice(2) + Math.random().toString(16).slice(2);
+        tabId = Date.now().toString(16).padStart(16, "0") + "0000000000000000";
       }
       sessionStorage.setItem(TAB_STORAGE_KEY, tabId);
     }

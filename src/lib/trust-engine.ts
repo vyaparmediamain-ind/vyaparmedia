@@ -121,8 +121,9 @@ function extractTrustReduction(metadata: unknown): number {
     if (parsed && typeof parsed === "object" && typeof (parsed as Record<string, unknown>).trustReduction === "number") {
       return (parsed as Record<string, unknown>).trustReduction as number;
     }
-  } catch {
-    // Ignore parse error
+  } catch (_err: unknown) {
+    // Handled fallback: Ignore parse error
+    void _err;
   }
   return 0;
 }
@@ -361,7 +362,7 @@ const res = await calculateNewTrustScore(userId, user, trigger);
 
 
 // Recalculate level from XP (retaining XP logic)
-const levelInfo = calculateLevel(user.xp)!;
+const levelInfo = (calculateLevel(user.xp) ?? { level: 1, title: 'Novice' });
 // Prevent concurrent level downgrades
 const newLevel = Math.max(user.level, levelInfo.level);
 

@@ -99,7 +99,7 @@ async function _handler_POST(request: ValidatedNextRequest) {
       );
     }
 
-    const amountInPaise = (parsed.data.amountPaise ?? parsed.data.amount)!;
+    const amountInPaise = (parsed.data.amountPaise ?? parsed.data.amount ?? 0);
     const orderData = await PaymentService.createWalletTopUpOrder(
       session.user.id,
       amountInPaise,

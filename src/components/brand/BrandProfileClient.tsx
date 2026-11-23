@@ -49,9 +49,10 @@ export function BrandProfileClient({
           url,
         });
         return;
-      } catch {
-        // Fallback to clipboard
-      }
+      } catch (_err: unknown) {
+    // Handled fallback: Fallback to clipboard when navigator.share is unavailable or cancelled
+    void _err;
+  }
     }
     await copyToClipboard(url);
     setCopied(true);

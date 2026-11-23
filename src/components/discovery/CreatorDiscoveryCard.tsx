@@ -98,9 +98,10 @@ export default function CreatorDiscoveryCard({
           text: `Check out ${creator.name} (@${creator.handle}) on VyaparMedia`,
           url: window.location.origin + `/dashboard/influencers/${creator.id}`,
         });
-      } catch {
-        // Cancelled
-      }
+      } catch (_err: unknown) {
+    // Handled fallback: Cancelled
+    void _err;
+  }
     } else {
       navigator.clipboard?.writeText(window.location.origin + `/dashboard/influencers/${creator.id}`);
       setToastMessage("Creator profile link copied!");

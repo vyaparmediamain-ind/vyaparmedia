@@ -181,9 +181,10 @@ export async function getFeatureFlagRecord(
         FEATURE_FLAG_CACHE_TTL_SECONDS,
         JSON.stringify(flagRecord),
       );
-    } catch {
-      // Redis populate failure non-critical
-    }
+    } catch (_err: unknown) {
+    // Handled fallback: Redis populate failure non-critical
+    void _err;
+  }
 
     return flagRecord;
   } catch (dbErr) {

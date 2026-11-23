@@ -160,11 +160,11 @@ return ApiResponse.tooManyRequests("Too many campaign requests");
 
 const body = await request.json();
 const validation = validateCampaignPayload(body);
-if (!validation.success) {
-return ApiResponse.error(validation.message!);
+if (!validation.success || !validation.data) {
+  return ApiResponse.error(validation.message ?? 'Invalid campaign data');
 }
 
-const payload = prepareCampaignPayload(validation.data!);
+const payload = prepareCampaignPayload(validation.data);
 
 const campaign = await CampaignService.createCampaign(
 session.user.id,

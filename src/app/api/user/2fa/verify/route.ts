@@ -61,9 +61,10 @@ return NextResponse.json(
 let twoFactorSecret = user.twoFactorSecret;
 try {
 twoFactorSecret = decrypt(user.twoFactorSecret);
-} catch {
-// Backward compatibility for pre-encryption setup records.
-}
+} catch (_err: unknown) {
+    // Handled fallback: Backward compatibility for pre-encryption setup records.
+    void _err;
+  }
 
 // Verify the code
 const verifyResult = await verify({

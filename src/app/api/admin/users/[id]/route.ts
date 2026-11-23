@@ -18,24 +18,26 @@ suspensionDays: z.number().min(1).max(365).optional(),
 }).strip();
 
 export const GET = apiWrapper(async (_req, { params }) => {
-const { id } = await params;
-const userId = Array.isArray(id) ? id[0]! : id;
-if (!userId) {
-return ApiResponse.error("Invalid user ID");
-}
-const result = await AdminService.getUserDetails(userId);
+  const { id } = await params;
+  const firstId = Array.isArray(id) ? id[0] : id;
+  const userId = firstId ?? "";
+  if (!userId) {
+    return ApiResponse.error("Invalid user ID");
+  }
+  const result = await AdminService.getUserDetails(userId);
 
-return ApiResponse.success(result, "User details retrieved");
+  return ApiResponse.success(result, "User details retrieved");
 }, { requireAuth: true, requireAdmin: true });
 
 export const PUT = apiWrapper(async (req, { params }) => {
-const session = (req as AuthenticatedRequest).session;
+  const session = (req as AuthenticatedRequest).session;
 
-const { id } = await params;
-const userId = Array.isArray(id) ? id[0]! : id;
-if (!userId) {
-return ApiResponse.error("Invalid user ID");
-}
+  const { id } = await params;
+  const firstId = Array.isArray(id) ? id[0] : id;
+  const userId = firstId ?? "";
+  if (!userId) {
+    return ApiResponse.error("Invalid user ID");
+  }
 
 // Parse Body
 const body = await req.json();

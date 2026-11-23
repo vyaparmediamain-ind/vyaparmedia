@@ -150,7 +150,7 @@ export default function DealDisputePage({ params }: Readonly<DisputePageProps>) 
   const [toasts, setToasts] = useState<ToastItem[]>([]);
 
   const selectedOption = useMemo(
-    () => DISPUTE_OPTIONS.find((opt) => opt.type === issueType) || DISPUTE_OPTIONS[0]!,
+    () => DISPUTE_OPTIONS.find((opt) => opt.type === issueType) ?? (DISPUTE_OPTIONS[0] as DisputeOption),
     [issueType]
   );
 

@@ -20,8 +20,9 @@ function trigger(pattern: number | number[]): void {
     if (canVibrate()) {
       navigator.vibrate(pattern);
     }
-  } catch {
-    // Silently ignore in permissions-policy restricted contexts, iframes, or desktop
+  } catch (_err: unknown) {
+    // Handled fallback: Silently ignore in permissions-policy restricted contexts, iframes, or desktop
+    void _err;
   }
 }
 

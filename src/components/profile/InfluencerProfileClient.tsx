@@ -152,20 +152,27 @@ export default function InfluencerProfileClient({
   const tabList: TabKey[] = ["portfolio", "rate-card", "reviews", "about"];
 
   const handleTouchStart = (e: React.TouchEvent) => {
-    touchStartXRef.current = e.touches[0]!.clientX;
+    const touch = e.touches[0];
+    if (touch) {
+      touchStartXRef.current = touch.clientX;
+    }
   };
 
   const handleTouchEnd = (e: React.TouchEvent) => {
-    const touchEndX = e.changedTouches[0]!.clientX;
+    const touch = e.changedTouches[0];
+    if (!touch) return;
+    const touchEndX = touch.clientX;
     const deltaX = touchEndX - touchStartXRef.current;
 
     // Swipe threshold: 60px
     if (Math.abs(deltaX) > 60) {
       const currentIndex = tabList.indexOf(activeTab);
       if (deltaX < 0 && currentIndex < tabList.length - 1) {
-        setActiveTab(tabList[currentIndex + 1]!);
+        const nextTab = tabList[currentIndex + 1];
+        if (nextTab) setActiveTab(nextTab);
       } else if (deltaX > 0 && currentIndex > 0) {
-        setActiveTab(tabList[currentIndex - 1]!);
+        const prevTab = tabList[currentIndex - 1];
+        if (prevTab) setActiveTab(prevTab);
       }
     }
   };
@@ -178,9 +185,10 @@ export default function InfluencerProfileClient({
           text: `Check out ${profile.displayName}'s verified creator portfolio, rates & trust score on VyaparMedia`,
           url: window.location.href,
         });
-      } catch {
-        // Cancelled share
-      }
+      } catch (_err: unknown) {
+    // Handled fallback: Share dialogue cancelled by user
+    void _err;
+  }
     } else {
       await copyToClipboard(window.location.href);
       setToastMessage("Profile link copied to clipboard!");

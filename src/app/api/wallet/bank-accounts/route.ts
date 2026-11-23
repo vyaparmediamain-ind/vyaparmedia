@@ -57,7 +57,7 @@ async function requireInfluencerSession(req: NextRequest): Promise<
 { userId: string; errorResponse: null }
 > {
 const session = (req as AuthenticatedRequest).session;
-return { userId: session.user.id!, errorResponse: null };
+return { userId: session.user.id, errorResponse: null };
 }
 
 /** Shared: rate-limit guard for bank account mutation endpoints. */

@@ -653,7 +653,7 @@ export async function deleteUserObjectsByPrefix(userId: string): Promise<number>
 
       const response = await client.send(listCommand);
       if (response.Contents && response.Contents.length > 0) {
-        const objectsToDelete = response.Contents.filter((obj) => obj.Key).map((obj) => ({ Key: obj.Key! }));
+        const objectsToDelete = response.Contents.filter((obj) => obj.Key).map((obj) => ({ Key: obj.Key ?? '' }));
         await client.send(
           new DeleteObjectsCommand({
             Bucket: bucket,

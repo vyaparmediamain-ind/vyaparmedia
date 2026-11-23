@@ -29,7 +29,8 @@ export function DeliverablesList({
       rate: number;
       count: number;
     }>;
-    const item = { ...newDeliverables[index]!, [field]: value };
+    const existing = newDeliverables[index] ?? { type: "CUSTOM", rate: 0, count: 1 };
+    const item = { ...existing, [field]: value };
 
     // Automatically recalculate recommended rate if type changes
     if (field === "type" && typeof value === "string") {

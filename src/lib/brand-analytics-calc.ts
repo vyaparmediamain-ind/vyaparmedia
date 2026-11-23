@@ -171,13 +171,15 @@ export function rankBestCreatorsByRoi(
       });
     }
 
-    const item = creatorMap.get(d.creatorId)!;
-    item.dealsCount += 1;
-    item.totalSpendPaise += d.amountPaise;
-    item.deliveredViews += d.deliveredViews;
-    if (d.isVerifiedViews) item.verifiedViewsCount += 1;
-    if (d.engagementRateBps != null) {
-      item.totalEngagementBps += d.engagementRateBps;
+    const item = creatorMap.get(d.creatorId);
+    if (item) {
+      item.dealsCount += 1;
+      item.totalSpendPaise += d.amountPaise;
+      item.deliveredViews += d.deliveredViews;
+      if (d.isVerifiedViews) item.verifiedViewsCount += 1;
+      if (d.engagementRateBps != null) {
+        item.totalEngagementBps += d.engagementRateBps;
+      }
     }
   }
 

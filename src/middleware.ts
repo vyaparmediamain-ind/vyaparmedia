@@ -210,7 +210,7 @@ async function verifyCronSecret(
   );
   let result = 0;
   for (let i = 0; i < expectedHash.length; i++) {
-    result |= expectedHash[i]! ^ actualHash[i]!;
+    result |= (expectedHash[i] ?? 0) ^ (actualHash[i] ?? 0);
   }
   return result === 0;
 }
@@ -228,8 +228,9 @@ async function handleWafAndIpCheck(
   try {
     decodedPath = decodeURIComponent(pathname).toLowerCase();
     decodedSearch = decodeURIComponent(req.nextUrl.search).toLowerCase();
-  } catch {
-    // Keep raw strings on malformed URI encoding
+  } catch (_err: unknown) {
+    // Handled fallback: Keep raw strings on malformed URI encoding
+    void _err;
   }
   const requestFingerprint = `${ua} ${rawPath} ${rawSearch} ${decodedPath} ${decodedSearch}`;
   if (checkWafPatterns(requestFingerprint)) {

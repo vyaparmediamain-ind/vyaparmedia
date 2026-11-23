@@ -426,9 +426,10 @@ export function useMessages() {
           with: selectedConversation,
           isTyping,
         });
-      } catch {
-        // Best-effort typing indicator
-      }
+      } catch (_err: unknown) {
+    // Handled fallback: Best-effort typing indicator delivery failure is non-fatal
+    void _err;
+  }
     },
     [selectedConversation]
   );

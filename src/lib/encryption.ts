@@ -110,15 +110,15 @@ let ivHex: string, authTagHex: string, ciphertext: string;
 
 if (parts.length === 4) {
 // Current versioned format: vN:iv:authTag:ciphertext
-version = parts[0]!;
-ivHex = parts[1]!;
-authTagHex = parts[2]!;
-ciphertext = parts[3]!;
+version = parts[0] ?? '';
+ivHex = parts[1] ?? '';
+authTagHex = parts[2] ?? '';
+ciphertext = parts[3] ?? '';
 } else {
 // Legacy format (no version prefix, assume v1)
-ivHex = parts[0]!;
-authTagHex = parts[1]!;
-ciphertext = parts[2]!;
+ivHex = parts[0] ?? '';
+authTagHex = parts[1] ?? '';
+ciphertext = parts[2] ?? '';
 }
 
 

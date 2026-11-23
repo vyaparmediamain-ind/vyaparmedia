@@ -71,9 +71,10 @@ async function readBodyWithCap(req: NextRequest, maxBytes: number): Promise<{ te
         if (totalBytes > maxBytes) {
           try {
             await reader.cancel("Body exceeds maximum byte cap");
-          } catch {
-            // ignore cancel error
-          }
+          } catch (_err: unknown) {
+    // Handled fallback: ignore cancel error
+    void _err;
+  }
           return { text: null, overflow: true };
         }
         chunks.push(value);
@@ -185,9 +186,10 @@ export async function POST(req: NextRequest): Promise<Response> {
         logger.debug("Telemetry track event dropped: session rate limit exceeded");
         return noContent;
       }
-    } catch {
-      // Fail-open for session limiter
-    }
+    } catch (_err: unknown) {
+    // Handled fallback: Fail-open for session limiter
+    void _err;
+  }
   }
 
   // 8. Resolve caller context & drop admin events

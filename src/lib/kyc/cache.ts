@@ -37,8 +37,9 @@ export async function invalidateUserKYCCache(userId: string): Promise<void> {
     revalidatePath(`/admin/verifications/${userId}`);
     revalidatePath("/dashboard/settings");
     revalidatePath(`/dashboard/influencers/${userId}`);
-  } catch {
-    // Can safely ignore outside Next.js request context (e.g. background crons or standalone tests)
+  } catch (_err: unknown) {
+    // Handled fallback: Can safely ignore outside Next.js request context
+    void _err;
   }
 }
 

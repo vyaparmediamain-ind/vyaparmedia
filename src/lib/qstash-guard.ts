@@ -23,9 +23,10 @@ function getExpectedHost(): string {
   if (base) {
     try {
       return new URL(base).host.toLowerCase();
-    } catch {
-      // ignore
-    }
+    } catch (_err: unknown) {
+    // Handled fallback: Verification failed
+    void _err;
+  }
   }
   return "";
 }

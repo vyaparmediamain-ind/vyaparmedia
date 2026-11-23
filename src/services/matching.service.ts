@@ -1053,12 +1053,16 @@ export class MatchingService {
 
     // 3. Batch query historical engagement rates & quality scores for MISSING candidates only
     const missingInfluencerIds = Array.from(
-      new Set(missingIndices.map((idx) => candidates[idx]!.influencer.id))
+      new Set(missingIndices.map((idx) => candidates[idx]?.influencer.id).filter(Boolean) as string[])
     );
-    const missingInfluencersForQuality = missingIndices.map((idx) => ({
-      id: candidates[idx]!.influencer.id,
-      averageRating: candidates[idx]!.influencer.averageRating,
-    }));
+    const missingInfluencersForQuality = missingIndices
+      .map((idx) => {
+        const c = candidates[idx];
+        return c
+          ? { id: c.influencer.id, averageRating: c.influencer.averageRating ?? 0 }
+          : null;
+      })
+      .filter((item): item is { id: string; averageRating: number } => item !== null);
 
     const [historyMap, qualityMap] = await Promise.all([
       MatchingService.batchGetHistoricalEngagementRates(missingInfluencerIds),
@@ -1069,7 +1073,8 @@ export class MatchingService {
     const computedToCache: Array<{ key: string; result: MatchScoreResult }> = [];
 
     for (const idx of missingIndices) {
-      const candidate = candidates[idx]!;
+      const candidate = candidates[idx];
+      if (!candidate) continue;
       const preloadedHistory = historyMap.get(candidate.influencer.id) ?? { rate: 0, hasData: false };
       const preloadedQuality = qualityMap.get(candidate.influencer.id) ?? 70;
 
@@ -1086,10 +1091,13 @@ export class MatchingService {
       );
 
       results[idx] = scoreResult;
-      computedToCache.push({
-        key: cacheKeys[idx]!,
-        result: scoreResult,
-      });
+      const cacheKey = cacheKeys[idx];
+      if (cacheKey) {
+        computedToCache.push({
+          key: cacheKey,
+          result: scoreResult,
+        });
+      }
     }
 
     // 5. Store newly computed match scores in Redis with 5-min TTL (pipeline)

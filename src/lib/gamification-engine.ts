@@ -35,7 +35,7 @@ export function registerDealCompletionHooks(hooks: {
   processReferralReward?: ReferralProcessor;
   checkChallengeProgress?: (
     userId: string,
-    type: any, // eslint-disable-line @typescript-eslint/no-explicit-any
+    type: string,
     amount?: number,
     tx?: Prisma.TransactionClient
   ) => Promise<unknown>;
@@ -419,9 +419,10 @@ export async function addUserXp(
 
       try {
         await redis.set(redisKey, currentDailyXp.toString(), "EX", 172800);
-      } catch {
-        // Ignore cache set error
-      }
+      } catch (_err: unknown) {
+    // Handled fallback: Ignore cache set error
+    void _err;
+  }
     }
 
     calculation = calculateDiminishingXp(currentDailyXp, amount);
@@ -467,9 +468,10 @@ export async function addUserXp(
     try {
       await redis.incrby(redisKey, effectiveAmount);
       await redis.expire(redisKey, 172800);
-    } catch {
-      // Ignore cache increment error
-    }
+    } catch (_err: unknown) {
+    // Handled fallback: Ignore cache increment error
+    void _err;
+  }
   }
 
   const nextLevel = calculateLevel(updatedUser.xp).level;

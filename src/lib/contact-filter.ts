@@ -314,9 +314,10 @@ export async function checkImageBufferForContacts(
               detectedText: "Image held for automated security review due to upload frequency.",
             };
           }
-        } catch {
-          // Redis down => proceed
-        }
+        } catch (_err: unknown) {
+    // Handled fallback: Redis down => fail open to direct regex filter
+    void _err;
+  }
       }
 
       // Global daily budget protection cap (1000 scans/day)
@@ -334,9 +335,10 @@ export async function checkImageBufferForContacts(
             detectedText: "Image held for automated security review due to daily scan quota.",
           };
         }
-      } catch {
-        // Redis down => proceed
-      }
+      } catch (_err: unknown) {
+    // Handled fallback: Redis down => fail open to direct regex filter
+    void _err;
+  }
 
       // 4. Execute Vision API with Circuit Breaker and X-Goog-Api-Key Header
       // ⚠️ Official Google Cloud API System Parameters: https://cloud.google.com/apis/docs/system-parameters

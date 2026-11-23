@@ -64,9 +64,10 @@ function ShareModal({ open, onClose, referralCode, referralLink, onOpenStory }: 
     if (navigator.share) {
       try {
         await navigator.share({ title: "Join VyaparMedia", text: shareText, url: referralLink });
-      } catch {
-        // user cancelled — no-op
-      }
+      } catch (_err: unknown) {
+    // Handled fallback: user cancelled — no-op
+    void _err;
+  }
     }
   }, [shareText, referralLink]);
 

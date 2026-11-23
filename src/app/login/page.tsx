@@ -31,8 +31,9 @@ export function resolveSafeCallbackUrl(rawCallbackUrl: string | null | undefined
     if (doubleDecoded !== decoded) {
       decoded = doubleDecoded;
     }
-  } catch {
-    // ignore
+  } catch (_err: unknown) {
+    // Handled fallback: Fall through on session check
+    void _err;
   }
 
   // Reject backslashes (literal or %5c), protocol-relative slashes (// or %2f%2f), and control characters

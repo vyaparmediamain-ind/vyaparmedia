@@ -292,8 +292,8 @@ export function calculateFairPrice(
     const midIdx = Math.floor(n / 2);
     const median =
       n % 2 === 0
-        ? ((validViews[midIdx - 1] ?? validViews[midIdx]!) + validViews[midIdx]!) / 2
-        : validViews[midIdx]!;
+        ? ((validViews[midIdx - 1] ?? (validViews[midIdx] ?? 0)) + (validViews[midIdx] ?? 0)) / 2
+        : (validViews[midIdx] ?? 0);
     viewsBasis = Math.round(median);
     viewStatistic = "MEDIAN";
     confidence = "LOW";

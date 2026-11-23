@@ -226,9 +226,10 @@ export default function CreateCampaignClient() {
             setFormData((prev) => ({ ...prev, ...parsed }));
           }
         }
-      } catch {
-        // Ignore JSON error
-      }
+      } catch (_err: unknown) {
+    // Handled fallback: Ignore draft restore JSON parse error
+    void _err;
+  }
     }
   }, [editCampaignId]);
 
@@ -238,9 +239,10 @@ export default function CreateCampaignClient() {
       if (formData.title || formData.description) {
         try {
           sessionStorage.setItem("campaign_wizard_draft", JSON.stringify(formData));
-        } catch {
-          // Storage quota exceeded
-        }
+        } catch (_err: unknown) {
+    // Handled fallback: Storage quota exceeded or blocked
+    void _err;
+  }
       }
     }
   }, [formData, editCampaignId]);

@@ -47,13 +47,13 @@ export function getCategoryBaselineCpvSync(targetCategories: string[]): number {
   for (const cat of targetCategories) {
     const normalized = cat.trim().toLowerCase();
     if (CATEGORY_BASELINE_CPV_PAISE[normalized] !== undefined) {
-      matchedBaselines.push(CATEGORY_BASELINE_CPV_PAISE[normalized]!);
+      matchedBaselines.push((CATEGORY_BASELINE_CPV_PAISE[normalized] ?? 35));
     } else {
       const foundKey = Object.keys(CATEGORY_BASELINE_CPV_PAISE).find(
         (k) => normalized.includes(k) || k.includes(normalized)
       );
       if (foundKey && CATEGORY_BASELINE_CPV_PAISE[foundKey] !== undefined) {
-        matchedBaselines.push(CATEGORY_BASELINE_CPV_PAISE[foundKey]!);
+        matchedBaselines.push((CATEGORY_BASELINE_CPV_PAISE[foundKey] ?? 35));
       }
     }
   }

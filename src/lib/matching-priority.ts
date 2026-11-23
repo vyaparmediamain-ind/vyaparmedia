@@ -150,9 +150,10 @@ export function decodeMatchingPriority(
   if (weightsMatch && weightsMatch[1]) {
     try {
       customWeights = JSON.parse(weightsMatch[1]) as MatchingWeights;
-    } catch {
-      /* ignore invalid JSON */
-    }
+    } catch (_err: unknown) {
+    // Handled fallback: ignore invalid JSON in cached priority list
+    void _err;
+  }
   }
 
   const cleanGuidelines = guidelines

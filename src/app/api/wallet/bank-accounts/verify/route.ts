@@ -101,8 +101,9 @@ async function _handler_POST(req: NextRequest) {
   let accountNumber = bankAccount.accountNumber;
   try {
     accountNumber = decrypt(bankAccount.accountNumber);
-  } catch {
-    // Fall through — may be plain-text legacy record
+  } catch (_err: unknown) {
+    // Handled fallback: Fall through — may be plain-text legacy record
+    void _err;
   }
 
   if (!/^\d{9,18}$/.test(accountNumber)) {

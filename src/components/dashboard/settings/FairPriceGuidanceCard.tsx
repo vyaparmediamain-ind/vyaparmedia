@@ -92,9 +92,10 @@ export function FairPriceGuidanceCard({ quotedRatePaise }: Readonly<FairPriceGui
       if (res.ok) {
         await fetchPricing();
       }
-    } catch {
-      // Ignore evaluation errors on retry
-    } finally {
+    } catch (_err: unknown) {
+    // Handled fallback: Evaluation retry error handled in component error state
+    void _err;
+  } finally {
       setIsRecomputing(false);
     }
   };

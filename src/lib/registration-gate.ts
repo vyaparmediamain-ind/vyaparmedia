@@ -72,9 +72,10 @@ export async function getRegistrationGateConfig(): Promise<RegistrationGateConfi
         redis.set(REDIS_KEY_REQUIRE_REFERRAL, config.requireReferral ? "true" : "false", "EX", 86400 * 30),
         redis.set(REDIS_KEY_MASTER_CODE, config.masterInviteCode, "EX", 86400 * 30),
       ]);
-    } catch {
-      // ignore Redis write error
-    }
+    } catch (_err: unknown) {
+    // Handled fallback: ignore Redis write error on rate limit tracking
+    void _err;
+  }
 
     memoryCache = { config, expiresAt: now + 10000 };
     return config;

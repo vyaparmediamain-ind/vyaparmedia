@@ -528,10 +528,14 @@ export async function createCompleteShipment(
       `[Shiprocket Warning] SHIPROCKET_EMAIL / SHIPROCKET_PASSWORD are not configured. Generating simulated mock shipment for deal: ${params.dealId} (dev/test only). No physical shipment will be dispatched.`,
     );
 
-    const mockOrderNum = Math.floor(100000 + Math.random() * 900000);
-    const mockAwb = `SRDEL${Math.floor(1000000000 + Math.random() * 9000000000)}`;
+    const randomBytes = crypto.getRandomValues(new Uint32Array(3));
+    const r0 = randomBytes[0] ?? 0;
+    const r1 = randomBytes[1] ?? 0;
+    const r2 = randomBytes[2] ?? 0;
+    const mockOrderNum = 100000 + (r0 % 900000);
+    const mockAwb = `SRDEL${1000000000 + (r1 % 9000000000)}`;
     const nowIso = new Date().toISOString();
-    const mockChargeRupees = 80 + Math.floor(Math.random() * 70); // ~₹80–₹150 simulated
+    const mockChargeRupees = 80 + (r2 % 70); // ~₹80–₹150 simulated
 
     return {
       orderId: `SR-ORD-${params.dealId.slice(-6).toUpperCase()}-${mockOrderNum}`,

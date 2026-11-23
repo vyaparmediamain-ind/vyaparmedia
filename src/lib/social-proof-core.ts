@@ -98,8 +98,8 @@ export function calculateWinsorizedEngagementRate(rates: number[]): number {
   const mid = Math.floor(sorted.length / 2);
   const median =
     sorted.length % 2 === 0
-      ? (sorted[mid - 1]! + sorted[mid]!) / 2
-      : sorted[mid]!;
+      ? ((sorted[mid - 1] ?? 0) + (sorted[mid] ?? 0)) / 2
+      : (sorted[mid] ?? 0);
 
   const maxThreshold = Math.max(1.5, median * 2.5);
   const winsorized = rates.map((r) => Math.min(r, maxThreshold));
@@ -203,10 +203,10 @@ export function detectSuddenEngagementSpike(params: {
   const mid = Math.floor(sorted.length / 2);
   const median =
     sorted.length % 2 === 0
-      ? (sorted[mid - 1]! + sorted[mid]!) / 2
-      : sorted[mid]!;
+      ? ((sorted[mid - 1] ?? 0) + (sorted[mid] ?? 0)) / 2
+      : (sorted[mid] ?? 0);
 
-  const highestER = sorted[sorted.length - 1]!;
+  const highestER = (sorted[sorted.length - 1] ?? 0);
   const baselineMedian = params.medianEngagementRate ?? median;
   const safeMedian = Math.max(0.2, baselineMedian);
   const spikeRatio = Number((highestER / safeMedian).toFixed(2));

@@ -445,7 +445,7 @@ export class CampaignMetricsService {
         brandId: campaign.brandId,
       },
       dailyMetrics: dailyMetrics.map((dm) => ({
-        date: dm.date.toISOString().split("T")[0]!,
+        date: dm.date.toISOString().split("T")[0] ?? "",
         briefViews: dm.briefViews,
         uniqueBriefViewers: dm.uniqueBriefViewers,
         applications: dm.applications,
@@ -605,7 +605,7 @@ export class CampaignMetricsService {
 
     // 6. Timeseries mapping
     const timeseries = dailyMetrics.map((dm) => ({
-      date: dm.date.toISOString().split("T")[0]!,
+      date: dm.date.toISOString().split("T")[0] ?? "",
       briefViews: dm.briefViews,
       uniqueBriefViewers: dm.uniqueBriefViewers,
       applications: dm.applications,

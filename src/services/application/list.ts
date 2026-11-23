@@ -178,7 +178,8 @@ if (page > 1 || applications.length === limit) {
   >();
 
   for (let i = 0; i < applications.length; i++) {
-    const app = applications[i]!;
+    const app = applications[i];
+    if (!app) continue;
     const campId = app.campaign.id;
     let group = campaignCandidatesMap.get(campId);
     if (!group) {
@@ -224,9 +225,11 @@ if (page > 1 || applications.length === limit) {
       );
 
       for (let j = 0; j < group.indices.length; j++) {
-        const appIdx = group.indices[j]!;
-        const score = scores[j]!;
-        matchResultsByAppIndex.set(appIdx, score);
+        const appIdx = group.indices[j];
+        const score = scores[j];
+        if (appIdx !== undefined && score !== undefined) {
+          matchResultsByAppIndex.set(appIdx, score);
+        }
       }
     })
   );

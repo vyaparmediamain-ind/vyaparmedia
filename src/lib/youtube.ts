@@ -879,9 +879,11 @@ avgViews > 0 ? ((avgLikes + avgComments) / avgViews) * 100 : 0;
 
 // Calculate upload frequency
 const dates = videos.map((v) => new Date(v.publishedAt).getTime()).sort((a, b) => a - b);
+const lastDate = dates.at(-1);
+const firstDate = dates[0];
 const daySpan =
-dates.length > 1
-? (dates.at(-1)! - dates[0]!) / (1000 * 60 * 60 * 24)
+dates.length > 1 && lastDate !== undefined && firstDate !== undefined
+? (lastDate - firstDate) / (1000 * 60 * 60 * 24)
 : 30;
 const videosPerWeek = daySpan > 0 ? (videos.length / daySpan) * 7 : 0;
 const uploadFrequency =
