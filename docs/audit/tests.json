@@ -1,9 +1,9 @@
 {
-  "generatedAt": "2026-11-23T12:49:37.304Z",
+  "generatedAt": "2026-11-23T13:21:41.491Z",
   "totalModules": 633,
-  "totalCovered": 315,
-  "totalUncovered": 318,
-  "overallCoveragePercent": 49.8,
+  "totalCovered": 327,
+  "totalUncovered": 306,
+  "overallCoveragePercent": 51.7,
   "summaries": {
     "lib": {
       "total": 185,
@@ -19,9 +19,9 @@
     },
     "route": {
       "total": 154,
-      "covered": 38,
-      "uncovered": 116,
-      "coveragePercent": 24.7
+      "covered": 50,
+      "uncovered": 104,
+      "coveragePercent": 32.5
     },
     "component": {
       "total": 183,
@@ -40,10 +40,6 @@
     {
       "category": "route",
       "modulePath": "/api/admin/audit-logs"
-    },
-    {
-      "category": "route",
-      "modulePath": "/api/admin/campaigns/[id]"
     },
     {
       "category": "route",
@@ -139,10 +135,6 @@
     },
     {
       "category": "route",
-      "modulePath": "/api/applications/[id]/accept"
-    },
-    {
-      "category": "route",
       "modulePath": "/api/applications/[id]/reject"
     },
     {
@@ -208,10 +200,6 @@
     {
       "category": "route",
       "modulePath": "/api/cron/campaign-metrics"
-    },
-    {
-      "category": "route",
-      "modulePath": "/api/cron/cleanup-idempotency"
     },
     {
       "category": "route",
@@ -283,10 +271,6 @@
     },
     {
       "category": "route",
-      "modulePath": "/api/deals/[id]"
-    },
-    {
-      "category": "route",
       "modulePath": "/api/deals/[id]/cancel"
     },
     {
@@ -299,19 +283,7 @@
     },
     {
       "category": "route",
-      "modulePath": "/api/deals/[id]/fund"
-    },
-    {
-      "category": "route",
       "modulePath": "/api/deals/[id]/product"
-    },
-    {
-      "category": "route",
-      "modulePath": "/api/deals/[id]/reject"
-    },
-    {
-      "category": "route",
-      "modulePath": "/api/deals/[id]/sign"
     },
     {
       "category": "route",
@@ -356,14 +328,6 @@
     {
       "category": "route",
       "modulePath": "/api/notifications/push-subscription"
-    },
-    {
-      "category": "route",
-      "modulePath": "/api/payments/webhook"
-    },
-    {
-      "category": "route",
-      "modulePath": "/api/payments/withdraw"
     },
     {
       "category": "route",
@@ -471,10 +435,6 @@
     },
     {
       "category": "route",
-      "modulePath": "/api/verify-report/[id]"
-    },
-    {
-      "category": "route",
       "modulePath": "/api/wallet"
     },
     {
@@ -492,14 +452,6 @@
     {
       "category": "route",
       "modulePath": "/api/wallet/bank-accounts/verify"
-    },
-    {
-      "category": "route",
-      "modulePath": "/api/wallet/transactions"
-    },
-    {
-      "category": "route",
-      "modulePath": "/api/webhooks/shiprocket"
     },
     {
       "category": "component",
@@ -1731,6 +1683,21 @@
       "covered": true,
       "tests": [
         {
+          "testFile": "tests/routes/idor-authz.contract.test.ts",
+          "layer": "other",
+          "referenceType": "import"
+        },
+        {
+          "testFile": "tests/routes/matrix.contract.test.ts",
+          "layer": "other",
+          "referenceType": "import"
+        },
+        {
+          "testFile": "tests/routes/money-critical.contract.test.ts",
+          "layer": "other",
+          "referenceType": "import"
+        },
+        {
           "testFile": "tests/routes/smoke/health.contract.test.ts",
           "layer": "other",
           "referenceType": "import"
@@ -1792,6 +1759,21 @@
       "category": "lib",
       "covered": true,
       "tests": [
+        {
+          "testFile": "tests/routes/idor-authz.contract.test.ts",
+          "layer": "other",
+          "referenceType": "import"
+        },
+        {
+          "testFile": "tests/routes/matrix.contract.test.ts",
+          "layer": "other",
+          "referenceType": "import"
+        },
+        {
+          "testFile": "tests/routes/money-critical.contract.test.ts",
+          "layer": "other",
+          "referenceType": "import"
+        },
         {
           "testFile": "tests/routes/smoke/health.contract.test.ts",
           "layer": "other",
@@ -1855,6 +1837,21 @@
       "covered": true,
       "tests": [
         {
+          "testFile": "tests/routes/idor-authz.contract.test.ts",
+          "layer": "other",
+          "referenceType": "import"
+        },
+        {
+          "testFile": "tests/routes/matrix.contract.test.ts",
+          "layer": "other",
+          "referenceType": "import"
+        },
+        {
+          "testFile": "tests/routes/money-critical.contract.test.ts",
+          "layer": "other",
+          "referenceType": "import"
+        },
+        {
           "testFile": "tests/routes/smoke/health.contract.test.ts",
           "layer": "other",
           "referenceType": "import"
@@ -1911,6 +1908,21 @@
       "category": "lib",
       "covered": true,
       "tests": [
+        {
+          "testFile": "tests/routes/idor-authz.contract.test.ts",
+          "layer": "other",
+          "referenceType": "import"
+        },
+        {
+          "testFile": "tests/routes/matrix.contract.test.ts",
+          "layer": "other",
+          "referenceType": "import"
+        },
+        {
+          "testFile": "tests/routes/money-critical.contract.test.ts",
+          "layer": "other",
+          "referenceType": "import"
+        },
         {
           "testFile": "tests/routes/smoke/health.contract.test.ts",
           "layer": "other",
@@ -3319,6 +3331,16 @@
         {
           "testFile": "tests/integration/db-transactions.test.ts",
           "layer": "integration",
+          "referenceType": "import"
+        },
+        {
+          "testFile": "tests/routes/idor-authz.contract.test.ts",
+          "layer": "other",
+          "referenceType": "import"
+        },
+        {
+          "testFile": "tests/routes/money-critical.contract.test.ts",
+          "layer": "other",
           "referenceType": "import"
         },
         {
@@ -4740,6 +4762,11 @@
       "category": "lib",
       "covered": true,
       "tests": [
+        {
+          "testFile": "tests/routes/matrix.contract.test.ts",
+          "layer": "other",
+          "referenceType": "import"
+        },
         {
           "testFile": "tests/unit/auth-security.test.ts",
           "layer": "unit",
@@ -8245,8 +8272,14 @@
     {
       "modulePath": "/api/admin/campaigns/[id]",
       "category": "route",
-      "covered": false,
-      "tests": []
+      "covered": true,
+      "tests": [
+        {
+          "testFile": "tests/routes/idor-authz.contract.test.ts",
+          "layer": "other",
+          "referenceType": "import"
+        }
+      ]
     },
     {
       "modulePath": "/api/admin/campaigns/[id]/reports/governance",
@@ -8266,6 +8299,11 @@
       "covered": true,
       "tests": [
         {
+          "testFile": "tests/routes/matrix.contract.test.ts",
+          "layer": "other",
+          "referenceType": "import"
+        },
+        {
           "testFile": "tests/unit/dead-api-01.test.ts",
           "layer": "unit",
           "referenceType": "route-string"
@@ -8277,6 +8315,11 @@
       "category": "route",
       "covered": true,
       "tests": [
+        {
+          "testFile": "tests/routes/money-critical.contract.test.ts",
+          "layer": "other",
+          "referenceType": "import"
+        },
         {
           "testFile": "tests/unit/admin-dlq-route.test.ts",
           "layer": "unit",
@@ -8430,8 +8473,14 @@
     {
       "modulePath": "/api/applications/[id]/accept",
       "category": "route",
-      "covered": false,
-      "tests": []
+      "covered": true,
+      "tests": [
+        {
+          "testFile": "tests/routes/idor-authz.contract.test.ts",
+          "layer": "other",
+          "referenceType": "import"
+        }
+      ]
     },
     {
       "modulePath": "/api/applications/[id]/reject",
@@ -8629,6 +8678,11 @@
       "covered": true,
       "tests": [
         {
+          "testFile": "tests/routes/idor-authz.contract.test.ts",
+          "layer": "other",
+          "referenceType": "import"
+        },
+        {
           "testFile": "tests/unit/api-client-coverage.test.ts",
           "layer": "unit",
           "referenceType": "route-string"
@@ -8668,8 +8722,14 @@
     {
       "modulePath": "/api/cron/cleanup-idempotency",
       "category": "route",
-      "covered": false,
-      "tests": []
+      "covered": true,
+      "tests": [
+        {
+          "testFile": "tests/routes/webhooks-and-crons.contract.test.ts",
+          "layer": "other",
+          "referenceType": "import"
+        }
+      ]
     },
     {
       "modulePath": "/api/cron/cleanup-oauth",
@@ -8822,8 +8882,14 @@
     {
       "modulePath": "/api/deals/[id]",
       "category": "route",
-      "covered": false,
-      "tests": []
+      "covered": true,
+      "tests": [
+        {
+          "testFile": "tests/routes/idor-authz.contract.test.ts",
+          "layer": "other",
+          "referenceType": "import"
+        }
+      ]
     },
     {
       "modulePath": "/api/deals/[id]/cancel",
@@ -8846,8 +8912,14 @@
     {
       "modulePath": "/api/deals/[id]/fund",
       "category": "route",
-      "covered": false,
-      "tests": []
+      "covered": true,
+      "tests": [
+        {
+          "testFile": "tests/routes/money-critical.contract.test.ts",
+          "layer": "other",
+          "referenceType": "import"
+        }
+      ]
     },
     {
       "modulePath": "/api/deals/[id]/product",
@@ -8858,14 +8930,26 @@
     {
       "modulePath": "/api/deals/[id]/reject",
       "category": "route",
-      "covered": false,
-      "tests": []
+      "covered": true,
+      "tests": [
+        {
+          "testFile": "tests/routes/money-critical.contract.test.ts",
+          "layer": "other",
+          "referenceType": "import"
+        }
+      ]
     },
     {
       "modulePath": "/api/deals/[id]/sign",
       "category": "route",
-      "covered": false,
-      "tests": []
+      "covered": true,
+      "tests": [
+        {
+          "testFile": "tests/routes/money-critical.contract.test.ts",
+          "layer": "other",
+          "referenceType": "import"
+        }
+      ]
     },
     {
       "modulePath": "/api/disputes",
@@ -9074,20 +9158,47 @@
     {
       "modulePath": "/api/payments/webhook",
       "category": "route",
-      "covered": false,
-      "tests": []
+      "covered": true,
+      "tests": [
+        {
+          "testFile": "tests/routes/manifest-guard.contract.test.ts",
+          "layer": "other",
+          "referenceType": "route-string"
+        },
+        {
+          "testFile": "tests/routes/webhooks-and-crons.contract.test.ts",
+          "layer": "other",
+          "referenceType": "import"
+        }
+      ]
     },
     {
       "modulePath": "/api/payments/withdraw",
       "category": "route",
-      "covered": false,
-      "tests": []
+      "covered": true,
+      "tests": [
+        {
+          "testFile": "tests/routes/money-critical.contract.test.ts",
+          "layer": "other",
+          "referenceType": "import"
+        }
+      ]
     },
     {
       "modulePath": "/api/pricing/evaluate",
       "category": "route",
       "covered": true,
       "tests": [
+        {
+          "testFile": "tests/routes/idor-authz.contract.test.ts",
+          "layer": "other",
+          "referenceType": "import"
+        },
+        {
+          "testFile": "tests/routes/matrix.contract.test.ts",
+          "layer": "other",
+          "referenceType": "import"
+        },
         {
           "testFile": "tests/unit/fair-price-service.test.ts",
           "layer": "unit",
@@ -9355,8 +9466,14 @@
     {
       "modulePath": "/api/verify-report/[id]",
       "category": "route",
-      "covered": false,
-      "tests": []
+      "covered": true,
+      "tests": [
+        {
+          "testFile": "tests/routes/money-critical.contract.test.ts",
+          "layer": "other",
+          "referenceType": "import"
+        }
+      ]
     },
     {
       "modulePath": "/api/wallet",
@@ -9391,14 +9508,30 @@
     {
       "modulePath": "/api/wallet/transactions",
       "category": "route",
-      "covered": false,
-      "tests": []
+      "covered": true,
+      "tests": [
+        {
+          "testFile": "tests/routes/money-critical.contract.test.ts",
+          "layer": "other",
+          "referenceType": "import"
+        }
+      ]
     },
     {
       "modulePath": "/api/webhooks/msg91",
       "category": "route",
       "covered": true,
       "tests": [
+        {
+          "testFile": "tests/routes/manifest-guard.contract.test.ts",
+          "layer": "other",
+          "referenceType": "route-string"
+        },
+        {
+          "testFile": "tests/routes/webhooks-and-crons.contract.test.ts",
+          "layer": "other",
+          "referenceType": "import"
+        },
         {
           "testFile": "tests/unit/bug-p13-backend-deep-hardening.test.ts",
           "layer": "unit",
@@ -9417,6 +9550,16 @@
       "covered": true,
       "tests": [
         {
+          "testFile": "tests/routes/manifest-guard.contract.test.ts",
+          "layer": "other",
+          "referenceType": "route-string"
+        },
+        {
+          "testFile": "tests/routes/webhooks-and-crons.contract.test.ts",
+          "layer": "other",
+          "referenceType": "import"
+        },
+        {
           "testFile": "tests/unit/qstash-architecture.test.ts",
           "layer": "unit",
           "referenceType": "route-string"
@@ -9429,6 +9572,11 @@
       "covered": true,
       "tests": [
         {
+          "testFile": "tests/routes/webhooks-and-crons.contract.test.ts",
+          "layer": "other",
+          "referenceType": "import"
+        },
+        {
           "testFile": "tests/unit/qstash-architecture.test.ts",
           "layer": "unit",
           "referenceType": "import"
@@ -9440,6 +9588,16 @@
       "category": "route",
       "covered": true,
       "tests": [
+        {
+          "testFile": "tests/routes/manifest-guard.contract.test.ts",
+          "layer": "other",
+          "referenceType": "route-string"
+        },
+        {
+          "testFile": "tests/routes/webhooks-and-crons.contract.test.ts",
+          "layer": "other",
+          "referenceType": "import"
+        },
         {
           "testFile": "tests/unit/bug-p13-backend-deep-hardening.test.ts",
           "layer": "unit",
@@ -9455,8 +9613,19 @@
     {
       "modulePath": "/api/webhooks/shiprocket",
       "category": "route",
-      "covered": false,
-      "tests": []
+      "covered": true,
+      "tests": [
+        {
+          "testFile": "tests/routes/manifest-guard.contract.test.ts",
+          "layer": "other",
+          "referenceType": "route-string"
+        },
+        {
+          "testFile": "tests/routes/webhooks-and-crons.contract.test.ts",
+          "layer": "other",
+          "referenceType": "import"
+        }
+      ]
     },
     {
       "modulePath": "/",
@@ -9465,6 +9634,11 @@
       "tests": [
         {
           "testFile": "tests/components/smoke/Logo.test.tsx",
+          "layer": "other",
+          "referenceType": "route-string"
+        },
+        {
+          "testFile": "tests/routes/manifest-guard.contract.test.ts",
           "layer": "other",
           "referenceType": "route-string"
         },
