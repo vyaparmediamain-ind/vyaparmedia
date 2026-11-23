@@ -1,33 +1,33 @@
 {
-  "generatedAt": "2026-11-23T08:40:57.350Z",
-  "totalModules": 632,
-  "totalCovered": 236,
-  "totalUncovered": 396,
-  "overallCoveragePercent": 37.3,
+  "generatedAt": "2026-11-23T12:49:37.304Z",
+  "totalModules": 633,
+  "totalCovered": 315,
+  "totalUncovered": 318,
+  "overallCoveragePercent": 49.8,
   "summaries": {
     "lib": {
-      "total": 184,
-      "covered": 133,
-      "uncovered": 51,
-      "coveragePercent": 72.3
+      "total": 185,
+      "covered": 185,
+      "uncovered": 0,
+      "coveragePercent": 100
     },
     "service": {
       "total": 48,
-      "covered": 29,
-      "uncovered": 19,
-      "coveragePercent": 60.4
+      "covered": 48,
+      "uncovered": 0,
+      "coveragePercent": 100
     },
     "route": {
       "total": 154,
-      "covered": 31,
-      "uncovered": 123,
-      "coveragePercent": 20.1
+      "covered": 38,
+      "uncovered": 116,
+      "coveragePercent": 24.7
     },
     "component": {
       "total": 183,
-      "covered": 20,
-      "uncovered": 163,
-      "coveragePercent": 10.9
+      "covered": 21,
+      "uncovered": 162,
+      "coveragePercent": 11.5
     },
     "page": {
       "total": 63,
@@ -37,286 +37,6 @@
     }
   },
   "gapList": [
-    {
-      "category": "lib",
-      "modulePath": "src/lib/analytics-engine.ts"
-    },
-    {
-      "category": "lib",
-      "modulePath": "src/lib/api-client/applications.ts"
-    },
-    {
-      "category": "lib",
-      "modulePath": "src/lib/api-client/auth.ts"
-    },
-    {
-      "category": "lib",
-      "modulePath": "src/lib/api-client/campaigns.ts"
-    },
-    {
-      "category": "lib",
-      "modulePath": "src/lib/api-client/deals.ts"
-    },
-    {
-      "category": "lib",
-      "modulePath": "src/lib/api-client/http.ts"
-    },
-    {
-      "category": "lib",
-      "modulePath": "src/lib/api-client/index.ts"
-    },
-    {
-      "category": "lib",
-      "modulePath": "src/lib/api-client/messages.ts"
-    },
-    {
-      "category": "lib",
-      "modulePath": "src/lib/api-client/settings.ts"
-    },
-    {
-      "category": "lib",
-      "modulePath": "src/lib/api-client/upload.ts"
-    },
-    {
-      "category": "lib",
-      "modulePath": "src/lib/api-client/users.ts"
-    },
-    {
-      "category": "lib",
-      "modulePath": "src/lib/api-wrapper.ts"
-    },
-    {
-      "category": "lib",
-      "modulePath": "src/lib/app-url.ts"
-    },
-    {
-      "category": "lib",
-      "modulePath": "src/lib/application-error-helper.ts"
-    },
-    {
-      "category": "lib",
-      "modulePath": "src/lib/badges.ts"
-    },
-    {
-      "category": "lib",
-      "modulePath": "src/lib/blog-subscriber-helper.ts"
-    },
-    {
-      "category": "lib",
-      "modulePath": "src/lib/brand-profile.ts"
-    },
-    {
-      "category": "lib",
-      "modulePath": "src/lib/categories.ts"
-    },
-    {
-      "category": "lib",
-      "modulePath": "src/lib/clipboard.ts"
-    },
-    {
-      "category": "lib",
-      "modulePath": "src/lib/dispute-mediator/actions.ts"
-    },
-    {
-      "category": "lib",
-      "modulePath": "src/lib/dispute-mediator/analyzers/generic.ts"
-    },
-    {
-      "category": "lib",
-      "modulePath": "src/lib/dispute-mediator/analyzers/specific.ts"
-    },
-    {
-      "category": "lib",
-      "modulePath": "src/lib/dispute-mediator/helpers.ts"
-    },
-    {
-      "category": "lib",
-      "modulePath": "src/lib/dispute-mediator/transaction-helpers.ts"
-    },
-    {
-      "category": "lib",
-      "modulePath": "src/lib/dispute-mediator/types.ts"
-    },
-    {
-      "category": "lib",
-      "modulePath": "src/lib/dispute-mediator.ts"
-    },
-    {
-      "category": "lib",
-      "modulePath": "src/lib/enterprise-trust-guard.ts"
-    },
-    {
-      "category": "lib",
-      "modulePath": "src/lib/gamification/badges-brands.ts"
-    },
-    {
-      "category": "lib",
-      "modulePath": "src/lib/gamification/badges-milestones.ts"
-    },
-    {
-      "category": "lib",
-      "modulePath": "src/lib/gamification/badges-streaks.ts"
-    },
-    {
-      "category": "lib",
-      "modulePath": "src/lib/gamification/types.ts"
-    },
-    {
-      "category": "lib",
-      "modulePath": "src/lib/haptics.ts"
-    },
-    {
-      "category": "lib",
-      "modulePath": "src/lib/home-content.ts"
-    },
-    {
-      "category": "lib",
-      "modulePath": "src/lib/html-template.ts"
-    },
-    {
-      "category": "lib",
-      "modulePath": "src/lib/ledger-guard.ts"
-    },
-    {
-      "category": "lib",
-      "modulePath": "src/lib/matching-priority.ts"
-    },
-    {
-      "category": "lib",
-      "modulePath": "src/lib/penalty/types.ts"
-    },
-    {
-      "category": "lib",
-      "modulePath": "src/lib/platform-fees.ts"
-    },
-    {
-      "category": "lib",
-      "modulePath": "src/lib/rbac.ts"
-    },
-    {
-      "category": "lib",
-      "modulePath": "src/lib/roi-calculator.ts"
-    },
-    {
-      "category": "lib",
-      "modulePath": "src/lib/sanitize.ts"
-    },
-    {
-      "category": "lib",
-      "modulePath": "src/lib/search/campaign-search.ts"
-    },
-    {
-      "category": "lib",
-      "modulePath": "src/lib/search/creator-search.ts"
-    },
-    {
-      "category": "lib",
-      "modulePath": "src/lib/search/index.ts"
-    },
-    {
-      "category": "lib",
-      "modulePath": "src/lib/search/types.ts"
-    },
-    {
-      "category": "lib",
-      "modulePath": "src/lib/social-proof-calculator.ts"
-    },
-    {
-      "category": "lib",
-      "modulePath": "src/lib/tokens.ts"
-    },
-    {
-      "category": "lib",
-      "modulePath": "src/lib/utils.ts"
-    },
-    {
-      "category": "lib",
-      "modulePath": "src/lib/verification-tiers.ts"
-    },
-    {
-      "category": "lib",
-      "modulePath": "src/lib/wallet-debt.ts"
-    },
-    {
-      "category": "lib",
-      "modulePath": "src/lib/weekly-challenges.ts"
-    },
-    {
-      "category": "service",
-      "modulePath": "src/services/application/action.ts"
-    },
-    {
-      "category": "service",
-      "modulePath": "src/services/application/create.ts"
-    },
-    {
-      "category": "service",
-      "modulePath": "src/services/application/list.ts"
-    },
-    {
-      "category": "service",
-      "modulePath": "src/services/application/types.ts"
-    },
-    {
-      "category": "service",
-      "modulePath": "src/services/application.service.ts"
-    },
-    {
-      "category": "service",
-      "modulePath": "src/services/block.service.ts"
-    },
-    {
-      "category": "service",
-      "modulePath": "src/services/campaign/create.ts"
-    },
-    {
-      "category": "service",
-      "modulePath": "src/services/campaign/list.ts"
-    },
-    {
-      "category": "service",
-      "modulePath": "src/services/campaign/manage.ts"
-    },
-    {
-      "category": "service",
-      "modulePath": "src/services/campaign/types.ts"
-    },
-    {
-      "category": "service",
-      "modulePath": "src/services/campaign.service.ts"
-    },
-    {
-      "category": "service",
-      "modulePath": "src/services/deal/auto-approve.ts"
-    },
-    {
-      "category": "service",
-      "modulePath": "src/services/deal/content.ts"
-    },
-    {
-      "category": "service",
-      "modulePath": "src/services/deal/invite.ts"
-    },
-    {
-      "category": "service",
-      "modulePath": "src/services/deal/list.ts"
-    },
-    {
-      "category": "service",
-      "modulePath": "src/services/deal/verify.ts"
-    },
-    {
-      "category": "service",
-      "modulePath": "src/services/dispute.service.ts"
-    },
-    {
-      "category": "service",
-      "modulePath": "src/services/user.service.ts"
-    },
-    {
-      "category": "service",
-      "modulePath": "src/services/wallet.service.ts"
-    },
     {
       "category": "route",
       "modulePath": "/api/admin/audit-logs"
@@ -419,10 +139,6 @@
     },
     {
       "category": "route",
-      "modulePath": "/api/applications"
-    },
-    {
-      "category": "route",
       "modulePath": "/api/applications/[id]/accept"
     },
     {
@@ -472,14 +188,6 @@
     {
       "category": "route",
       "modulePath": "/api/blog/verify"
-    },
-    {
-      "category": "route",
-      "modulePath": "/api/campaigns"
-    },
-    {
-      "category": "route",
-      "modulePath": "/api/campaigns/[id]"
     },
     {
       "category": "route",
@@ -627,14 +335,6 @@
     },
     {
       "category": "route",
-      "modulePath": "/api/influencers"
-    },
-    {
-      "category": "route",
-      "modulePath": "/api/influencers/[id]"
-    },
-    {
-      "category": "route",
       "modulePath": "/api/influencers/appeal"
     },
     {
@@ -648,10 +348,6 @@
     {
       "category": "route",
       "modulePath": "/api/messages/stream"
-    },
-    {
-      "category": "route",
-      "modulePath": "/api/notifications"
     },
     {
       "category": "route",
@@ -712,10 +408,6 @@
     {
       "category": "route",
       "modulePath": "/api/scout/verification"
-    },
-    {
-      "category": "route",
-      "modulePath": "/api/settings"
     },
     {
       "category": "route",
@@ -1231,10 +923,6 @@
     },
     {
       "category": "component",
-      "modulePath": "src/components/Logo.tsx"
-    },
-    {
-      "category": "component",
       "modulePath": "src/components/Navbar.tsx"
     },
     {
@@ -1724,38 +1412,73 @@
     {
       "modulePath": "src/lib/analytics-engine.ts",
       "category": "lib",
-      "covered": false,
-      "tests": []
+      "covered": true,
+      "tests": [
+        {
+          "testFile": "tests/unit/platform-helpers-coverage.test.ts",
+          "layer": "unit",
+          "referenceType": "import"
+        }
+      ]
     },
     {
       "modulePath": "src/lib/api-client/applications.ts",
       "category": "lib",
-      "covered": false,
-      "tests": []
+      "covered": true,
+      "tests": [
+        {
+          "testFile": "tests/unit/api-client-coverage.test.ts",
+          "layer": "unit",
+          "referenceType": "import"
+        }
+      ]
     },
     {
       "modulePath": "src/lib/api-client/auth.ts",
       "category": "lib",
-      "covered": false,
-      "tests": []
+      "covered": true,
+      "tests": [
+        {
+          "testFile": "tests/unit/api-client-coverage.test.ts",
+          "layer": "unit",
+          "referenceType": "import"
+        }
+      ]
     },
     {
       "modulePath": "src/lib/api-client/campaigns.ts",
       "category": "lib",
-      "covered": false,
-      "tests": []
+      "covered": true,
+      "tests": [
+        {
+          "testFile": "tests/unit/api-client-coverage.test.ts",
+          "layer": "unit",
+          "referenceType": "import"
+        }
+      ]
     },
     {
       "modulePath": "src/lib/api-client/deals.ts",
       "category": "lib",
-      "covered": false,
-      "tests": []
+      "covered": true,
+      "tests": [
+        {
+          "testFile": "tests/unit/api-client-coverage.test.ts",
+          "layer": "unit",
+          "referenceType": "import"
+        }
+      ]
     },
     {
       "modulePath": "src/lib/api-client/errors.ts",
       "category": "lib",
       "covered": true,
       "tests": [
+        {
+          "testFile": "tests/unit/api-client-coverage.test.ts",
+          "layer": "unit",
+          "referenceType": "import"
+        },
         {
           "testFile": "tests/unit/bug-p9-messages.test.ts",
           "layer": "unit",
@@ -1771,44 +1494,85 @@
     {
       "modulePath": "src/lib/api-client/http.ts",
       "category": "lib",
-      "covered": false,
-      "tests": []
+      "covered": true,
+      "tests": [
+        {
+          "testFile": "tests/unit/api-client-coverage.test.ts",
+          "layer": "unit",
+          "referenceType": "import"
+        }
+      ]
     },
     {
       "modulePath": "src/lib/api-client/index.ts",
       "category": "lib",
-      "covered": false,
-      "tests": []
+      "covered": true,
+      "tests": [
+        {
+          "testFile": "tests/unit/api-client-coverage.test.ts",
+          "layer": "unit",
+          "referenceType": "import"
+        }
+      ]
     },
     {
       "modulePath": "src/lib/api-client/messages.ts",
       "category": "lib",
-      "covered": false,
-      "tests": []
+      "covered": true,
+      "tests": [
+        {
+          "testFile": "tests/unit/api-client-coverage.test.ts",
+          "layer": "unit",
+          "referenceType": "import"
+        }
+      ]
     },
     {
       "modulePath": "src/lib/api-client/settings.ts",
       "category": "lib",
-      "covered": false,
-      "tests": []
+      "covered": true,
+      "tests": [
+        {
+          "testFile": "tests/unit/api-client-coverage.test.ts",
+          "layer": "unit",
+          "referenceType": "import"
+        }
+      ]
     },
     {
       "modulePath": "src/lib/api-client/upload.ts",
       "category": "lib",
-      "covered": false,
-      "tests": []
+      "covered": true,
+      "tests": [
+        {
+          "testFile": "tests/unit/api-client-coverage.test.ts",
+          "layer": "unit",
+          "referenceType": "import"
+        }
+      ]
     },
     {
       "modulePath": "src/lib/api-client/users.ts",
       "category": "lib",
-      "covered": false,
-      "tests": []
+      "covered": true,
+      "tests": [
+        {
+          "testFile": "tests/unit/api-client-coverage.test.ts",
+          "layer": "unit",
+          "referenceType": "import"
+        }
+      ]
     },
     {
       "modulePath": "src/lib/api-client/wallet.ts",
       "category": "lib",
       "covered": true,
       "tests": [
+        {
+          "testFile": "tests/unit/api-client-coverage.test.ts",
+          "layer": "unit",
+          "referenceType": "import"
+        },
         {
           "testFile": "tests/unit/shared-schemas.test.ts",
           "layer": "unit",
@@ -1819,20 +1583,38 @@
     {
       "modulePath": "src/lib/api-wrapper.ts",
       "category": "lib",
-      "covered": false,
-      "tests": []
+      "covered": true,
+      "tests": [
+        {
+          "testFile": "tests/routes/smoke/health.contract.test.ts",
+          "layer": "other",
+          "referenceType": "import"
+        }
+      ]
     },
     {
       "modulePath": "src/lib/app-url.ts",
       "category": "lib",
-      "covered": false,
-      "tests": []
+      "covered": true,
+      "tests": [
+        {
+          "testFile": "tests/unit/platform-helpers-coverage.test.ts",
+          "layer": "unit",
+          "referenceType": "import"
+        }
+      ]
     },
     {
       "modulePath": "src/lib/application-error-helper.ts",
       "category": "lib",
-      "covered": false,
-      "tests": []
+      "covered": true,
+      "tests": [
+        {
+          "testFile": "tests/unit/platform-helpers-coverage.test.ts",
+          "layer": "unit",
+          "referenceType": "import"
+        }
+      ]
     },
     {
       "modulePath": "src/lib/audit-formatters.ts",
@@ -1841,6 +1623,11 @@
       "tests": [
         {
           "testFile": "tests/unit/admin-campaign-audit.test.ts",
+          "layer": "unit",
+          "referenceType": "import"
+        },
+        {
+          "testFile": "tests/unit/admin-dlq-route.test.ts",
           "layer": "unit",
           "referenceType": "import"
         },
@@ -1897,6 +1684,11 @@
           "referenceType": "import"
         },
         {
+          "testFile": "tests/unit/admin-dlq-route.test.ts",
+          "layer": "unit",
+          "referenceType": "import"
+        },
+        {
           "testFile": "tests/unit/campaign-branded-reports.test.ts",
           "layer": "unit",
           "referenceType": "import"
@@ -1939,6 +1731,11 @@
       "covered": true,
       "tests": [
         {
+          "testFile": "tests/routes/smoke/health.contract.test.ts",
+          "layer": "other",
+          "referenceType": "import"
+        },
+        {
           "testFile": "tests/unit/auth-security.test.ts",
           "layer": "unit",
           "referenceType": "import"
@@ -1974,6 +1771,11 @@
           "referenceType": "import"
         },
         {
+          "testFile": "tests/unit/telemetry-hardened.test.ts",
+          "layer": "unit",
+          "referenceType": "import"
+        },
+        {
           "testFile": "tests/unit/telemetry-track.test.ts",
           "layer": "unit",
           "referenceType": "import"
@@ -1990,6 +1792,11 @@
       "category": "lib",
       "covered": true,
       "tests": [
+        {
+          "testFile": "tests/routes/smoke/health.contract.test.ts",
+          "layer": "other",
+          "referenceType": "import"
+        },
         {
           "testFile": "tests/unit/auth-security.test.ts",
           "layer": "unit",
@@ -2026,6 +1833,11 @@
           "referenceType": "import"
         },
         {
+          "testFile": "tests/unit/telemetry-hardened.test.ts",
+          "layer": "unit",
+          "referenceType": "import"
+        },
+        {
           "testFile": "tests/unit/telemetry-track.test.ts",
           "layer": "unit",
           "referenceType": "import"
@@ -2042,6 +1854,11 @@
       "category": "lib",
       "covered": true,
       "tests": [
+        {
+          "testFile": "tests/routes/smoke/health.contract.test.ts",
+          "layer": "other",
+          "referenceType": "import"
+        },
         {
           "testFile": "tests/unit/auth-security.test.ts",
           "layer": "unit",
@@ -2073,6 +1890,11 @@
           "referenceType": "import"
         },
         {
+          "testFile": "tests/unit/telemetry-hardened.test.ts",
+          "layer": "unit",
+          "referenceType": "import"
+        },
+        {
           "testFile": "tests/unit/telemetry-track.test.ts",
           "layer": "unit",
           "referenceType": "import"
@@ -2089,6 +1911,11 @@
       "category": "lib",
       "covered": true,
       "tests": [
+        {
+          "testFile": "tests/routes/smoke/health.contract.test.ts",
+          "layer": "other",
+          "referenceType": "import"
+        },
         {
           "testFile": "tests/unit/admin-authz-active.test.ts",
           "layer": "unit",
@@ -2125,6 +1952,11 @@
           "referenceType": "import"
         },
         {
+          "testFile": "tests/unit/telemetry-hardened.test.ts",
+          "layer": "unit",
+          "referenceType": "import"
+        },
+        {
           "testFile": "tests/unit/telemetry-track.test.ts",
           "layer": "unit",
           "referenceType": "import"
@@ -2151,8 +1983,14 @@
     {
       "modulePath": "src/lib/badges.ts",
       "category": "lib",
-      "covered": false,
-      "tests": []
+      "covered": true,
+      "tests": [
+        {
+          "testFile": "tests/unit/platform-helpers-coverage.test.ts",
+          "layer": "unit",
+          "referenceType": "import"
+        }
+      ]
     },
     {
       "modulePath": "src/lib/blacklist-edge.ts",
@@ -2201,8 +2039,14 @@
     {
       "modulePath": "src/lib/blog-subscriber-helper.ts",
       "category": "lib",
-      "covered": false,
-      "tests": []
+      "covered": true,
+      "tests": [
+        {
+          "testFile": "tests/unit/platform-helpers-coverage.test.ts",
+          "layer": "unit",
+          "referenceType": "import"
+        }
+      ]
     },
     {
       "modulePath": "src/lib/brand-analytics-calc.ts",
@@ -2213,14 +2057,25 @@
           "testFile": "tests/unit/dashboard-analytics-extensions.test.ts",
           "layer": "unit",
           "referenceType": "import"
+        },
+        {
+          "testFile": "tests/unit/rates-quality.test.ts",
+          "layer": "unit",
+          "referenceType": "import"
         }
       ]
     },
     {
       "modulePath": "src/lib/brand-profile.ts",
       "category": "lib",
-      "covered": false,
-      "tests": []
+      "covered": true,
+      "tests": [
+        {
+          "testFile": "tests/unit/platform-helpers-coverage.test.ts",
+          "layer": "unit",
+          "referenceType": "import"
+        }
+      ]
     },
     {
       "modulePath": "src/lib/cache.ts",
@@ -2266,8 +2121,14 @@
     {
       "modulePath": "src/lib/categories.ts",
       "category": "lib",
-      "covered": false,
-      "tests": []
+      "covered": true,
+      "tests": [
+        {
+          "testFile": "tests/unit/platform-helpers-coverage.test.ts",
+          "layer": "unit",
+          "referenceType": "import"
+        }
+      ]
     },
     {
       "modulePath": "src/lib/circuit-breaker.ts",
@@ -2299,8 +2160,14 @@
     {
       "modulePath": "src/lib/clipboard.ts",
       "category": "lib",
-      "covered": false,
-      "tests": []
+      "covered": true,
+      "tests": [
+        {
+          "testFile": "tests/unit/platform-helpers-coverage.test.ts",
+          "layer": "unit",
+          "referenceType": "import"
+        }
+      ]
     },
     {
       "modulePath": "src/lib/communication.ts",
@@ -2509,6 +2376,11 @@
           "referenceType": "import"
         },
         {
+          "testFile": "tests/unit/admin-dlq-route.test.ts",
+          "layer": "unit",
+          "referenceType": "import"
+        },
+        {
           "testFile": "tests/unit/admin-traffic-report.test.ts",
           "layer": "unit",
           "referenceType": "import"
@@ -2544,6 +2416,11 @@
           "referenceType": "import"
         },
         {
+          "testFile": "tests/unit/campaign-deal-services-coverage.test.ts",
+          "layer": "unit",
+          "referenceType": "import"
+        },
+        {
           "testFile": "tests/unit/campaign-finance.test.ts",
           "layer": "unit",
           "referenceType": "import"
@@ -2555,6 +2432,11 @@
         },
         {
           "testFile": "tests/unit/collusion-simulation.test.ts",
+          "layer": "unit",
+          "referenceType": "import"
+        },
+        {
+          "testFile": "tests/unit/core-services-coverage.test.ts",
           "layer": "unit",
           "referenceType": "import"
         },
@@ -2579,6 +2461,11 @@
           "referenceType": "import"
         },
         {
+          "testFile": "tests/unit/dispute-mediator-coverage.test.ts",
+          "layer": "unit",
+          "referenceType": "import"
+        },
+        {
           "testFile": "tests/unit/engagement-data-quality.test.ts",
           "layer": "unit",
           "referenceType": "import"
@@ -2590,6 +2477,16 @@
         },
         {
           "testFile": "tests/unit/feature-flags.test.ts",
+          "layer": "unit",
+          "referenceType": "import"
+        },
+        {
+          "testFile": "tests/unit/financial-core-coverage.test.ts",
+          "layer": "unit",
+          "referenceType": "import"
+        },
+        {
+          "testFile": "tests/unit/gamification-search-coverage.test.ts",
           "layer": "unit",
           "referenceType": "import"
         },
@@ -2610,6 +2507,11 @@
         },
         {
           "testFile": "tests/unit/instagram-callback.test.ts",
+          "layer": "unit",
+          "referenceType": "import"
+        },
+        {
+          "testFile": "tests/unit/job-topics-registry.test.ts",
           "layer": "unit",
           "referenceType": "import"
         },
@@ -2655,6 +2557,11 @@
         },
         {
           "testFile": "tests/unit/payout-reversal.test.ts",
+          "layer": "unit",
+          "referenceType": "import"
+        },
+        {
+          "testFile": "tests/unit/platform-helpers-coverage.test.ts",
           "layer": "unit",
           "referenceType": "import"
         },
@@ -2709,6 +2616,11 @@
           "referenceType": "import"
         },
         {
+          "testFile": "tests/unit/security-and-trust-coverage.test.ts",
+          "layer": "unit",
+          "referenceType": "import"
+        },
+        {
           "testFile": "tests/unit/shiprocket-webhook-lifecycle.test.ts",
           "layer": "unit",
           "referenceType": "import"
@@ -2725,6 +2637,11 @@
         },
         {
           "testFile": "tests/unit/telemetry-consent.test.ts",
+          "layer": "unit",
+          "referenceType": "import"
+        },
+        {
+          "testFile": "tests/unit/telemetry-hardened.test.ts",
           "layer": "unit",
           "referenceType": "import"
         },
@@ -2806,6 +2723,11 @@
           "referenceType": "import"
         },
         {
+          "testFile": "tests/unit/admin-dlq-route.test.ts",
+          "layer": "unit",
+          "referenceType": "import"
+        },
+        {
           "testFile": "tests/unit/admin-traffic-report.test.ts",
           "layer": "unit",
           "referenceType": "import"
@@ -2841,6 +2763,11 @@
           "referenceType": "import"
         },
         {
+          "testFile": "tests/unit/campaign-deal-services-coverage.test.ts",
+          "layer": "unit",
+          "referenceType": "import"
+        },
+        {
           "testFile": "tests/unit/campaign-finance.test.ts",
           "layer": "unit",
           "referenceType": "import"
@@ -2852,6 +2779,11 @@
         },
         {
           "testFile": "tests/unit/collusion-simulation.test.ts",
+          "layer": "unit",
+          "referenceType": "import"
+        },
+        {
+          "testFile": "tests/unit/core-services-coverage.test.ts",
           "layer": "unit",
           "referenceType": "import"
         },
@@ -2876,6 +2808,11 @@
           "referenceType": "import"
         },
         {
+          "testFile": "tests/unit/dispute-mediator-coverage.test.ts",
+          "layer": "unit",
+          "referenceType": "import"
+        },
+        {
           "testFile": "tests/unit/engagement-data-quality.test.ts",
           "layer": "unit",
           "referenceType": "import"
@@ -2887,6 +2824,16 @@
         },
         {
           "testFile": "tests/unit/feature-flags.test.ts",
+          "layer": "unit",
+          "referenceType": "import"
+        },
+        {
+          "testFile": "tests/unit/financial-core-coverage.test.ts",
+          "layer": "unit",
+          "referenceType": "import"
+        },
+        {
+          "testFile": "tests/unit/gamification-search-coverage.test.ts",
           "layer": "unit",
           "referenceType": "import"
         },
@@ -2907,6 +2854,11 @@
         },
         {
           "testFile": "tests/unit/instagram-callback.test.ts",
+          "layer": "unit",
+          "referenceType": "import"
+        },
+        {
+          "testFile": "tests/unit/job-topics-registry.test.ts",
           "layer": "unit",
           "referenceType": "import"
         },
@@ -2952,6 +2904,11 @@
         },
         {
           "testFile": "tests/unit/payout-reversal.test.ts",
+          "layer": "unit",
+          "referenceType": "import"
+        },
+        {
+          "testFile": "tests/unit/platform-helpers-coverage.test.ts",
           "layer": "unit",
           "referenceType": "import"
         },
@@ -3006,6 +2963,11 @@
           "referenceType": "import"
         },
         {
+          "testFile": "tests/unit/security-and-trust-coverage.test.ts",
+          "layer": "unit",
+          "referenceType": "import"
+        },
+        {
           "testFile": "tests/unit/shiprocket-webhook-lifecycle.test.ts",
           "layer": "unit",
           "referenceType": "import"
@@ -3022,6 +2984,11 @@
         },
         {
           "testFile": "tests/unit/telemetry-consent.test.ts",
+          "layer": "unit",
+          "referenceType": "import"
+        },
+        {
+          "testFile": "tests/unit/telemetry-hardened.test.ts",
           "layer": "unit",
           "referenceType": "import"
         },
@@ -3151,44 +3118,86 @@
     {
       "modulePath": "src/lib/dispute-mediator/actions.ts",
       "category": "lib",
-      "covered": false,
-      "tests": []
+      "covered": true,
+      "tests": [
+        {
+          "testFile": "tests/unit/dispute-mediator-coverage.test.ts",
+          "layer": "unit",
+          "referenceType": "import"
+        }
+      ]
     },
     {
       "modulePath": "src/lib/dispute-mediator/analyzers/generic.ts",
       "category": "lib",
-      "covered": false,
-      "tests": []
+      "covered": true,
+      "tests": [
+        {
+          "testFile": "tests/unit/dispute-mediator-coverage.test.ts",
+          "layer": "unit",
+          "referenceType": "import"
+        }
+      ]
     },
     {
       "modulePath": "src/lib/dispute-mediator/analyzers/specific.ts",
       "category": "lib",
-      "covered": false,
-      "tests": []
+      "covered": true,
+      "tests": [
+        {
+          "testFile": "tests/unit/dispute-mediator-coverage.test.ts",
+          "layer": "unit",
+          "referenceType": "import"
+        }
+      ]
     },
     {
       "modulePath": "src/lib/dispute-mediator/helpers.ts",
       "category": "lib",
-      "covered": false,
-      "tests": []
+      "covered": true,
+      "tests": [
+        {
+          "testFile": "tests/unit/dispute-mediator-coverage.test.ts",
+          "layer": "unit",
+          "referenceType": "import"
+        }
+      ]
     },
     {
       "modulePath": "src/lib/dispute-mediator/transaction-helpers.ts",
       "category": "lib",
-      "covered": false,
-      "tests": []
+      "covered": true,
+      "tests": [
+        {
+          "testFile": "tests/unit/dispute-mediator-coverage.test.ts",
+          "layer": "unit",
+          "referenceType": "import"
+        }
+      ]
     },
     {
       "modulePath": "src/lib/dispute-mediator/types.ts",
       "category": "lib",
-      "covered": false,
-      "tests": []
+      "covered": true,
+      "tests": [
+        {
+          "testFile": "tests/unit/dispute-mediator-coverage.test.ts",
+          "layer": "unit",
+          "referenceType": "import"
+        }
+      ]
     },
     {
       "modulePath": "src/lib/dispute-mediator.ts",
       "category": "lib",
-      "covered": false,
-      "tests": []
+      "covered": true,
+      "tests": [
+        {
+          "testFile": "tests/unit/dispute-mediator-coverage.test.ts",
+          "layer": "unit",
+          "referenceType": "import"
+        }
+      ]
     },
     {
       "modulePath": "src/lib/drs-analytics.ts",
@@ -3282,14 +3291,25 @@
           "testFile": "tests/unit/engagement-data-quality.test.ts",
           "layer": "unit",
           "referenceType": "import"
+        },
+        {
+          "testFile": "tests/unit/rates-quality.test.ts",
+          "layer": "unit",
+          "referenceType": "import"
         }
       ]
     },
     {
       "modulePath": "src/lib/enterprise-trust-guard.ts",
       "category": "lib",
-      "covered": false,
-      "tests": []
+      "covered": true,
+      "tests": [
+        {
+          "testFile": "tests/unit/security-and-trust-coverage.test.ts",
+          "layer": "unit",
+          "referenceType": "import"
+        }
+      ]
     },
     {
       "modulePath": "src/lib/errors.ts",
@@ -3332,7 +3352,17 @@
           "referenceType": "import"
         },
         {
+          "testFile": "tests/unit/campaign-deal-services-coverage.test.ts",
+          "layer": "unit",
+          "referenceType": "import"
+        },
+        {
           "testFile": "tests/unit/campaign-metrics.test.ts",
+          "layer": "unit",
+          "referenceType": "import"
+        },
+        {
+          "testFile": "tests/unit/core-services-coverage.test.ts",
           "layer": "unit",
           "referenceType": "import"
         },
@@ -3363,6 +3393,11 @@
         },
         {
           "testFile": "tests/unit/market-range-report.test.ts",
+          "layer": "unit",
+          "referenceType": "import"
+        },
+        {
+          "testFile": "tests/unit/platform-helpers-coverage.test.ts",
           "layer": "unit",
           "referenceType": "import"
         },
@@ -3442,6 +3477,11 @@
         },
         {
           "testFile": "tests/unit/telemetry-consent.test.ts",
+          "layer": "unit",
+          "referenceType": "import"
+        },
+        {
+          "testFile": "tests/unit/telemetry-hardened.test.ts",
           "layer": "unit",
           "referenceType": "import"
         },
@@ -3607,26 +3647,55 @@
     {
       "modulePath": "src/lib/gamification/badges-brands.ts",
       "category": "lib",
-      "covered": false,
-      "tests": []
+      "covered": true,
+      "tests": [
+        {
+          "testFile": "tests/unit/gamification-search-coverage.test.ts",
+          "layer": "unit",
+          "referenceType": "import"
+        }
+      ]
     },
     {
       "modulePath": "src/lib/gamification/badges-milestones.ts",
       "category": "lib",
-      "covered": false,
-      "tests": []
+      "covered": true,
+      "tests": [
+        {
+          "testFile": "tests/unit/gamification-search-coverage.test.ts",
+          "layer": "unit",
+          "referenceType": "import"
+        }
+      ]
     },
     {
       "modulePath": "src/lib/gamification/badges-streaks.ts",
       "category": "lib",
-      "covered": false,
-      "tests": []
+      "covered": true,
+      "tests": [
+        {
+          "testFile": "tests/unit/core-services-coverage.test.ts",
+          "layer": "unit",
+          "referenceType": "import"
+        },
+        {
+          "testFile": "tests/unit/gamification-search-coverage.test.ts",
+          "layer": "unit",
+          "referenceType": "import"
+        }
+      ]
     },
     {
       "modulePath": "src/lib/gamification/types.ts",
       "category": "lib",
-      "covered": false,
-      "tests": []
+      "covered": true,
+      "tests": [
+        {
+          "testFile": "tests/unit/gamification-search-coverage.test.ts",
+          "layer": "unit",
+          "referenceType": "import"
+        }
+      ]
     },
     {
       "modulePath": "src/lib/gamification-engine.ts",
@@ -3643,20 +3712,38 @@
     {
       "modulePath": "src/lib/haptics.ts",
       "category": "lib",
-      "covered": false,
-      "tests": []
+      "covered": true,
+      "tests": [
+        {
+          "testFile": "tests/unit/platform-helpers-coverage.test.ts",
+          "layer": "unit",
+          "referenceType": "import"
+        }
+      ]
     },
     {
       "modulePath": "src/lib/home-content.ts",
       "category": "lib",
-      "covered": false,
-      "tests": []
+      "covered": true,
+      "tests": [
+        {
+          "testFile": "tests/unit/platform-helpers-coverage.test.ts",
+          "layer": "unit",
+          "referenceType": "import"
+        }
+      ]
     },
     {
       "modulePath": "src/lib/html-template.ts",
       "category": "lib",
-      "covered": false,
-      "tests": []
+      "covered": true,
+      "tests": [
+        {
+          "testFile": "tests/unit/platform-helpers-coverage.test.ts",
+          "layer": "unit",
+          "referenceType": "import"
+        }
+      ]
     },
     {
       "modulePath": "src/lib/idempotency.ts",
@@ -3708,7 +3795,17 @@
           "referenceType": "import"
         },
         {
+          "testFile": "tests/unit/instagram-callback-matrix.test.ts",
+          "layer": "unit",
+          "referenceType": "import"
+        },
+        {
           "testFile": "tests/unit/instagram-callback.test.ts",
+          "layer": "unit",
+          "referenceType": "import"
+        },
+        {
+          "testFile": "tests/unit/instagram-insights-discriminated.test.ts",
           "layer": "unit",
           "referenceType": "import"
         },
@@ -3764,6 +3861,18 @@
       ]
     },
     {
+      "modulePath": "src/lib/job-topics.ts",
+      "category": "lib",
+      "covered": true,
+      "tests": [
+        {
+          "testFile": "tests/unit/job-topics-registry.test.ts",
+          "layer": "unit",
+          "referenceType": "import"
+        }
+      ]
+    },
+    {
       "modulePath": "src/lib/json-ld.ts",
       "category": "lib",
       "covered": true,
@@ -3807,6 +3916,11 @@
         },
         {
           "testFile": "tests/unit/infra-redis.test.ts",
+          "layer": "unit",
+          "referenceType": "import"
+        },
+        {
+          "testFile": "tests/unit/instagram-insights-discriminated.test.ts",
           "layer": "unit",
           "referenceType": "import"
         },
@@ -4054,8 +4168,14 @@
     {
       "modulePath": "src/lib/ledger-guard.ts",
       "category": "lib",
-      "covered": false,
-      "tests": []
+      "covered": true,
+      "tests": [
+        {
+          "testFile": "tests/unit/financial-core-coverage.test.ts",
+          "layer": "unit",
+          "referenceType": "import"
+        }
+      ]
     },
     {
       "modulePath": "src/lib/ledger-reconciliation.ts",
@@ -4117,6 +4237,11 @@
           "referenceType": "import"
         },
         {
+          "testFile": "tests/unit/telemetry-hardened.test.ts",
+          "layer": "unit",
+          "referenceType": "import"
+        },
+        {
           "testFile": "tests/unit/youtube-callback.test.ts",
           "layer": "unit",
           "referenceType": "import"
@@ -4164,6 +4289,11 @@
           "referenceType": "import"
         },
         {
+          "testFile": "tests/unit/telemetry-hardened.test.ts",
+          "layer": "unit",
+          "referenceType": "import"
+        },
+        {
           "testFile": "tests/unit/youtube-callback.test.ts",
           "layer": "unit",
           "referenceType": "import"
@@ -4206,6 +4336,11 @@
           "referenceType": "import"
         },
         {
+          "testFile": "tests/unit/telemetry-hardened.test.ts",
+          "layer": "unit",
+          "referenceType": "import"
+        },
+        {
           "testFile": "tests/unit/youtube-callback.test.ts",
           "layer": "unit",
           "referenceType": "import"
@@ -4220,8 +4355,14 @@
     {
       "modulePath": "src/lib/matching-priority.ts",
       "category": "lib",
-      "covered": false,
-      "tests": []
+      "covered": true,
+      "tests": [
+        {
+          "testFile": "tests/unit/financial-core-coverage.test.ts",
+          "layer": "unit",
+          "referenceType": "import"
+        }
+      ]
     },
     {
       "modulePath": "src/lib/messaging-events.ts",
@@ -4253,12 +4394,22 @@
       "covered": true,
       "tests": [
         {
+          "testFile": "tests/unit/instagram-insights-discriminated.test.ts",
+          "layer": "unit",
+          "referenceType": "import"
+        },
+        {
           "testFile": "tests/unit/prometheus-metrics.test.ts",
           "layer": "unit",
           "referenceType": "import"
         },
         {
           "testFile": "tests/unit/razorpay-metrics.test.ts",
+          "layer": "unit",
+          "referenceType": "import"
+        },
+        {
+          "testFile": "tests/unit/telemetry-hardened.test.ts",
           "layer": "unit",
           "referenceType": "import"
         }
@@ -4349,8 +4500,14 @@
     {
       "modulePath": "src/lib/penalty/types.ts",
       "category": "lib",
-      "covered": false,
-      "tests": []
+      "covered": true,
+      "tests": [
+        {
+          "testFile": "tests/unit/gamification-search-coverage.test.ts",
+          "layer": "unit",
+          "referenceType": "import"
+        }
+      ]
     },
     {
       "modulePath": "src/lib/penalty-system.ts",
@@ -4446,8 +4603,14 @@
     {
       "modulePath": "src/lib/platform-fees.ts",
       "category": "lib",
-      "covered": false,
-      "tests": []
+      "covered": true,
+      "tests": [
+        {
+          "testFile": "tests/unit/financial-core-coverage.test.ts",
+          "layer": "unit",
+          "referenceType": "import"
+        }
+      ]
     },
     {
       "modulePath": "src/lib/post-monitor.ts",
@@ -4483,6 +4646,11 @@
       "category": "lib",
       "covered": true,
       "tests": [
+        {
+          "testFile": "tests/unit/admin-dlq-route.test.ts",
+          "layer": "unit",
+          "referenceType": "import"
+        },
         {
           "testFile": "tests/unit/infra-qstash.test.ts",
           "layer": "unit",
@@ -4525,6 +4693,11 @@
       "category": "lib",
       "covered": true,
       "tests": [
+        {
+          "testFile": "tests/unit/admin-dlq-route.test.ts",
+          "layer": "unit",
+          "referenceType": "import"
+        },
         {
           "testFile": "tests/unit/infra-qstash.test.ts",
           "layer": "unit",
@@ -4588,6 +4761,11 @@
           "referenceType": "import"
         },
         {
+          "testFile": "tests/unit/telemetry-hardened.test.ts",
+          "layer": "unit",
+          "referenceType": "import"
+        },
+        {
           "testFile": "tests/unit/telemetry-track.test.ts",
           "layer": "unit",
           "referenceType": "import"
@@ -4616,6 +4794,11 @@
         },
         {
           "testFile": "tests/unit/gateway-settlement-reconcile.test.ts",
+          "layer": "unit",
+          "referenceType": "import"
+        },
+        {
+          "testFile": "tests/unit/job-topics-registry.test.ts",
           "layer": "unit",
           "referenceType": "import"
         },
@@ -4687,6 +4870,11 @@
           "referenceType": "import"
         },
         {
+          "testFile": "tests/unit/job-topics-registry.test.ts",
+          "layer": "unit",
+          "referenceType": "import"
+        },
+        {
           "testFile": "tests/unit/payout-reference-reconcile.test.ts",
           "layer": "unit",
           "referenceType": "import"
@@ -4716,8 +4904,14 @@
     {
       "modulePath": "src/lib/rbac.ts",
       "category": "lib",
-      "covered": false,
-      "tests": []
+      "covered": true,
+      "tests": [
+        {
+          "testFile": "tests/unit/security-and-trust-coverage.test.ts",
+          "layer": "unit",
+          "referenceType": "import"
+        }
+      ]
     },
     {
       "modulePath": "src/lib/reach-estimator.ts",
@@ -4778,6 +4972,11 @@
         },
         {
           "testFile": "tests/unit/fair-price-service.test.ts",
+          "layer": "unit",
+          "referenceType": "import"
+        },
+        {
+          "testFile": "tests/unit/financial-core-coverage.test.ts",
           "layer": "unit",
           "referenceType": "import"
         },
@@ -4853,6 +5052,11 @@
         },
         {
           "testFile": "tests/unit/telemetry-aggregator.test.ts",
+          "layer": "unit",
+          "referenceType": "import"
+        },
+        {
+          "testFile": "tests/unit/telemetry-hardened.test.ts",
           "layer": "unit",
           "referenceType": "import"
         },
@@ -4947,8 +5151,14 @@
     {
       "modulePath": "src/lib/roi-calculator.ts",
       "category": "lib",
-      "covered": false,
-      "tests": []
+      "covered": true,
+      "tests": [
+        {
+          "testFile": "tests/unit/financial-core-coverage.test.ts",
+          "layer": "unit",
+          "referenceType": "import"
+        }
+      ]
     },
     {
       "modulePath": "src/lib/route-key.ts",
@@ -4965,8 +5175,14 @@
     {
       "modulePath": "src/lib/sanitize.ts",
       "category": "lib",
-      "covered": false,
-      "tests": []
+      "covered": true,
+      "tests": [
+        {
+          "testFile": "tests/unit/security-and-trust-coverage.test.ts",
+          "layer": "unit",
+          "referenceType": "import"
+        }
+      ]
     },
     {
       "modulePath": "src/lib/schemas/application.schema.ts",
@@ -5276,6 +5492,11 @@
       "covered": true,
       "tests": [
         {
+          "testFile": "tests/unit/gamification-search-coverage.test.ts",
+          "layer": "unit",
+          "referenceType": "import"
+        },
+        {
           "testFile": "tests/unit/search-discovery.test.ts",
           "layer": "unit",
           "referenceType": "import"
@@ -5285,20 +5506,37 @@
     {
       "modulePath": "src/lib/search/campaign-search.ts",
       "category": "lib",
-      "covered": false,
-      "tests": []
+      "covered": true,
+      "tests": [
+        {
+          "testFile": "tests/unit/gamification-search-coverage.test.ts",
+          "layer": "unit",
+          "referenceType": "import"
+        }
+      ]
     },
     {
       "modulePath": "src/lib/search/creator-search.ts",
       "category": "lib",
-      "covered": false,
-      "tests": []
+      "covered": true,
+      "tests": [
+        {
+          "testFile": "tests/unit/gamification-search-coverage.test.ts",
+          "layer": "unit",
+          "referenceType": "import"
+        }
+      ]
     },
     {
       "modulePath": "src/lib/search/cursor.ts",
       "category": "lib",
       "covered": true,
       "tests": [
+        {
+          "testFile": "tests/unit/gamification-search-coverage.test.ts",
+          "layer": "unit",
+          "referenceType": "import"
+        },
         {
           "testFile": "tests/unit/search-discovery.test.ts",
           "layer": "unit",
@@ -5309,14 +5547,25 @@
     {
       "modulePath": "src/lib/search/index.ts",
       "category": "lib",
-      "covered": false,
-      "tests": []
+      "covered": true,
+      "tests": [
+        {
+          "testFile": "tests/unit/gamification-search-coverage.test.ts",
+          "layer": "unit",
+          "referenceType": "import"
+        }
+      ]
     },
     {
       "modulePath": "src/lib/search/ranking.ts",
       "category": "lib",
       "covered": true,
       "tests": [
+        {
+          "testFile": "tests/unit/gamification-search-coverage.test.ts",
+          "layer": "unit",
+          "referenceType": "import"
+        },
         {
           "testFile": "tests/unit/search-discovery.test.ts",
           "layer": "unit",
@@ -5327,8 +5576,14 @@
     {
       "modulePath": "src/lib/search/types.ts",
       "category": "lib",
-      "covered": false,
-      "tests": []
+      "covered": true,
+      "tests": [
+        {
+          "testFile": "tests/unit/gamification-search-coverage.test.ts",
+          "layer": "unit",
+          "referenceType": "import"
+        }
+      ]
     },
     {
       "modulePath": "src/lib/sentry-sanitizer.ts",
@@ -5409,8 +5664,14 @@
     {
       "modulePath": "src/lib/social-proof-calculator.ts",
       "category": "lib",
-      "covered": false,
-      "tests": []
+      "covered": true,
+      "tests": [
+        {
+          "testFile": "tests/unit/financial-core-coverage.test.ts",
+          "layer": "unit",
+          "referenceType": "import"
+        }
+      ]
     },
     {
       "modulePath": "src/lib/social-proof-core.ts",
@@ -5496,6 +5757,11 @@
           "referenceType": "import"
         },
         {
+          "testFile": "tests/unit/telemetry-hardened.test.ts",
+          "layer": "unit",
+          "referenceType": "import"
+        },
+        {
           "testFile": "tests/unit/telemetry-track.test.ts",
           "layer": "unit",
           "referenceType": "import"
@@ -5513,6 +5779,11 @@
           "referenceType": "import"
         },
         {
+          "testFile": "tests/unit/telemetry-hardened.test.ts",
+          "layer": "unit",
+          "referenceType": "import"
+        },
+        {
           "testFile": "tests/unit/telemetry-track.test.ts",
           "layer": "unit",
           "referenceType": "import"
@@ -5522,8 +5793,14 @@
     {
       "modulePath": "src/lib/tokens.ts",
       "category": "lib",
-      "covered": false,
-      "tests": []
+      "covered": true,
+      "tests": [
+        {
+          "testFile": "tests/unit/security-and-trust-coverage.test.ts",
+          "layer": "unit",
+          "referenceType": "import"
+        }
+      ]
     },
     {
       "modulePath": "src/lib/traffic-analytics.ts",
@@ -5604,6 +5881,11 @@
           "referenceType": "import"
         },
         {
+          "testFile": "tests/unit/platform-helpers-coverage.test.ts",
+          "layer": "unit",
+          "referenceType": "import"
+        },
+        {
           "testFile": "tests/unit/security-pagination-hardening.test.ts",
           "layer": "unit",
           "referenceType": "import"
@@ -5618,8 +5900,14 @@
     {
       "modulePath": "src/lib/utils.ts",
       "category": "lib",
-      "covered": false,
-      "tests": []
+      "covered": true,
+      "tests": [
+        {
+          "testFile": "tests/unit/platform-helpers-coverage.test.ts",
+          "layer": "unit",
+          "referenceType": "import"
+        }
+      ]
     },
     {
       "modulePath": "src/lib/validations/auth.ts",
@@ -5817,8 +6105,14 @@
     {
       "modulePath": "src/lib/verification-tiers.ts",
       "category": "lib",
-      "covered": false,
-      "tests": []
+      "covered": true,
+      "tests": [
+        {
+          "testFile": "tests/unit/security-and-trust-coverage.test.ts",
+          "layer": "unit",
+          "referenceType": "import"
+        }
+      ]
     },
     {
       "modulePath": "src/lib/visibility-analytics.ts",
@@ -5847,14 +6141,26 @@
     {
       "modulePath": "src/lib/wallet-debt.ts",
       "category": "lib",
-      "covered": false,
-      "tests": []
+      "covered": true,
+      "tests": [
+        {
+          "testFile": "tests/unit/financial-core-coverage.test.ts",
+          "layer": "unit",
+          "referenceType": "import"
+        }
+      ]
     },
     {
       "modulePath": "src/lib/weekly-challenges.ts",
       "category": "lib",
-      "covered": false,
-      "tests": []
+      "covered": true,
+      "tests": [
+        {
+          "testFile": "tests/unit/platform-helpers-coverage.test.ts",
+          "layer": "unit",
+          "referenceType": "import"
+        }
+      ]
     },
     {
       "modulePath": "src/lib/youtube-retention.ts",
@@ -6009,32 +6315,62 @@
     {
       "modulePath": "src/services/application/action.ts",
       "category": "service",
-      "covered": false,
-      "tests": []
+      "covered": true,
+      "tests": [
+        {
+          "testFile": "tests/unit/core-services-coverage.test.ts",
+          "layer": "unit",
+          "referenceType": "import"
+        }
+      ]
     },
     {
       "modulePath": "src/services/application/create.ts",
       "category": "service",
-      "covered": false,
-      "tests": []
+      "covered": true,
+      "tests": [
+        {
+          "testFile": "tests/unit/core-services-coverage.test.ts",
+          "layer": "unit",
+          "referenceType": "import"
+        }
+      ]
     },
     {
       "modulePath": "src/services/application/list.ts",
       "category": "service",
-      "covered": false,
-      "tests": []
+      "covered": true,
+      "tests": [
+        {
+          "testFile": "tests/unit/core-services-coverage.test.ts",
+          "layer": "unit",
+          "referenceType": "import"
+        }
+      ]
     },
     {
       "modulePath": "src/services/application/types.ts",
       "category": "service",
-      "covered": false,
-      "tests": []
+      "covered": true,
+      "tests": [
+        {
+          "testFile": "tests/unit/core-services-coverage.test.ts",
+          "layer": "unit",
+          "referenceType": "import"
+        }
+      ]
     },
     {
       "modulePath": "src/services/application.service.ts",
       "category": "service",
-      "covered": false,
-      "tests": []
+      "covered": true,
+      "tests": [
+        {
+          "testFile": "tests/unit/core-services-coverage.test.ts",
+          "layer": "unit",
+          "referenceType": "import"
+        }
+      ]
     },
     {
       "modulePath": "src/services/auth.service.ts",
@@ -6051,32 +6387,62 @@
     {
       "modulePath": "src/services/block.service.ts",
       "category": "service",
-      "covered": false,
-      "tests": []
+      "covered": true,
+      "tests": [
+        {
+          "testFile": "tests/unit/core-services-coverage.test.ts",
+          "layer": "unit",
+          "referenceType": "import"
+        }
+      ]
     },
     {
       "modulePath": "src/services/campaign/create.ts",
       "category": "service",
-      "covered": false,
-      "tests": []
+      "covered": true,
+      "tests": [
+        {
+          "testFile": "tests/unit/campaign-deal-services-coverage.test.ts",
+          "layer": "unit",
+          "referenceType": "import"
+        }
+      ]
     },
     {
       "modulePath": "src/services/campaign/list.ts",
       "category": "service",
-      "covered": false,
-      "tests": []
+      "covered": true,
+      "tests": [
+        {
+          "testFile": "tests/unit/campaign-deal-services-coverage.test.ts",
+          "layer": "unit",
+          "referenceType": "import"
+        }
+      ]
     },
     {
       "modulePath": "src/services/campaign/manage.ts",
       "category": "service",
-      "covered": false,
-      "tests": []
+      "covered": true,
+      "tests": [
+        {
+          "testFile": "tests/unit/campaign-deal-services-coverage.test.ts",
+          "layer": "unit",
+          "referenceType": "import"
+        }
+      ]
     },
     {
       "modulePath": "src/services/campaign/types.ts",
       "category": "service",
-      "covered": false,
-      "tests": []
+      "covered": true,
+      "tests": [
+        {
+          "testFile": "tests/unit/campaign-deal-services-coverage.test.ts",
+          "layer": "unit",
+          "referenceType": "import"
+        }
+      ]
     },
     {
       "modulePath": "src/services/campaign-finance.service.ts",
@@ -6171,8 +6537,14 @@
     {
       "modulePath": "src/services/campaign.service.ts",
       "category": "service",
-      "covered": false,
-      "tests": []
+      "covered": true,
+      "tests": [
+        {
+          "testFile": "tests/unit/campaign-deal-services-coverage.test.ts",
+          "layer": "unit",
+          "referenceType": "import"
+        }
+      ]
     },
     {
       "modulePath": "src/services/creator-audit.service.ts",
@@ -6213,14 +6585,26 @@
     {
       "modulePath": "src/services/deal/auto-approve.ts",
       "category": "service",
-      "covered": false,
-      "tests": []
+      "covered": true,
+      "tests": [
+        {
+          "testFile": "tests/unit/campaign-deal-services-coverage.test.ts",
+          "layer": "unit",
+          "referenceType": "import"
+        }
+      ]
     },
     {
       "modulePath": "src/services/deal/content.ts",
       "category": "service",
-      "covered": false,
-      "tests": []
+      "covered": true,
+      "tests": [
+        {
+          "testFile": "tests/unit/campaign-deal-services-coverage.test.ts",
+          "layer": "unit",
+          "referenceType": "import"
+        }
+      ]
     },
     {
       "modulePath": "src/services/deal/helpers.ts",
@@ -6242,14 +6626,26 @@
     {
       "modulePath": "src/services/deal/invite.ts",
       "category": "service",
-      "covered": false,
-      "tests": []
+      "covered": true,
+      "tests": [
+        {
+          "testFile": "tests/unit/campaign-deal-services-coverage.test.ts",
+          "layer": "unit",
+          "referenceType": "import"
+        }
+      ]
     },
     {
       "modulePath": "src/services/deal/list.ts",
       "category": "service",
-      "covered": false,
-      "tests": []
+      "covered": true,
+      "tests": [
+        {
+          "testFile": "tests/unit/campaign-deal-services-coverage.test.ts",
+          "layer": "unit",
+          "referenceType": "import"
+        }
+      ]
     },
     {
       "modulePath": "src/services/deal/product.ts",
@@ -6266,8 +6662,14 @@
     {
       "modulePath": "src/services/deal/verify.ts",
       "category": "service",
-      "covered": false,
-      "tests": []
+      "covered": true,
+      "tests": [
+        {
+          "testFile": "tests/unit/campaign-deal-services-coverage.test.ts",
+          "layer": "unit",
+          "referenceType": "import"
+        }
+      ]
     },
     {
       "modulePath": "src/services/deal.service.ts",
@@ -6289,8 +6691,14 @@
     {
       "modulePath": "src/services/dispute.service.ts",
       "category": "service",
-      "covered": false,
-      "tests": []
+      "covered": true,
+      "tests": [
+        {
+          "testFile": "tests/unit/core-services-coverage.test.ts",
+          "layer": "unit",
+          "referenceType": "import"
+        }
+      ]
     },
     {
       "modulePath": "src/services/fair-price.service.ts",
@@ -6537,6 +6945,11 @@
           "referenceType": "import"
         },
         {
+          "testFile": "tests/unit/telemetry-hardened.test.ts",
+          "layer": "unit",
+          "referenceType": "import"
+        },
+        {
           "testFile": "tests/unit/telemetry-track.test.ts",
           "layer": "unit",
           "referenceType": "import"
@@ -6546,8 +6959,14 @@
     {
       "modulePath": "src/services/user.service.ts",
       "category": "service",
-      "covered": false,
-      "tests": []
+      "covered": true,
+      "tests": [
+        {
+          "testFile": "tests/unit/core-services-coverage.test.ts",
+          "layer": "unit",
+          "referenceType": "import"
+        }
+      ]
     },
     {
       "modulePath": "src/services/visibility-analytics.service.ts",
@@ -6564,8 +6983,14 @@
     {
       "modulePath": "src/services/wallet.service.ts",
       "category": "service",
-      "covered": false,
-      "tests": []
+      "covered": true,
+      "tests": [
+        {
+          "testFile": "tests/unit/core-services-coverage.test.ts",
+          "layer": "unit",
+          "referenceType": "import"
+        }
+      ]
     },
     {
       "modulePath": "src/components/admin/AdminFrame.tsx",
@@ -7359,8 +7784,14 @@
     {
       "modulePath": "src/components/Logo.tsx",
       "category": "component",
-      "covered": false,
-      "tests": []
+      "covered": true,
+      "tests": [
+        {
+          "testFile": "tests/components/smoke/Logo.test.tsx",
+          "layer": "other",
+          "referenceType": "import"
+        }
+      ]
     },
     {
       "modulePath": "src/components/Navbar.tsx",
@@ -7847,6 +8278,11 @@
       "covered": true,
       "tests": [
         {
+          "testFile": "tests/unit/admin-dlq-route.test.ts",
+          "layer": "unit",
+          "referenceType": "import"
+        },
+        {
           "testFile": "tests/unit/infra-qstash.test.ts",
           "layer": "unit",
           "referenceType": "import"
@@ -7982,8 +8418,14 @@
     {
       "modulePath": "/api/applications",
       "category": "route",
-      "covered": false,
-      "tests": []
+      "covered": true,
+      "tests": [
+        {
+          "testFile": "tests/unit/api-client-coverage.test.ts",
+          "layer": "unit",
+          "referenceType": "route-string"
+        }
+      ]
     },
     {
       "modulePath": "/api/applications/[id]/accept",
@@ -8081,6 +8523,11 @@
       "covered": true,
       "tests": [
         {
+          "testFile": "tests/unit/api-client-coverage.test.ts",
+          "layer": "unit",
+          "referenceType": "route-string"
+        },
+        {
           "testFile": "tests/unit/auth-security.test.ts",
           "layer": "unit",
           "referenceType": "import"
@@ -8167,14 +8614,26 @@
     {
       "modulePath": "/api/campaigns",
       "category": "route",
-      "covered": false,
-      "tests": []
+      "covered": true,
+      "tests": [
+        {
+          "testFile": "tests/unit/api-client-coverage.test.ts",
+          "layer": "unit",
+          "referenceType": "route-string"
+        }
+      ]
     },
     {
       "modulePath": "/api/campaigns/[id]",
       "category": "route",
-      "covered": false,
-      "tests": []
+      "covered": true,
+      "tests": [
+        {
+          "testFile": "tests/unit/api-client-coverage.test.ts",
+          "layer": "unit",
+          "referenceType": "route-string"
+        }
+      ]
     },
     {
       "modulePath": "/api/campaigns/[id]/analytics",
@@ -8464,20 +8923,37 @@
           "testFile": "tests/unit/observability-sentry-health.test.ts",
           "layer": "unit",
           "referenceType": "import"
+        },
+        {
+          "testFile": "tests/unit/platform-helpers-coverage.test.ts",
+          "layer": "unit",
+          "referenceType": "route-string"
         }
       ]
     },
     {
       "modulePath": "/api/influencers",
       "category": "route",
-      "covered": false,
-      "tests": []
+      "covered": true,
+      "tests": [
+        {
+          "testFile": "tests/unit/api-client-coverage.test.ts",
+          "layer": "unit",
+          "referenceType": "route-string"
+        }
+      ]
     },
     {
       "modulePath": "/api/influencers/[id]",
       "category": "route",
-      "covered": false,
-      "tests": []
+      "covered": true,
+      "tests": [
+        {
+          "testFile": "tests/unit/api-client-coverage.test.ts",
+          "layer": "unit",
+          "referenceType": "route-string"
+        }
+      ]
     },
     {
       "modulePath": "/api/influencers/appeal",
@@ -8497,9 +8973,19 @@
       "covered": true,
       "tests": [
         {
+          "testFile": "tests/unit/admin-dlq-route.test.ts",
+          "layer": "unit",
+          "referenceType": "route-string"
+        },
+        {
           "testFile": "tests/unit/infra-qstash.test.ts",
           "layer": "unit",
           "referenceType": "import"
+        },
+        {
+          "testFile": "tests/unit/migrate-dlq-endpoints.test.ts",
+          "layer": "unit",
+          "referenceType": "route-string"
         },
         {
           "testFile": "tests/unit/qstash-architecture.test.ts",
@@ -8525,6 +9011,11 @@
       "category": "route",
       "covered": true,
       "tests": [
+        {
+          "testFile": "tests/unit/api-client-coverage.test.ts",
+          "layer": "unit",
+          "referenceType": "route-string"
+        },
         {
           "testFile": "tests/unit/bug-p8-contract.test.ts",
           "layer": "unit",
@@ -8559,8 +9050,14 @@
     {
       "modulePath": "/api/notifications",
       "category": "route",
-      "covered": false,
-      "tests": []
+      "covered": true,
+      "tests": [
+        {
+          "testFile": "tests/unit/api-client-coverage.test.ts",
+          "layer": "unit",
+          "referenceType": "route-string"
+        }
+      ]
     },
     {
       "modulePath": "/api/notifications/preferences",
@@ -8679,8 +9176,14 @@
     {
       "modulePath": "/api/settings",
       "category": "route",
-      "covered": false,
-      "tests": []
+      "covered": true,
+      "tests": [
+        {
+          "testFile": "tests/unit/api-client-coverage.test.ts",
+          "layer": "unit",
+          "referenceType": "route-string"
+        }
+      ]
     },
     {
       "modulePath": "/api/settings/telemetry-consent",
@@ -8711,6 +9214,11 @@
       "category": "route",
       "covered": true,
       "tests": [
+        {
+          "testFile": "tests/unit/telemetry-hardened.test.ts",
+          "layer": "unit",
+          "referenceType": "import"
+        },
         {
           "testFile": "tests/unit/telemetry-track.test.ts",
           "layer": "unit",
@@ -8956,6 +9464,11 @@
       "covered": true,
       "tests": [
         {
+          "testFile": "tests/components/smoke/Logo.test.tsx",
+          "layer": "other",
+          "referenceType": "route-string"
+        },
+        {
           "testFile": "tests/unit/auth-security.test.ts",
           "layer": "unit",
           "referenceType": "route-string"
@@ -8972,6 +9485,11 @@
         },
         {
           "testFile": "tests/unit/bug-p7-security.test.ts",
+          "layer": "unit",
+          "referenceType": "route-string"
+        },
+        {
+          "testFile": "tests/unit/metric-fallback-guard.test.ts",
           "layer": "unit",
           "referenceType": "route-string"
         },
@@ -9207,6 +9725,11 @@
       "category": "page",
       "covered": true,
       "tests": [
+        {
+          "testFile": "tests/unit/api-client-coverage.test.ts",
+          "layer": "unit",
+          "referenceType": "route-string"
+        },
         {
           "testFile": "tests/unit/app-shell-navigation.test.ts",
           "layer": "unit",
@@ -9552,6 +10075,11 @@
       "covered": true,
       "tests": [
         {
+          "testFile": "tests/e2e-pw/smoke.spec.ts",
+          "layer": "other",
+          "referenceType": "route-string"
+        },
+        {
           "testFile": "tests/unit/google-signin-verification.test.ts",
           "layer": "unit",
           "referenceType": "route-string"
@@ -9584,6 +10112,11 @@
       "category": "page",
       "covered": true,
       "tests": [
+        {
+          "testFile": "tests/unit/telemetry-hardened.test.ts",
+          "layer": "unit",
+          "referenceType": "route-string"
+        },
         {
           "testFile": "tests/unit/telemetry-track.test.ts",
           "layer": "unit",

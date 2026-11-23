@@ -7,7 +7,8 @@ import React from "react";
 
 // Augment Vitest Assertion interface for vitest-axe matchers
 declare module "vitest" {
-  interface Assertion<R, _T> {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  interface Assertion<R, T> {
     toHaveNoViolations(): R;
   }
   interface AsymmetricMatchersContaining {
