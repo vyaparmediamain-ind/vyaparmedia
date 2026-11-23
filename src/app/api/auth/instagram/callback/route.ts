@@ -52,59 +52,59 @@ async function _handler_GET(req: NextRequest) {
 
     // Determine actually granted scopes (handle user-denied insights gracefully)
     let grantedScopes: string[] = ["instagram_business_basic"];
-  let capability: "ACTIVE" | "BASIC_ONLY" | "UNKNOWN" = "BASIC_ONLY";
+    let _capability: "ACTIVE" | "BASIC_ONLY" | "UNKNOWN" = "BASIC_ONLY";
 
-  if (tokens.permissions && tokens.permissions.length > 0) {
-    const candidateScopes = tokens.permissions.filter((p) =>
-      ["instagram_business_basic", "instagram_business_manage_insights"].includes(p)
-    );
-    if (candidateScopes.length > 0) {
-      grantedScopes = Array.from(new Set([...grantedScopes, ...candidateScopes]));
-      if (grantedScopes.includes("instagram_business_manage_insights")) {
-        capability = "ACTIVE";
-      }
-    }
-  } else {
-    // Verify via /me/permissions or test insights call
-    const verifiedPermissions = await fetchInstagramPermissions(tokens.accessToken);
-    if (verifiedPermissions.includes("instagram_business_manage_insights")) {
-      grantedScopes = ["instagram_business_basic", "instagram_business_manage_insights"];
-      capability = "ACTIVE";
-    } else {
-      try {
-        const recent = await getRecentPosts(tokens.accessToken, 1);
-        if (recent.length === 0 || !recent[0]) {
-          // No recent posts exist to probe -> mark capability UNKNOWN
-          grantedScopes = ["instagram_business_basic"];
-          capability = "UNKNOWN";
-        } else {
-          const samplePost = recent[0];
-          const testInsights = await getMediaInsights(tokens.accessToken, samplePost.id, samplePost.mediaProductType);
-          if (
-            testInsights?.status === "OK" ||
-            testInsights?.status === "EMPTY" ||
-            testInsights?.status === "NOT_ENOUGH_VIEWERS"
-          ) {
-            grantedScopes = ["instagram_business_basic", "instagram_business_manage_insights"];
-            capability = "ACTIVE";
-          } else {
-            grantedScopes = ["instagram_business_basic"];
-            capability = "BASIC_ONLY";
-          }
+    if (tokens.permissions && tokens.permissions.length > 0) {
+      const candidateScopes = tokens.permissions.filter((p) =>
+        ["instagram_business_basic", "instagram_business_manage_insights"].includes(p)
+      );
+      if (candidateScopes.length > 0) {
+        grantedScopes = Array.from(new Set([...grantedScopes, ...candidateScopes]));
+        if (grantedScopes.includes("instagram_business_manage_insights")) {
+          _capability = "ACTIVE";
         }
-      } catch (probeErr: unknown) {
-        // Fall back gracefully to basic scope if user denied insights or call failed
-        logger.warn("Probe of Instagram insights failed, falling back to basic scope", {
-          userId,
-          error: probeErr instanceof Error ? probeErr.message : String(probeErr),
-        });
-        grantedScopes = ["instagram_business_basic"];
-        capability = "BASIC_ONLY";
+      }
+    } else {
+      // Verify via /me/permissions or test insights call
+      const verifiedPermissions = await fetchInstagramPermissions(tokens.accessToken);
+      if (verifiedPermissions.includes("instagram_business_manage_insights")) {
+        grantedScopes = ["instagram_business_basic", "instagram_business_manage_insights"];
+        _capability = "ACTIVE";
+      } else {
+        try {
+          const recent = await getRecentPosts(tokens.accessToken, 1);
+          if (recent.length === 0 || !recent[0]) {
+            // No recent posts exist to probe -> mark capability UNKNOWN
+            grantedScopes = ["instagram_business_basic"];
+            _capability = "UNKNOWN";
+          } else {
+            const samplePost = recent[0];
+            const testInsights = await getMediaInsights(tokens.accessToken, samplePost.id, samplePost.mediaProductType);
+            if (
+              testInsights?.status === "OK" ||
+              testInsights?.status === "EMPTY" ||
+              testInsights?.status === "NOT_ENOUGH_VIEWERS"
+            ) {
+              grantedScopes = ["instagram_business_basic", "instagram_business_manage_insights"];
+              _capability = "ACTIVE";
+            } else {
+              grantedScopes = ["instagram_business_basic"];
+              _capability = "BASIC_ONLY";
+            }
+          }
+        } catch (probeErr: unknown) {
+          // Fall back gracefully to basic scope if user denied insights or call failed
+          logger.warn("Probe of Instagram insights failed, falling back to basic scope", {
+            userId,
+            error: probeErr instanceof Error ? probeErr.message : String(probeErr),
+          });
+          grantedScopes = ["instagram_business_basic"];
+          _capability = "BASIC_ONLY";
+        }
       }
     }
-  }
 
-  const storedScope = capability === "UNKNOWN" ? "UNKNOWN" : "instagram_business_basic";
+    const storedScope = "instagram_business_basic";
 
     // Clean up any legacy Facebook-user-id rows for this user now that we have the canonical Instagram ID
     await prisma.oAuthAccount.deleteMany({

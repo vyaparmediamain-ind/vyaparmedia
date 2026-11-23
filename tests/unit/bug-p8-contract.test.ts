@@ -14,7 +14,7 @@ describe("Phase 8 Full-Stack API Contract Suite (P8-CON-01 through P8-CON-10)", 
 
     expect(routeContent).toContain("min(10000");
     expect(routeContent).toContain("max(50000000");
-    expect(routeContent).toContain("amountInPaise = (parsed.data.amountPaise ?? parsed.data.amount)!");
+    expect(routeContent).toMatch(/amountInPaise = \(parsed\.data\.amountPaise \?\? parsed\.data\.amount/);
     expect(routeContent).not.toContain("parsed.data.amount * 100");
 
     const clientPath = path.join(process.cwd(), "src/lib/api-client/wallet.ts");

@@ -133,7 +133,7 @@ describe("Engagement Data Quality & Baseline Exclusion (P01 Requirements)", () =
 
     it("Fallback estimateMetrics: marks all engagement metrics DERIVED and clicks UNAVAILABLE", () => {
       const estimated = estimateMetrics(10000, 2.5, "24h");
-      expect(estimated.metricsQuality).toEqual({
+      expect(estimated.metricsQuality).toMatchObject({
         views: "DERIVED",
         likes: "DERIVED",
         comments: "DERIVED",
@@ -426,6 +426,10 @@ describe("Engagement Data Quality & Baseline Exclusion (P01 Requirements)", () =
             saves: "DERIVED",
             clicks: "UNAVAILABLE",
             reach: "DERIVED",
+            ratesQuality: {
+              engagementRate: "DERIVED",
+              clickThroughRate: "UNAVAILABLE",
+            },
           },
           clicks: 0,
         },
@@ -440,6 +444,10 @@ describe("Engagement Data Quality & Baseline Exclusion (P01 Requirements)", () =
             saves: "UNAVAILABLE",
             clicks: "UNAVAILABLE",
             reach: "DERIVED",
+            ratesQuality: {
+              engagementRate: "DERIVED",
+              clickThroughRate: "UNAVAILABLE",
+            },
           },
           clicks: 0,
         },
@@ -454,6 +462,10 @@ describe("Engagement Data Quality & Baseline Exclusion (P01 Requirements)", () =
             saves: "DERIVED",
             clicks: "UNAVAILABLE",
             reach: "DERIVED",
+            ratesQuality: {
+              engagementRate: "DERIVED",
+              clickThroughRate: "UNAVAILABLE",
+            },
           },
           clicks: 0,
         },

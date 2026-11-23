@@ -5,6 +5,9 @@
 
 # testing
 /coverage
+/playwright-report/
+/test-results/
+/tests/e2e-pw/.auth/
 
 # next.js
 /.next/

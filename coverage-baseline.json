@@ -1,0 +1,16 @@
+{
+  "total": {
+    "lines": 1.0,
+    "statements": 1.0,
+    "functions": 0.8,
+    "branches": 0.4
+  },
+  "folders": {
+    "src/lib": {
+      "lines": 1.0,
+      "statements": 1.0,
+      "functions": 1.0,
+      "branches": 0.5
+    }
+  }
+}
