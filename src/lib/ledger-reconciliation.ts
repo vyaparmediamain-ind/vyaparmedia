@@ -263,7 +263,7 @@ export async function reconcileGatewayPaymentsIST(): Promise<{
 
         await prisma.deadLetterJob.create({
           data: {
-            endpoint: "/api/cron/reconcile-ledger-settlements",
+            endpoint: "/api/jobs/consumer",
             category: "TIME_CRITICAL",
             topic: "reconciliation.gateway_mismatch",
             deduplicationId: `recon_missing_${payment.id}`,
@@ -283,7 +283,7 @@ export async function reconcileGatewayPaymentsIST(): Promise<{
 
         await prisma.deadLetterJob.create({
           data: {
-            endpoint: "/api/cron/reconcile-ledger-settlements",
+            endpoint: "/api/jobs/consumer",
             category: "TIME_CRITICAL",
             topic: "reconciliation.gateway_mismatch",
             deduplicationId: `recon_amount_mismatch_${payment.id}`,

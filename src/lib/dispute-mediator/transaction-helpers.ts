@@ -238,7 +238,7 @@ try {
       category: "TIME_CRITICAL",
       topic: "dispute.gateway_refund",
       deduplicationId: `dispute:refund:${deal.id}:${deal.paymentHold.razorpayPaymentId}`,
-      endpoint: "/api/payments/razorpay/refund",
+      endpoint: "/api/jobs/consumer",
       errorMessage: errorObj.message,
       errorStack: errorObj.stack || null,
       payload: {

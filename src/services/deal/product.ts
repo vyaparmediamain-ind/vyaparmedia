@@ -353,7 +353,7 @@ export async function createShiprocketShipment(
         category: "TIME_CRITICAL",
         topic: "shipping.unbilled_shipment_reconcile",
         deduplicationId: `unbilled_shipment_${deal.id}_${shipment.awbCode}`,
-        endpoint: `/api/cron/reconcile-shipments`,
+        endpoint: `/api/jobs/consumer`,
         payload: {
           dealId: deal.id,
           brandUserId: deal.brand?.userId,

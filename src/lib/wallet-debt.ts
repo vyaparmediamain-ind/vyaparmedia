@@ -183,7 +183,7 @@ if (remainingDebtPaid > 0) {
         category: "TIME_CRITICAL",
         topic: "wallet.debt_distribution_gap",
         deduplicationId: `debt_gap_${wallet.id}_${Date.now()}`,
-        endpoint: "/api/wallet/reconcile-debt",
+        endpoint: "/api/jobs/consumer",
         payload: {
           walletId: wallet.id,
           userId,

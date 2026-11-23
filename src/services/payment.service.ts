@@ -296,7 +296,7 @@ throw AppError.badRequest("NO_RESERVED_CAMPAIGN_FUNDS");
             category: "TIME_CRITICAL",
             topic: "payment.escrow_release_missing_transfer",
             deduplicationId: `escrow_missing_tx_${deal.id}`,
-            endpoint: "/api/escrow/release",
+            endpoint: "/api/jobs/consumer",
             payload: {
               dealId: deal.id,
               paymentHoldId: deal.paymentHold.id,
@@ -340,7 +340,7 @@ throw AppError.badRequest("NO_RESERVED_CAMPAIGN_FUNDS");
             category: "TIME_CRITICAL",
             topic: "payment.escrow_release_gateway_failed",
             deduplicationId: `escrow_release_failed_${deal.id}_${transferId}`,
-            endpoint: "/api/escrow/release",
+            endpoint: "/api/jobs/consumer",
             payload: {
               dealId: deal.id,
               paymentHoldId: deal.paymentHold.id,
@@ -1180,7 +1180,7 @@ throw error;
               category: "TIME_CRITICAL",
               topic: "payment.route_cancel_reverse_failed",
               deduplicationId: `cancel_reverse_${dealId}`,
-              endpoint: "/api/deals/cancel",
+              endpoint: "/api/jobs/consumer",
               payload: {
                 dealId,
                 paymentHoldId: paymentHold.id,
@@ -1213,7 +1213,7 @@ throw error;
               category: "TIME_CRITICAL",
               topic: "payment.route_cancel_refund_failed",
               deduplicationId: `cancel_refund_${dealId}`,
-              endpoint: "/api/deals/cancel",
+              endpoint: "/api/jobs/consumer",
               payload: {
                 dealId,
                 paymentHoldId: paymentHold.id,

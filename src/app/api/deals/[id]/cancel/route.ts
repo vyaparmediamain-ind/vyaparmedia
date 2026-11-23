@@ -116,7 +116,7 @@ for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
           category: "TIME_CRITICAL",
           topic: "payment.route_cancel_refund_failed",
           deduplicationId: `route_cancel_refund_${dealId}`,
-          endpoint: `/api/deals/${dealId}/cancel`,
+          endpoint: "/api/jobs/consumer",
           payload: {
             dealId,
             reason: "Brand requested cancellation",

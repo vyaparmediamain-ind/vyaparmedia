@@ -5,6 +5,8 @@ import prisma from "@/lib/db";
 import { JobCategory, JobStatus, Prisma } from "@prisma/client";
 import { publishJob, type PublishJobOptions } from "@/lib/qstash";
 import { logger } from "@/lib/logger";
+import { createActivityLog } from "@/lib/audit";
+import { getTopicDefinition } from "@/lib/job-topics";
 
 /**
  * Admin Failed-Jobs (Dead-Letter Queue) Management API
@@ -39,10 +41,27 @@ async function _handler_GET(req: NextRequest) {
     prisma.deadLetterJob.count({ where }),
   ]);
 
+  // Enrich with registry metadata (payload schema/preview, manual status, runbook)
+  const enrichedJobs = failedJobs.map((job) => {
+    const topicDef = getTopicDefinition(job.topic);
+    return {
+      ...job,
+      registry: topicDef
+        ? {
+            isMoneyImpacting: topicDef.isMoneyImpacting,
+            requiresAdminApproval: topicDef.requiresAdminApproval,
+            isManualOnly: topicDef.isManualOnly ?? false,
+            runbookNote: topicDef.runbookNote ?? null,
+            maxReplays: topicDef.maxReplays,
+          }
+        : null,
+    };
+  });
+
   return NextResponse.json({
     success: true,
     total,
-    jobs: failedJobs,
+    jobs: enrichedJobs,
   });
 }
 
@@ -51,7 +70,7 @@ async function _handler_POST(req: NextRequest) {
   await requireActiveAdmin(session.user);
 
   const body = await req.json();
-  const { dlqId, action } = body;
+  const { dlqId, action, confirm } = body;
 
   if (!dlqId) {
     return NextResponse.json({ error: "Missing dlqId" }, { status: 400 });
@@ -74,10 +93,54 @@ async function _handler_POST(req: NextRequest) {
         resolvedBy: session.user.id,
       },
     });
+
+    await createActivityLog({
+      userId: session.user.id,
+      action: "ADMIN_DLQ_JOB_DISCARDED",
+      entityType: "DEAD_LETTER_JOB",
+      entityId: dlqId,
+      metadata: {
+        topic: deadJob.topic,
+        attempts: deadJob.attempts,
+      },
+    });
+
     return NextResponse.json({ success: true, message: "Job discarded", job: updated });
   }
 
-  // Re-enqueue job back to QStash
+  // Validate topic in registry
+  const topicDef = getTopicDefinition(deadJob.topic);
+  if (!topicDef) {
+    logger.critical("Admin attempted replay of unregistered DLQ topic", { dlqId, topic: deadJob.topic });
+    return NextResponse.json(
+      {
+        error: `Topic "${deadJob.topic}" is not registered in JOB_TOPICS_REGISTRY. Automated replay is forbidden.`,
+      },
+      { status: 400 }
+    );
+  }
+
+  if (topicDef.isManualOnly) {
+    return NextResponse.json(
+      {
+        error: `Topic "${deadJob.topic}" is marked as manual-only and cannot be replayed automatically.`,
+        runbookNote: topicDef.runbookNote,
+      },
+      { status: 400 }
+    );
+  }
+
+  if ((topicDef.isMoneyImpacting || topicDef.requiresAdminApproval) && !confirm) {
+    return NextResponse.json(
+      {
+        error: `Topic "${deadJob.topic}" impacts money or ledger state. Replay requires explicit confirmation (confirm: true).`,
+        requiresConfirmation: true,
+      },
+      { status: 400 }
+    );
+  }
+
+  // Re-enqueue job back to QStash targeting the universal /api/jobs/consumer endpoint
   const mappedCategory =
     deadJob.category === JobCategory.TIME_CRITICAL
       ? "time-critical"
@@ -91,6 +154,18 @@ async function _handler_POST(req: NextRequest) {
       status: JobStatus.RETRYING,
       attempts: { increment: 1 },
       lastAttemptAt: new Date(),
+    },
+  });
+
+  await createActivityLog({
+    userId: session.user.id,
+    action: "ADMIN_DLQ_JOB_REPLAY_INITIATED",
+    entityType: "DEAD_LETTER_JOB",
+    entityId: dlqId,
+    metadata: {
+      topic: deadJob.topic,
+      attemptsBefore: deadJob.attempts,
+      endpoint: "/api/jobs/consumer",
     },
   });
 
@@ -118,8 +193,9 @@ async function _handler_POST(req: NextRequest) {
       });
   }
 
+  // Universal target is /api/jobs/consumer
   const publishOptions: PublishJobOptions<Record<string, unknown>> = {
-    endpoint: deadJob.endpoint,
+    endpoint: "/api/jobs/consumer",
     topic: deadJob.topic,
     category: mappedCategory,
     payload: (deadJob.payload as Record<string, unknown>) || {},
@@ -144,7 +220,7 @@ async function _handler_POST(req: NextRequest) {
           dlqId,
           enqueued: false,
         },
-        { status: 502 },
+        { status: 502 }
       );
     }
 
