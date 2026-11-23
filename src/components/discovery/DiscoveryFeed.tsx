@@ -147,7 +147,7 @@ export default function DiscoveryFeed({
   ) => {
     if (previousPageData && !previousPageData.nextCursor) return null;
     const cursor = previousPageData?.nextCursor;
-    return [`/api/discovery-feed`, mode, JSON.stringify(filters), searchTerm, cursor || ""];
+    return [`discovery-feed`, mode, JSON.stringify(filters), searchTerm, cursor || ""];
   };
 
   const {

@@ -43,8 +43,32 @@ export function action(
   extraBody?: Record<string, unknown>,
   options?: HttpOptions,
 ) {
+  return act === "accept"
+    ? accept(applicationId, extraBody, options)
+    : reject(applicationId, extraBody, options);
+}
+
+/** POST /api/applications/:id/accept */
+export function accept(
+  applicationId: string,
+  extraBody?: Record<string, unknown>,
+  options?: HttpOptions,
+) {
   return post(
-    `/api/applications/${encodeURIComponent(applicationId)}/${encodeURIComponent(act)}`,
+    `/api/applications/${encodeURIComponent(applicationId)}/accept`,
+    extraBody,
+    options,
+  );
+}
+
+/** POST /api/applications/:id/reject */
+export function reject(
+  applicationId: string,
+  extraBody?: Record<string, unknown>,
+  options?: HttpOptions,
+) {
+  return post(
+    `/api/applications/${encodeURIComponent(applicationId)}/reject`,
     extraBody,
     options,
   );

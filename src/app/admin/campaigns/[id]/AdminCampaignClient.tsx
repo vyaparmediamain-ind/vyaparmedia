@@ -23,6 +23,7 @@ import EmptyState from "@/components/ui/EmptyState";
 import { formatCurrency, formatDate } from "@/lib/utils-client";
 import type { AdminCampaignDetailResponse } from "@/services/admin-campaign.service";
 import { CampaignGovernanceReportModal } from "@/components/reports/CampaignGovernanceReportModal";
+import { approveDeliverableVerification, rejectDeliverableVerification } from "@/app/admin/actions";
 
 interface AdminCampaignClientProps {
   readonly initialData: AdminCampaignDetailResponse;
@@ -30,7 +31,32 @@ interface AdminCampaignClientProps {
 
 export default function AdminCampaignClient({ initialData }: AdminCampaignClientProps) {
   const [showGovernanceReportModal, setShowGovernanceReportModal] = useState(false);
+  const [actionLoadingDealId, setActionLoadingDealId] = useState<string | null>(null);
   const { campaign, audit } = initialData;
+
+  const handleApproveDeliverable = async (dealId: string) => {
+    try {
+      setActionLoadingDealId(dealId);
+      await approveDeliverableVerification(dealId);
+    } catch {
+      // Handled via notification / toast
+    } finally {
+      setActionLoadingDealId(null);
+    }
+  };
+
+  const handleRejectDeliverable = async (dealId: string) => {
+    const reason = window.prompt("Enter deliverable rejection reason (min 5 chars):");
+    if (!reason || reason.trim().length < 5) return;
+    try {
+      setActionLoadingDealId(dealId);
+      await rejectDeliverableVerification(dealId, reason.trim());
+    } catch {
+      // Handled via notification / toast
+    } finally {
+      setActionLoadingDealId(null);
+    }
+  };
   const { revenue, deadlineRisks, disputes, contactLeaks, fraudFlags, creatorMetricAnomalies, dataQualityShare } =
     audit;
 
@@ -230,12 +256,32 @@ export default function AdminCampaignClient({ initialData }: AdminCampaignClient
                         )}
                       </td>
                       <td className="p-3 text-right">
-                        <Link
-                          href={`/dashboard/deals/${risk.dealId}`}
-                          className="inline-flex items-center gap-1 font-semibold text-primary hover:underline text-[11px]"
-                        >
-                          View Deal <ExternalLink className="w-3 h-3" />
-                        </Link>
+                        <div className="flex items-center justify-end gap-2">
+                          <button
+                            type="button"
+                            onClick={() => handleApproveDeliverable(risk.dealId)}
+                            disabled={actionLoadingDealId === risk.dealId}
+                            className="px-2 py-0.5 text-[10px] font-bold rounded bg-verified/10 text-verified border border-verified-border hover:bg-verified/20 transition-colors disabled:opacity-50"
+                            title="Admin override to approve deliverable verification"
+                          >
+                            Verify
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleRejectDeliverable(risk.dealId)}
+                            disabled={actionLoadingDealId === risk.dealId}
+                            className="px-2 py-0.5 text-[10px] font-bold rounded bg-danger/10 text-danger border border-danger-border hover:bg-danger/20 transition-colors disabled:opacity-50"
+                            title="Admin override to reject deliverable verification"
+                          >
+                            Reject
+                          </button>
+                          <Link
+                            href={`/dashboard/deals/${risk.dealId}`}
+                            className="inline-flex items-center gap-1 font-semibold text-primary hover:underline text-[11px]"
+                          >
+                            View Deal <ExternalLink className="w-3 h-3" />
+                          </Link>
+                        </div>
                       </td>
                     </tr>
                   ))}

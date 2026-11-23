@@ -80,6 +80,16 @@ export function cancel(id: string, options?: HttpOptions) {
   return post(`/api/deals/${encodeURIComponent(id)}/cancel`, undefined, options);
 }
 
+/** GET /api/deals/:id/contract */
+export function getContract(id: string, options?: HttpOptions) {
+  return get(`/api/deals/${encodeURIComponent(id)}/contract`, options);
+}
+
+/** GET /api/deals/:id/product */
+export function getProduct(id: string, options?: HttpOptions) {
+  return get(`/api/deals/${encodeURIComponent(id)}/product`, options);
+}
+
 /** POST /api/deals/:id/product */
 export function updateProduct(
   id: string,

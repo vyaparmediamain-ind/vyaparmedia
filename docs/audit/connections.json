@@ -1,8 +1,8 @@
 {
-  "generatedAt": "2026-11-23T08:40:51.353Z",
-  "totalCallSites": 77,
-  "brokenCallSitesCount": 1,
-  "candidateDeadRoutesCount": 56,
+  "generatedAt": "2026-11-23T15:14:42.768Z",
+  "totalCallSites": 159,
+  "brokenCallSitesCount": 0,
+  "candidateDeadRoutesCount": 0,
   "methodMismatchesCount": 0,
   "callSites": [
     {
@@ -142,7 +142,7 @@
     },
     {
       "file": "src/app/dashboard/referrals/page.tsx",
-      "line": 243,
+      "line": 244,
       "rawExpression": "\"/api/gamification/referrals\"",
       "normalizedRoute": "/api/gamification/referrals",
       "method": "GET",
@@ -250,7 +250,7 @@
     },
     {
       "file": "src/components/admin/system/InstagramInsightsCard.tsx",
-      "line": 21,
+      "line": 23,
       "rawExpression": "\"/api/admin/system/social-insights\"",
       "normalizedRoute": "/api/admin/system/social-insights",
       "method": "GET",
@@ -322,7 +322,7 @@
     },
     {
       "file": "src/components/analytics/PageViewTracker.tsx",
-      "line": 95,
+      "line": 99,
       "rawExpression": "\"/api/telemetry/track\"",
       "normalizedRoute": "/api/telemetry/track",
       "method": "POST",
@@ -564,16 +564,6 @@
       "matchedRoute": true
     },
     {
-      "file": "src/components/discovery/DiscoveryFeed.tsx",
-      "line": 150,
-      "rawExpression": "/api/discovery-feed",
-      "normalizedRoute": "/api/discovery-feed",
-      "method": "GET",
-      "sourceType": "swr",
-      "matchedRoute": false,
-      "notes": "Array literal SWR key"
-    },
-    {
       "file": "src/components/navigation/BetaModeBanner.tsx",
       "line": 18,
       "rawExpression": "\"/api/auth/registration-config\"",
@@ -698,483 +688,757 @@
       "method": "POST",
       "sourceType": "fetch",
       "matchedRoute": true
-    }
-  ],
-  "brokenCallSites": [
+    },
     {
-      "file": "src/components/discovery/DiscoveryFeed.tsx",
-      "line": 150,
-      "rawExpression": "/api/discovery-feed",
-      "normalizedRoute": "/api/discovery-feed",
+      "file": "src/lib/api-client/applications.ts",
+      "line": 31,
+      "rawExpression": "`/api/applications${qs ? `?${qs}` : \"\"}`",
+      "normalizedRoute": "/api/applications",
       "method": "GET",
-      "sourceType": "swr",
-      "matchedRoute": false,
-      "notes": "Array literal SWR key"
+      "sourceType": "api-client",
+      "matchedRoute": true
+    },
+    {
+      "file": "src/lib/api-client/applications.ts",
+      "line": 36,
+      "rawExpression": "\"/api/applications\"",
+      "normalizedRoute": "/api/applications",
+      "method": "POST",
+      "sourceType": "api-client",
+      "matchedRoute": true
+    },
+    {
+      "file": "src/lib/api-client/applications.ts",
+      "line": 57,
+      "rawExpression": "`/api/applications/${encodeURIComponent(applicationId)}/accept`",
+      "normalizedRoute": "/api/applications/[id]/accept",
+      "method": "POST",
+      "sourceType": "api-client",
+      "matchedRoute": true
+    },
+    {
+      "file": "src/lib/api-client/applications.ts",
+      "line": 70,
+      "rawExpression": "`/api/applications/${encodeURIComponent(applicationId)}/reject`",
+      "normalizedRoute": "/api/applications/[id]/reject",
+      "method": "POST",
+      "sourceType": "api-client",
+      "matchedRoute": true
+    },
+    {
+      "file": "src/lib/api-client/auth.ts",
+      "line": 45,
+      "rawExpression": "\"/api/auth/verify-email-otp\"",
+      "normalizedRoute": "/api/auth/verify-email-otp",
+      "method": "PUT",
+      "sourceType": "api-client",
+      "matchedRoute": true
+    },
+    {
+      "file": "src/lib/api-client/auth.ts",
+      "line": 57,
+      "rawExpression": "\"/api/auth/verify-email-otp\"",
+      "normalizedRoute": "/api/auth/verify-email-otp",
+      "method": "POST",
+      "sourceType": "api-client",
+      "matchedRoute": true
+    },
+    {
+      "file": "src/lib/api-client/auth.ts",
+      "line": 69,
+      "rawExpression": "\"/api/auth/verify-otp\"",
+      "normalizedRoute": "/api/auth/verify-otp",
+      "method": "PUT",
+      "sourceType": "api-client",
+      "matchedRoute": true
+    },
+    {
+      "file": "src/lib/api-client/auth.ts",
+      "line": 86,
+      "rawExpression": "\"/api/auth/verify-otp\"",
+      "normalizedRoute": "/api/auth/verify-otp",
+      "method": "POST",
+      "sourceType": "api-client",
+      "matchedRoute": true
+    },
+    {
+      "file": "src/lib/api-client/auth.ts",
+      "line": 98,
+      "rawExpression": "\"/api/auth/register\"",
+      "normalizedRoute": "/api/auth/register",
+      "method": "POST",
+      "sourceType": "api-client",
+      "matchedRoute": true
+    },
+    {
+      "file": "src/lib/api-client/auth.ts",
+      "line": 116,
+      "rawExpression": "\"/api/auth/reset-password\"",
+      "normalizedRoute": "/api/auth/reset-password",
+      "method": "POST",
+      "sourceType": "api-client",
+      "matchedRoute": true
+    },
+    {
+      "file": "src/lib/api-client/auth.ts",
+      "line": 128,
+      "rawExpression": "\"/api/auth/reset-password\"",
+      "normalizedRoute": "/api/auth/reset-password",
+      "method": "POST",
+      "sourceType": "api-client",
+      "matchedRoute": true
+    },
+    {
+      "file": "src/lib/api-client/auth.ts",
+      "line": 137,
+      "rawExpression": "\"/api/auth/session\"",
+      "normalizedRoute": "/api/auth/[...nextauth]",
+      "method": "GET",
+      "sourceType": "api-client",
+      "matchedRoute": true
+    },
+    {
+      "file": "src/lib/api-client/campaigns.ts",
+      "line": 21,
+      "rawExpression": "`/api/campaigns${qs ? `?${qs}` : \"\"}`",
+      "normalizedRoute": "/api/campaigns",
+      "method": "GET",
+      "sourceType": "api-client",
+      "matchedRoute": true
+    },
+    {
+      "file": "src/lib/api-client/campaigns.ts",
+      "line": 29,
+      "rawExpression": "`/api/campaigns/${encodeURIComponent(id)}`",
+      "normalizedRoute": "/api/campaigns/[id]",
+      "method": "GET",
+      "sourceType": "api-client",
+      "matchedRoute": true
+    },
+    {
+      "file": "src/lib/api-client/campaigns.ts",
+      "line": 38,
+      "rawExpression": "\"/api/campaigns\"",
+      "normalizedRoute": "/api/campaigns",
+      "method": "POST",
+      "sourceType": "api-client",
+      "matchedRoute": true
+    },
+    {
+      "file": "src/lib/api-client/campaigns.ts",
+      "line": 47,
+      "rawExpression": "`/api/campaigns/${encodeURIComponent(id)}`",
+      "normalizedRoute": "/api/campaigns/[id]",
+      "method": "PUT",
+      "sourceType": "api-client",
+      "matchedRoute": true
+    },
+    {
+      "file": "src/lib/api-client/campaigns.ts",
+      "line": 56,
+      "rawExpression": "`/api/campaigns/${encodeURIComponent(id)}`",
+      "normalizedRoute": "/api/campaigns/[id]",
+      "method": "PATCH",
+      "sourceType": "api-client",
+      "matchedRoute": true
+    },
+    {
+      "file": "src/lib/api-client/campaigns.ts",
+      "line": 61,
+      "rawExpression": "`/api/reports/brand/campaign/${encodeURIComponent(id)}/roi`",
+      "normalizedRoute": "/api/reports/brand/campaign/[id]/roi",
+      "method": "GET",
+      "sourceType": "api-client",
+      "matchedRoute": true
+    },
+    {
+      "file": "src/lib/api-client/campaigns.ts",
+      "line": 117,
+      "rawExpression": "`/api/campaigns/${encodeURIComponent(id)}/analytics`",
+      "normalizedRoute": "/api/campaigns/[id]/analytics",
+      "method": "GET",
+      "sourceType": "api-client",
+      "matchedRoute": true
+    },
+    {
+      "file": "src/lib/api-client/deals.ts",
+      "line": 37,
+      "rawExpression": "`/api/deals${qs ? `?${qs}` : \"\"}`",
+      "normalizedRoute": "/api/deals",
+      "method": "GET",
+      "sourceType": "api-client",
+      "matchedRoute": true
+    },
+    {
+      "file": "src/lib/api-client/deals.ts",
+      "line": 45,
+      "rawExpression": "`/api/deals/${encodeURIComponent(id)}`",
+      "normalizedRoute": "/api/deals/[id]",
+      "method": "GET",
+      "sourceType": "api-client",
+      "matchedRoute": true
+    },
+    {
+      "file": "src/lib/api-client/deals.ts",
+      "line": 57,
+      "rawExpression": "\"/api/deals\"",
+      "normalizedRoute": "/api/deals",
+      "method": "POST",
+      "sourceType": "api-client",
+      "matchedRoute": true
+    },
+    {
+      "file": "src/lib/api-client/deals.ts",
+      "line": 62,
+      "rawExpression": "`/api/deals/${encodeURIComponent(id)}/sign`",
+      "normalizedRoute": "/api/deals/[id]/sign",
+      "method": "POST",
+      "sourceType": "api-client",
+      "matchedRoute": true
+    },
+    {
+      "file": "src/lib/api-client/deals.ts",
+      "line": 71,
+      "rawExpression": "`/api/deals/${encodeURIComponent(id)}/reject`",
+      "normalizedRoute": "/api/deals/[id]/reject",
+      "method": "POST",
+      "sourceType": "api-client",
+      "matchedRoute": true
+    },
+    {
+      "file": "src/lib/api-client/deals.ts",
+      "line": 80,
+      "rawExpression": "`/api/deals/${encodeURIComponent(id)}/cancel`",
+      "normalizedRoute": "/api/deals/[id]/cancel",
+      "method": "POST",
+      "sourceType": "api-client",
+      "matchedRoute": true
+    },
+    {
+      "file": "src/lib/api-client/deals.ts",
+      "line": 85,
+      "rawExpression": "`/api/deals/${encodeURIComponent(id)}/contract`",
+      "normalizedRoute": "/api/deals/[id]/contract",
+      "method": "GET",
+      "sourceType": "api-client",
+      "matchedRoute": true
+    },
+    {
+      "file": "src/lib/api-client/deals.ts",
+      "line": 90,
+      "rawExpression": "`/api/deals/${encodeURIComponent(id)}/product`",
+      "normalizedRoute": "/api/deals/[id]/product",
+      "method": "GET",
+      "sourceType": "api-client",
+      "matchedRoute": true
+    },
+    {
+      "file": "src/lib/api-client/deals.ts",
+      "line": 99,
+      "rawExpression": "`/api/deals/${encodeURIComponent(id)}/product`",
+      "normalizedRoute": "/api/deals/[id]/product",
+      "method": "POST",
+      "sourceType": "api-client",
+      "matchedRoute": true
+    },
+    {
+      "file": "src/lib/api-client/deals.ts",
+      "line": 104,
+      "rawExpression": "`/api/deals/${encodeURIComponent(id)}/engagement`",
+      "normalizedRoute": "/api/deals/[id]/engagement",
+      "method": "GET",
+      "sourceType": "api-client",
+      "matchedRoute": true
+    },
+    {
+      "file": "src/lib/api-client/deals.ts",
+      "line": 116,
+      "rawExpression": "`/api/deals/${encodeURIComponent(id)}/fund`",
+      "normalizedRoute": "/api/deals/[id]/fund",
+      "method": "POST",
+      "sourceType": "api-client",
+      "matchedRoute": true
+    },
+    {
+      "file": "src/lib/api-client/messages.ts",
+      "line": 35,
+      "rawExpression": "`/api/messages${qs ? `?${qs}` : \"\"}`",
+      "normalizedRoute": "/api/messages",
+      "method": "GET",
+      "sourceType": "api-client",
+      "matchedRoute": true
+    },
+    {
+      "file": "src/lib/api-client/messages.ts",
+      "line": 40,
+      "rawExpression": "\"/api/messages\"",
+      "normalizedRoute": "/api/messages",
+      "method": "POST",
+      "sourceType": "api-client",
+      "matchedRoute": true
+    },
+    {
+      "file": "src/lib/api-client/messages.ts",
+      "line": 48,
+      "rawExpression": "\"/api/messages\"",
+      "normalizedRoute": "/api/messages",
+      "method": "PATCH",
+      "sourceType": "api-client",
+      "matchedRoute": true
+    },
+    {
+      "file": "src/lib/api-client/settings.ts",
+      "line": 15,
+      "rawExpression": "\"/api/settings\"",
+      "normalizedRoute": "/api/settings",
+      "method": "GET",
+      "sourceType": "api-client",
+      "matchedRoute": true
+    },
+    {
+      "file": "src/lib/api-client/settings.ts",
+      "line": 23,
+      "rawExpression": "\"/api/settings\"",
+      "normalizedRoute": "/api/settings",
+      "method": "PUT",
+      "sourceType": "api-client",
+      "matchedRoute": true
+    },
+    {
+      "file": "src/lib/api-client/settings.ts",
+      "line": 34,
+      "rawExpression": "`/api/notifications${qs ? `?${qs}` : \"\"}`",
+      "normalizedRoute": "/api/notifications",
+      "method": "GET",
+      "sourceType": "api-client",
+      "matchedRoute": true
+    },
+    {
+      "file": "src/lib/api-client/settings.ts",
+      "line": 46,
+      "rawExpression": "\"/api/notifications\"",
+      "normalizedRoute": "/api/notifications",
+      "method": "POST",
+      "sourceType": "api-client",
+      "matchedRoute": true
+    },
+    {
+      "file": "src/lib/api-client/settings.ts",
+      "line": 51,
+      "rawExpression": "\"/api/notifications/preferences\"",
+      "normalizedRoute": "/api/notifications/preferences",
+      "method": "GET",
+      "sourceType": "api-client",
+      "matchedRoute": true
+    },
+    {
+      "file": "src/lib/api-client/settings.ts",
+      "line": 59,
+      "rawExpression": "\"/api/notifications/preferences\"",
+      "normalizedRoute": "/api/notifications/preferences",
+      "method": "PATCH",
+      "sourceType": "api-client",
+      "matchedRoute": true
+    },
+    {
+      "file": "src/lib/api-client/settings.ts",
+      "line": 67,
+      "rawExpression": "\"/api/notifications/push-subscription\"",
+      "normalizedRoute": "/api/notifications/push-subscription",
+      "method": "POST",
+      "sourceType": "api-client",
+      "matchedRoute": true
+    },
+    {
+      "file": "src/lib/api-client/settings.ts",
+      "line": 73,
+      "rawExpression": "\"/api/compliance/india-tax\"",
+      "normalizedRoute": "/api/compliance/india-tax",
+      "method": "GET",
+      "sourceType": "api-client",
+      "matchedRoute": true
+    },
+    {
+      "file": "src/lib/api-client/settings.ts",
+      "line": 84,
+      "rawExpression": "\"/api/compliance/india-tax\"",
+      "normalizedRoute": "/api/compliance/india-tax",
+      "method": "PUT",
+      "sourceType": "api-client",
+      "matchedRoute": true
+    },
+    {
+      "file": "src/lib/api-client/settings.ts",
+      "line": 92,
+      "rawExpression": "\"/api/disputes\"",
+      "normalizedRoute": "/api/disputes",
+      "method": "POST",
+      "sourceType": "api-client",
+      "matchedRoute": true
+    },
+    {
+      "file": "src/lib/api-client/settings.ts",
+      "line": 100,
+      "rawExpression": "\"/api/disputes\"",
+      "normalizedRoute": "/api/disputes",
+      "method": "PATCH",
+      "sourceType": "api-client",
+      "matchedRoute": true
+    },
+    {
+      "file": "src/lib/api-client/settings.ts",
+      "line": 108,
+      "rawExpression": "\"/api/reviews\"",
+      "normalizedRoute": "/api/reviews",
+      "method": "POST",
+      "sourceType": "api-client",
+      "matchedRoute": true
+    },
+    {
+      "file": "src/lib/api-client/settings.ts",
+      "line": 116,
+      "rawExpression": "\"/api/blog/subscribe\"",
+      "normalizedRoute": "/api/blog/subscribe",
+      "method": "POST",
+      "sourceType": "api-client",
+      "matchedRoute": true
+    },
+    {
+      "file": "src/lib/api-client/upload.ts",
+      "line": 53,
+      "rawExpression": "\"/api/upload/presign\"",
+      "normalizedRoute": "/api/upload/presign",
+      "method": "POST",
+      "sourceType": "api-client",
+      "matchedRoute": true
+    },
+    {
+      "file": "src/lib/api-client/users.ts",
+      "line": 9,
+      "rawExpression": "`/api/influencers/${encodeURIComponent(id)}`",
+      "normalizedRoute": "/api/influencers/[id]",
+      "method": "GET",
+      "sourceType": "api-client",
+      "matchedRoute": true
+    },
+    {
+      "file": "src/lib/api-client/users.ts",
+      "line": 17,
+      "rawExpression": "\"/api/user/send-otp\"",
+      "normalizedRoute": "/api/user/send-otp",
+      "method": "POST",
+      "sourceType": "api-client",
+      "matchedRoute": true
+    },
+    {
+      "file": "src/lib/api-client/users.ts",
+      "line": 25,
+      "rawExpression": "\"/api/user/change-contact\"",
+      "normalizedRoute": "/api/user/change-contact",
+      "method": "POST",
+      "sourceType": "api-client",
+      "matchedRoute": true
+    },
+    {
+      "file": "src/lib/api-client/users.ts",
+      "line": 33,
+      "rawExpression": "\"/api/user/verify-contact\"",
+      "normalizedRoute": "/api/user/verify-contact",
+      "method": "POST",
+      "sourceType": "api-client",
+      "matchedRoute": true
+    },
+    {
+      "file": "src/lib/api-client/users.ts",
+      "line": 41,
+      "rawExpression": "\"/api/user/delete-account\"",
+      "normalizedRoute": "/api/user/delete-account",
+      "method": "POST",
+      "sourceType": "api-client",
+      "matchedRoute": true
+    },
+    {
+      "file": "src/lib/api-client/users.ts",
+      "line": 49,
+      "rawExpression": "\"/api/user/switch-role\"",
+      "normalizedRoute": "/api/user/switch-role",
+      "method": "POST",
+      "sourceType": "api-client",
+      "matchedRoute": true
+    },
+    {
+      "file": "src/lib/api-client/users.ts",
+      "line": 66,
+      "rawExpression": "\"/api/bookmarks\"",
+      "normalizedRoute": "/api/bookmarks",
+      "method": "POST",
+      "sourceType": "api-client",
+      "matchedRoute": true
+    },
+    {
+      "file": "src/lib/api-client/users.ts",
+      "line": 82,
+      "rawExpression": "\"/api/users/block\"",
+      "normalizedRoute": "/api/users/block",
+      "method": "POST",
+      "sourceType": "api-client",
+      "matchedRoute": true
+    },
+    {
+      "file": "src/lib/api-client/users.ts",
+      "line": 87,
+      "rawExpression": "`/api/users/block?checkUserId=${encodeURIComponent(userId)}`",
+      "normalizedRoute": "/api/users/block",
+      "method": "GET",
+      "sourceType": "api-client",
+      "matchedRoute": true
+    },
+    {
+      "file": "src/lib/api-client/users.ts",
+      "line": 109,
+      "rawExpression": "\"/api/users/report\"",
+      "normalizedRoute": "/api/users/report",
+      "method": "POST",
+      "sourceType": "api-client",
+      "matchedRoute": true
+    },
+    {
+      "file": "src/lib/api-client/users.ts",
+      "line": 126,
+      "rawExpression": "\"/api/users/feedback\"",
+      "normalizedRoute": "/api/users/feedback",
+      "method": "POST",
+      "sourceType": "api-client",
+      "matchedRoute": true
+    },
+    {
+      "file": "src/lib/api-client/users.ts",
+      "line": 135,
+      "rawExpression": "\"/api/auth/change-password\"",
+      "normalizedRoute": "/api/auth/change-password",
+      "method": "POST",
+      "sourceType": "api-client",
+      "matchedRoute": true
+    },
+    {
+      "file": "src/lib/api-client/users.ts",
+      "line": 140,
+      "rawExpression": "\"/api/auth/youtube/authorize\"",
+      "normalizedRoute": "/api/auth/youtube/authorize",
+      "method": "GET",
+      "sourceType": "api-client",
+      "matchedRoute": true
+    },
+    {
+      "file": "src/lib/api-client/users.ts",
+      "line": 145,
+      "rawExpression": "\"/api/auth/youtube/disconnect\"",
+      "normalizedRoute": "/api/auth/youtube/disconnect",
+      "method": "POST",
+      "sourceType": "api-client",
+      "matchedRoute": true
+    },
+    {
+      "file": "src/lib/api-client/users.ts",
+      "line": 150,
+      "rawExpression": "\"/api/auth/instagram/authorize\"",
+      "normalizedRoute": "/api/auth/instagram/authorize",
+      "method": "GET",
+      "sourceType": "api-client",
+      "matchedRoute": true
+    },
+    {
+      "file": "src/lib/api-client/users.ts",
+      "line": 155,
+      "rawExpression": "\"/api/auth/instagram/disconnect\"",
+      "normalizedRoute": "/api/auth/instagram/disconnect",
+      "method": "POST",
+      "sourceType": "api-client",
+      "matchedRoute": true
+    },
+    {
+      "file": "src/lib/api-client/users.ts",
+      "line": 175,
+      "rawExpression": "\"/api/social/verify\"",
+      "normalizedRoute": "/api/social/verify",
+      "method": "POST",
+      "sourceType": "api-client",
+      "matchedRoute": true
+    },
+    {
+      "file": "src/lib/api-client/users.ts",
+      "line": 180,
+      "rawExpression": "\"/api/user/2fa/setup\"",
+      "normalizedRoute": "/api/user/2fa/setup",
+      "method": "POST",
+      "sourceType": "api-client",
+      "matchedRoute": true
+    },
+    {
+      "file": "src/lib/api-client/users.ts",
+      "line": 188,
+      "rawExpression": "\"/api/user/2fa/verify\"",
+      "normalizedRoute": "/api/user/2fa/verify",
+      "method": "POST",
+      "sourceType": "api-client",
+      "matchedRoute": true
+    },
+    {
+      "file": "src/lib/api-client/users.ts",
+      "line": 196,
+      "rawExpression": "\"/api/user/2fa/disable\"",
+      "normalizedRoute": "/api/user/2fa/disable",
+      "method": "POST",
+      "sourceType": "api-client",
+      "matchedRoute": true
+    },
+    {
+      "file": "src/lib/api-client/users.ts",
+      "line": 204,
+      "rawExpression": "\"/api/verification\"",
+      "normalizedRoute": "/api/verification",
+      "method": "POST",
+      "sourceType": "api-client",
+      "matchedRoute": true
+    },
+    {
+      "file": "src/lib/api-client/users.ts",
+      "line": 209,
+      "rawExpression": "\"/api/verification\"",
+      "normalizedRoute": "/api/verification",
+      "method": "GET",
+      "sourceType": "api-client",
+      "matchedRoute": true
+    },
+    {
+      "file": "src/lib/api-client/users.ts",
+      "line": 214,
+      "rawExpression": "\"/api/auth/digilocker/authorize\"",
+      "normalizedRoute": "/api/auth/digilocker/authorize",
+      "method": "GET",
+      "sourceType": "api-client",
+      "matchedRoute": true
+    },
+    {
+      "file": "src/lib/api-client/users.ts",
+      "line": 223,
+      "rawExpression": "`/api/admin/payouts/${encodeURIComponent(withdrawalId)}`",
+      "normalizedRoute": "/api/admin/payouts/[id]",
+      "method": "PUT",
+      "sourceType": "api-client",
+      "matchedRoute": true
+    },
+    {
+      "file": "src/lib/api-client/wallet.ts",
+      "line": 36,
+      "rawExpression": "\"/api/wallet\"",
+      "normalizedRoute": "/api/wallet",
+      "method": "GET",
+      "sourceType": "api-client",
+      "matchedRoute": true
+    },
+    {
+      "file": "src/lib/api-client/wallet.ts",
+      "line": 49,
+      "rawExpression": "`/api/wallet/transactions${qs ? `?${qs}` : \"\"}`",
+      "normalizedRoute": "/api/wallet/transactions",
+      "method": "GET",
+      "sourceType": "api-client",
+      "matchedRoute": true
+    },
+    {
+      "file": "src/lib/api-client/wallet.ts",
+      "line": 64,
+      "rawExpression": "`/api/wallet/transactions?${qs.toString()}`",
+      "normalizedRoute": "/api/wallet/transactions",
+      "method": "GET",
+      "sourceType": "api-client",
+      "matchedRoute": true
+    },
+    {
+      "file": "src/lib/api-client/wallet.ts",
+      "line": 75,
+      "rawExpression": "\"/api/wallet/add-funds\"",
+      "normalizedRoute": "/api/wallet/add-funds",
+      "method": "POST",
+      "sourceType": "api-client",
+      "matchedRoute": true
+    },
+    {
+      "file": "src/lib/api-client/wallet.ts",
+      "line": 93,
+      "rawExpression": "\"/api/wallet/add-funds/verify\"",
+      "normalizedRoute": "/api/wallet/add-funds/verify",
+      "method": "POST",
+      "sourceType": "api-client",
+      "matchedRoute": true
+    },
+    {
+      "file": "src/lib/api-client/wallet.ts",
+      "line": 98,
+      "rawExpression": "\"/api/payments/withdraw\"",
+      "normalizedRoute": "/api/payments/withdraw",
+      "method": "POST",
+      "sourceType": "api-client",
+      "matchedRoute": true
+    },
+    {
+      "file": "src/lib/api-client/wallet.ts",
+      "line": 103,
+      "rawExpression": "\"/api/wallet/bank-accounts\"",
+      "normalizedRoute": "/api/wallet/bank-accounts",
+      "method": "GET",
+      "sourceType": "api-client",
+      "matchedRoute": true
+    },
+    {
+      "file": "src/lib/api-client/wallet.ts",
+      "line": 111,
+      "rawExpression": "\"/api/wallet/bank-accounts\"",
+      "normalizedRoute": "/api/wallet/bank-accounts",
+      "method": "POST",
+      "sourceType": "api-client",
+      "matchedRoute": true
+    },
+    {
+      "file": "src/lib/api-client/wallet.ts",
+      "line": 116,
+      "rawExpression": "`/api/wallet/bank-accounts?id=${encodeURIComponent(id)}`",
+      "normalizedRoute": "/api/wallet/bank-accounts",
+      "method": "PUT",
+      "sourceType": "api-client",
+      "matchedRoute": true
+    },
+    {
+      "file": "src/lib/api-client/wallet.ts",
+      "line": 125,
+      "rawExpression": "`/api/wallet/bank-accounts?id=${encodeURIComponent(id)}`",
+      "normalizedRoute": "/api/wallet/bank-accounts",
+      "method": "DELETE",
+      "sourceType": "api-client",
+      "matchedRoute": true
+    },
+    {
+      "file": "src/lib/api-client/wallet.ts",
+      "line": 136,
+      "rawExpression": "\"/api/wallet/bank-accounts/verify\"",
+      "normalizedRoute": "/api/wallet/bank-accounts/verify",
+      "method": "POST",
+      "sourceType": "api-client",
+      "matchedRoute": true
+    },
+    {
+      "file": "src/lib/supabase-messaging-realtime.ts",
+      "line": 60,
+      "rawExpression": "\"/api/messages/stream\"",
+      "normalizedRoute": "/api/messages/stream",
+      "method": "GET",
+      "sourceType": "fetch",
+      "matchedRoute": true
     }
   ],
-  "candidateDeadRoutes": [
-    {
-      "route": "/api/admin/campaigns/[id]",
-      "file": "src/app/api/admin/campaigns/[id]/route.ts",
-      "methods": [
-        "GET"
-      ],
-      "reason": "Zero client call sites detected in src/ (not on allow-list)"
-    },
-    {
-      "route": "/api/admin/financial",
-      "file": "src/app/api/admin/financial/route.ts",
-      "methods": [
-        "GET"
-      ],
-      "reason": "Zero client call sites detected in src/ (not on allow-list)"
-    },
-    {
-      "route": "/api/admin/payouts/[id]",
-      "file": "src/app/api/admin/payouts/[id]/route.ts",
-      "methods": [
-        "PUT"
-      ],
-      "reason": "Zero client call sites detected in src/ (not on allow-list)"
-    },
-    {
-      "route": "/api/admin/reports/gst-tcs",
-      "file": "src/app/api/admin/reports/gst-tcs/route.ts",
-      "methods": [
-        "GET"
-      ],
-      "reason": "Zero client call sites detected in src/ (not on allow-list)"
-    },
-    {
-      "route": "/api/admin/reports/revenue",
-      "file": "src/app/api/admin/reports/revenue/route.ts",
-      "methods": [
-        "GET"
-      ],
-      "reason": "Zero client call sites detected in src/ (not on allow-list)"
-    },
-    {
-      "route": "/api/admin/reports/tds",
-      "file": "src/app/api/admin/reports/tds/route.ts",
-      "methods": [
-        "GET"
-      ],
-      "reason": "Zero client call sites detected in src/ (not on allow-list)"
-    },
-    {
-      "route": "/api/admin/users/[id]",
-      "file": "src/app/api/admin/users/[id]/route.ts",
-      "methods": [
-        "GET",
-        "PUT"
-      ],
-      "reason": "Zero client call sites detected in src/ (not on allow-list)"
-    },
-    {
-      "route": "/api/analytics/brand/visibility",
-      "file": "src/app/api/analytics/brand/visibility/route.ts",
-      "methods": [
-        "GET"
-      ],
-      "reason": "Zero client call sites detected in src/ (not on allow-list)"
-    },
-    {
-      "route": "/api/analytics/creator/visibility",
-      "file": "src/app/api/analytics/creator/visibility/route.ts",
-      "methods": [
-        "GET"
-      ],
-      "reason": "Zero client call sites detected in src/ (not on allow-list)"
-    },
-    {
-      "route": "/api/applications",
-      "file": "src/app/api/applications/route.ts",
-      "methods": [
-        "GET",
-        "POST"
-      ],
-      "reason": "Zero client call sites detected in src/ (not on allow-list)"
-    },
-    {
-      "route": "/api/applications/[id]/accept",
-      "file": "src/app/api/applications/[id]/accept/route.ts",
-      "methods": [
-        "POST"
-      ],
-      "reason": "Zero client call sites detected in src/ (not on allow-list)"
-    },
-    {
-      "route": "/api/applications/[id]/reject",
-      "file": "src/app/api/applications/[id]/reject/route.ts",
-      "methods": [
-        "POST"
-      ],
-      "reason": "Zero client call sites detected in src/ (not on allow-list)"
-    },
-    {
-      "route": "/api/blog/subscribe",
-      "file": "src/app/api/blog/subscribe/route.ts",
-      "methods": [
-        "POST"
-      ],
-      "reason": "Zero client call sites detected in src/ (not on allow-list)"
-    },
-    {
-      "route": "/api/blog/unsubscribe",
-      "file": "src/app/api/blog/unsubscribe/route.ts",
-      "methods": [
-        "GET"
-      ],
-      "reason": "Zero client call sites detected in src/ (not on allow-list)"
-    },
-    {
-      "route": "/api/blog/verify",
-      "file": "src/app/api/blog/verify/route.ts",
-      "methods": [
-        "GET"
-      ],
-      "reason": "Zero client call sites detected in src/ (not on allow-list)"
-    },
-    {
-      "route": "/api/bookmarks",
-      "file": "src/app/api/bookmarks/route.ts",
-      "methods": [
-        "GET",
-        "POST"
-      ],
-      "reason": "Zero client call sites detected in src/ (not on allow-list)"
-    },
-    {
-      "route": "/api/campaigns/[id]",
-      "file": "src/app/api/campaigns/[id]/route.ts",
-      "methods": [
-        "DELETE",
-        "GET",
-        "PATCH",
-        "PUT"
-      ],
-      "reason": "Zero client call sites detected in src/ (not on allow-list)"
-    },
-    {
-      "route": "/api/campaigns/[id]/analytics",
-      "file": "src/app/api/campaigns/[id]/analytics/route.ts",
-      "methods": [
-        "GET"
-      ],
-      "reason": "Zero client call sites detected in src/ (not on allow-list)"
-    },
-    {
-      "route": "/api/campaigns/[id]/finance/export",
-      "file": "src/app/api/campaigns/[id]/finance/export/route.ts",
-      "methods": [
-        "GET"
-      ],
-      "reason": "Zero client call sites detected in src/ (not on allow-list)"
-    },
-    {
-      "route": "/api/deals/[id]",
-      "file": "src/app/api/deals/[id]/route.ts",
-      "methods": [
-        "GET"
-      ],
-      "reason": "Zero client call sites detected in src/ (not on allow-list)"
-    },
-    {
-      "route": "/api/deals/[id]/cancel",
-      "file": "src/app/api/deals/[id]/cancel/route.ts",
-      "methods": [
-        "POST"
-      ],
-      "reason": "Zero client call sites detected in src/ (not on allow-list)"
-    },
-    {
-      "route": "/api/deals/[id]/contract",
-      "file": "src/app/api/deals/[id]/contract/route.ts",
-      "methods": [
-        "GET"
-      ],
-      "reason": "Zero client call sites detected in src/ (not on allow-list)"
-    },
-    {
-      "route": "/api/deals/[id]/engagement",
-      "file": "src/app/api/deals/[id]/engagement/route.ts",
-      "methods": [
-        "GET",
-        "POST"
-      ],
-      "reason": "Zero client call sites detected in src/ (not on allow-list)"
-    },
-    {
-      "route": "/api/deals/[id]/fund",
-      "file": "src/app/api/deals/[id]/fund/route.ts",
-      "methods": [
-        "POST"
-      ],
-      "reason": "Zero client call sites detected in src/ (not on allow-list)"
-    },
-    {
-      "route": "/api/deals/[id]/reject",
-      "file": "src/app/api/deals/[id]/reject/route.ts",
-      "methods": [
-        "POST"
-      ],
-      "reason": "Zero client call sites detected in src/ (not on allow-list)"
-    },
-    {
-      "route": "/api/deals/[id]/sign",
-      "file": "src/app/api/deals/[id]/sign/route.ts",
-      "methods": [
-        "POST"
-      ],
-      "reason": "Zero client call sites detected in src/ (not on allow-list)"
-    },
-    {
-      "route": "/api/disputes/[id]",
-      "file": "src/app/api/disputes/[id]/route.ts",
-      "methods": [
-        "GET",
-        "PATCH"
-      ],
-      "reason": "Zero client call sites detected in src/ (not on allow-list)"
-    },
-    {
-      "route": "/api/influencers/[id]",
-      "file": "src/app/api/influencers/[id]/route.ts",
-      "methods": [
-        "GET"
-      ],
-      "reason": "Zero client call sites detected in src/ (not on allow-list)"
-    },
-    {
-      "route": "/api/messages",
-      "file": "src/app/api/messages/route.ts",
-      "methods": [
-        "GET",
-        "PATCH",
-        "POST"
-      ],
-      "reason": "Zero client call sites detected in src/ (not on allow-list)"
-    },
-    {
-      "route": "/api/messages/stream",
-      "file": "src/app/api/messages/stream/route.ts",
-      "methods": [
-        "GET"
-      ],
-      "reason": "Zero client call sites detected in src/ (not on allow-list)"
-    },
-    {
-      "route": "/api/notifications",
-      "file": "src/app/api/notifications/route.ts",
-      "methods": [
-        "GET",
-        "POST"
-      ],
-      "reason": "Zero client call sites detected in src/ (not on allow-list)"
-    },
-    {
-      "route": "/api/payments/withdraw",
-      "file": "src/app/api/payments/withdraw/route.ts",
-      "methods": [
-        "POST"
-      ],
-      "reason": "Zero client call sites detected in src/ (not on allow-list)"
-    },
-    {
-      "route": "/api/reports/brand/campaign/[id]/roi",
-      "file": "src/app/api/reports/brand/campaign/[id]/roi/route.ts",
-      "methods": [
-        "GET"
-      ],
-      "reason": "Zero client call sites detected in src/ (not on allow-list)"
-    },
-    {
-      "route": "/api/reports/brand/spend",
-      "file": "src/app/api/reports/brand/spend/route.ts",
-      "methods": [
-        "GET"
-      ],
-      "reason": "Zero client call sites detected in src/ (not on allow-list)"
-    },
-    {
-      "route": "/api/reports/influencer/income",
-      "file": "src/app/api/reports/influencer/income/route.ts",
-      "methods": [
-        "GET"
-      ],
-      "reason": "Zero client call sites detected in src/ (not on allow-list)"
-    },
-    {
-      "route": "/api/social/verify",
-      "file": "src/app/api/social/verify/route.ts",
-      "methods": [
-        "POST"
-      ],
-      "reason": "Zero client call sites detected in src/ (not on allow-list)"
-    },
-    {
-      "route": "/api/telemetry/event",
-      "file": "src/app/api/telemetry/event/route.ts",
-      "methods": [
-        "POST"
-      ],
-      "reason": "Zero client call sites detected in src/ (not on allow-list)"
-    },
-    {
-      "route": "/api/upload/confirm",
-      "file": "src/app/api/upload/confirm/route.ts",
-      "methods": [
-        "POST"
-      ],
-      "reason": "Zero client call sites detected in src/ (not on allow-list)"
-    },
-    {
-      "route": "/api/upload/presign",
-      "file": "src/app/api/upload/presign/route.ts",
-      "methods": [
-        "POST"
-      ],
-      "reason": "Zero client call sites detected in src/ (not on allow-list)"
-    },
-    {
-      "route": "/api/user/2fa/disable",
-      "file": "src/app/api/user/2fa/disable/route.ts",
-      "methods": [
-        "POST"
-      ],
-      "reason": "Zero client call sites detected in src/ (not on allow-list)"
-    },
-    {
-      "route": "/api/user/2fa/setup",
-      "file": "src/app/api/user/2fa/setup/route.ts",
-      "methods": [
-        "POST"
-      ],
-      "reason": "Zero client call sites detected in src/ (not on allow-list)"
-    },
-    {
-      "route": "/api/user/2fa/verify",
-      "file": "src/app/api/user/2fa/verify/route.ts",
-      "methods": [
-        "POST"
-      ],
-      "reason": "Zero client call sites detected in src/ (not on allow-list)"
-    },
-    {
-      "route": "/api/user/change-contact",
-      "file": "src/app/api/user/change-contact/route.ts",
-      "methods": [
-        "POST"
-      ],
-      "reason": "Zero client call sites detected in src/ (not on allow-list)"
-    },
-    {
-      "route": "/api/user/delete-account",
-      "file": "src/app/api/user/delete-account/route.ts",
-      "methods": [
-        "POST"
-      ],
-      "reason": "Zero client call sites detected in src/ (not on allow-list)"
-    },
-    {
-      "route": "/api/user/send-otp",
-      "file": "src/app/api/user/send-otp/route.ts",
-      "methods": [
-        "POST"
-      ],
-      "reason": "Zero client call sites detected in src/ (not on allow-list)"
-    },
-    {
-      "route": "/api/user/switch-role",
-      "file": "src/app/api/user/switch-role/route.ts",
-      "methods": [
-        "POST"
-      ],
-      "reason": "Zero client call sites detected in src/ (not on allow-list)"
-    },
-    {
-      "route": "/api/user/verify-contact",
-      "file": "src/app/api/user/verify-contact/route.ts",
-      "methods": [
-        "POST"
-      ],
-      "reason": "Zero client call sites detected in src/ (not on allow-list)"
-    },
-    {
-      "route": "/api/users/feedback",
-      "file": "src/app/api/users/feedback/route.ts",
-      "methods": [
-        "POST"
-      ],
-      "reason": "Zero client call sites detected in src/ (not on allow-list)"
-    },
-    {
-      "route": "/api/users/report",
-      "file": "src/app/api/users/report/route.ts",
-      "methods": [
-        "POST"
-      ],
-      "reason": "Zero client call sites detected in src/ (not on allow-list)"
-    },
-    {
-      "route": "/api/verification",
-      "file": "src/app/api/verification/route.ts",
-      "methods": [
-        "GET",
-        "POST",
-        "PUT"
-      ],
-      "reason": "Zero client call sites detected in src/ (not on allow-list)"
-    },
-    {
-      "route": "/api/verify-report/[id]",
-      "file": "src/app/api/verify-report/[id]/route.ts",
-      "methods": [
-        "GET"
-      ],
-      "reason": "Zero client call sites detected in src/ (not on allow-list)"
-    },
-    {
-      "route": "/api/wallet",
-      "file": "src/app/api/wallet/route.ts",
-      "methods": [
-        "GET"
-      ],
-      "reason": "Zero client call sites detected in src/ (not on allow-list)"
-    },
-    {
-      "route": "/api/wallet/add-funds",
-      "file": "src/app/api/wallet/add-funds/route.ts",
-      "methods": [
-        "POST"
-      ],
-      "reason": "Zero client call sites detected in src/ (not on allow-list)"
-    },
-    {
-      "route": "/api/wallet/add-funds/verify",
-      "file": "src/app/api/wallet/add-funds/verify/route.ts",
-      "methods": [
-        "POST"
-      ],
-      "reason": "Zero client call sites detected in src/ (not on allow-list)"
-    },
-    {
-      "route": "/api/wallet/bank-accounts/verify",
-      "file": "src/app/api/wallet/bank-accounts/verify/route.ts",
-      "methods": [
-        "POST"
-      ],
-      "reason": "Zero client call sites detected in src/ (not on allow-list)"
-    },
-    {
-      "route": "/api/wallet/transactions",
-      "file": "src/app/api/wallet/transactions/route.ts",
-      "methods": [
-        "GET"
-      ],
-      "reason": "Zero client call sites detected in src/ (not on allow-list)"
-    }
-  ],
+  "brokenCallSites": [],
+  "candidateDeadRoutes": [],
   "methodMismatches": [],
   "investigations": {
     "/api/discovery-feed": {

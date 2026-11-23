@@ -135,18 +135,36 @@ export function changePassword(
   return post("/api/auth/change-password", data, options);
 }
 
+/** GET /api/auth/youtube/authorize */
+export function authorizeYoutube(options?: HttpOptions) {
+  return get("/api/auth/youtube/authorize", options);
+}
+
+/** POST /api/auth/youtube/disconnect */
+export function disconnectYoutube(options?: HttpOptions) {
+  return post("/api/auth/youtube/disconnect", undefined, options);
+}
+
+/** GET /api/auth/instagram/authorize */
+export function authorizeInstagram(options?: HttpOptions) {
+  return get("/api/auth/instagram/authorize", options);
+}
+
+/** POST /api/auth/instagram/disconnect */
+export function disconnectInstagram(options?: HttpOptions) {
+  return post("/api/auth/instagram/disconnect", undefined, options);
+}
+
 /** GET /api/auth/:platform/authorize */
-export function authorizeSocial(platform: string, options?: HttpOptions) {
-  return get(`/api/auth/${encodeURIComponent(platform)}/authorize`, options);
+export function authorizeSocial(platform: "youtube" | "instagram" | string, options?: HttpOptions) {
+  if (platform.toLowerCase() === "instagram") return authorizeInstagram(options);
+  return authorizeYoutube(options);
 }
 
 /** POST /api/auth/:platform/disconnect */
-export function disconnectSocial(platform: string, options?: HttpOptions) {
-  return post(
-    `/api/auth/${encodeURIComponent(platform)}/disconnect`,
-    undefined,
-    options,
-  );
+export function disconnectSocial(platform: "youtube" | "instagram" | string, options?: HttpOptions) {
+  if (platform.toLowerCase() === "instagram") return disconnectInstagram(options);
+  return disconnectYoutube(options);
 }
 
 /** POST /api/social/verify — verify social handle */

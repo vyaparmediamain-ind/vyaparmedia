@@ -10,6 +10,8 @@ vi.mock("@/app/admin/actions", () => ({
   updateCategoryBenchmarkAction: vi.fn().mockResolvedValue({ success: true }),
   resetCategoryBenchmarkAction: vi.fn().mockResolvedValue({ success: true }),
   updatePricingConfigAction: vi.fn().mockResolvedValue({ success: true }),
+  approveDeliverableVerification: vi.fn().mockResolvedValue({ success: true }),
+  rejectDeliverableVerification: vi.fn().mockResolvedValue({ success: true }),
 }));
 
 // Client page components under test

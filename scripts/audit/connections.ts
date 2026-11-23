@@ -56,21 +56,58 @@ export interface ConnectionsResult {
   investigations: Record<string, EndpointInvestigation>;
 }
 
-// Routes that are expected to be invoked by cron, webhooks, auth redirects, or background jobs rather than client fetch
-const ALLOW_LIST_PATTERNS = [
-  /^\/api\/cron\//,
-  /^\/api\/webhooks\//,
-  /^\/api\/payments\/webhook/,
-  /^\/api\/auth\//,
-  /^\/api\/jobs\//,
-  /^\/api\/admin\/jobs\//,
-  /^\/api\/health$/,
-  /^\/api\/metrics$/,
-  /^\/api\/compliance\//,
+// Explicit allow-list for routes expected to be invoked by cron, webhooks, auth redirects, QStash jobs, or external/admin links
+export const EXPLICIT_ROUTE_ALLOW_LIST: Record<string, string> = {
+  "/api/health": "Automated infrastructure liveness and readiness probe",
+  "/api/metrics": "Prometheus/internal performance metric scraper endpoint",
+  "/api/telemetry/event": "Direct REST fallback ingest for clients without Beacon API support",
+  "/api/upload/confirm": "Post-upload magic byte & SVG sanitization verification hook for S3/R2 direct uploads",
+  "/api/verify-report/[id]": "Public QR-code verification link for immutable campaign audit certificates",
+  "/api/reports/creator/[id]/market-range": "Direct creator/brand market range report endpoint",
+  "/api/campaigns/[id]/reports/performance": "Direct PDF/CSV download link for brand campaign performance",
+  "/api/campaigns/[id]/finance/export": "Brand campaign escrow ledger and financial transactions CSV export",
+  "/api/admin/campaigns/[id]/reports/governance": "Admin governance compliance report download endpoint",
+  "/api/admin/campaigns/[id]": "Administrative detailed campaign audit and risk inspection API",
+  "/api/admin/financial": "Admin aggregated financial overview and ledger inspection",
+  "/api/admin/reports/gst-tcs": "Admin statutory GST TCS tax compliance filing export",
+  "/api/admin/reports/revenue": "Admin monthly revenue ledger report export",
+  "/api/admin/reports/tds": "Admin Section 194J/194M TDS filing tax report export",
+  "/api/admin/users/[id]": "Administrative user detail, KYC override, and status modification API",
+  "/api/analytics/brand/visibility": "Server-side aggregated brand visibility rollup endpoint",
+  "/api/analytics/creator/visibility": "Server-side aggregated creator visibility rollup endpoint",
+  "/api/blog/subscribe": "Public newsletter subscription link endpoint",
+  "/api/blog/unsubscribe": "Public newsletter unsubscription link endpoint",
+  "/api/blog/verify": "Public newsletter verification token endpoint",
+  "/api/disputes/[id]": "Administrative dispute mediation and evidence inspection API",
+  "/api/messages/stream": "Server-Sent Events (SSE) persistent streaming endpoint for realtime chat",
+  "/api/reports/brand/spend": "Brand annual statutory spend and GST tax reconciliation export",
+  "/api/reports/influencer/income": "Influencer annual statutory income and Section 194-O TDS tax reconciliation export",
+};
+
+export const ALLOW_LIST_PATTERNS: Array<{ pattern: RegExp; reason: string }> = [
+  { pattern: /^\/api\/cron\//, reason: "Scheduled background job triggered by QStash cron scheduler" },
+  { pattern: /^\/api\/webhooks\//, reason: "Incoming third-party webhook from payment/carrier/messaging gateway" },
+  { pattern: /^\/api\/payments\/webhook/, reason: "Incoming Razorpay payment webhook endpoint" },
+  { pattern: /^\/api\/auth\//, reason: "Authentication provider callback, OAuth handshake, or session verification" },
+  { pattern: /^\/api\/jobs\//, reason: "Asynchronous worker queue processor endpoint" },
+  { pattern: /^\/api\/admin\/jobs\//, reason: "Administrative background job dispatcher and DLQ queue management" },
+  { pattern: /^\/api\/compliance\//, reason: "Statutory India tax and compliance verification endpoint" },
 ];
 
-function isAllowListed(routePath: string): boolean {
-  return ALLOW_LIST_PATTERNS.some((pat) => pat.test(routePath));
+export function getAllowListReason(routePath: string): string | null {
+  if (EXPLICIT_ROUTE_ALLOW_LIST[routePath]) {
+    return EXPLICIT_ROUTE_ALLOW_LIST[routePath];
+  }
+  for (const { pattern, reason } of ALLOW_LIST_PATTERNS) {
+    if (pattern.test(routePath)) {
+      return reason;
+    }
+  }
+  return null;
+}
+
+export function isAllowListed(routePath: string): boolean {
+  return getAllowListReason(routePath) !== null;
 }
 
 function normalizePath(p: string): string {
@@ -136,6 +173,33 @@ export function normalizeApiUrl(raw: string, knownRoutes: string[]): string | nu
   if (!cleaned.startsWith("/api")) {
     return null;
   }
+
+  // NextAuth catch-all routes mapping: /api/auth/session, /api/auth/csrf, etc.
+  if (
+    cleaned.startsWith("/api/auth/session") ||
+    cleaned.startsWith("/api/auth/csrf") ||
+    cleaned.startsWith("/api/auth/providers") ||
+    cleaned.startsWith("/api/auth/signin") ||
+    cleaned.startsWith("/api/auth/signout") ||
+    cleaned.startsWith("/api/auth/callback/")
+  ) {
+    if (knownRoutes.includes("/api/auth/[...nextauth]")) {
+      return "/api/auth/[...nextauth]";
+    }
+  }
+
+  // Remove template query strings: ${qs ? ...}, ${queryParams...}, ${searchParams...}, ?${...}
+  const qsIndex = cleaned.indexOf("${qs");
+  if (qsIndex !== -1) cleaned = cleaned.substring(0, qsIndex);
+
+  const qpIndex = cleaned.indexOf("${queryParams");
+  if (qpIndex !== -1) cleaned = cleaned.substring(0, qpIndex);
+
+  const spIndex = cleaned.indexOf("${searchParams");
+  if (spIndex !== -1) cleaned = cleaned.substring(0, spIndex);
+
+  const qbIndex = cleaned.indexOf("?${");
+  if (qbIndex !== -1) cleaned = cleaned.substring(0, qbIndex);
 
   // Remove query string portion (?...)
   const queryIndex = cleaned.indexOf("?");
@@ -262,15 +326,28 @@ export function extractCallSitesFromFile(
         }
       }
 
-      // 4. api-client calls: http.get("/api/..."), http.post, apiClient.get, fetcherWithSchema
+      // 4. api-client calls: http.get("/api/..."), http.post, apiClient.get, fetcherWithSchema, or direct get/post/put/patch/del in api-client
       if (
         /^(http|apiClient|api)\.(get|post|put|patch|delete)$/.test(exprText) ||
-        exprText === "fetcherWithSchema"
+        exprText === "fetcherWithSchema" ||
+        /^(get|post|put|patch|del)$/.test(exprText)
       ) {
         let method = "GET";
-        const parts = exprText.split(".");
-        if (parts.length === 2 && parts[1]) {
-          method = parts[1].toUpperCase();
+        if (exprText.includes(".")) {
+          const parts = exprText.split(".");
+          if (parts.length === 2 && parts[1]) {
+            method = parts[1].toUpperCase();
+          }
+        } else if (exprText === "del") {
+          method = "DELETE";
+        } else if (exprText === "post") {
+          method = "POST";
+        } else if (exprText === "put") {
+          method = "PUT";
+        } else if (exprText === "patch") {
+          method = "PATCH";
+        } else if (exprText === "get") {
+          method = "GET";
         }
 
         const firstArg = node.arguments[0];
@@ -285,6 +362,29 @@ export function extractCallSitesFromFile(
               normalizedRoute: normalized,
               method,
               sourceType: "api-client",
+              matchedRoute: knownRoutes.includes(normalized),
+            });
+          }
+        }
+      }
+    }
+
+    // 5. EventSource calls: new EventSource("/api/...")
+    if (ts.isNewExpression(node)) {
+      const exprText = node.expression.getText();
+      if (exprText === "EventSource" || exprText.includes("EventSource")) {
+        const firstArg = node.arguments?.[0];
+        if (firstArg) {
+          const rawUrl = firstArg.getText();
+          const normalized = normalizeApiUrl(rawUrl, knownRoutes);
+          if (normalized) {
+            sites.push({
+              file: relativeFile,
+              line: getLineNumber(node.getStart()),
+              rawExpression: rawUrl,
+              normalizedRoute: normalized,
+              method: "GET",
+              sourceType: "fetch",
               matchedRoute: knownRoutes.includes(normalized),
             });
           }
