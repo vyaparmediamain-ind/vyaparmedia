@@ -24,6 +24,11 @@ import {
 import IpBlacklistManager from "@/components/admin/system/IpBlacklistManager";
 import DeadLetterQueueManager from "@/components/admin/system/DeadLetterQueueManager";
 import RegistrationGateManager from "@/components/admin/system/RegistrationGateManager";
+import FeatureFlagManager from "@/components/admin/system/FeatureFlagManager";
+import ReportConfigManager from "@/components/admin/system/ReportConfigManager";
+import InstagramInsightsCard from "@/components/admin/system/InstagramInsightsCard";
+import CronHeartbeatsCard from "@/components/admin/system/CronHeartbeatsCard";
+import { Flag, FileSpreadsheet } from "lucide-react";
 
 interface KillSwitchesApiResponse {
   success: boolean;
@@ -38,7 +43,7 @@ export default function AdminKillSwitchesPage() {
   );
 
   const { toasts, showToast, removeToast } = useToasts();
-  const [mainTab, setMainTab] = useState<"SWITCHES" | "BETA_GATE" | "FIREWALL" | "DLQ">("SWITCHES");
+  const [mainTab, setMainTab] = useState<"SWITCHES" | "FLAGS" | "BETA_GATE" | "FIREWALL" | "DLQ" | "REPORTS_CONFIG">("SWITCHES");
   const [activeCategory, setActiveCategory] = useState<string>("ALL");
   const [search, setSearch] = useState<string>("");
   const [updatingFeature, setUpdatingFeature] = useState<string | null>(null);
@@ -192,6 +197,19 @@ export default function AdminKillSwitchesPage() {
 
         <button
           type="button"
+          onClick={() => setMainTab("FLAGS")}
+          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+            mainTab === "FLAGS"
+              ? "bg-primary text-primary-foreground shadow-sm"
+              : "bg-card border border-border text-muted-foreground hover:text-foreground"
+          }`}
+        >
+          <Flag className="w-4 h-4" />
+          Feature Flags
+        </button>
+
+        <button
+          type="button"
           onClick={() => setMainTab("BETA_GATE")}
           className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
             mainTab === "BETA_GATE"
@@ -228,7 +246,22 @@ export default function AdminKillSwitchesPage() {
           <Layers className="w-4 h-4" />
           Failed Queue Jobs (DLQ)
         </button>
+
+        <button
+          type="button"
+          onClick={() => setMainTab("REPORTS_CONFIG")}
+          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+            mainTab === "REPORTS_CONFIG"
+              ? "bg-primary text-primary-foreground shadow-sm"
+              : "bg-card border border-border text-muted-foreground hover:text-foreground"
+          }`}
+        >
+          <FileSpreadsheet className="w-4 h-4" />
+          Report Configuration
+        </button>
       </div>
+
+      {mainTab === "FLAGS" && <FeatureFlagManager onShowToast={showToast} />}
 
       {mainTab === "BETA_GATE" && <RegistrationGateManager onShowToast={showToast} />}
 
@@ -236,8 +269,16 @@ export default function AdminKillSwitchesPage() {
 
       {mainTab === "DLQ" && <DeadLetterQueueManager showToast={showToast} />}
 
+      {mainTab === "REPORTS_CONFIG" && <ReportConfigManager />}
+
       {mainTab === "SWITCHES" && (
         <>
+          {/* Instagram Insights Telemetry Card */}
+          <InstagramInsightsCard />
+
+          {/* Cron Health & Heartbeats Card */}
+          <CronHeartbeatsCard />
+
           {/* System Status Banner */}
           {activeCount > 0 ? (
             <div className="p-4 rounded-2xl bg-danger/10 border border-danger/40 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">

@@ -7,6 +7,7 @@ import TwoFactorAuthPanel from "./TwoFactorAuthPanel";
 import LoginActivityPanel from "./LoginActivityPanel";
 import BlockedUsersPanel from "./BlockedUsersPanel";
 import DeleteAccountPanel from "./DeleteAccountPanel";
+import { TelemetryConsentPanel } from "./TelemetryConsentPanel";
 import { ShieldCheck, Lock, CheckCircle2, AlertTriangle } from "lucide-react";
 
 interface SecurityTabProps {
@@ -126,7 +127,10 @@ export default function SecurityTab({
       {/* 6. Blocked Accounts */}
       <BlockedUsersPanel showToast={showToast} />
 
-      {/* 7. Delete Account Danger Zone */}
+      {/* 7. Privacy, Consent & Telemetry Controls (DPDP Act 2023) */}
+      <TelemetryConsentPanel showToast={showToast} />
+
+      {/* 8. Delete Account Danger Zone */}
       <DeleteAccountPanel
         isSaving={isSaving}
         setIsSaving={setIsSaving}

@@ -28,6 +28,11 @@ export function formatCreatorProfileData(influencer: {
   maxInstagramRate?: number | null;
   minYoutubeRate?: number | null;
   maxYoutubeRate?: number | null;
+  fairRateMinPaise?: number | null;
+  fairRateMaxPaise?: number | null;
+  fairRateConfidence?: string | null;
+  fairRateDataQuality?: string | null;
+  fairRateComputedAt?: Date | string | null;
   followerAuthenticityScore?: number | null;
   contentQualityScore?: number | null;
   completedDeals: number;
@@ -148,6 +153,11 @@ export function formatCreatorProfileData(influencer: {
     contentQualityScore: influencer.contentQualityScore ?? 80,
     minRatePaise: baseRate,
     maxRatePaise: influencer.maxRate || baseRate * 3,
+    fairRateMinPaise: influencer.fairRateMinPaise ?? null,
+    fairRateMaxPaise: influencer.fairRateMaxPaise ?? null,
+    fairRateConfidence: influencer.fairRateConfidence ?? null,
+    fairRateDataQuality: influencer.fairRateDataQuality ?? null,
+    fairRateComputedAt: influencer.fairRateComputedAt ? new Date(influencer.fairRateComputedAt).toISOString() : null,
     campaignProofs,
     rateCard,
     reviews,

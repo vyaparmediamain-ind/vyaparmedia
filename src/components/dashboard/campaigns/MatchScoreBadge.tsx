@@ -16,6 +16,8 @@ export interface MatchBreakdownData {
   qualityScore?: number;
   roiScore?: number;
   estimatedViews?: number;
+  viewsRange?: { low: number; mid: number; high: number };
+  dataQuality?: "VERIFIED" | "ESTIMATED";
   estimatedCpvPaise?: number;
   categoryBaselineCpvPaise?: number;
   categoryBenchmarkSource?: string;
@@ -257,12 +259,29 @@ export function MatchScoreBadge({
                 )}
                 {breakdown?.estimatedViews && (
                   <div className="p-2 rounded-lg bg-muted/40 border border-border">
-                    <span className="text-[10px] text-muted-foreground block">Est. Views / Reel</span>
+                    <div className="flex items-center justify-between gap-1 mb-0.5">
+                      <span className="text-[10px] text-muted-foreground block">Est. Views / Reel</span>
+                      {breakdown.dataQuality && (
+                        <span
+                          className={`text-[9px] px-1.5 py-0.5 rounded font-semibold uppercase ${
+                            breakdown.dataQuality === "VERIFIED"
+                              ? "bg-verified-muted text-verified"
+                              : "bg-muted text-muted-foreground border border-border"
+                          }`}
+                        >
+                          {breakdown.dataQuality}
+                        </span>
+                      )}
+                    </div>
                     <span className="font-black text-foreground tabular-nums">
-                      {breakdown.estimatedViews.toLocaleString("en-IN")}
+                      {breakdown.viewsRange
+                        ? `${breakdown.viewsRange.low.toLocaleString("en-IN")} – ${breakdown.viewsRange.high.toLocaleString("en-IN")}`
+                        : breakdown.estimatedViews.toLocaleString("en-IN")}
                     </span>
                     <span className="text-[10px] text-muted-foreground block mt-0.5">
-                      Based on verified reach
+                      {breakdown.dataQuality === "VERIFIED"
+                        ? "Based on verified history"
+                        : "Based on verified reach"}
                     </span>
                   </div>
                 )}

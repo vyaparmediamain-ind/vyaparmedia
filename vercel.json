@@ -64,6 +64,21 @@
     },
     "src/app/api/cron/refresh-social-tokens/route.ts": {
       "maxDuration": 60
+    },
+    "src/app/api/cron/creator-metrics/route.ts": {
+      "maxDuration": 60
+    },
+    "src/app/api/cron/telemetry-flush/route.ts": {
+      "maxDuration": 60
+    },
+    "src/app/api/cron/telemetry-rollup/route.ts": {
+      "maxDuration": 60
+    },
+    "src/app/api/cron/telemetry-retention/route.ts": {
+      "maxDuration": 60
+    },
+    "src/app/api/cron/campaign-metrics/route.ts": {
+      "maxDuration": 60
     }
   }
 }

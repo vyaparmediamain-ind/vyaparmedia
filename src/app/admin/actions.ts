@@ -21,6 +21,7 @@ import {
   checkAdminVerificationReviewEligibility,
 } from "@/lib/action-eligibility";
 import { MatchingService } from "@/services/matching.service";
+import { PricingConfigService, PricingConfigUpdates } from "@/services/pricing-config.service";
 import { PaymentService } from "@/services/payment.service";
 import { transitionDealState } from "@/lib/deal-state-machine";
 import { invalidateDealCache } from "@/services/deal/helpers";
@@ -608,6 +609,28 @@ export async function resetCategoryBenchmarkAction(category: string) {
   revalidatePath("/admin/benchmarks");
   revalidatePath("/admin");
   return { success: true, category };
+}
+
+export async function updatePricingConfigAction(
+  updates: PricingConfigUpdates,
+  confirmBigShift = false,
+  description?: string
+) {
+  const session = await requireAdmin();
+
+  const result = await PricingConfigService.updatePricingConfig({
+    actorId: session.user.id,
+    updates,
+    description: description || `Admin update to pricing config by ${session.user.email}`,
+    confirmBigShift,
+  });
+
+  if (result.success) {
+    revalidatePath("/admin/benchmarks");
+    revalidatePath("/admin");
+  }
+
+  return result;
 }
 
 export async function approveDeliverableVerification(dealId: string) {

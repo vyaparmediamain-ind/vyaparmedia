@@ -1,10 +1,16 @@
 import { NextRequest } from "next/server";
 import { apiWrapper, ApiResponse, type AuthenticatedRequest } from "@/lib/api-wrapper";
 import prisma from "@/lib/db";
-import { csvResponse, paiseToRupees } from "@/lib/csv-export";
+import {
+  csvResponse,
+  paiseToRupees,
+  buildBrandedCsv,
+  buildReportFilename,
+} from "@/lib/csv-export";
 import { RATE_LIMIT_CONFIGS } from "@/lib/rate-limit";
 import { MatchingService } from "@/services/matching.service";
-import { PLATFORM_CONFIG } from "@/lib/platform-config";
+import { buildReportMeta } from "@/lib/report-meta";
+import { ReportVerificationService } from "@/services/report-verification.service";
 
 async function _handler(req: NextRequest, context: { params: Promise<Record<string, string | string[]>> }) {
   const session = (req as AuthenticatedRequest).session;
@@ -43,8 +49,9 @@ async function _handler(req: NextRequest, context: { params: Promise<Record<stri
     },
   });
 
-  if (!campaign) return ApiResponse.error("Campaign not found", 404);
-  if (!campaign.brand || campaign.brand.userId !== session.user.id) return ApiResponse.forbidden();
+  if (!campaign || !campaign.brand || campaign.brand.userId !== session.user.id) {
+    return ApiResponse.error("Campaign not found", 404);
+  }
 
   // Category Baseline CPV & Relative Performance
   const categoryBaselineDetails = await MatchingService.getCategoryBaselineDetails(campaign.targetCategories);
@@ -101,14 +108,14 @@ async function _handler(req: NextRequest, context: { params: Promise<Record<stri
       const accuracyPercentage =
         predictedViews > 0 && views > 0
           ? Math.round(
-              Math.min(
-                100,
-                Math.max(
-                  0,
-                  (1 - Math.abs(views - predictedViews) / Math.max(views, predictedViews, 1)) * 100
-                )
+            Math.min(
+              100,
+              Math.max(
+                0,
+                (1 - Math.abs(views - predictedViews) / Math.max(views, predictedViews, 1)) * 100
               )
             )
+          )
           : 100;
 
       const viewsVariance = views - predictedViews;
@@ -152,6 +159,7 @@ async function _handler(req: NextRequest, context: { params: Promise<Record<stri
         costPerReach: reach > 0 ? paiseToRupees(cprPaise) : "N/A",
         rating: deal.influencer.averageRating,
         isEstimated: snapshot?.isEstimated ?? true,
+        metricsQuality: snapshot?.metricsQuality ?? null,
         snapshotInterval: snapshot?.interval ?? "pending",
       };
     })
@@ -161,8 +169,12 @@ async function _handler(req: NextRequest, context: { params: Promise<Record<stri
   const totalSpend = campaign.deals.reduce((s, d) => s + d.amount, 0);
   const totalReach = influencerBreakdown.reduce((s, d) => s + d.reach, 0);
   const totalViews = influencerBreakdown.reduce((s, d) => s + d.views, 0);
+  const totalVerifiedViews = influencerBreakdown.filter((d) => !d.isEstimated).reduce((s, d) => s + d.views, 0);
+  const totalEstimatedViews = influencerBreakdown.filter((d) => d.isEstimated).reduce((s, d) => s + d.views, 0);
   const totalPredictedViews = influencerBreakdown.reduce((s, d) => s + d.predictedViews, 0);
   const totalEngagements = influencerBreakdown.reduce((s, d) => s + d.totalEngagements, 0);
+  const hasEstimatedData = influencerBreakdown.some((d) => d.isEstimated);
+  const dataQualityStatus = hasEstimatedData ? "ESTIMATED" : "VERIFIED";
   const avgEngagementRate =
     influencerBreakdown.length > 0
       ? influencerBreakdown.reduce((s, d) => s + d.engagementRate, 0) / influencerBreakdown.length
@@ -183,8 +195,8 @@ async function _handler(req: NextRequest, context: { params: Promise<Record<stri
   const overallAlgorithmAccuracy =
     influencerBreakdown.length > 0
       ? Math.round(
-          influencerBreakdown.reduce((s, d) => s + d.accuracyPercentage, 0) / influencerBreakdown.length
-        )
+        influencerBreakdown.reduce((s, d) => s + d.accuracyPercentage, 0) / influencerBreakdown.length
+      )
       : 100;
 
   const overallViewsVariancePercent =
@@ -199,123 +211,184 @@ async function _handler(req: NextRequest, context: { params: Promise<Record<stri
     totalPredictedViews > 0 ? Math.round(totalSpend / totalPredictedViews) : 0;
   const predictedAverageCpvRupees = paiseToRupees(predictedAverageCpvPaise);
 
+  const verifiedViewsRatio = totalViews > 0 ? (totalVerifiedViews / totalViews) * 100 : 100;
+  const estimatedViewsRatio = totalViews > 0 ? (totalEstimatedViews / totalViews) * 100 : 0;
+
+  const reportMeta = buildReportMeta({
+    type: "ROI",
+    scope: `Campaign: ${campaign.title}`,
+    period: "Campaign Lifecycle",
+    user: {
+      id: session.user.id,
+      name: campaign.brand.companyName || session.user.name,
+      email: session.user.email,
+      role: "BRAND",
+    },
+    dataQualitySummary: {
+      verifiedPercent: verifiedViewsRatio,
+      estimatedPercent: estimatedViewsRatio,
+      selfReportedPercent: 0,
+    },
+    payload: {
+      campaignId: campaign.id,
+      totalSpend,
+      totalViews,
+      totalEngagements,
+      influencers: influencerBreakdown.map((d) => ({
+        handle: d.handle,
+        views: d.views,
+        paid: d.paidRupees,
+      })),
+    },
+  });
+
+  // Audit export action
+  await prisma.activityLog.create({
+    data: {
+      userId: session.user.id,
+      action: "REPORT_EXPORT",
+      entityType: "Campaign",
+      entityId: campaign.id,
+      metadata: {
+        type: "ROI",
+        format: fmt,
+        reportId: reportMeta.reportId,
+      },
+    },
+  }).catch(() => { });
+
+  // Cryptographic report verification registration
+  await ReportVerificationService.recordReport({
+    id: reportMeta.reportId,
+    type: "ROI",
+    userId: session.user.id,
+    scopeId: campaign.id,
+    payloadHash: reportMeta.integrityCode,
+  });
+
   if (fmt === "csv") {
-    const esc = (v: string) => (v.includes(",") ? `"${v.replaceAll('"', '""')}"` : v);
-    const row = (label: string, value: string) => `${esc(label)},${esc(value)}\r\n`;
-    const sep = () => `\r\n`;
-    const title = (t: string) => `${esc(t)},\r\n`;
+    const columns = [
+      { key: "influencer", label: "Influencer", format: (v: unknown) => String(v || "Creator") },
+      { key: "handle", label: "Handle", format: (v: unknown) => (v ? `@${v}` : "") },
+      { key: "followers", label: "Followers", format: (v: unknown) => String(v ?? 0) },
+      { key: "paidRupees", label: "Paid (INR)" },
+      { key: "predictedViews", label: "Predicted Views", format: (v: unknown) => String(v ?? 0) },
+      { key: "views", label: "Delivered Views", format: (v: unknown) => String(v ?? 0) },
+      {
+        key: "viewsVariancePercent",
+        label: "Variance (%)",
+        format: (v: unknown) => `${Number(v) > 0 ? "+" : ""}${v}%`,
+      },
+      { key: "accuracyPercentage", label: "Accuracy (%)", format: (v: unknown) => `${v}%` },
+      { key: "predictedCpvRupees", label: "Predicted CPV (INR)" },
+      { key: "costPerView", label: "Actual CPV (INR)" },
+      { key: "reach", label: "Reach", format: (v: unknown) => String(v ?? 0) },
+      { key: "likes", label: "Likes", format: (v: unknown) => String(v ?? 0) },
+      { key: "comments", label: "Comments", format: (v: unknown) => String(v ?? 0) },
+      { key: "shares", label: "Shares", format: (v: unknown) => String(v ?? 0) },
+      { key: "saves", label: "Saves", format: (v: unknown) => String(v ?? 0) },
+      { key: "totalEngagements", label: "Total Engagements", format: (v: unknown) => String(v ?? 0) },
+      {
+        key: "engagementRate",
+        label: "ER (%)",
+        format: (v: unknown) => `${Number(v).toFixed(2)}%`,
+      },
+      { key: "costPerEngagement", label: "CPE (INR)" },
+      { key: "costPerReach", label: "CPR (INR)" },
+      {
+        key: "rating",
+        label: "Rating",
+        format: (v: unknown) => (v ? (Number(v) / 100).toFixed(1) : "N/A"),
+      },
+      {
+        key: "isEstimated",
+        label: "Data Quality",
+        format: (v: unknown) => (v ? "Estimated" : "Verified API"),
+      },
+    ];
 
-    let csv = "";
+    const summaryRows = [
+      {
+        influencer: "TOTAL",
+        handle: `${influencerBreakdown.length} creators`,
+        followers: "",
+        paidRupees: paiseToRupees(totalSpend),
+        predictedViews: String(totalPredictedViews),
+        views: String(totalViews),
+        viewsVariancePercent: `${overallViewsVariancePercent > 0 ? "+" : ""}${overallViewsVariancePercent}%`,
+        accuracyPercentage: `${overallAlgorithmAccuracy}%`,
+        predictedCpvRupees: predictedAverageCpvRupees,
+        costPerView: effectiveCpvRupees,
+        reach: String(totalReach),
+        likes: String(influencerBreakdown.reduce((s, d) => s + d.likes, 0)),
+        comments: String(influencerBreakdown.reduce((s, d) => s + d.comments, 0)),
+        shares: String(influencerBreakdown.reduce((s, d) => s + d.shares, 0)),
+        saves: String(influencerBreakdown.reduce((s, d) => s + d.saves, 0)),
+        totalEngagements: String(totalEngagements),
+        engagementRate: `${avgEngagementRate.toFixed(2)}%`,
+        costPerEngagement: blendedCPE,
+        costPerReach: effectiveCprRupees,
+        rating: "",
+        isEstimated: hasEstimatedData ? "Estimated (Mixed)" : "Verified API",
+      },
+    ];
 
-    // Corporate & Platform Header
-    csv += row(PLATFORM_CONFIG.legalName.toUpperCase(), "");
-    csv += row(`CIN: ${PLATFORM_CONFIG.cin}`, `GSTIN: ${PLATFORM_CONFIG.gstin}`);
-    csv += row(PLATFORM_CONFIG.address, "");
-    csv += row("CAMPAIGN ROI & INFLUENCER PERFORMANCE REPORT", "");
-    csv += row("Report Date", new Date().toISOString().split("T")[0] ?? "");
-    csv += row("Tax Code (SAC)", "998365 (Advertising, Promotion & Influencer Services)");
-    csv += sep();
+    const customSections = [
+      {
+        title: "CAMPAIGN DOSSIER",
+        rows: [
+          ["Campaign ID", campaign.id],
+          ["Campaign Title", campaign.title],
+          ["Brand Entity", campaign.brand.companyName || "Brand Partner"],
+          ["Target Categories", campaign.targetCategories.join(" | ") || "General"],
+          ["Category Baseline CPV", `INR ${categoryBaselineCpvRupees} per view`],
+          ["Campaign Status", campaign.status],
+          ["Total Escrow Budget (INR)", paiseToRupees(campaign.totalBudget)],
+          ["Total Budget Realized / Disbursed (INR)", paiseToRupees(totalSpend)],
+        ] as Array<[string, string | number]>,
+      },
+      {
+        title: "EXECUTIVE PERFORMANCE SUMMARY",
+        rows: [
+          ["Total Estimated Reach", String(totalReach)],
+          ["Total Delivered Views (Blended)", String(totalViews)],
+          ["Verified Delivered Views (API-Sourced)", String(totalVerifiedViews)],
+          ["Estimated Delivered Views (Modelled)", String(totalEstimatedViews)],
+          ["Overall Data Quality Status", hasEstimatedData ? "ESTIMATED (Contains Modelled Metrics)" : "VERIFIED (100% Verified API)"],
+          ["Matching-Projected Views", String(totalPredictedViews)],
+          ["Overall Delivery Multiplier", `${overallDeliveryMultiplier}x of target projection`],
+          ["Algorithm Match Accuracy", `${overallAlgorithmAccuracy}%`],
+          ["Total Engagements (Likes + Comments + Shares + Saves)", String(totalEngagements)],
+          ["Average Engagement Rate", `${avgEngagementRate.toFixed(2)}%`],
+          ["Predicted CPV at Matching", `INR ${predictedAverageCpvRupees}`],
+          ["Effective Cost Per View (CPV)", effectiveCpvRupees !== "N/A" ? `INR ${effectiveCpvRupees}` : "N/A"],
+          ["Blended Cost Per Engagement (CPE)", blendedCPE !== "N/A" ? `INR ${blendedCPE}` : "N/A"],
+          ["Blended Cost Per Reach (CPR)", effectiveCprRupees !== "N/A" ? `INR ${effectiveCprRupees}` : "N/A"],
+          ["Category Efficiency Factor", efficiencyMultiplier ? `${efficiencyMultiplier}x industry baseline` : "N/A"],
+        ] as Array<[string, string | number]>,
+      },
+      {
+        title: "METHODOLOGY & STATUTORY CERTIFICATION",
+        rows: [
+          ["Escrow Audit", "100% of recorded payouts were disbursed through RBI-compliant escrow ledger accounts."],
+          ["Algorithm Benchmarking", "Predicted ROI at matching time was calculated using historical audience conversion and category baseline CPVs."],
+          ["Metrics Source", "Engagement metrics aggregated via verified social APIs & 7-day post-delivery analytics snapshots."],
+          ["Legal Note", "This is an official campaign performance statement issued by VyaparMedia Technologies Pvt Ltd."],
+        ] as Array<[string, string | number]>,
+      },
+    ];
 
-    // Campaign Dossier
-    csv += title("CAMPAIGN DOSSIER");
-    csv += row("Campaign ID", campaign.id);
-    csv += row("Campaign Title", campaign.title);
-    csv += row("Brand Entity", campaign.brand.companyName || "Brand Partner");
-    csv += row("Target Categories", campaign.targetCategories.join(" | ") || "General");
-    csv += row("Category Baseline CPV", `INR ${categoryBaselineCpvRupees} per view`);
-    csv += row("Campaign Status", campaign.status);
-    csv += row("Total Escrow Budget (INR)", paiseToRupees(campaign.totalBudget));
-    csv += row("Total Budget Realized / Disbursed (INR)", paiseToRupees(totalSpend));
-    csv += sep();
+    const csv = buildBrandedCsv({
+      meta: reportMeta,
+      columns,
+      rows: influencerBreakdown as unknown as Record<string, unknown>[],
+      summaryRows,
+      customSections,
+    });
 
-    // Executive Performance Summary with Algorithm Accuracy
-    csv += title("EXECUTIVE PERFORMANCE SUMMARY");
-    csv += row("Total Estimated Reach", String(totalReach));
-    csv += row("Total Delivered Views", String(totalViews));
-    csv += row("Matching-Projected Views", String(totalPredictedViews));
-    csv += row("Overall Delivery Multiplier", `${overallDeliveryMultiplier}x of target projection`);
-    csv += row("Algorithm Match Accuracy", `${overallAlgorithmAccuracy}%`);
-    csv += row("Total Engagements (Likes + Comments + Shares + Saves)", String(totalEngagements));
-    csv += row("Average Engagement Rate", `${avgEngagementRate.toFixed(2)}%`);
-    csv += row("Predicted CPV at Matching", `INR ${predictedAverageCpvRupees}`);
-    csv += row("Effective Cost Per View (CPV)", effectiveCpvRupees !== "N/A" ? `INR ${effectiveCpvRupees}` : "N/A");
-    csv += row("Blended Cost Per Engagement (CPE)", blendedCPE !== "N/A" ? `INR ${blendedCPE}` : "N/A");
-    csv += row("Blended Cost Per Reach (CPR)", effectiveCprRupees !== "N/A" ? `INR ${effectiveCprRupees}` : "N/A");
-    csv += row("Category Efficiency Factor", efficiencyMultiplier ? `${efficiencyMultiplier}x industry baseline` : "N/A");
-    csv += sep();
-
-    // Influencer Performance Breakdown Table with Matching Comparison
-    csv += title("INFLUENCER DELIVERABLE & PERFORMANCE BREAKDOWN");
-    csv += "Influencer,Handle,Followers,Paid (INR),Predicted Views,Delivered Views,Variance (%),Accuracy (%),Predicted CPV (INR),Actual CPV (INR),Reach,Likes,Comments,Shares,Saves,Total Engagements,ER (%),CPE (INR),CPR (INR),Rating,Data Quality\r\n";
-
-    for (const d of influencerBreakdown) {
-      csv +=
-        [
-          esc(d.influencer || "Creator"),
-          esc(d.handle ? `@${d.handle}` : ""),
-          d.followers ?? 0,
-          d.paidRupees,
-          d.predictedViews,
-          d.views,
-          `${d.viewsVariancePercent > 0 ? "+" : ""}${d.viewsVariancePercent}%`,
-          `${d.accuracyPercentage}%`,
-          d.predictedCpvRupees,
-          d.costPerView,
-          d.reach,
-          d.likes,
-          d.comments,
-          d.shares,
-          d.saves,
-          d.totalEngagements,
-          `${d.engagementRate.toFixed(2)}%`,
-          d.costPerEngagement,
-          d.costPerReach,
-          d.rating ? (d.rating / 100).toFixed(1) : "N/A",
-          d.isEstimated ? "Estimated" : "Verified API",
-        ].join(",") + "\r\n";
-    }
-
-    // Aggregate Total Row
-    csv +=
-      [
-        "TOTAL",
-        `${influencerBreakdown.length} creators`,
-        "",
-        paiseToRupees(totalSpend),
-        totalPredictedViews,
-        totalViews,
-        `${overallViewsVariancePercent > 0 ? "+" : ""}${overallViewsVariancePercent}%`,
-        `${overallAlgorithmAccuracy}%`,
-        predictedAverageCpvRupees,
-        effectiveCpvRupees,
-        totalReach,
-        influencerBreakdown.reduce((s, d) => s + d.likes, 0),
-        influencerBreakdown.reduce((s, d) => s + d.comments, 0),
-        influencerBreakdown.reduce((s, d) => s + d.shares, 0),
-        influencerBreakdown.reduce((s, d) => s + d.saves, 0),
-        totalEngagements,
-        `${avgEngagementRate.toFixed(2)}%`,
-        blendedCPE,
-        effectiveCprRupees,
-        "",
-        "Aggregate",
-      ].join(",") + "\r\n";
-    csv += sep();
-
-    // Statutory Certification
-    csv += title("METHODOLOGY & VERIFICATION STATEMENT");
-    csv += row("Escrow Audit", "100% of recorded payouts were disbursed through RBI-compliant escrow ledger accounts.");
-    csv += row("Algorithm Benchmarking", "Predicted ROI at matching time was calculated using historical audience conversion and category baseline CPVs.");
-    csv += row("Metrics Source", "Engagement metrics aggregated via verified social APIs & 7-day post-delivery analytics snapshots.");
-    csv += row("Legal Note", "This is an official campaign performance statement issued by VyaparMedia Technologies Pvt Ltd.");
-    csv += row("--- End of Report ---", "");
-
-    const safeTitle = campaign.title.replace(/[^\w\s-]/g, "").replace(/\s+/g, "_").slice(0, 60);
-    const filename = `VyaparMedia-ROI-${safeTitle}-${Date.now()}.csv`;
+    const filename = buildReportFilename("ROI", campaign.title);
     return csvResponse(csv, filename);
   }
-
-  const hasEstimatedData = influencerBreakdown.some((d) => d.isEstimated);
 
   return ApiResponse.success(
     {
@@ -332,6 +405,8 @@ async function _handler(req: NextRequest, context: { params: Promise<Record<stri
         totalSpendRupees: paiseToRupees(totalSpend),
         totalReach,
         totalViews,
+        totalVerifiedViews,
+        totalEstimatedViews,
         totalPredictedViews,
         totalEngagements,
         avgEngagementRate,
@@ -349,7 +424,10 @@ async function _handler(req: NextRequest, context: { params: Promise<Record<stri
         overallDeliveryMultiplier,
         predictedAverageCpvPaise,
         predictedAverageCpvRupees,
+        hasEstimatedData,
+        dataQualityStatus,
       },
+      reportMeta,
       influencers: influencerBreakdown,
       dataDisclaimer: hasEstimatedData
         ? "Some engagement figures are modelled estimates (rule-based), not real-time data from Instagram/YouTube APIs. Rows marked isEstimated=true should be treated as indicative only."
@@ -362,4 +440,5 @@ async function _handler(req: NextRequest, context: { params: Promise<Record<stri
 export const GET = apiWrapper(_handler, {
   requirePermission: "VIEW_OWN_FINANCE",
   rateLimit: RATE_LIMIT_CONFIGS.REPORTS,
+  userRateLimit: { bucket: "REPORTS" },
 });

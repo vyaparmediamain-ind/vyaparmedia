@@ -2,6 +2,7 @@
 
 import type { Profile } from "./ProfileTab";
 import { Input } from "@/components/ui";
+import { FairPriceGuidanceCard } from "./FairPriceGuidanceCard";
 
 interface RatesTabProps {
 profile: Profile;
@@ -15,6 +16,8 @@ export default function RatesTab({ profile, setProfile }: Readonly<RatesTabProps
       <p className="text-sm text-muted-foreground mb-6">
         Set your baseline rates for brand collaborations. This helps match you with relevant campaigns.
       </p>
+
+      <FairPriceGuidanceCard quotedRatePaise={profile.minRate} />
 
       <div className="grid-2 gap-4 mb-6">
         <Input

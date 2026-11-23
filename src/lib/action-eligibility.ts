@@ -1583,4 +1583,32 @@ export function checkFraudAppealEligibility(input: FraudAppealEligibilityInput):
   return { allowed: true };
 }
 
+// ---------------------------------------------------------------------------
+// 23. FEATURE FLAG MUTATIONS (ADMIN ONLY)
+// ---------------------------------------------------------------------------
+
+export interface FeatureFlagMutationEligibilityInput {
+  isAdmin: boolean;
+  isSaving?: boolean;
+}
+
+export function checkFeatureFlagMutationEligibility(
+  input: FeatureFlagMutationEligibilityInput,
+): { allowed: boolean; reason?: string } {
+  if (!input.isAdmin) {
+    return {
+      allowed: false,
+      reason: "Admin privileges required to modify feature rollout flags.",
+    };
+  }
+  if (input.isSaving) {
+    return {
+      allowed: false,
+      reason: "Saving feature flag updates...",
+    };
+  }
+  return { allowed: true };
+}
+
+
 

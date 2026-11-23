@@ -16,6 +16,7 @@ import { formatCurrency, formatNumber } from "@/lib/utils-client";
 import { CampaignApplication } from "./CampaignDetailHelpers";
 import { checkApplicationAcceptanceEligibility } from "@/lib/action-eligibility";
 import { MatchScoreBadge } from "../MatchScoreBadge";
+import { MarketRangeComparisonPill } from "@/components/pricing/MarketRangeCard";
 
 interface ApplicationsListProps {
   readonly loading: boolean;
@@ -189,9 +190,16 @@ export function ApplicationsList({
                 <span className="text-2xs text-muted-foreground block font-medium mb-0.5">
                   PROPOSED RATE
                 </span>
-                <span className="font-extrabold text-foreground tabular-nums text-sm">
-                  {formatCurrency(application.proposedRate)}
-                </span>
+                <div className="flex flex-wrap items-center gap-1.5">
+                  <span className="font-extrabold text-foreground tabular-nums text-sm">
+                    {formatCurrency(application.proposedRate)}
+                  </span>
+                  <MarketRangeComparisonPill
+                    quotedPaise={application.proposedRate}
+                    minPaise={application.influencer.fairRateMinPaise}
+                    maxPaise={application.influencer.fairRateMaxPaise}
+                  />
+                </div>
               </div>
               <div>
                 <span className="text-2xs text-muted-foreground block font-medium mb-0.5">
@@ -202,11 +210,26 @@ export function ApplicationsList({
                 </span>
               </div>
               <div>
-                <span className="text-2xs text-muted-foreground block font-medium mb-0.5">
-                  ESTIMATED VIEWS
-                </span>
+                <div className="flex items-center gap-1 mb-0.5">
+                  <span className="text-2xs text-muted-foreground font-medium">
+                    ESTIMATED VIEWS
+                  </span>
+                  {application.matchBreakdown?.dataQuality && (
+                    <span
+                      className={`text-[9px] px-1 py-0.2 rounded font-semibold uppercase ${
+                        application.matchBreakdown.dataQuality === "VERIFIED"
+                          ? "bg-verified-muted text-verified"
+                          : "bg-muted text-muted-foreground border border-border"
+                      }`}
+                    >
+                      {application.matchBreakdown.dataQuality}
+                    </span>
+                  )}
+                </div>
                 <span className="font-bold text-foreground tabular-nums">
-                  {application.matchBreakdown?.estimatedViews
+                  {application.matchBreakdown?.viewsRange
+                    ? `${formatNumber(application.matchBreakdown.viewsRange.low)} – ${formatNumber(application.matchBreakdown.viewsRange.high)}`
+                    : application.matchBreakdown?.estimatedViews
                     ? formatNumber(application.matchBreakdown.estimatedViews)
                     : "—"}
                 </span>

@@ -19,6 +19,11 @@ export const creatorDiscoveryItemSchema = z.object({
   startingRatePaise: z.number().int().min(0),
   topPostImages: z.array(z.string()).optional(),
   isSaved: z.boolean().optional(),
+  fairRateMinPaise: z.number().int().nullable().optional(),
+  fairRateMaxPaise: z.number().int().nullable().optional(),
+  fairRateDataQuality: z.string().nullable().optional(),
+  fairRateConfidence: z.string().nullable().optional(),
+  showFairPricePublicBadge: z.boolean().optional(),
 });
 
 export type CreatorDiscoveryItem = z.infer<typeof creatorDiscoveryItemSchema>;
@@ -67,6 +72,11 @@ export const rawInfluencerApiItemSchema = z.object({
   totalCompletedDeals: z.number().optional(),
   isFeatured: z.boolean().optional(),
   isSaved: z.boolean().optional(),
+  fairRateMinPaise: z.number().int().nullable().optional(),
+  fairRateMaxPaise: z.number().int().nullable().optional(),
+  fairRateDataQuality: z.string().nullable().optional(),
+  fairRateConfidence: z.string().nullable().optional(),
+  showFairPricePublicBadge: z.boolean().optional(),
 });
 
 export type RawInfluencerApiItem = z.infer<typeof rawInfluencerApiItemSchema>;

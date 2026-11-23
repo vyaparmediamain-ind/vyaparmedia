@@ -114,6 +114,63 @@ export async function runExplainAnalyzeScenarios(): Promise<ScenarioBenchmarkRes
       suggestion:
         "CREATE INDEX CONCURRENTLY idx_deal_influencer_status_created ON \"Deal\" (\"influencerId\", \"status\", \"deletedAt\", \"createdAt\" DESC); -> Prevents memory Sort node for influencer dashboard deals list.",
     },
+    {
+      scenario: "5. Telemetry Ingest & Route Influx (PageViewEvent route query by routeKey and createdAt range)",
+      sql: `EXPLAIN (ANALYZE, BUFFERS, FORMAT JSON)
+        SELECT id, "sessionHash", "routeKey", "activeMs", "createdAt"
+        FROM "PageViewEvent"
+        WHERE "routeKey" = 'CREATOR_PROFILE'
+          AND "createdAt" >= NOW() - INTERVAL '24 hours'
+        ORDER BY "createdAt" DESC
+        LIMIT 100;`,
+      suggestion:
+        "Index @@index([routeKey, createdAt]) covers the query filter and timestamp sort perfectly with Bitmap/Index scan.",
+    },
+    {
+      scenario: "6. Admin Traffic Tab Rollup (DailyRouteStat 30-day aggregation by routeKey)",
+      sql: `EXPLAIN (ANALYZE, BUFFERS, FORMAT JSON)
+        SELECT "routeKey", SUM("uniqueVisitors") as visitors, SUM("pageViews") as views, AVG("avgActiveMs") as duration
+        FROM "DailyRouteStat"
+        WHERE date >= CURRENT_DATE - 30
+        GROUP BY "routeKey"
+        ORDER BY views DESC;`,
+      suggestion:
+        "Primary key @@id([date, routeKey]) provides fast range scans on date without full-table sequence scans.",
+    },
+    {
+      scenario: "7. Campaign Hub Aggregation (50 Deals x 90 Days CampaignDailyMetric timeline)",
+      sql: `EXPLAIN (ANALYZE, BUFFERS, FORMAT JSON)
+        SELECT "campaignId", date, "briefViews", applications, hired, "deliveredViews", "escrowFundedPaise", "escrowReleasedPaise"
+        FROM "CampaignDailyMetric"
+        WHERE "campaignId" = 'seed-campaign-id'
+          AND date >= CURRENT_DATE - 90
+        ORDER BY date ASC;`,
+      suggestion:
+        "Composite primary key @@id([campaignId, date]) guarantees Index Only Scan or clustered index scan for 90-day time series.",
+    },
+    {
+      scenario: "8. Fair Price Engine Snapshot Burst (CreatorMetricSnapshot 12-sample historical views fetch)",
+      sql: `EXPLAIN (ANALYZE, BUFFERS, FORMAT JSON)
+        SELECT id, "influencerId", platform, "avgViews", "followers", "engagementRateBps", "capturedAt"
+        FROM "CreatorMetricSnapshot"
+        WHERE "influencerId" = 'seed-influencer-id'
+          AND platform = 'INSTAGRAM'
+        ORDER BY "capturedAt" DESC
+        LIMIT 12;`,
+      suggestion:
+        "Composite index @@index([influencerId, platform, capturedAt(sort: Desc)]) enables backward index scan with zero in-memory sort.",
+    },
+    {
+      scenario: "9. Branded Report Verification & Export (GeneratedReport lookup by userId and date)",
+      sql: `EXPLAIN (ANALYZE, BUFFERS, FORMAT JSON)
+        SELECT id, type, "userId", "scopeId", "payloadHash", "createdAt"
+        FROM "GeneratedReport"
+        WHERE "userId" = 'seed-user-id'
+        ORDER BY "createdAt" DESC
+        LIMIT 20;`,
+      suggestion:
+        "Index @@index([userId]) and @@index([createdAt]) cover user report history retrieval.",
+    },
   ];
 
   for (const s of scenarios) {

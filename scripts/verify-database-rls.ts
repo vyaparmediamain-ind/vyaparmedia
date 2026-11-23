@@ -33,6 +33,17 @@ export const SENSITIVE_TABLES = [
   "User",
   "Campaign",
   "Application",
+  "FeatureFlag",
+  "GeneratedReport",
+  "CreatorMetricSnapshot",
+  "PricingEvaluation",
+  "PricingConfig",
+  "PageViewEvent",
+  "DailyRouteStat",
+  "DailyFunnelStat",
+  "DailyTrafficBreakdown",
+  "CampaignDailyMetric",
+  "CronRun",
 ];
 
 export function verifyRlsMigrations(): RlsVerificationResult {

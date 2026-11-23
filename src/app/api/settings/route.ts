@@ -11,6 +11,7 @@ import { checkRateLimit } from "@/lib/rate-limit";
 import { parseNotificationPreferences, notificationPreferencesSchema } from "@/lib/utils";
 import { isBrand, isInfluencer, isScout, hasPermission, hasAnyPermission, getPermissions } from "@/lib/rbac";
 import { invalidateCreatorSearchCache } from "@/lib/search";
+import { instagramCapabilities } from "@/lib/instagram";
 
 const updateProfileSchema = z.object({
   displayName: z.preprocess(
@@ -175,6 +176,16 @@ profileData = (user.scoutProfile
 
 const instagramOAuth = user.oauthAccounts?.find((a) => a.provider === "instagram");
 const youtubeOAuth = user.oauthAccounts?.find((a) => a.provider === "youtube");
+const igCaps = instagramCapabilities(instagramOAuth);
+
+let igViewsAccess: "ACTIVE" | "RECONNECT_NEEDED" | "PERSONAL_ACCOUNT" | "BASIC_ONLY" = "BASIC_ONLY";
+if (igCaps.needsReconnect) {
+  igViewsAccess = "RECONNECT_NEEDED";
+} else if (igCaps.insights) {
+  igViewsAccess = "ACTIVE";
+} else {
+  igViewsAccess = "BASIC_ONLY";
+}
 
 return NextResponse.json({
 user: {
@@ -247,10 +258,12 @@ socialConnections: {
   instagram: {
     connected: !!instagramOAuth && instagramOAuth.scope !== "NEEDS_RECONNECT",
     accessTokenPresent: !!instagramOAuth?.accessToken,
-    needsReconnect: instagramOAuth?.scope === "NEEDS_RECONNECT",
+    needsReconnect: igCaps.needsReconnect,
     pendingApproval: instagramOAuth?.scope === "PENDING_APPROVAL",
     lastSynced: instagramOAuth?.updatedAt?.toISOString() || null,
     handle: profileData.instagramHandle || null,
+    viewsAccess: igViewsAccess,
+    grantedScopes: instagramOAuth?.grantedScopes || [],
   },
   youtube: {
     connected: !!youtubeOAuth && youtubeOAuth.scope !== "NEEDS_RECONNECT",
@@ -366,7 +379,7 @@ async function updateInfluencerProfile(userId: string, email: string, data: Upda
     updateData.avatar = data.profileImage;
   }
 
-  await prisma.influencerProfile.upsert({
+  const profile = await prisma.influencerProfile.upsert({
     where: { userId },
     create: {
       userId,
@@ -395,6 +408,27 @@ async function updateInfluencerProfile(userId: string, email: string, data: Upda
     },
     update: updateData,
   });
+
+  // Recompute fair price when categories or rates are updated
+  if (
+    data.categories !== undefined ||
+    data.minRate !== undefined ||
+    data.maxRate !== undefined ||
+    data.minInstagramRate !== undefined ||
+    data.maxInstagramRate !== undefined ||
+    data.minYoutubeRate !== undefined ||
+    data.maxYoutubeRate !== undefined
+  ) {
+    try {
+      const { FairPriceService } = await import("@/services/fair-price.service");
+      await FairPriceService.evaluateInfluencer(profile.id, { forceRecompute: true });
+    } catch (pricingErr) {
+      logger.warn("[Settings] Fair price recompute on profile update failed", {
+        influencerId: profile.id,
+        error: pricingErr instanceof Error ? pricingErr.message : String(pricingErr),
+      });
+    }
+  }
 
   // Invalidate discovery cache so updated creator profile appears in search results
   invalidateCreatorSearchCache().catch((err) => {

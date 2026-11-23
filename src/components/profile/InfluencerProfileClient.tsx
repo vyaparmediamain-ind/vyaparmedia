@@ -40,6 +40,7 @@ import {
 import { useWallet } from "@/hooks/api/useWallet";
 import { checkDirectMessageEligibility } from "@/lib/action-eligibility";
 import StoryShareModal from "@/components/share/StoryShareModal";
+import { MarketRangeBadge } from "@/components/pricing/MarketRangeCard";
 
 interface InfluencerProfileClientProps {
   profile: InfluencerProfileData;
@@ -196,6 +197,12 @@ export default function InfluencerProfileClient({
   const isLowBalance = Boolean(
     isBrand && walletData && walletBalancePaise < Math.max(startingRatePaise, 50000)
   );
+  const isWithinMarketRange = Boolean(
+    profile.fairRateMinPaise &&
+    profile.fairRateMaxPaise &&
+    startingRatePaise >= profile.fairRateMinPaise &&
+    startingRatePaise <= profile.fairRateMaxPaise
+  );
   // SVG Radial Gauge Calculations for DRS Trust Score (300 to 900 CIBIL Standard)
   const radius = 24;
   const circumference = 2 * Math.PI * radius;
@@ -322,6 +329,11 @@ export default function InfluencerProfileClient({
               <span className="inline-flex items-center gap-1 text-[11px] font-bold text-primary bg-primary/10 px-2 py-0.5 rounded-full border border-primary/20 shrink-0 whitespace-nowrap">
                 From {formattedStartingRate}
               </span>
+              <MarketRangeBadge
+                dataQuality={profile.fairRateDataQuality}
+                isWithinRange={isWithinMarketRange}
+                showPublicBadge={profile.showFairPricePublicBadge}
+              />
             </div>
 
             {/* Bio */}
@@ -693,10 +705,17 @@ export default function InfluencerProfileClient({
                   Transparent escrow milestone rates. Funds locked until deliverables are approved.
                 </p>
               </div>
-              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-verified-muted text-verified border border-verified-border self-start sm:self-auto shrink-0 whitespace-nowrap">
-                <Lock className="w-3.5 h-3.5" />
-                <span>Escrow Protected</span>
-              </span>
+              <div className="flex items-center gap-2 self-start sm:self-auto flex-wrap">
+                <MarketRangeBadge
+                  dataQuality={profile.fairRateDataQuality}
+                  isWithinRange={isWithinMarketRange}
+                  showPublicBadge={profile.showFairPricePublicBadge}
+                />
+                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-verified-muted text-verified border border-verified-border shrink-0 whitespace-nowrap">
+                  <Lock className="w-3.5 h-3.5" />
+                  <span>Escrow Protected</span>
+                </span>
+              </div>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

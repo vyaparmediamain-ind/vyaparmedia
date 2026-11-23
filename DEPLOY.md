@@ -436,6 +436,21 @@ The platform provides live printable, PDF-exportable statements (`StatementPrint
 - `GET /api/health`: System healthcheck (PostgreSQL, Redis, Storage connectivity).
 - `GET /api/metrics`: Prometheus-compatible performance metrics.
 
+### 4.2 Prometheus Performance & Reliability Alert Thresholds
+
+The following metrics are exported via `GET /api/metrics` with strict alert thresholds for Grafana / Alertmanager:
+
+| Metric Name | Type / Labels | Alert Trigger Condition | Severity | Operational Response |
+|---|---|---|---|---|
+| `VyaparMedia_telemetry_events_dropped_total` | Counter `{reason}` | `rate(VyaparMedia_telemetry_events_dropped_total[5m]) > 10` | High | Investigate Redis memory exhaustion or schema parse errors. |
+| `VyaparMedia_telemetry_flush_duration_ms` | Histogram | `histogram_quantile(0.95, sum(rate(VyaparMedia_telemetry_flush_duration_ms_bucket[5m])) by (le)) > 500` | Warning | Check PostgreSQL connection pool saturation or lock contention on `PageViewEvent`. |
+| `VyaparMedia_fair_price_compute_duration_ms` | Histogram | `histogram_quantile(0.95, sum(rate(VyaparMedia_fair_price_compute_duration_ms_bucket[5m])) by (le)) > 100` | Warning | Engine computation exceeds 100ms; verify category benchmark cache in Redis. |
+| `VyaparMedia_instagram_insights_requests_total` | Counter `{status}` | `sum(rate(VyaparMedia_instagram_insights_requests_total{status="error"}[5m])) / sum(rate(VyaparMedia_instagram_insights_requests_total[5m])) > 0.10` | High | Graph API token expiry or Meta rate limits; trip `SOCIAL_INSTAGRAM` kill switch. |
+| `VyaparMedia_campaign_metrics_job_duration_ms` | Histogram | `VyaparMedia_campaign_metrics_job_duration_ms_sum > 15000` | Warning | Rollup batch job taking >15s; paginate campaign metric queries. |
+| `VyaparMedia_cron_job_runs_total` | Counter `{job, status}` | `sum(increase(VyaparMedia_cron_job_runs_total{status="FAILED"}[15m])) > 0` | Critical | Inspect `/admin/system` heartbeat card or `CronRun` table for error traceback. |
+| `VyaparMedia_report_generated_total` | Counter `{type, format}` | `sum(rate(VyaparMedia_report_generated_total[1h])) == 0` during business hours | Info | Anomaly in report generation requests; verify feature flag `report_verification`. |
+
+
 ---
 
 ## 5. Environment Variables Dictionary (.env.production)
@@ -537,6 +552,19 @@ PLATFORM_FEE_PERCENTAGE=10
 GATEWAY_FEE_PERCENTAGE=2
 MIN_WITHDRAWAL_AMOUNT=50000        # ₹500 in Paise
 MAX_WITHDRAWAL_AMOUNT=50000000     # ₹5,00,000 in Paise
+
+# ==============================================================================
+# 10. V3 TELEMETRY, AUDIT REPORTING & PROMETHEUS METRICS
+# ==============================================================================
+# Master pepper used to derive daily privacy salts anchored strictly to Asia/Kolkata midnight.
+# Prevents cross-day user fingerprinting. (Generate using: openssl rand -hex 32)
+TELEMETRY_DAILY_SALT_SECRET="<64-hex-chars>"
+
+# HMAC secret used to cryptographically sign tamper-proof PDF/CSV reports and verification codes (REP-...).
+REPORT_VERIFICATION_HMAC_SECRET="<64-hex-chars>"
+
+# Bearer token required to scrape the internal metrics endpoint (/api/metrics).
+PROMETHEUS_AUTH_TOKEN="<64-hex-chars>"
 ```
 
 ---
@@ -676,6 +704,23 @@ npx tsx scripts/setup-qstash-crons.ts
 | **Logistics Checkpoint Sync** | Every 30m (`*/30 * * * *`) | `/api/cron/sync-shipments` | Syncs courier status and marks delivered packages as `RECEIVED` |
 | **Daily Financial Digest** | Daily 00:00 UTC | `/api/cron/daily-digest` | Reconciles ledger transactions, platform fees, and TDS accounts |
 | **KYC Audit Cleanup** | Weekly Sun 02:00 UTC | `/api/cron/kyc-audit` | Prunes expired verification tokens |
+| **Telemetry Ingest Flush** | Every 5m (`*/5 * * * *`) | `/api/cron/telemetry-flush` | Flushes Redis in-memory buffered telemetry events into Postgres |
+| **Telemetry Daily Rollup** | Daily 00:05 UTC | `/api/cron/telemetry-rollup` | Aggregates daily unique sessions, funnel metrics, and dropoffs |
+| **Telemetry Retention Pruner**| Daily 03:00 UTC | `/api/cron/telemetry-retention` | Prunes raw client telemetry older than 90 days (DPDP compliance) |
+| **Campaign Metrics Aggregator**| Daily 01:00 UTC | `/api/cron/campaign-metrics` | Aggregates daily impressions, CTR, pacing, and budget burn |
+| **Creator Audience Snapshot** | Daily 02:00 UTC | `/api/cron/creator-metrics` | Records 30-day rolling engagement rates and verified reach baselines |
+| **Meta Graph Token Refresh** | Daily 04:00 UTC | `/api/cron/refresh-social-tokens` | Refreshes long-lived Instagram OAuth tokens expiring within 15 days |
+| **Escrow Ledger Integrity** | Hourly (`15 * * * *`) | `/api/cron/reconcile-escrow` | Reconciles wallet balances against payment holds and ledger entries |
+| **Fraud Review Scanner** | Every 2h (`0 */2 * * *`) | `/api/cron/audit-reviews` | Runs collusion and sentiment anomaly detection across reviews |
+| **Weekly Gamification Challenges**| Mon 00:00 UTC | `/api/cron/weekly-challenges` | Rotates weekly gamification quests and challenge XP multipliers |
+| **Dispute Escalation Timer** | Every 6h (`0 */6 * * *`) | `/api/cron/dispute-escalation` | Escalates inactive disputes to administrative arbitration |
+| **Razorpay Payout Sync** | Every 15m (`*/15 * * * *`) | `/api/cron/sync-payouts` | Polling fallback for pending RazorpayX bank payout webhooks |
+| **Contract Expiry Warning** | Daily 08:00 UTC | `/api/cron/contract-deadlines` | Sends WhatsApp/SMS warnings for deals with deadlines within 24h |
+| **Referral Bonus Settlement** | Daily 00:30 UTC | `/api/cron/settle-referrals` | Distributes 1% lifetime GMV referral commissions to referrers |
+| **Tax Invoice Generator** | Monthly 1st 01:00 UTC | `/api/cron/generate-tax-invoices` | Generates monthly GST tax invoices and TDS statements |
+| **Campus Scout Royalty Sync** | Monthly 1st 02:00 UTC | `/api/cron/scout-royalties` | Credits campus scouts with monthly campaign royalties |
+| **System Heartbeat Ping** | Every 10m (`*/10 * * * *`) | `/api/cron/heartbeat` | Records system health check and monitors service availability |
+| **Cache Warming & Prune** | Daily 05:00 UTC | `/api/cron/cache-hygiene` | Evicts stale Redis keys and preheats top category benchmarks |
 
 ---
 

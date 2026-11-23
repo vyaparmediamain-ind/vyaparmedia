@@ -85,6 +85,12 @@ export default async function AdminOverviewPage() {
 
   const quickNav = [
     {
+      title: "Campaign Governance",
+      desc: "Portfolio overview, escrow funding status, and risk audit.",
+      href: "/admin/campaigns",
+      icon: Target,
+    },
+    {
       title: "Financials & Escrow",
       desc: "Escrow TVL, fee revenue, refunds, and bank settlements.",
       href: "/admin/financial",

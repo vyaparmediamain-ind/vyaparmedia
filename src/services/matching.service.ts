@@ -13,6 +13,7 @@ import {
   MATCHING_PRIORITY_PRESETS,
   decodeMatchingPriority,
 } from "@/lib/matching-priority";
+import { estimateExpectedViews } from "@/lib/reach-estimator";
 
 export interface MatchBreakdown {
   categoryScore: number;
@@ -26,6 +27,8 @@ export interface MatchBreakdown {
   categoryBenchmarkSource?: CategoryBenchmarkSource;
   matchingPriority?: MatchingPriorityPreset;
   weights?: MatchingWeights;
+  viewsRange?: { low: number; mid: number; high: number };
+  dataQuality?: "VERIFIED" | "ESTIMATED";
 }
 
 export interface MatchScoreResult {
@@ -50,6 +53,8 @@ interface MemoryBenchmarkEntry<T> {
   expiresAt: number;
 }
 
+const CACHE_VERSION = "v3_quality";
+
 // In-process memory caches to prevent slow query waterfalls (Deal.findMany / TrustRuleConfig.findUnique)
 const categoryBaselineMemoryCache = new Map<string, MemoryBenchmarkEntry<{ baselinePaise: number; source: CategoryBenchmarkSource }>>();
 const dynamicBaselineMemoryCache = new Map<string, MemoryBenchmarkEntry<{ baselinePaise: number; dealCount: number } | null>>();
@@ -62,6 +67,7 @@ export function invalidateCategoryBenchmarkMemoryCache(category?: string): void 
     categoryBaselineMemoryCache.delete(normalized);
     dynamicBaselineMemoryCache.delete(normalized);
     dbConfiguredMemoryCache.delete(normalized);
+    redis.del(`category_cpv:resolved:${CACHE_VERSION}:${normalized}`).catch(() => {});
   } else {
     categoryBaselineMemoryCache.clear();
     dynamicBaselineMemoryCache.clear();
@@ -73,6 +79,8 @@ export function invalidateCategoryBenchmarkMemoryCache(category?: string): void 
 export class MatchingService {
   /**
    * Resolves dynamic CPV from completed deals in past 30 days.
+   * STRICT DATA QUALITY: Only deals with verified API-sourced snapshots (isEstimated: false AND views quality: API)
+   * are eligible to contribute to platform dynamic CPV baselines.
    * If sample size >= minSampleDeals, computes median CPV in paise.
    */
   private static async getDynamicCategoryBaselineCpv(
@@ -108,9 +116,12 @@ export class MatchingService {
         select: {
           amount: true,
           engagementSnapshots: {
+            where: {
+              isEstimated: false,
+            },
             orderBy: { capturedAt: "desc" },
             take: 1,
-            select: { views: true },
+            select: { views: true, isEstimated: true, metricsQuality: true },
           },
         },
         take: 100,
@@ -118,7 +129,20 @@ export class MatchingService {
 
       const validCpvs: number[] = [];
       for (const deal of deals) {
-        const views = deal.engagementSnapshots[0]?.views ?? 0;
+        const snapshot = deal.engagementSnapshots[0];
+        if (!snapshot || snapshot.isEstimated) {
+          continue;
+        }
+
+        // Verify headline views quality is explicitly API
+        if (snapshot.metricsQuality && typeof snapshot.metricsQuality === "object") {
+          const mq = snapshot.metricsQuality as Record<string, string>;
+          if (mq.views !== "API") {
+            continue;
+          }
+        }
+
+        const views = snapshot.views ?? 0;
         if (views >= 100) {
           const dealCpv = deal.amount / views;
           if (Number.isFinite(dealCpv) && dealCpv > 0) {
@@ -179,6 +203,8 @@ export class MatchingService {
   /**
    * Overall platform average CPV across all completed deals in past 30 days.
    * Used as sensible fallback for new/low-data categories.
+   * STRICT DATA QUALITY: Only deals with verified API-sourced snapshots (isEstimated: false AND views quality: API)
+   * are counted.
    */
   public static async getOverallPlatformAverageCpv(): Promise<number> {
     const now = Date.now();
@@ -197,9 +223,12 @@ export class MatchingService {
         select: {
           amount: true,
           engagementSnapshots: {
+            where: {
+              isEstimated: false,
+            },
             orderBy: { capturedAt: "desc" },
             take: 1,
-            select: { views: true },
+            select: { views: true, isEstimated: true, metricsQuality: true },
           },
         },
         take: 100,
@@ -207,7 +236,19 @@ export class MatchingService {
 
       const validCpvs: number[] = [];
       for (const deal of deals) {
-        const views = deal.engagementSnapshots[0]?.views ?? 0;
+        const snapshot = deal.engagementSnapshots[0];
+        if (!snapshot || snapshot.isEstimated) {
+          continue;
+        }
+
+        if (snapshot.metricsQuality && typeof snapshot.metricsQuality === "object") {
+          const mq = snapshot.metricsQuality as Record<string, string>;
+          if (mq.views !== "API") {
+            continue;
+          }
+        }
+
+        const views = snapshot.views ?? 0;
         if (views >= 100) {
           const dealCpv = deal.amount / views;
           if (Number.isFinite(dealCpv) && dealCpv > 0) {
@@ -259,7 +300,7 @@ export class MatchingService {
       return memCached.data;
     }
 
-    const cacheKey = `category_cpv:resolved:${normalized}`;
+    const cacheKey = `category_cpv:resolved:${CACHE_VERSION}:${normalized}`;
 
     // 1. Redis Cache Check (5-min TTL)
     try {
@@ -793,8 +834,17 @@ export class MatchingService {
       const ytSubs = influencer.youtubeSubscribers || 0;
       const totalFollowers = igFollowers + ytSubs;
 
-      const authenticReach = totalFollowers * (authenticityScore / 100);
-      const estimatedViews = Math.max(10, Math.round(authenticReach * (blendedER / 100)));
+      // Statistical reach estimation engine: calculates realistic expected view ranges
+      const platform = ytSubs > igFollowers ? "YOUTUBE" : "INSTAGRAM";
+      const viewsEstimate = estimateExpectedViews({
+        platform,
+        contentType: "REEL",
+        followers: totalFollowers,
+        authenticityScore,
+        engagementRateBps: Math.round(blendedER * 100),
+      });
+
+      const estimatedViews = viewsEstimate.mid;
       const cpvPaise = activeCostPaise / estimatedViews;
 
       // Category-specific relative ROI scoring
@@ -873,6 +923,8 @@ export class MatchingService {
           categoryBenchmarkSource: categoryBaselineDetails.source,
           matchingPriority: priority,
           weights,
+          viewsRange: { low: viewsEstimate.low, mid: viewsEstimate.mid, high: viewsEstimate.high },
+          dataQuality: viewsEstimate.dataQuality,
         },
       };
     } catch (err) {
@@ -961,7 +1013,7 @@ export class MatchingService {
 
     // 1. Check Redis Cache for any pre-calculated match scores (5-minute TTL)
     const cacheKeys = candidates.map(
-      (c) => `match_score:${campaign.id}:${c.influencer.id}:${c.proposedRatePaise ?? 0}`
+      (c) => `match_score:v3:${campaign.id}:${c.influencer.id}:${c.proposedRatePaise ?? 0}`
     );
 
     try {

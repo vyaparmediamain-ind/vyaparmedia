@@ -355,6 +355,35 @@ Leaving an action button enabled, letting the user fill forms or click with expe
 - **O(1) Versioned Invalidation**: Rather than issuing expensive `KEYS` or `SCAN` commands across Redis, namespaces maintain an atomic monotonic version key (e.g. `search:version:campaigns`). Cache keys incorporate this version (`campaigns:v${version}:...`). On write mutations, `redis.incr(versionKey)` atomically renders all previous cached entries obsolete in O(1) time.
 - **Fail-Open Resilience**: If Redis becomes unreachable, the client catches the connection error and falls back gracefully to direct PostgreSQL queries, preventing application downtime.
 
+### 6.10 Feature Flags vs. Operational Kill-Switches
+**Core Mandate:** *New features ship behind FeatureFlag; kill-switches are for incidents.*
+
+#### 1. Purpose & Domain Boundary
+- **Feature Flags (`src/lib/feature-flags.ts`, `FeatureFlag` table)**:
+  - Used for **progressive rollouts**, percentage-based canary deployments, and role allow-list gating (e.g., `["ADMIN"]` for beta testing) of new or evolving capabilities.
+  - Controls gradual user exposure to prevent blast radius during release.
+  - **Fail-Closed Semantics**: If Redis or the database is unreachable, or if an evaluation error occurs, feature flags resolve to `false` (disabled) to prevent unauthorized premature access.
+- **Operational Kill-Switches (`src/lib/kill-switch.ts`, `killswitch:*` Redis keys)**:
+  - Used strictly for **incident response and emergency circuit breaking** of existing production subsystems (e.g., pausing withdrawals during fraud attacks, silencing messaging during spam bursts, or bypassing failing third-party vendor APIs like Surepass, Shiprocket, or DigiLocker).
+  - **Fail-Open Semantics**: If Redis is unreachable, operational kill-switches resolve to `false` (not active / traffic allowed) to prevent system-wide false-positive lockouts.
+
+#### 2. Architecture Comparison
+
+| Dimension | FeatureFlag (`src/lib/feature-flags.ts`) | KillSwitch (`src/lib/kill-switch.ts`) |
+| :--- | :--- | :--- |
+| **Primary Intent** | New feature progressive rollout & beta testing | Emergency circuit breaker for existing systems |
+| **Persistence** | PostgreSQL `FeatureFlag` table (with RLS) | Redis keys (`killswitch:<feature>`) with 7-day TTL |
+| **Caching** | Redis (30s TTL) + in-process memory fallback | Redis read directly (fast in-memory override) |
+| **Failure Mode** | **Fail-Closed** (`false` on error) | **Fail-Open** (`false` / unengaged on error) |
+| **Targeting** | Deterministic hash rollout % + Role allow-list | Binary on/off system-wide switch |
+| **Admin Control** | `/admin/system` ("Feature Flags" tab) | `/admin/system` ("Circuit Breakers" tab) |
+| **Audit Trail** | `createAuditLog` (`beforeJSON` & `afterJSON`) | `createActivityLog` (`KILL_SWITCH_TOGGLED`) |
+
+#### 3. Client & Server Usage Standards
+- **Server Components & Route Handlers**: Query `isFeatureEnabled(FEATURE_FLAGS.MY_FEATURE, { userId, role })` or enforce with `await assertFeatureEnabled(...)`.
+- **Client Boundary**: Server components pass pure booleans down to client props (e.g., `<CampaignWorkspace hasCampaignHub={isCampaignHubEnabled} />`). Raw flag keys, database records, and configuration internals are never exposed to non-admin client bundles.
+
+
 ---
 
 ## 7. Content Hierarchy Conventions by Screen Archetype
@@ -470,6 +499,40 @@ Because `.github/workflows/deploy.yml` applies migrations via `npx prisma migrat
    - **Phase 1 (Expand - Additive Only)**: Add new columns (nullable or with safe defaults) or new tables. Apply migration + deploy code that reads/writes both old and new formats.
    - **Phase 2 (Backfill & Dual-Write)**: Backfill data asynchronously via script/cron. Verify telemetry.
    - **Phase 3 (Contract - Deprecate & Prune)**: Deploy code that ceases referencing the old column. In a subsequent release, apply the pruning migration (`DROP COLUMN`).
+
+---
+
+## 10. V3 Core Architectural Mandates & Standards
+
+### 10.1 Data-Quality Distinction Rule
+Every metric or quantitative number stored, served via API, or presented in the UI **MUST** carry an explicit data quality classification:
+- `VERIFIED`: Directly measured from authoritative external APIs (e.g. Meta Graph API, Razorpay settled escrow, bank webhooks).
+- `ESTIMATED`: Algorithmically derived or heuristic estimations (e.g. reach baselines, category multipliers, CTR projections).
+- `SELF_REPORTED`: Unverified user inputs provided during profile setup or registration.
+
+*Strict Rule:* Never display estimated or derived data as measured or verified. Both database schemas and JSON API responses must explicitly include the `dataQuality` flag, and UI badges (`<DataQualityBadge quality={...} />`) must accompany metrics.
+
+### 10.2 Pure-Engine Rule for Business Logic
+- All algorithmic, mathematical, and business rule evaluation logic **MUST** reside exclusively in pure functions within `src/lib/*.ts`.
+- Pure engines must have **zero side-effects**: no Prisma calls, no `fetch` or HTTP requests, and no direct calls to `Date.now()`. Time and clocks must always be injected as explicit parameters (`now: Date = new Date()`), ensuring 100% determinism and unit-testability.
+- Database access and transactional mutations are restricted to `src/services/*`, and API routes must remain thin orchestration handlers.
+
+### 10.3 Privacy-Preserving Telemetry Standard
+- Telemetry events (`/api/telemetry/track`) must preserve user privacy: raw IP addresses and User-Agent strings **MUST NEVER** be stored in PostgreSQL or Redis.
+- Device hashing uses a daily rotating secret salt anchored strictly to `Asia/Kolkata` midnight.
+- Server-side affirmative consent (`UserConsent` table) is strictly verified before accepting client-side analytics events.
+- Ingest requests are capped at 2KB maximum body size and rate-limited via token buckets (`200 req/min`).
+
+### 10.4 Tamper-Proof Reporting & Formula Injection Defense
+- Every generated platform report (PDF, JSON, CSV) is recorded in `GeneratedReport` with a cryptographic `HMAC-SHA256` signature and a public verification code (`REP-...`).
+- Public verification is served via zero-leak endpoints (`/api/verify-report/[code]`), ensuring unauthorized viewers cannot extract private deal financial terms or user PII.
+- All CSV exports **MUST** sanitize every text field using `csvEsc` to prevent CSV formula injection attacks (prepending `'` to any string starting with `=`, `+`, `-`, or `@`).
+
+### 10.5 Fail-Closed Feature Flags
+- All new features and background pipelines are gated by dynamic feature flags in `FeatureFlag`.
+- Flags must default to **fail-closed** (`isEnabled: false`) if Redis or the database is temporarily unreachable.
+- Dynamic rollout percentages and tenant/role-level scoping (`ADMIN`, `BRAND`, `INFLUENCER`) must be evaluated deterministically using consistent hash algorithms.
+
 
 
 

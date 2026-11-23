@@ -318,10 +318,19 @@ export default function CampaignDetailClient({
               {(campaign.status === "ACTIVE" || campaign.status === "COMPLETED") && (
                 <>
                   <Button
-                    href={`/dashboard/campaigns/${campaign.id}/roi`}
+                    href={`/dashboard/campaigns/${campaign.id}/analytics`}
                     variant="primary"
                     size="sm"
                     className="inline-flex items-center gap-1.5 font-bold cursor-pointer shadow-xs"
+                  >
+                    <TrendingUp className="w-4 h-4" />
+                    Analytics &amp; Funnel
+                  </Button>
+                  <Button
+                    href={`/dashboard/campaigns/${campaign.id}/roi`}
+                    variant="secondary"
+                    size="sm"
+                    className="inline-flex items-center gap-1.5 font-medium cursor-pointer"
                   >
                     <BarChart3 className="w-4 h-4" />
                     ROI Report

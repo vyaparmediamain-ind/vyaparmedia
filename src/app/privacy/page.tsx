@@ -58,6 +58,9 @@ export default function PrivacyPage() {
             <strong className="text-foreground">Creator Portfolio &amp; Media Kit:</strong> Public bio, city, content niches, rate cards, connected Instagram/YouTube handles, historical post metrics, and audience demographics.
           </li>
           <li>
+            <strong className="text-foreground">Platform Telemetry &amp; Interaction Data:</strong> Route keys, active foreground dwell time (in milliseconds), scroll depth percentage, sanitized referrer hostname, and coarse device categorization (desktop, mobile, tablet). Telemetry strictly excludes IP addresses, exact geolocation coordinates, and raw browser User-Agent strings.
+          </li>
+          <li>
             <strong className="text-foreground">KYC &amp; Statutory Identifiers:</strong> Permanent Account Number (PAN), masked Aadhaar reference tokens (via authorized UIDAI-compliant DigiLocker/OCR providers), GSTIN certificate metadata, bank account numbers, IFSC codes, and cancelled cheque images for direct bank payout routing.
           </li>
           <li>
@@ -90,6 +93,7 @@ export default function PrivacyPage() {
           <li><strong className="text-foreground">Right of Access:</strong> Request a comprehensive copy of all personal data, activity logs, and KYC documents stored under your profile.</li>
           <li><strong className="text-foreground">Right to Rectification:</strong> Update inaccurate bank details, addresses, or tax credentials directly from your Settings dashboard.</li>
           <li><strong className="text-foreground">Right to Erasure:</strong> Request permanent deletion of non-statutory account data upon settlement of all open escrow deals and financial balances.</li>
+          <li><strong className="text-foreground">Right to Withdraw Consent &amp; Telemetry Opt-Out:</strong> Control identified profile analytics (such as notifications when brands view your media kit) through opt-in and opt-out controls in Settings (/dashboard/settings). In accordance with data minimization principles, raw PageViewEvent telemetry records are retained for a rolling window of 30 calendar days, while aggregate statistical summaries (DailyRouteStat, DailyFunnelStat) containing zero personal data are retained indefinitely.</li>
           <li><strong className="text-foreground">Right to Grievance Redressal:</strong> Nominate an authorized representative or file a grievance directly with our designated Data Protection Officer.</li>
         </ul>
         <p className="text-xs text-muted-foreground italic">
@@ -239,9 +243,14 @@ export default function PrivacyPage() {
           <p><strong className="text-foreground">Registered Office Address:</strong> {PLATFORM_CONFIG.address}</p>
           <p><strong className="text-foreground">Designated Officer:</strong> Grievance Redressal &amp; Data Protection Officer</p>
           <p>
-            <strong className="text-foreground">Direct Email:</strong>{" "}
+            <strong className="text-foreground">Privacy Desk:</strong>{" "}
             <a href={`mailto:${PLATFORM_CONFIG.privacyEmail}`} className="text-primary font-bold hover:underline">
               {PLATFORM_CONFIG.privacyEmail}
+            </a>
+            <span className="mx-2 opacity-50">|</span>
+            <strong className="text-foreground">Grievance Escalation:</strong>{" "}
+            <a href={`mailto:${PLATFORM_CONFIG.grievanceEmail}`} className="text-primary font-bold hover:underline">
+              {PLATFORM_CONFIG.grievanceEmail}
             </a>
           </p>
           <p className="text-xs text-muted-foreground pt-1 border-t border-border/60">

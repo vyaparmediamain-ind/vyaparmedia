@@ -94,6 +94,11 @@ export function normalizeCreatorItem(inf: RawInfluencerApiItem): CreatorDiscover
     trustScore: inf.trustScore ?? inf.user?.trustScore ?? 750,
     startingRatePaise: startingRate,
     isSaved: Boolean(inf.isSaved),
+    fairRateMinPaise: inf.fairRateMinPaise ?? null,
+    fairRateMaxPaise: inf.fairRateMaxPaise ?? null,
+    fairRateDataQuality: inf.fairRateDataQuality ?? null,
+    fairRateConfidence: inf.fairRateConfidence ?? null,
+    showFairPricePublicBadge: inf.showFairPricePublicBadge ?? true,
   };
 }
 

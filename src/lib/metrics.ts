@@ -118,6 +118,77 @@ export const visionOcrErrorsTotal = getOrCreateCounter(
   },
 );
 
+export const telemetryEventsReceivedTotal = getOrCreateCounter(
+  "VyaparMedia_telemetry_events_received_total",
+  {
+    help: "Total number of telemetry events received by ingestion",
+  },
+);
+
+export const telemetryEventsDroppedTotal = getOrCreateCounter(
+  "VyaparMedia_telemetry_events_dropped_total",
+  {
+    help: "Total number of telemetry events dropped with reason",
+    labelNames: ["reason"],
+  },
+);
+
+export const telemetryFlushDurationMs = getOrCreateHistogram(
+  "VyaparMedia_telemetry_flush_duration_ms",
+  {
+    help: "Duration of telemetry buffer flush to database in ms",
+    buckets: [5, 10, 25, 50, 100, 250, 500, 1000],
+  },
+);
+
+export const fairPriceEvaluationsTotal = getOrCreateCounter(
+  "VyaparMedia_fair_price_evaluations_total",
+  {
+    help: "Total number of fair price evaluations performed",
+    labelNames: ["confidence", "dataQuality"],
+  },
+);
+
+export const fairPriceComputeDurationMs = getOrCreateHistogram(
+  "VyaparMedia_fair_price_compute_duration_ms",
+  {
+    help: "Duration of fair price computation in ms",
+    buckets: [1, 5, 10, 25, 50, 100, 250, 500],
+  },
+);
+
+export const instagramInsightsRequestsTotal = getOrCreateCounter(
+  "VyaparMedia_instagram_insights_requests_total",
+  {
+    help: "Total number of Instagram Graph API insights requests",
+    labelNames: ["status"],
+  },
+);
+
+export const campaignMetricsJobDurationMs = getOrCreateHistogram(
+  "VyaparMedia_campaign_metrics_job_duration_ms",
+  {
+    help: "Duration of campaign daily metrics rollup job in ms",
+    buckets: [50, 100, 250, 500, 1000, 2500, 5000, 10000],
+  },
+);
+
+export const reportGeneratedTotal = getOrCreateCounter(
+  "VyaparMedia_report_generated_total",
+  {
+    help: "Total number of analytics and compliance reports generated",
+    labelNames: ["type", "format"],
+  },
+);
+
+export const cronJobRunsTotal = getOrCreateCounter(
+  "VyaparMedia_cron_job_runs_total",
+  {
+    help: "Total number of background cron job executions",
+    labelNames: ["job", "status"],
+  },
+);
+
 // Provide access to the metrics string
 export const getMetrics = async () => {
 return await client.register.metrics();

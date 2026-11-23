@@ -49,6 +49,10 @@ declare module "ioredis" {
     scan(cursor: string | number, ...args: unknown[]): Promise<[string, string[]]>;
     eval(script: string, numkeys: number, ...args: (string | number)[]): Promise<unknown>;
     mget(...keys: string[]): Promise<(string | null)[]>;
+    rpush(key: string, ...values: (string | number)[]): Promise<number>;
+    lpop(key: string): Promise<string | null>;
+    rpop(key: string): Promise<string | null>;
+    llen(key: string): Promise<number>;
     pipeline(): Pipeline;
     connect(callback?: (err?: Error) => void): Promise<void>;
     disconnect(reconnect?: boolean): void;

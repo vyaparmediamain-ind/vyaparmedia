@@ -202,7 +202,31 @@ VyaparMedia koi agency nahi hai jo tumpar hukum chalaye. Yeh ek **automated tech
 
 ---
 
+# Page 5: V3 Naye Creator Tools — Fair Rate Card, Real API Reach aur Privacy Guarantee
+
+### 5.1 "Apni Asli Worth Jano" — Fair Rate Card Engine
+* **Puraani Problem**: Creators ko pata hi nahi hota ki kitna charge karein. Kabhi kam rate bol kar nuksan kar lete hain, aur kabhi bohot zyada bol kar deal haath se nikal jaati hai.
+* **V3 Solution**: Tumhare profile settings me **Market Range & Fair Pricing Card** (`MarketRangeCard.tsx`) add ho gaya hai:
+  * Yeh tumhari category (Fashion, Tech, Food, etc.) aur engagement rate ke hisaab se tumhara justified rate calculate karta hai.
+  * Brand ko quote karte samay yeh tumhe realistic target batata hai taaki brand tumhari proposal ko reject na kare.
+
+### 5.2 Real Instagram API Data — Brand Ko Sachha Proof Dikhao
+* Fake followers wale log screenshot edit karke brand ko bevkuf banate hain, jisse honest creators ka naam kharab hota hai.
+* VyaparMedia par jab tum apna Instagram account connect karte ho (`Meta Graph API v21.0`), toh tumhare profile par **"VERIFIED"** seal lagti hai:
+  * Brand ko tumhara **Real Verified Engagement Rate** dikhta hai.
+  * Bot followers aur fake likes ka data filter ho jata hai.
+  * Brands verified creators ko hamesha **30% se 50% zyada rate** dene ke liye ready rehti hain kyunki unhe real conversions milti hain!
+
+### 5.3 100% Privacy & Zero Creepy Tracking
+* Hum tumhari privacy ki puri izzat karte hain:
+  * Humara telemetry system tumhara IP address ya phone hardware ka raw data kabhi store nahi karta.
+  * Analytics tracking ke liye har din naya daily salt use hota hai jisse kisi user ka personal footprint track na ho sake.
+  * Tum kisi bhi waqt Settings (`/dashboard/settings` ➔ Privacy Tab) me jakar analytics consent on ya off kar sakte ho.
+
+---
+
 ### 🚀 Abhi Register Karo
 Kagaz ki chinta chhodo, free me kaam band karo, aur real paid deals shuru karo:  
 👉 **[vyaparmedia.in/register](https://vyaparmedia.in/register)**
+
 

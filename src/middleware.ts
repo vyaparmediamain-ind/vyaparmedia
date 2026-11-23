@@ -63,27 +63,8 @@ function generateCspWithNonce(nonce: string): string {
 import { checkWafPatterns } from "@/lib/waf";
 export { checkWafPatterns };
 
-const CSRF_EXEMPT_PREFIXES = [
-  "/api/payments/webhook",
-  "/api/webhooks/",
-  "/api/jobs/",
-  "/api/cron/",
-  // Public NextAuth internal handlers (have their own anti-CSRF token verification)
-  "/api/auth/callback",
-  "/api/auth/signin",
-  "/api/auth/signout",
-  "/api/auth/session",
-  "/api/auth/csrf",
-  "/api/auth/providers",
-  // External OAuth redirect callbacks
-  "/api/auth/digilocker/callback",
-  "/api/auth/instagram/callback",
-  "/api/auth/youtube/callback",
-];
-
-function isCsrfExempt(pathname: string): boolean {
-  return CSRF_EXEMPT_PREFIXES.some((prefix) => pathname.startsWith(prefix));
-}
+import { CSRF_EXEMPT_EXACT, CSRF_EXEMPT_PREFIXES, isCsrfExempt } from "@/lib/csrf-exempt";
+export { CSRF_EXEMPT_EXACT, CSRF_EXEMPT_PREFIXES, isCsrfExempt };
 
 function handleCsrfCheck(
   req: NextRequest,

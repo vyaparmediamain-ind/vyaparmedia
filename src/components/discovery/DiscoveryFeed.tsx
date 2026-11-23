@@ -114,6 +114,11 @@ async function fetchDiscoveryPage(
       trustScore: inf.trustScore ?? inf.user?.trustScore ?? 820,
       startingRatePaise: inf.startingRatePaise ?? (inf.minRate ? inf.minRate : 1500000),
       isSaved: Boolean(inf.isSaved),
+      fairRateMinPaise: inf.fairRateMinPaise ?? null,
+      fairRateMaxPaise: inf.fairRateMaxPaise ?? null,
+      fairRateDataQuality: inf.fairRateDataQuality ?? null,
+      fairRateConfidence: inf.fairRateConfidence ?? null,
+      showFairPricePublicBadge: inf.showFairPricePublicBadge ?? true,
     }));
 
     return {

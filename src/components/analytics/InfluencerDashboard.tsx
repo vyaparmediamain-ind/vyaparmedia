@@ -17,9 +17,15 @@ import { getTrustTierLabel, formatCurrency, formatDate } from "@/lib/utils-clien
 import { formatAuditLogDetails } from "@/lib/audit-formatters";
 import { copyToClipboard } from "@/lib/clipboard";
 import { TDS_194O_RATE, TDS_194O_RATE_PERCENT_STRING } from "@/constants";
+import { CreatorVisibilitySection } from "@/components/analytics/CreatorVisibilitySection";
+import type { CreatorVisibilityKpis } from "@/lib/visibility-analytics";
+import type { DrsTrendSummary } from "@/lib/drs-analytics";
+import Link from "next/link";
 import {
   TrendingUp,
+  TrendingDown,
   ShieldCheck,
+  ShieldAlert,
   CheckCircle2,
   Clock,
   Award,
@@ -31,6 +37,8 @@ import {
   Sparkles,
   DollarSign,
   Lock,
+  ArrowUpRight,
+  Shield,
 } from "lucide-react";
 
 export interface InfluencerAnalyticsData {
@@ -86,6 +94,16 @@ export interface InfluencerAnalyticsData {
       referralCode?: string;
     };
   };
+  visibility?: CreatorVisibilityKpis | null | undefined;
+  marketRangeSummary?: {
+    minPaise: number | null;
+    maxPaise: number | null;
+    confidence: string;
+    dataQuality: "VERIFIED" | "ESTIMATED";
+    computedAt: Date | null;
+    quotedRatePaise: number | null;
+  } | null | undefined;
+  drsTrend?: DrsTrendSummary | null | undefined;
   error?: string;
 }
 
@@ -318,6 +336,149 @@ export default function InfluencerDashboard({
               </div>
               <MiniSparkline data={[performance.deliveryRate * 0.88, performance.deliveryRate * 0.92, performance.deliveryRate * 0.96, performance.deliveryRate * 0.98, performance.deliveryRate]} color="#D97706" />
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* 1b. PROFILE VISIBILITY & BRAND INTEREST (30 DAYS) */}
+      <CreatorVisibilitySection visibility={data.visibility} />
+
+      {/* 1c. MARKET RANGE PRICING & DRS REPUTATION INTELLIGENCE */}
+      <section aria-label="Pricing Guidance and Reputation Trends" className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+        {/* Market Range Summary Card */}
+        <div className="rounded-2xl border border-border bg-card p-5 sm:p-6 shadow-xs flex flex-col justify-between">
+          <div>
+            <div className="flex items-center justify-between gap-3 mb-4">
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary">
+                  <DollarSign className="w-4 h-4" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-foreground">Estimated Market Range</h3>
+                  <p className="text-[11px] text-muted-foreground">Peer benchmark deliverable valuation</p>
+                </div>
+              </div>
+              <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-verified/10 text-verified border border-verified/20 uppercase tracking-wider">
+                <ShieldCheck className="w-3 h-3" />
+                {data.marketRangeSummary?.dataQuality || "ESTIMATED"}
+              </span>
+            </div>
+
+            {data.marketRangeSummary?.minPaise && data.marketRangeSummary?.maxPaise ? (
+              <div className="space-y-4">
+                <div className="p-4 rounded-xl bg-muted/40 border border-border">
+                  <span className="text-xs font-semibold text-muted-foreground block mb-1">Recommended Collaboration Range</span>
+                  <div className="text-2xl font-black text-foreground tabular-nums tracking-tight">
+                    {formatCurrency(data.marketRangeSummary.minPaise / 100)} - {formatCurrency(data.marketRangeSummary.maxPaise / 100)}
+                  </div>
+                  <div className="flex items-center gap-2 mt-2">
+                    <span className="text-[11px] font-bold px-2 py-0.5 rounded-md bg-card border border-border text-foreground">
+                      Confidence: {data.marketRangeSummary.confidence || "MEDIUM"}
+                    </span>
+                    {data.marketRangeSummary.quotedRatePaise && (
+                      <span className="text-[11px] text-muted-foreground tabular-nums">
+                        Current card: {formatCurrency(data.marketRangeSummary.quotedRatePaise / 100)}
+                      </span>
+                    )}
+                  </div>
+                </div>
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  Calculated using verified reach analytics, category benchmarks, and audience authenticity metrics. Indicative and non-binding.
+                </p>
+              </div>
+            ) : (
+              <div className="py-6 text-center space-y-2">
+                <p className="text-xs text-muted-foreground">
+                  Complete 1 or more brand collaborations to unlock personalized algorithmic market pricing guidance.
+                </p>
+              </div>
+            )}
+          </div>
+
+          <div className="pt-4 mt-4 border-t border-border flex items-center justify-between">
+            <span className="text-[11px] text-muted-foreground">Keep rates aligned with market demand</span>
+            <Link
+              href="/dashboard/settings?tab=rates"
+              className="inline-flex items-center gap-1 text-xs font-bold text-primary hover:underline"
+            >
+              <span>Update Rate Card</span>
+              <ArrowUpRight className="w-3.5 h-3.5" />
+            </Link>
+          </div>
+        </div>
+
+        {/* DRS Trend & Plain-Language Drivers Card */}
+        <div className="rounded-2xl border border-border bg-card p-5 sm:p-6 shadow-xs flex flex-col justify-between">
+          <div>
+            <div className="flex items-center justify-between gap-3 mb-4">
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-xl bg-verified/10 border border-verified/20 flex items-center justify-center text-verified">
+                  <Shield className="w-4 h-4" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-foreground">Dynamic Reputation Score (DRS)</h3>
+                  <p className="text-[11px] text-muted-foreground">Platform trust tier &amp; reliability history</p>
+                </div>
+              </div>
+              <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-verified/10 text-verified border border-verified/20">
+                <ShieldCheck className="w-3 h-3" /> VERIFIED
+              </span>
+            </div>
+
+            <div className="flex items-baseline justify-between p-3.5 rounded-xl bg-muted/40 border border-border mb-4">
+              <div>
+                <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground block mb-0.5">Current Trust Tier</span>
+                <span className="text-xl font-black text-foreground tabular-nums">
+                  {data.drsTrend?.currentScore ?? overview.trustScore} <span className="text-xs font-bold text-muted-foreground">/ 900</span>
+                </span>
+              </div>
+              <div className="text-right">
+                <span className={`inline-flex items-center gap-1 text-xs font-extrabold px-2 py-0.5 rounded-md ${
+                  (data.drsTrend?.netChange ?? 0) >= 0 ? "bg-verified/15 text-verified" : "bg-amber-500/15 text-amber-600"
+                }`}>
+                  {(data.drsTrend?.netChange ?? 0) >= 0 ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
+                  {(data.drsTrend?.netChange ?? 0) >= 0 ? `+${data.drsTrend?.netChange ?? 0}` : `${data.drsTrend?.netChange ?? 0}`} pts
+                </span>
+                <span className="text-[10px] text-muted-foreground block mt-0.5">Tier: {data.drsTrend?.tier || getTrustTierLabel(overview.trustScore)}</span>
+              </div>
+            </div>
+
+            {/* Plain-Language Drivers */}
+            <div className="space-y-2">
+              <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider block">Recent Score Drivers</span>
+              {data.drsTrend?.drivers && data.drsTrend.drivers.length > 0 ? (
+                <div className="space-y-1.5">
+                  {data.drsTrend.drivers.slice(0, 3).map((driver, idx) => (
+                    <div key={idx} className="flex items-center justify-between text-xs py-1.5 px-2.5 rounded-lg bg-card border border-border/70">
+                      <div className="flex items-center gap-2 min-w-0">
+                        {driver.isPositive ? (
+                          <CheckCircle2 className="w-3.5 h-3.5 text-verified shrink-0" />
+                        ) : (
+                          <ShieldAlert className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+                        )}
+                        <span className="text-foreground truncate">{driver.label}</span>
+                      </div>
+                      <span className={`text-[11px] font-bold tabular-nums shrink-0 ml-2 ${
+                        driver.impactPts >= 0 ? "text-verified" : "text-amber-600"
+                      }`}>
+                        {driver.impactPts >= 0 ? `+${driver.impactPts}` : driver.impactPts}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-xs text-muted-foreground py-2">
+                  Maintain prompt submission deadlines and positive brand ratings to climb DRS trust tiers.
+                </p>
+              )}
+            </div>
+          </div>
+
+          <div className="pt-4 mt-4 border-t border-border flex items-center justify-between text-[11px] text-muted-foreground">
+            <span>Evaluated weekly via platform trust engine</span>
+            <Link href="/dashboard/badges" className="font-bold text-primary hover:underline">
+              View Milestones &rarr;
+            </Link>
           </div>
         </div>
       </section>
@@ -637,7 +798,12 @@ export default function InfluencerDashboard({
 
             <div>
               <div className="flex items-center justify-between text-xs font-semibold mb-1.5">
-                <span className="text-muted-foreground">Instagram Engagement Benchmark</span>
+                <span className="text-muted-foreground flex items-center gap-1.5">
+                  Instagram Engagement Benchmark
+                  <Badge variant="warning" className="text-[10px] py-0 px-1.5 font-mono">
+                    ESTIMATED
+                  </Badge>
+                </span>
                 <span className="text-foreground font-bold tabular-nums">{performance.engagementRate}%</span>
               </div>
               <div className="w-full bg-muted rounded-full h-2 overflow-hidden">

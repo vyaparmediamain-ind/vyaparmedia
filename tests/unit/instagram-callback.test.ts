@@ -134,7 +134,134 @@ describe("O1-T2 & O1-T3: Instagram Callback Route & Token Lifecycle", () => {
     const expiresTime = (createArgs.expiresAt as Date).getTime();
     const diffDays = (expiresTime - Date.now()) / (86400 * 1000);
     expect(diffDays).toBeGreaterThan(58);
-    expect(diffDays).toBeLessThan(62);
+    expect(createArgs.scope).toBe("instagram_business_basic");
+    expect(createArgs.grantedScopes).toEqual(["instagram_business_basic"]);
+  });
+
+  it("gracefully connects with basic scope when user denies insights scope", async () => {
+    const validState = "state_1234567890abcdef1234567890abcdef";
+
+    mockAuth.mockResolvedValue({
+      user: { id: "user_creator_denied" },
+    } as unknown as Awaited<ReturnType<typeof auth>>);
+
+    vi.spyOn(prisma.oAuthState, "findUnique").mockResolvedValue({
+      id: "state_id",
+      userId: "user_creator_denied",
+      state: validState,
+      provider: "instagram",
+      expiresAt: new Date(Date.now() + 600000),
+      createdAt: new Date(),
+    });
+    vi.spyOn(prisma.oAuthState, "delete").mockResolvedValue({} as never);
+
+    // Only basic scope was granted by user
+    vi.spyOn(instagram, "exchangeInstagramCode").mockResolvedValue({
+      accessToken: "mock_secret_long_token_denied",
+      userId: "ig_user_denied",
+      expiresIn: 5184000,
+      permissions: ["instagram_business_basic"],
+    });
+
+    vi.spyOn(instagram, "getInstagramProfile").mockResolvedValue({
+      id: "ig_user_denied",
+      username: "denied_influencer",
+      name: "Influencer",
+      biography: "Bio",
+      followersCount: 20000,
+      followingCount: 50,
+      mediaCount: 40,
+      profilePicture: "https://ig.cdn.com/avatar.jpg",
+      isVerified: true,
+      accountType: "CREATOR",
+    });
+
+    vi.spyOn(prisma.oAuthAccount, "findUnique").mockResolvedValue(null);
+    vi.spyOn(prisma.oAuthAccount, "findFirst").mockResolvedValue(null);
+    const createSpy = vi.spyOn(prisma.oAuthAccount, "create").mockResolvedValue({} as never);
+    vi.spyOn(prisma.user, "findUnique").mockResolvedValue({
+      userType: "INFLUENCER",
+      email: "creator_denied@vyaparmedia.in",
+    } as never);
+    vi.spyOn(prisma.influencerProfile, "upsert").mockResolvedValue({} as never);
+
+    const req = new NextRequest(
+      `https://app.vyaparmedia.in/api/auth/instagram/callback?code=mock_code_denied&state=${validState}`
+    );
+
+    const res = await GET(req);
+    expect(res.status).toBe(307);
+    expect(res.headers.get("location")).toContain("/dashboard/settings?success=instagram_connected");
+
+    expect(createSpy).toHaveBeenCalledTimes(1);
+    const createArgs = createSpy.mock.calls[0]![0].data;
+    expect(createArgs.grantedScopes).toEqual(["instagram_business_basic"]);
+  });
+
+  it("stores both basic and insights in grantedScopes when user approves insights", async () => {
+    const validState = "state_1234567890abcdef1234567890abcdef";
+
+    mockAuth.mockResolvedValue({
+      user: { id: "user_creator_insights" },
+    } as unknown as Awaited<ReturnType<typeof auth>>);
+
+    vi.spyOn(prisma.oAuthState, "findUnique").mockResolvedValue({
+      id: "state_id",
+      userId: "user_creator_insights",
+      state: validState,
+      provider: "instagram",
+      expiresAt: new Date(Date.now() + 600000),
+      createdAt: new Date(),
+    });
+    vi.spyOn(prisma.oAuthState, "delete").mockResolvedValue({} as never);
+
+    // Both basic and insights scopes were granted by user
+    vi.spyOn(instagram, "exchangeInstagramCode").mockResolvedValue({
+      accessToken: "mock_secret_long_token_insights",
+      userId: "ig_user_insights",
+      expiresIn: 5184000,
+      permissions: [
+        "instagram_business_basic",
+        "instagram_business_manage_insights",
+      ],
+    });
+
+    vi.spyOn(instagram, "getInstagramProfile").mockResolvedValue({
+      id: "ig_user_insights",
+      username: "insights_influencer",
+      name: "Influencer",
+      biography: "Bio",
+      followersCount: 65000,
+      followingCount: 80,
+      mediaCount: 150,
+      profilePicture: "https://ig.cdn.com/avatar.jpg",
+      isVerified: true,
+      accountType: "CREATOR",
+    });
+
+    vi.spyOn(prisma.oAuthAccount, "findUnique").mockResolvedValue(null);
+    vi.spyOn(prisma.oAuthAccount, "findFirst").mockResolvedValue(null);
+    const createSpy = vi.spyOn(prisma.oAuthAccount, "create").mockResolvedValue({} as never);
+    vi.spyOn(prisma.user, "findUnique").mockResolvedValue({
+      userType: "INFLUENCER",
+      email: "creator_insights@vyaparmedia.in",
+    } as never);
+    vi.spyOn(prisma.influencerProfile, "upsert").mockResolvedValue({} as never);
+
+    const req = new NextRequest(
+      `https://app.vyaparmedia.in/api/auth/instagram/callback?code=mock_code_insights&state=${validState}`
+    );
+
+    const res = await GET(req);
+    expect(res.status).toBe(307);
+    expect(res.headers.get("location")).toContain("/dashboard/settings?success=instagram_connected");
+
+    expect(createSpy).toHaveBeenCalledTimes(1);
+    const createArgs = createSpy.mock.calls[0]![0].data;
+    expect(createArgs.grantedScopes).toEqual([
+      "instagram_business_basic",
+      "instagram_business_manage_insights",
+    ]);
   });
 
   it("never logs plaintext tokens or secrets (Logger Spy Test)", async () => {

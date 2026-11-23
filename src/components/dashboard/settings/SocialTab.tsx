@@ -15,6 +15,8 @@ export interface SocialConnectionDetail {
   pendingApproval?: boolean;
   lastSynced?: string | null;
   handle?: string | null;
+  viewsAccess?: "ACTIVE" | "RECONNECT_NEEDED" | "PERSONAL_ACCOUNT" | "BASIC_ONLY";
+  grantedScopes?: string[];
 }
 
 export interface SocialConnections {
@@ -176,6 +178,7 @@ export default function SocialTab({
           needsReconnect={Boolean(socialConnections?.instagram?.needsReconnect)}
           pendingApproval={Boolean(socialConnections?.instagram?.pendingApproval)}
           lastSynced={socialConnections?.instagram?.lastSynced}
+          viewsAccess={socialConnections?.instagram?.viewsAccess}
           followersOrSubscribers={profile.instagramFollowers || 0}
           engagementRate={profile.instagramEngagementRate || 0}
           isSaving={isSaving}

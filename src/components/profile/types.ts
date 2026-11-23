@@ -58,6 +58,12 @@ export interface InfluencerProfileData {
   contentQualityScore?: number | undefined; // 0 - 100
   minRatePaise: number;
   maxRatePaise?: number | null | undefined;
+  fairRateMinPaise?: number | null | undefined;
+  fairRateMaxPaise?: number | null | undefined;
+  fairRateConfidence?: string | null | undefined;
+  fairRateDataQuality?: string | null | undefined;
+  fairRateComputedAt?: string | null | undefined;
+  showFairPricePublicBadge?: boolean | undefined;
   campaignProofs: CampaignProofItem[];
   rateCard: RateCardItem[];
   reviews: ReviewItem[];

@@ -130,6 +130,13 @@ model User {
 
   refreshTokens RefreshToken[]
   otpTokens     OtpToken[]
+  pricingEvaluations PricingEvaluation[]
+
+  // Telemetry & Privacy Consent (DPDP Act 2023)
+  telemetryConsent        Boolean   @default(false)
+  telemetryConsentAt      DateTime?
+  telemetryConsentVersion String?
+  pageViewEvents          PageViewEvent[]
 
   @@index([userType, status])
   @@index([email])
@@ -161,6 +168,7 @@ model OAuthAccount {
   refreshToken      String?
   expiresAt         DateTime?
   scope             String?
+  grantedScopes     String[]  @default([])
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @updatedAt
 
@@ -284,6 +292,16 @@ model InfluencerProfile {
   deals            Deal[]        @relation("InfluencerDeals")
   reviews          Review[]      @relation("InfluencerReviews")
   createdCampaigns Campaign[]    @relation("CreatedCampaigns")
+  metricSnapshots  CreatorMetricSnapshot[]
+  pricingEvaluations PricingEvaluation[]
+
+  // Fair Pricing Intelligence (v3)
+  fairRateMinPaise        Int?
+  fairRateMaxPaise        Int?
+  fairRateConfidence      String?
+  fairRateDataQuality     String?
+  fairRateComputedAt      DateTime?
+  fairRateEngineVersion   String?
 
   @@index([totalDeals])
   @@index([minRate])
@@ -477,6 +495,18 @@ model TrustRuleConfig {
   @@index([isActive])
 }
 
+model FeatureFlag {
+  key            String   @id
+  enabled        Boolean  @default(false)
+  rolloutPercent Int      @default(100)
+  allowRoles     String[] @default([]) // e.g. ["ADMIN", "BRAND"]
+  description    String
+  updatedById    String?
+  updatedAt      DateTime @updatedAt
+
+  @@index([enabled])
+}
+
 // ==================== CAMPAIGNS ====================
 
 enum CampaignStatus {
@@ -556,6 +586,7 @@ model Campaign {
   influencer   InfluencerProfile? @relation("CreatedCampaigns", fields: [influencerId], references: [id]) // Relation
   applications Application[]
   deals        Deal[]
+  dailyMetrics CampaignDailyMetric[]
 
   @@index([status])
   @@index([createdAt])
@@ -1221,6 +1252,18 @@ model ActivityLog {
   @@index([createdAt])
 }
 
+model GeneratedReport {
+  id          String   @id
+  type        String
+  userId      String
+  scopeId     String?
+  payloadHash String
+  createdAt   DateTime @default(now())
+
+  @@index([userId])
+  @@index([createdAt])
+}
+
 // Note: RateLimitCounter model was removed. Rate limiting is handled entirely
 // via Redis (see src/lib/rate-limit.ts). The DB table has been dropped.
 
@@ -1360,6 +1403,9 @@ model EngagementSnapshot {
   // real API data from Instagram/YouTube (false).
   // Defaults to true so that existing rows are correctly classified.
   isEstimated Boolean @default(true)
+
+  // Granular per-field data quality: { views: "API"|"DERIVED", likes, comments, shares, saves, clicks, reach }
+  metricsQuality Json?
 
   capturedAt DateTime @default(now())
   createdAt  DateTime @default(now())
@@ -1610,4 +1656,174 @@ model PushSubscription {
 
   @@index([userId])
 }
+
+// ==================== CREATOR METRICS ====================
+
+enum MetricPlatform {
+  INSTAGRAM
+  YOUTUBE
+}
+
+enum MetricViewsQuality {
+  API
+  UNAVAILABLE
+}
+
+model CreatorMetricSnapshot {
+  id                String             @id @default(cuid())
+  influencerId      String
+  platform          MetricPlatform
+  capturedAt        DateTime           @default(now())
+  followers         Int
+  avgLikes          Int?
+  avgComments       Int?
+  avgViews          Int?
+  avgReach          Int?
+  engagementRateBps Int?
+  postsSampled      Int
+  viewsQuality      MetricViewsQuality
+  flagsJson         Json?
+
+  influencer InfluencerProfile @relation(fields: [influencerId], references: [id], onDelete: Cascade)
+
+  @@index([influencerId, platform, capturedAt(sort: Desc)])
+}
+
+// ==================== FAIR PRICING ====================
+
+model PricingEvaluation {
+  id                String            @id @default(cuid())
+  influencerId      String
+  requestedByUserId String?
+  platform          String
+  contentType       String
+  inputsHash        String
+  inputsJson        Json
+  outputJson        Json
+  engineVersion     String
+  configVersion     Int
+  createdAt         DateTime          @default(now())
+
+  influencer        InfluencerProfile @relation(fields: [influencerId], references: [id], onDelete: Cascade)
+  requestedByUser   User?             @relation(fields: [requestedByUserId], references: [id], onDelete: SetNull)
+
+  @@index([influencerId, createdAt(sort: Desc)])
+  @@index([inputsHash])
+  @@index([requestedByUserId])
+}
+
+model PricingConfig {
+  id          String   @id @default(cuid())
+  version     Int      @unique
+  isActive    Boolean  @default(true)
+  configJson  Json
+  description String?
+  updatedById String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([isActive])
+}
+
+// ==================== TELEMETRY & ANALYTICS ====================
+
+model PageViewEvent {
+  id                 String    @id @default(cuid())
+  sessionHash        String
+  userId             String?
+  role               String?
+  routeKey           String
+  targetInfluencerId String?
+  targetCampaignId   String?
+  deviceType         String
+  referrerHost       String?
+  activeMs           Int
+  maxScrollPct       Int
+  createdAt          DateTime  @default(now())
+
+  user               User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([routeKey, createdAt])
+  @@index([targetInfluencerId, createdAt])
+  @@index([targetCampaignId, createdAt])
+}
+
+model DailyRouteStat {
+  date           DateTime @db.Date
+  routeKey       String
+  uniqueVisitors Int
+  pageViews      Int
+  avgActiveMs    Int
+  avgScrollPct   Int
+  bounceBps      Int
+
+  @@id([date, routeKey])
+}
+
+model DailyFunnelStat {
+  date      DateTime @db.Date
+  funnelKey String
+  stepKey   String
+  sessions  Int
+
+  @@id([date, funnelKey, stepKey])
+}
+
+model DailyTrafficBreakdown {
+  date      DateTime @db.Date
+  dimension String
+  key       String
+  visitors  Int
+  pageViews Int
+
+  @@id([date, dimension, key])
+  @@index([date, dimension])
+}
+
+model CampaignDailyMetric {
+  campaignId          String
+  date                DateTime @db.Date
+  briefViews          Int      @default(0)
+  uniqueBriefViewers  Int      @default(0)
+  applications        Int      @default(0)
+  shortlisted         Int      @default(0)
+  hired               Int      @default(0)
+  contentSubmitted    Int      @default(0)
+  postsLive           Int      @default(0)
+  deliveredViews      BigInt   @default(0)
+  apiViewsShareBps    Int      @default(0)
+  engagements         BigInt   @default(0)
+  escrowFundedPaise   BigInt   @default(0)
+  escrowReleasedPaise BigInt   @default(0)
+  platformFeePaise    BigInt   @default(0)
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  campaign            Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+
+  @@id([campaignId, date])
+  @@index([date])
+  @@index([campaignId])
+}
+
+// ==================== BACKGROUND CRON HEARTBEAT ====================
+
+model CronRun {
+  id               String    @id @default(cuid())
+  jobName          String
+  path             String
+  status           String    // SUCCESS, FAILED, RUNNING
+  durationMs       Int?      @default(0)
+  recordsProcessed Int?      @default(0)
+  error            String?
+  startedAt        DateTime  @default(now())
+  completedAt      DateTime?
+
+  @@index([jobName, startedAt(sort: Desc)])
+  @@index([startedAt(sort: Desc)])
+  @@index([status])
+}
+
+
+
 

@@ -191,6 +191,112 @@ return `${csvEsc(t)},\r\n`;
 * Returns the standard VyaparMedia platform header block for CSV reports.
 */
 import { PLATFORM_CONFIG } from "@/lib/platform-config";
+import {
+  type ReportMeta,
+  buildReportTextHeader,
+  buildReportTextFooter,
+  formatIstDateKey,
+} from "@/lib/report-meta";
+
+export interface BrandedCsvColumn<T> {
+  key: keyof T | string;
+  label: string;
+  format?: (val: unknown, row: T) => string | number | null | undefined;
+}
+
+export interface BrandedCsvOptions<T extends Record<string, unknown> = Record<string, unknown>> {
+  meta: ReportMeta;
+  columns: BrandedCsvColumn<T>[];
+  rows: T[];
+  summaryRows?: Array<Record<string, string | number | null | undefined>>;
+  customSections?: Array<{
+    title: string;
+    rows: Array<[string, string | number | null | undefined]>;
+  }>;
+}
+
+/**
+ * Standard Report CSV Filename Builder
+ * Format: VyaparMedia-<Type>-<scope>-<YYYYMMDD>.csv
+ */
+export function buildReportFilename(type: string, scope: string, date?: Date): string {
+  const cleanType = type.charAt(0).toUpperCase() + type.slice(1);
+  const cleanScope = (scope || "Report")
+    .replace(/[^\w\s-]/g, "")
+    .trim()
+    .replace(/\s+/g, "_")
+    .slice(0, 40);
+  const dateKey = formatIstDateKey(date || new Date());
+  return `VyaparMedia-${cleanType}-${cleanScope}-${dateKey}.csv`;
+}
+
+/**
+ * Builds an official RFC 4180 CSV following the VyaparMedia Report Standard (v3).
+ * Structure:
+ * 1. Platform corporate header + Report metadata (prefixed with `# `)
+ * 2. Blank separator line
+ * 3. Table header row + Data rows
+ * 4. Optional summary rows / custom sections
+ * 5. Blank separator line
+ * 6. Platform compliance footer (prefixed with `# `)
+ */
+export function buildBrandedCsv<T extends Record<string, unknown>>(
+  options: BrandedCsvOptions<T>
+): string {
+  const { meta, columns, rows, summaryRows, customSections } = options;
+  const lines: string[] = [];
+
+  // 1. Platform header + report metadata prefixed with `# `
+  const headerLines = buildReportTextHeader(meta);
+  lines.push(...headerLines);
+
+  // 2. Blank line
+  lines.push("");
+
+  // 3. Header row + Data rows
+  const headerRow = columns.map((col) => csvEsc(col.label)).join(",");
+  lines.push(headerRow);
+
+  for (const row of rows) {
+    const rowValues = columns.map((col) => {
+      const rawVal = (row as Record<string, unknown>)[col.key as string];
+      const val = col.format ? col.format(rawVal, row) : rawVal;
+      return csvEsc(val as string | number | null | undefined);
+    });
+    lines.push(rowValues.join(","));
+  }
+
+  // 4. Optional summary rows
+  if (summaryRows && summaryRows.length > 0) {
+    for (const sRow of summaryRows) {
+      const sValues = columns.map((col) => {
+        const val = sRow[col.key as string];
+        return csvEsc(val);
+      });
+      lines.push(sValues.join(","));
+    }
+  }
+
+  // 5. Optional custom sections
+  if (customSections && customSections.length > 0) {
+    for (const section of customSections) {
+      lines.push("");
+      lines.push(`${csvEsc(section.title)},`);
+      for (const [k, v] of section.rows) {
+        lines.push(`${csvEsc(k)},${csvEsc(v)}`);
+      }
+    }
+  }
+
+  // 6. Blank line
+  lines.push("");
+
+  // 7. Platform footer prefixed with `# `
+  const footerLines = buildReportTextFooter(meta);
+  lines.push(...footerLines);
+
+  return lines.join("\r\n");
+}
 
 export function csvPlatformHeader(reportType: string): string {
   let out = "";

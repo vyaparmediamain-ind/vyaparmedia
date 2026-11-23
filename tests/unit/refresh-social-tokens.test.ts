@@ -47,6 +47,7 @@ describe("O1-T3: refresh-social-tokens Cron with Fake Clock", () => {
       createdAt: new Date(fixedNow.getTime() - 3 * 86400 * 1000), // 3 days ago (>24h)
       updatedAt: new Date(fixedNow.getTime() - 3 * 86400 * 1000),
       scope: "instagram_business_basic",
+      grantedScopes: ["instagram_business_basic", "instagram_business_manage_insights"],
     };
 
     vi.spyOn(prisma.oAuthAccount, "findMany").mockResolvedValue([mockExpiringAccount as never]);
@@ -72,6 +73,10 @@ describe("O1-T3: refresh-social-tokens Cron with Fake Clock", () => {
     expect(firstUpdateCall).toBeDefined();
     const updateData = firstUpdateCall![0].data;
     expect(updateData.expiresAt).toEqual(new Date(fixedNow.getTime() + 5184000 * 1000));
+    expect(updateData.grantedScopes).toEqual([
+      "instagram_business_basic",
+      "instagram_business_manage_insights",
+    ]);
   });
 
   it("marks account as NEEDS_RECONNECT and notifies user when refresh fails", async () => {

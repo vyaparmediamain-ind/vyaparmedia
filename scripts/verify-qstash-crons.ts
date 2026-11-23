@@ -98,6 +98,30 @@ function explainSchedule(cron: string): { utc: string; ist: string } {
       ist: "Daily at 10:30 IST",
     };
   }
+  if (cron === "0 6 * * *") {
+    return {
+      utc: "Daily at 06:00 UTC",
+      ist: "Daily at 11:30 IST",
+    };
+  }
+  if (cron === "* * * * *") {
+    return {
+      utc: "Every minute",
+      ist: "Every minute (continuous)",
+    };
+  }
+  if (cron === "0 7 * * *") {
+    return {
+      utc: "Daily at 07:00 UTC",
+      ist: "Daily at 12:30 IST (Afternoon)",
+    };
+  }
+  if (cron === "0 8 * * *") {
+    return {
+      utc: "Daily at 08:00 UTC",
+      ist: "Daily at 13:30 IST (01:30 PM)",
+    };
+  }
   if (cron === "0 10 * * *") {
     return {
       utc: "Daily at 10:00 UTC",

@@ -55,7 +55,7 @@ const COOKIE_TYPES = [
     badge: "Reliability",
     badgeVariant: "amber",
     purpose:
-      "Measures API response latencies, WebSocket reconnection health, and rendering errors to ensure reliable campaign deal rooms.",
+      "Measures API response latencies, dwell time, and route navigation to ensure reliable marketplace performance. Uses ephemeral per-tab random identifiers in sessionStorage hashed with a daily-rotating cryptographic server salt (zero cross-day tracking cookies, zero IP logging). Raw event telemetry is purged after 30 days, and identified analytics opt-out is available in Settings.",
   },
 ];
 
@@ -114,7 +114,7 @@ export default function CookiePage() {
             <span>We Never Sell Your Browsing Data</span>
           </div>
           <p className="text-xs text-muted-foreground leading-relaxed">
-            VyaparMedia does NOT deploy third-party advertising cookies, cross-site behavioral tracking pixels (like Meta Pixel or TikTok Pixel), or commercial data broker scripts. Your activity on VyaparMedia is private and never packaged for behavioral ad targeting.
+            VyaparMedia does NOT deploy third-party advertising cookies, cross-site behavioral tracking pixels (like Meta Pixel or TikTok Pixel), or commercial data broker scripts. Raw PageViewEvent telemetry is permanently purged after 30 calendar days, and daily aggregates contain zero session hashes or personal identifiers.
           </p>
         </div>
       </LegalSection>
@@ -149,12 +149,20 @@ export default function CookiePage() {
           <p><strong className="text-foreground">Corporate Identity Number (CIN):</strong> <span className="font-mono">{PLATFORM_CONFIG.cin}</span></p>
           <p><strong className="text-foreground">Registered Office:</strong> {PLATFORM_CONFIG.address}</p>
           <p className="pt-1">
-            <strong className="text-foreground">Direct Inquiries:</strong>{" "}
+            <strong className="text-foreground">Privacy Inquiries:</strong>{" "}
             <a
               href={`mailto:${PLATFORM_CONFIG.privacyEmail}`}
               className="text-primary font-bold hover:underline inline-flex items-center gap-1.5"
             >
               {PLATFORM_CONFIG.privacyEmail}
+            </a>
+            <span className="mx-2 opacity-50">|</span>
+            <strong className="text-foreground">Grievance Desk:</strong>{" "}
+            <a
+              href={`mailto:${PLATFORM_CONFIG.grievanceEmail}`}
+              className="text-primary font-bold hover:underline inline-flex items-center gap-1.5"
+            >
+              {PLATFORM_CONFIG.grievanceEmail}
             </a>
           </p>
         </div>

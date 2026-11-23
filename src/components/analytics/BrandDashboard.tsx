@@ -17,6 +17,14 @@ import { formatCurrency } from "@/lib/utils-client";
 import { humanizeString } from "@/lib/audit-formatters";
 import { copyToClipboard } from "@/lib/clipboard";
 import { GST_STANDARD_RATE, GST_STANDARD_RATE_PERCENT_STRING } from "@/constants";
+import { BrandCampaignVisibilitySection } from "@/components/analytics/BrandCampaignVisibilitySection";
+import type { BrandCampaignVisibilityKpis } from "@/lib/visibility-analytics";
+import type {
+  CampaignCpvComparison,
+  BestCreatorItem,
+  RepeatCreatorsSummary,
+  BrandOperationalAlert,
+} from "@/lib/brand-analytics-calc";
 import {
   DollarSign,
   Layers,
@@ -26,6 +34,12 @@ import {
   Users,
   Copy,
   Plus,
+  AlertCircle,
+  AlertTriangle,
+  ArrowUpRight,
+  Eye,
+  Award,
+  Repeat,
 } from "lucide-react";
 
 export interface BrandAnalyticsData {
@@ -75,6 +89,19 @@ export interface BrandAnalyticsData {
     earnings?: number;
     referralCode?: string;
   };
+  campaignVisibility?: BrandCampaignVisibilityKpis | null | undefined;
+  spendVsViews?: {
+    totalSpendPaise: number;
+    totalDeliveredViews: number;
+    verifiedViews: number;
+    estimatedViews: number;
+    verifiedSharePercent: number;
+    dataQuality: "VERIFIED" | "ESTIMATED";
+  } | undefined;
+  campaignCpvMetrics?: CampaignCpvComparison[] | undefined;
+  bestCreators?: BestCreatorItem[] | undefined;
+  repeatCreators?: RepeatCreatorsSummary | undefined;
+  alerts?: BrandOperationalAlert[] | undefined;
   error?: string;
 }
 
@@ -177,6 +204,45 @@ export default function BrandDashboard({ data, currentFY }: BrandDashboardProps)
     <div className="space-y-6 sm:space-y-8">
       <ToastContainer toasts={toasts} onClose={removeToast} />
 
+      {/* OPERATIONAL CAMPAIGN ALERTS */}
+      {data.alerts && data.alerts.length > 0 && (
+        <section aria-label="Campaign Operational Alerts" aria-live="polite" className="space-y-2.5">
+          {data.alerts.map((alert) => (
+            <div
+              key={alert.id}
+              className={`p-3.5 sm:p-4 rounded-2xl border flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs ${
+                alert.severity === "HIGH"
+                  ? "bg-amber-500/10 border-amber-500/30 text-amber-900 dark:text-amber-200"
+                  : alert.severity === "MEDIUM"
+                  ? "bg-primary/10 border-primary/20 text-foreground"
+                  : "bg-muted/60 border-border text-foreground"
+              }`}
+            >
+              <div className="flex items-start gap-2.5 min-w-0">
+                {alert.severity === "HIGH" ? (
+                  <AlertTriangle className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
+                ) : (
+                  <AlertCircle className="w-4 h-4 text-primary shrink-0 mt-0.5" />
+                )}
+                <div>
+                  <h4 className="text-xs font-bold">{alert.title}</h4>
+                  <p className="text-xs text-muted-foreground leading-relaxed mt-0.5">{alert.message}</p>
+                </div>
+              </div>
+              {alert.ctaLabel && alert.ctaLink && (
+                <Link
+                  href={alert.ctaLink}
+                  className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-bold bg-card border border-border hover:bg-muted text-foreground transition-all shrink-0 self-start sm:self-auto"
+                >
+                  <span>{alert.ctaLabel}</span>
+                  <ArrowUpRight className="w-3 h-3" />
+                </Link>
+              )}
+            </div>
+          ))}
+        </section>
+      )}
+
       {/* 1. TOP KPI STAT TILES */}
       <section aria-label="Key Performance Indicators" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Metric 1: Total Spend */}
@@ -272,6 +338,251 @@ export default function BrandDashboard({ data, currentFY }: BrandDashboardProps)
                 Verified Brand Partner
               </span>
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* 1b. CAMPAIGN BRIEF VISIBILITY & RESPONSE (30 DAYS) */}
+      <BrandCampaignVisibilitySection visibility={data.campaignVisibility} />
+
+      {/* 1c. SPEND VS DELIVERED VIEWS & CPV BENCHMARK MATRIX */}
+      <section aria-label="Spend vs Delivered Views and CPV Benchmark Matrix" className="rounded-2xl border border-border bg-card p-5 sm:p-6 shadow-xs space-y-5">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-border pb-4">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
+              <Eye className="w-5 h-5" />
+            </div>
+            <div>
+              <h2 className="text-base sm:text-lg font-bold text-foreground">Spend vs. Delivered Views &amp; CPV Matrix</h2>
+              <p className="text-xs text-muted-foreground">
+                Actual cost-per-view performance benchmarked against category market standards.
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2.5 py-1 rounded-full bg-verified/10 text-verified border border-verified/20 uppercase tracking-wider">
+              <ShieldCheck className="w-3.5 h-3.5" />
+              {data.spendVsViews?.dataQuality || "ESTIMATED"}
+            </span>
+          </div>
+        </div>
+
+        {/* Spend vs Views Top Metrics */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="p-4 rounded-xl bg-muted/40 border border-border">
+            <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider block mb-1">Delivered Views</span>
+            <div className="text-2xl font-black text-foreground tabular-nums">
+              {data.spendVsViews?.totalDeliveredViews ? data.spendVsViews.totalDeliveredViews.toLocaleString("en-IN") : "0"}
+            </div>
+            <div className="text-[11px] text-muted-foreground mt-1 flex items-center gap-1.5">
+              <span className="font-bold text-verified">
+                {data.spendVsViews?.verifiedViews ? data.spendVsViews.verifiedViews.toLocaleString("en-IN") : "0"}
+              </span>
+              <span>API-verified ({data.spendVsViews?.verifiedSharePercent ?? 0}%)</span>
+            </div>
+          </div>
+
+          <div className="p-4 rounded-xl bg-muted/40 border border-border">
+            <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider block mb-1">Total Settled Spend</span>
+            <div className="text-2xl font-black text-foreground tabular-nums">
+              {formatCurrency(overview.totalSpent)}
+            </div>
+            <div className="text-[11px] text-muted-foreground mt-1">Across {overview.completedDeals} completed deliverables</div>
+          </div>
+
+          <div className="p-4 rounded-xl bg-muted/40 border border-border">
+            <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider block mb-1">Average Effective CPV</span>
+            <div className="text-2xl font-black text-foreground tabular-nums">
+              {data.spendVsViews && data.spendVsViews.totalDeliveredViews > 0
+                ? `₹${(overview.totalSpent / data.spendVsViews.totalDeliveredViews).toFixed(2)}`
+                : "₹0.35"}
+            </div>
+            <div className="text-[11px] text-muted-foreground mt-1">Industry baseline: ₹0.35 - ₹0.50 / view</div>
+          </div>
+        </div>
+
+        {/* Campaign CPV vs Baseline Breakdown */}
+        {data.campaignCpvMetrics && data.campaignCpvMetrics.length > 0 ? (
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs border-collapse">
+              <thead>
+                <tr className="border-b border-border text-muted-foreground font-bold">
+                  <th className="py-2.5 px-3">Campaign</th>
+                  <th className="py-2.5 px-3">Category</th>
+                  <th className="py-2.5 px-3 text-right">Spend</th>
+                  <th className="py-2.5 px-3 text-right">Delivered Views</th>
+                  <th className="py-2.5 px-3 text-right">Actual CPV</th>
+                  <th className="py-2.5 px-3 text-right">Category Baseline</th>
+                  <th className="py-2.5 px-3 text-center">Efficiency</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border/60">
+                {data.campaignCpvMetrics.map((camp) => (
+                  <tr key={camp.campaignId} className="hover:bg-muted/30 transition-colors">
+                    <td className="py-2.5 px-3 font-semibold text-foreground max-w-[180px] truncate">
+                      {camp.title}
+                    </td>
+                    <td className="py-2.5 px-3 text-muted-foreground capitalize">{camp.category}</td>
+                    <td className="py-2.5 px-3 text-right tabular-nums font-semibold">
+                      {formatCurrency(camp.spendPaise / 100)}
+                    </td>
+                    <td className="py-2.5 px-3 text-right tabular-nums">
+                      {camp.deliveredViews.toLocaleString("en-IN")}
+                    </td>
+                    <td className="py-2.5 px-3 text-right tabular-nums font-bold text-foreground">
+                      ₹{(camp.actualCpvPaise / 100).toFixed(2)}
+                    </td>
+                    <td className="py-2.5 px-3 text-right tabular-nums text-muted-foreground">
+                      ₹{(camp.baselineCpvPaise / 100).toFixed(2)}
+                    </td>
+                    <td className="py-2.5 px-3 text-center">
+                      <span
+                        className={`inline-flex items-center text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                          camp.status === "SAVINGS"
+                            ? "bg-verified/15 text-verified border border-verified/30"
+                            : camp.status === "PREMIUM"
+                            ? "bg-amber-500/15 text-amber-600 border border-amber-500/30"
+                            : "bg-muted text-muted-foreground border border-border"
+                        }`}
+                      >
+                        {camp.status === "SAVINGS"
+                          ? `${Math.abs(camp.variancePercent)}% Savings`
+                          : camp.status === "PREMIUM"
+                          ? `+${camp.variancePercent}% Premium`
+                          : "On Par"}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <p className="text-xs text-muted-foreground py-2">
+            No completed campaign deliverable metrics available for CPV benchmarking yet.
+          </p>
+        )}
+      </section>
+
+      {/* 1d. BEST PERFORMING CREATORS & REPEAT COLLABORATIONS */}
+      <section aria-label="Best Performing Creators and Repeat Collaborations" className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+        {/* Best Creators by ROI */}
+        <div className="rounded-2xl border border-border bg-card p-5 sm:p-6 shadow-xs flex flex-col justify-between">
+          <div>
+            <div className="flex items-center justify-between gap-3 mb-4">
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-xl bg-verified/10 text-verified flex items-center justify-center">
+                  <Award className="w-4 h-4" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-foreground">Top Creators by ROI Efficiency</h3>
+                  <p className="text-[11px] text-muted-foreground">Ranked by engagement &amp; CPV performance</p>
+                </div>
+              </div>
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-muted border border-border text-muted-foreground">
+                Score / 100
+              </span>
+            </div>
+
+            {data.bestCreators && data.bestCreators.length > 0 ? (
+              <div className="space-y-2">
+                {data.bestCreators.slice(0, 5).map((c) => (
+                  <div key={c.creatorId} className="flex items-center justify-between p-2.5 rounded-xl bg-muted/40 border border-border">
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <div className="w-7 h-7 rounded-full bg-primary/10 text-primary font-extrabold text-xs flex items-center justify-center shrink-0">
+                        #{c.rank}
+                      </div>
+                      <div className="min-w-0">
+                        <span className="text-xs font-bold text-foreground block truncate">{c.name}</span>
+                        <span className="text-[10px] text-muted-foreground truncate">{c.handle}</span>
+                      </div>
+                    </div>
+                    <div className="text-right shrink-0">
+                      <span className="text-sm font-black text-foreground tabular-nums">{c.roiScore}</span>
+                      <span className="text-[10px] text-muted-foreground block tabular-nums">
+                        {c.dealsCount} deal{c.dealsCount > 1 ? "s" : ""} · {c.deliveredViews.toLocaleString("en-IN")} views
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-xs text-muted-foreground py-6 text-center">
+                Creator performance rankings populate automatically after deliverables are verified.
+              </p>
+            )}
+          </div>
+
+          <div className="pt-4 mt-4 border-t border-border flex items-center justify-between text-[11px] text-muted-foreground">
+            <span>Algorithmic ROI score incorporates CPV and engagement</span>
+            <Link href="/dashboard/influencers" className="font-bold text-primary hover:underline">
+              Discover Creators &rarr;
+            </Link>
+          </div>
+        </div>
+
+        {/* Repeat Creator Collaborations */}
+        <div className="rounded-2xl border border-border bg-card p-5 sm:p-6 shadow-xs flex flex-col justify-between">
+          <div>
+            <div className="flex items-center justify-between gap-3 mb-4">
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
+                  <Repeat className="w-4 h-4" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-foreground">Repeat Creator Partnerships</h3>
+                  <p className="text-[11px] text-muted-foreground">Long-term collaboration frequency</p>
+                </div>
+              </div>
+              <span className="text-xs font-extrabold text-primary tabular-nums">
+                {data.repeatCreators?.repeatRatePercent ?? 0}% Repeat Rate
+              </span>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3 mb-4">
+              <div className="p-3 rounded-xl bg-muted/40 border border-border">
+                <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block">Total Creators</span>
+                <span className="text-lg font-black text-foreground tabular-nums">
+                  {data.repeatCreators?.totalUniqueCreators ?? 0}
+                </span>
+              </div>
+              <div className="p-3 rounded-xl bg-muted/40 border border-border">
+                <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block">Repeat Partners</span>
+                <span className="text-lg font-black text-foreground tabular-nums">
+                  {data.repeatCreators?.repeatCreatorsCount ?? 0}
+                </span>
+              </div>
+            </div>
+
+            {data.repeatCreators?.repeatCreators && data.repeatCreators.repeatCreators.length > 0 ? (
+              <div className="space-y-1.5">
+                {data.repeatCreators.repeatCreators.slice(0, 4).map((rc) => (
+                  <div key={rc.creatorId} className="flex items-center justify-between text-xs py-2 px-3 rounded-xl bg-card border border-border">
+                    <div>
+                      <span className="font-bold text-foreground block">{rc.name}</span>
+                      <span className="text-[10px] text-muted-foreground">{rc.handle}</span>
+                    </div>
+                    <div className="text-right">
+                      <span className="font-extrabold text-foreground tabular-nums">{rc.dealsCount} deals</span>
+                      <span className="text-[10px] text-muted-foreground block tabular-nums">
+                        {formatCurrency(rc.totalSpendPaise / 100)}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-xs text-muted-foreground py-4 text-center">
+                Repeat collaborations will be tracked here once you complete multiple deals with preferred creators.
+              </p>
+            )}
+          </div>
+
+          <div className="pt-4 mt-4 border-t border-border flex items-center justify-between text-[11px] text-muted-foreground">
+            <span>Creators with 2+ completed collaborations</span>
+            <Link href="/dashboard/campaigns/create" className="font-bold text-primary hover:underline">
+              Launch Campaign &rarr;
+            </Link>
           </div>
         </div>
       </section>

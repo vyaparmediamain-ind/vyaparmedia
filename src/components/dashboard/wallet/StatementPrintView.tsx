@@ -5,7 +5,8 @@ import { createPortal } from "react-dom";
 import { ShieldCheck, FileText, Printer, X, ArrowDownRight, ArrowUpRight } from "lucide-react";
 import { formatCurrency, formatDate } from "@/lib/utils-client";
 import { Button } from "@/components/ui";
-import Logo from "@/components/Logo";
+import { ReportLetterhead } from "@/components/reports/ReportLetterhead";
+import { ReportFooter } from "@/components/reports/ReportFooter";
 import { TDS_194O_RATE_PERCENT_STRING, TDS_194J_RATE_PERCENT_STRING } from "@/constants";
 import { PLATFORM_CONFIG } from "@/lib/platform-config";
 
@@ -117,38 +118,13 @@ export function StatementPrintView({
       <div className="printable-document w-full max-w-4xl bg-card text-foreground rounded-2xl shadow-2xl p-6 sm:p-10 my-auto border border-border print:border-none print:shadow-none print:p-0 print:my-0 print:rounded-none">
         
         {/* Header & Platform Corporate Letterhead */}
-        <div className="border-b-2 border-border pb-6 mb-8 flex flex-col sm:flex-row sm:items-start justify-between gap-4">
-          <div className="space-y-3">
-            <Logo asLink={false} showTagline={true} size="md" />
-            <div>
-              <span className="text-2xs font-mono font-bold tracking-widest text-primary uppercase block mb-1">
-                OFFICIAL FINANCIAL STATEMENT &amp; LEDGER RECORD
-              </span>
-              <h1 className="text-xl sm:text-2xl font-black tracking-tight text-foreground uppercase">
-                Wallet Account Statement
-              </h1>
-              <p className="text-xs text-muted-foreground mt-1">
-                Escrow-protected transactions governed by RBI guidelines &amp; Indian Contract Act
-              </p>
-            </div>
-          </div>
-
-          <div className="text-left sm:text-right text-xs text-muted-foreground space-y-0.5 font-sans">
-            <div className="font-bold text-foreground">
-              {PLATFORM_CONFIG.tradeName ? `${PLATFORM_CONFIG.tradeName.toUpperCase()} (${PLATFORM_CONFIG.legalName.toUpperCase()})` : PLATFORM_CONFIG.legalName.toUpperCase()}
-            </div>
-            <div>
-              {PLATFORM_CONFIG.cin && !["N/A", "NONE", "PROPRIETORSHIP"].includes(PLATFORM_CONFIG.cin.toUpperCase()) ? `CIN: ${PLATFORM_CONFIG.cin} | ` : ""}
-              {PLATFORM_CONFIG.udyam ? `Udyam: ${PLATFORM_CONFIG.udyam} | ` : ""}
-              GSTIN: {PLATFORM_CONFIG.gstin}
-              {PLATFORM_CONFIG.pan ? ` | PAN: ${PLATFORM_CONFIG.pan}` : ""}
-            </div>
-            <div>{PLATFORM_CONFIG.address}</div>
-            <div className="font-mono text-2xs text-muted-foreground pt-1">
-              Generated: {displayDate} | Ref: {statementRef}
-            </div>
-          </div>
-        </div>
+        <ReportLetterhead
+          title="Wallet Account Statement"
+          subtitle="Escrow-protected transactions governed by RBI guidelines & Indian Contract Act"
+          categoryLabel="OFFICIAL FINANCIAL STATEMENT & LEDGER RECORD"
+          referenceId={statementRef}
+          generatedDate={displayDate}
+        />
 
         {/* Account Holder & Statement Period Details */}
         <section className="print-section mb-8">
@@ -325,6 +301,8 @@ export function StatementPrintView({
           </div>
         </section>
 
+        {/* Shared Standard Report Footer */}
+        <ReportFooter reportId={statementRef} />
       </div>
     </div>,
     document.body

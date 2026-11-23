@@ -30,7 +30,8 @@ import {
 } from "lucide-react";
 import { formatCurrency, formatNumber, formatDate } from "@/lib/utils-client";
 import { Button, Badge } from "@/components/ui";
-import { PLATFORM_CONFIG } from "@/lib/platform-config";
+import { ReportLetterhead } from "@/components/reports/ReportLetterhead";
+import { ReportFooter } from "@/components/reports/ReportFooter";
 import Logo from "@/components/Logo";
 
 export interface RoiInfluencerBreakdown {
@@ -100,6 +101,10 @@ export interface RoiReportData {
     overallDeliveryMultiplier?: number | undefined;
     predictedAverageCpvPaise?: number | undefined;
     predictedAverageCpvRupees?: string | undefined;
+    totalVerifiedViews?: number | undefined;
+    totalEstimatedViews?: number | undefined;
+    hasEstimatedData?: boolean | undefined;
+    dataQualityStatus?: "VERIFIED" | "ESTIMATED" | undefined;
   };
   influencers: RoiInfluencerBreakdown[];
   dataDisclaimer?: string | null | undefined;
@@ -275,30 +280,30 @@ export function CampaignRoiReport({ data, campaignId, onRefresh }: CampaignRoiRe
       </div>
 
       {/* Corporate Print Header (Visible only in Print / PDF Mode) */}
-      <div className="hidden print:block border-b-2 border-border pb-4 mb-6">
-        <div className="flex items-start justify-between gap-4 pb-3">
-          <Logo asLink={false} showTagline={true} size="md" />
-          <div className="text-right text-xs text-muted-foreground space-y-0.5 font-sans">
-            <div className="font-bold text-foreground text-xs uppercase">
-              {PLATFORM_CONFIG.tradeName ? `${PLATFORM_CONFIG.tradeName.toUpperCase()} (${PLATFORM_CONFIG.legalName.toUpperCase()})` : PLATFORM_CONFIG.legalName.toUpperCase()}
+      <ReportLetterhead
+        title={`Campaign ROI Statement: ${campaign.title}`}
+        subtitle={`Campaign ID: ${campaign.id}`}
+        categoryLabel="CAMPAIGN ROI & INFLUENCER PERFORMANCE REPORT"
+        referenceId={campaign.id}
+        generatedDate={formatDate(new Date())}
+        className="hidden print:block"
+      />
+
+      {/* Modelled / Estimated Attribution Disclaimer Banner */}
+      {summary.hasEstimatedData && (
+        <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-xs text-foreground flex items-start gap-3">
+          <Sparkles className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
+          <div className="space-y-1">
+            <div className="font-bold flex items-center gap-2">
+              <span>Modelled Engagement Attribution</span>
+              <Badge variant="warning" className="text-[10px] py-0 px-1.5 font-mono">ESTIMATED</Badge>
             </div>
-            <div>
-              {PLATFORM_CONFIG.cin && !["N/A", "NONE", "PROPRIETORSHIP"].includes(PLATFORM_CONFIG.cin.toUpperCase()) ? `CIN: ${PLATFORM_CONFIG.cin} | ` : ""}
-              {PLATFORM_CONFIG.udyam ? `Udyam: ${PLATFORM_CONFIG.udyam} | ` : ""}
-              GSTIN: {PLATFORM_CONFIG.gstin}
-              {PLATFORM_CONFIG.pan ? ` | PAN: ${PLATFORM_CONFIG.pan}` : ""}
-              {PLATFORM_CONFIG.sacCode ? ` | SAC: ${PLATFORM_CONFIG.sacCode}` : ""}
-            </div>
-            <div>{PLATFORM_CONFIG.address}</div>
+            <p className="text-muted-foreground text-xs leading-relaxed">
+              Some deliverable metrics (such as Instagram views and shares) are derived from platform interaction ratios because basic social display APIs do not provide raw view counters. Creators with verified API metrics are tagged accordingly in the breakdown below.
+            </p>
           </div>
         </div>
-        <h2 className="text-xl font-black text-foreground uppercase mt-2">
-          Campaign ROI Performance Statement: {campaign.title}
-        </h2>
-        <div className="text-2xs text-muted-foreground font-mono mt-1">
-          Campaign ID: {campaign.id} | Generated: {formatDate(new Date())}
-        </div>
-      </div>
+      )}
 
       {/* ── 2. EXECUTIVE PERFORMANCE KPI BENTO GRID (CRED/PhonePe Style) ───────── */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -524,9 +529,16 @@ export function CampaignRoiReport({ data, campaignId, onRefresh }: CampaignRoiRe
               </div>
               <div>
                 <span className="text-[10px] text-muted-foreground uppercase font-semibold block">Delivered Views</span>
-                <span className="text-lg font-black font-mono text-verified">
-                  {formatNumber(summary.totalViews)}
-                </span>
+                <div className="flex items-center gap-1.5">
+                  <span className="text-lg font-black font-mono text-verified">
+                    {formatNumber(summary.totalViews)}
+                  </span>
+                  {summary.hasEstimatedData && (
+                    <Badge variant="warning" className="text-[9px] py-0 px-1 font-mono">
+                      ESTIMATED
+                    </Badge>
+                  )}
+                </div>
               </div>
             </div>
 
@@ -761,6 +773,7 @@ export function CampaignRoiReport({ data, campaignId, onRefresh }: CampaignRoiRe
                       Model Precision {sortBy === "accuracy" && (sortAsc ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />)}
                     </span>
                   </th>
+                  <th className="border border-border p-3 font-bold text-center">Data Quality</th>
                   <th className="border border-border p-3 font-bold text-center">Data Window</th>
                   <th className="border border-border p-3 font-bold text-center no-print">Deal</th>
                 </tr>
@@ -828,6 +841,14 @@ export function CampaignRoiReport({ data, campaignId, onRefresh }: CampaignRoiRe
                           className="font-mono text-[10px]"
                         >
                           {inf.accuracyPercentage ?? 100}% Match
+                        </Badge>
+                      </td>
+                      <td className="border border-border p-3 text-center">
+                        <Badge
+                          variant={inf.isEstimated ? "warning" : "success"}
+                          className="font-mono text-[10px]"
+                        >
+                          {inf.isEstimated ? "ESTIMATED" : "VERIFIED API"}
                         </Badge>
                       </td>
                       <td className="border border-border p-3 text-center">
@@ -900,6 +921,8 @@ export function CampaignRoiReport({ data, campaignId, onRefresh }: CampaignRoiRe
           </p>
         )}
       </div>
+
+      <ReportFooter reportId={campaign.id} className="hidden print:block mt-6" />
     </div>
   );
 }

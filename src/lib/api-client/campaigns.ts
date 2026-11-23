@@ -112,3 +112,9 @@ export function getRoiReport(id: string, options?: HttpOptions) {
     };
   }>(`/api/reports/brand/campaign/${encodeURIComponent(id)}/roi`, options);
 }
+
+export function getAnalytics(id: string, options?: HttpOptions) {
+  return get<{
+    data: import("@/services/campaign-metrics.service").CampaignFullAnalyticsData;
+  }>(`/api/campaigns/${encodeURIComponent(id)}/analytics`, options);
+}

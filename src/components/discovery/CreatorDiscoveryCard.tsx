@@ -7,6 +7,7 @@ import { formatCurrency } from "@/lib/utils-client";
 import { CreatorDiscoveryItem } from "./types";
 import { apiClient } from "@/lib/api-client";
 import { Card } from "@/components/ui";
+import { MarketRangeBadge } from "@/components/pricing/MarketRangeCard";
 import {
   ShieldCheck,
   Bookmark,
@@ -114,6 +115,12 @@ export default function CreatorDiscoveryCard({
   };
 
   const startingRate = formatCurrency(creator.startingRatePaise);
+  const isWithinMarketRange = Boolean(
+    creator.fairRateMinPaise &&
+    creator.fairRateMaxPaise &&
+    creator.startingRatePaise >= creator.fairRateMinPaise &&
+    creator.startingRatePaise <= creator.fairRateMaxPaise
+  );
 
   return (
     <Card as="article" className="p-0 relative w-full overflow-hidden shadow-sm hover:shadow-md transition-all duration-300 flex flex-col mb-4 group">
@@ -247,9 +254,17 @@ export default function CreatorDiscoveryCard({
             <div className="text-[11px] text-muted-foreground font-medium">
               Starting At
             </div>
-            <span className="text-sm font-bold text-foreground tabular-nums font-mono">
-              {startingRate}
-            </span>
+            <div className="flex flex-col items-center">
+              <span className="text-sm font-bold text-foreground tabular-nums font-mono">
+                {startingRate}
+              </span>
+              <MarketRangeBadge
+                dataQuality={creator.fairRateDataQuality}
+                isWithinRange={isWithinMarketRange}
+                showPublicBadge={creator.showFairPricePublicBadge ?? true}
+                className="mt-1"
+              />
+            </div>
           </div>
         </div>
 

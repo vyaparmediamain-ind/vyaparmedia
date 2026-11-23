@@ -3,11 +3,18 @@ import { z } from "zod";
 import { TransactionStatus, TransactionType } from "@prisma/client";
 import { apiWrapper, ApiResponse } from "@/lib/api-wrapper";
 import { WalletService } from "@/services/wallet.service";
-import { csvResponse, paiseToRupees, csvEsc } from "@/lib/csv-export";
+import {
+  csvResponse,
+  paiseToRupees,
+  buildBrandedCsv,
+  buildReportFilename,
+} from "@/lib/csv-export";
 import { format } from "date-fns";
 import prisma from "@/lib/db";
 import { isInfluencer } from "@/lib/rbac";
-import { PLATFORM_CONFIG } from "@/lib/platform-config";
+import { assertTaxReportPrerequisites } from "@/lib/platform-config-check";
+import { buildReportMeta } from "@/lib/report-meta";
+import { ReportVerificationService } from "@/services/report-verification.service";
 
 const preprocessNumeric = (val: unknown) => {
 if (val === undefined || val === null || val === "") return undefined;
@@ -51,7 +58,7 @@ message: "endDate must be greater than or equal to startDate",
 }
 });
 
-interface CsvTxn {
+interface CsvTxn extends Record<string, unknown> {
   id?: string;
   createdAt: Date | string;
   type: string;
@@ -60,148 +67,199 @@ interface CsvTxn {
   description: string | null;
 }
 
-function buildTransactionsCsv(
-user: {
-email: string;
-userType: string;
-},
-displayName: string,
-location: string,
-txns: CsvTxn[],
-filterDesc: string,
-totalCredit: number,
-totalDebit: number
-): string {
-const row = (label: string, value: string) => `${csvEsc(label)},${csvEsc(value)}\r\n`;
-const sep = () => `\r\n`;
-const title = (t: string) => `${csvEsc(t)},\r\n`;
-
-let csv = "";
-
-// Platform header (RazorpayX / Stripe Benchmark)
-csv += row(PLATFORM_CONFIG.legalName.toUpperCase(), "");
-if (PLATFORM_CONFIG.cin && !["N/A", "NONE", "PROPRIETORSHIP"].includes(PLATFORM_CONFIG.cin.toUpperCase())) {
-  csv += row(`CIN: ${PLATFORM_CONFIG.cin}`, `GSTIN: ${PLATFORM_CONFIG.gstin}`);
-} else if (PLATFORM_CONFIG.udyam) {
-  csv += row(`UDYAM: ${PLATFORM_CONFIG.udyam}`, `GSTIN: ${PLATFORM_CONFIG.gstin}`);
-} else {
-  csv += row("GSTIN", PLATFORM_CONFIG.gstin);
-}
-csv += row("Registered Address", PLATFORM_CONFIG.address);
-csv += row("OFFICIAL WALLET FINANCIAL STATEMENT & ESCROW LEDGER", "");
-csv += row("Website", PLATFORM_CONFIG.website);
-csv += row("Billing & Support", PLATFORM_CONFIG.billingEmail);
-csv += sep();
-
-// Report metadata
-csv += title("STATEMENT PARAMETERS");
-csv += row("Document Type", "Escrow & Wallet Ledger Statement");
-csv += row("Statement Generated", format(new Date(), "dd/MM/yyyy HH:mm") + " IST");
-csv += row("Scope / Filter", filterDesc);
-csv += row("Total Records", String(txns.length));
-csv += row("Base Currency", "INR (Indian Rupee)");
-csv += sep();
-
-// Account holder
-csv += title("ACCOUNT HOLDER DOSSIER");
-csv += row("Account Name", displayName || "Verified Platform Member");
-csv += row("Registered Email", user.email || "");
-csv += row("Location / State", location || "India");
-csv += row("Account Classification", user.userType || "Standard");
-csv += sep();
-
-// Executive Movement Summary (RazorpayX Pattern)
-csv += title("EXECUTIVE FINANCIAL SUMMARY");
-csv += row("Total Inflow / Deposits (INR)", paiseToRupees(totalCredit));
-csv += row("Total Outflow / Settlements (INR)", paiseToRupees(totalDebit));
-csv += row("Net Movement for Period (INR)", paiseToRupees(totalCredit - totalDebit));
-csv += sep();
-
-// Transaction table with distinct Money In vs Money Out
-csv += title("ITEMIZED TRANSACTION LEDGER");
-csv += "Date & Time (IST),Transaction ID,Category,Money In (INR),Money Out (INR),Status,Description\r\n";
-for (const t of txns) {
-  // Canonical Prisma TransactionType mapping: CREDIT & REFUND are Money In; WITHDRAWAL, DEBIT, CHARGEBACK, etc. are Money Out
-  const isCredit = ["CREDIT", "REFUND"].includes(t.type);
-  const moneyIn = isCredit ? paiseToRupees(t.amount) : "0.00";
-  const moneyOut = !isCredit ? paiseToRupees(t.amount) : "0.00";
-  csv += [
-    format(new Date(t.createdAt), "dd/MM/yyyy HH:mm"),
-    t.id || "TXN-AUTO",
-    t.type,
-    moneyIn,
-    moneyOut,
-    t.status,
-    csvEsc(t.description ?? "Escrow settlement transaction"),
-  ].join(",") + "\r\n";
-}
-csv += sep();
-
-// Compliance Footer (Indian IT & Tax Act)
-csv += title("STATUTORY & REGULATORY COMPLIANCE");
-csv += row("Service Accounting Code (SAC)", "998365 (Advertising, Marketing & Influencer Services)");
-csv += row("TDS Compliance", "TDS withheld under Section 194-O / 194-J of the Income Tax Act 1961 as applicable");
-csv += row("Escrow Reassurance", "Funds held in RBI-compliant escrow trust accounts prior to milestone disbursement");
-csv += row("Legal Certification", "This is a computer-generated document issued by the automated ledger system and does not require a physical signature.");
-csv += row("--- End of Statement ---", "");
-
-return csv;
-}
-
 interface ParsedFilters {
-type?: string | undefined;
-status?: string | undefined;
-startDate?: string | undefined;
-endDate?: string | undefined;
+  type?: string | undefined;
+  status?: string | undefined;
+  startDate?: string | undefined;
+  endDate?: string | undefined;
 }
 
 async function handleCsvExport(
-userId: string,
-walletFilters: Record<string, unknown>,
-parsed: ParsedFilters,
+  userId: string,
+  walletFilters: Record<string, unknown>,
+  parsed: ParsedFilters,
 ): Promise<Response> {
-const user = await prisma.user.findUnique({
-where: { id: userId },
-select: {
-email: true,
-userType: true,
-influencerProfile: { select: { displayName: true, city: true, state: true } },
-brandProfile: { select: { companyName: true, city: true, state: true } },
-},
-});
+  // External / financial statement export checks platform corporate completeness
+  assertTaxReportPrerequisites();
 
-if (!user) return ApiResponse.error("User not found", 404);
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: {
+      email: true,
+      userType: true,
+      influencerProfile: { select: { displayName: true, city: true, state: true } },
+      brandProfile: { select: { companyName: true, city: true, state: true } },
+    },
+  });
 
-const isInfluencerUser = isInfluencer(user.userType);
-const displayName = isInfluencerUser
-? user.influencerProfile?.displayName
-: user.brandProfile?.companyName;
-const location = isInfluencerUser
-? [user.influencerProfile?.city, user.influencerProfile?.state].filter(Boolean).join(", ")
-: [user.brandProfile?.city, user.brandProfile?.state].filter(Boolean).join(", ");
+  if (!user) return ApiResponse.error("User not found", 404);
 
-const allResult = await WalletService.getWallet(userId, 1, 10000, walletFilters);
-const txns = allResult.wallet?.transactions ?? [];
+  const isInfluencerUser = isInfluencer(user.userType);
+  const displayName = isInfluencerUser
+    ? user.influencerProfile?.displayName
+    : user.brandProfile?.companyName;
+  const location = isInfluencerUser
+    ? [user.influencerProfile?.city, user.influencerProfile?.state].filter(Boolean).join(", ")
+    : [user.brandProfile?.city, user.brandProfile?.state].filter(Boolean).join(", ");
 
-const filterDesc = [
-parsed.type ? `Type: ${parsed.type}` : null,
-parsed.status ? `Status: ${parsed.status}` : null,
-parsed.startDate ? `From: ${parsed.startDate}` : null,
-parsed.endDate ? `To: ${parsed.endDate}` : null,
-].filter(Boolean).join(" | ") || "All Transactions";
+  const allResult = await WalletService.getWallet(userId, 1, 10000, walletFilters);
+  const txns = allResult.wallet?.transactions ?? [];
 
-const CREDIT_TYPES = new Set<string>(["CREDIT", "REFUND"]);
-// M1 FIX: Added CLAWBACK and SHIPPING_CHARGE to DEBIT_TYPES — ensuring all debits are tracked in totals
-const DEBIT_TYPES = new Set<string>(["DEBIT", "WITHDRAWAL", "PLATFORM_FEE", "CLAWBACK", "CHARGEBACK", "SHIPPING_CHARGE"]);
-// M2 FIX: Only count COMPLETED transactions in statement totals.
-// Including PENDING/FAILED/REVERSED transactions corrupted exported financial summaries.
-const completedTxns = txns.filter(t => t.status === "COMPLETED");
-const totalCredit = completedTxns.filter(t => CREDIT_TYPES.has(t.type)).reduce((s, t) => s + t.amount, 0);
-const totalDebit = completedTxns.filter(t => DEBIT_TYPES.has(t.type)).reduce((s, t) => s + t.amount, 0);
+  const filterDesc = [
+    parsed.type ? `Type: ${parsed.type}` : null,
+    parsed.status ? `Status: ${parsed.status}` : null,
+    parsed.startDate ? `From: ${parsed.startDate}` : null,
+    parsed.endDate ? `To: ${parsed.endDate}` : null,
+  ].filter(Boolean).join(" | ") || "All Transactions";
 
-const csv = buildTransactionsCsv(user, displayName || "", location || "", txns, filterDesc, totalCredit, totalDebit);
-const safeName = displayName?.replaceAll(/\s+/g, "_") ?? userId;
-return csvResponse(csv, `VyaparMedia-transactions-${safeName}-${format(new Date(), "yyyy-MM-dd")}.csv`);
+  const CREDIT_TYPES = new Set<string>(["CREDIT", "REFUND"]);
+  const DEBIT_TYPES = new Set<string>([
+    "DEBIT",
+    "WITHDRAWAL",
+    "PLATFORM_FEE",
+    "CLAWBACK",
+    "CHARGEBACK",
+    "SHIPPING_CHARGE",
+  ]);
+  const completedTxns = txns.filter((t) => t.status === "COMPLETED");
+  const totalCredit = completedTxns
+    .filter((t) => CREDIT_TYPES.has(t.type))
+    .reduce((s, t) => s + t.amount, 0);
+  const totalDebit = completedTxns
+    .filter((t) => DEBIT_TYPES.has(t.type))
+    .reduce((s, t) => s + t.amount, 0);
+
+  const reportMeta = buildReportMeta({
+    type: "STATEMENT",
+    scope: displayName || "Wallet Statement",
+    period: filterDesc,
+    user: {
+      id: userId,
+      name: displayName || "Platform Member",
+      email: user.email,
+      role: user.userType,
+    },
+    dataQualitySummary: {
+      verifiedPercent: 100,
+      estimatedPercent: 0,
+      selfReportedPercent: 0,
+    },
+    payload: {
+      userId,
+      totalCredit,
+      totalDebit,
+      txns: txns.map((t) => ({ id: t.id, type: t.type, amount: t.amount })),
+    },
+  });
+
+  // Audit log
+  await prisma.activityLog.create({
+    data: {
+      userId,
+      action: "REPORT_EXPORT",
+      entityType: "Wallet",
+      entityId: userId,
+      metadata: {
+        type: "STATEMENT",
+        format: "csv",
+        reportId: reportMeta.reportId,
+      },
+    },
+  }).catch(() => {});
+
+  // Cryptographic report verification registration
+  await ReportVerificationService.recordReport({
+    id: reportMeta.reportId,
+    type: "STATEMENT",
+    userId,
+    scopeId: userId,
+    payloadHash: reportMeta.integrityCode,
+  });
+
+  const columns = [
+    {
+      key: "date",
+      label: "Date & Time (IST)",
+      format: (_v: unknown, row: CsvTxn) => format(new Date(row.createdAt), "dd/MM/yyyy HH:mm"),
+    },
+    { key: "id", label: "Transaction ID", format: (v: unknown) => String(v || "TXN-AUTO") },
+    { key: "type", label: "Category" },
+    {
+      key: "moneyIn",
+      label: "Money In (INR)",
+      format: (_v: unknown, row: CsvTxn) =>
+        ["CREDIT", "REFUND"].includes(row.type) ? paiseToRupees(row.amount) : "0.00",
+    },
+    {
+      key: "moneyOut",
+      label: "Money Out (INR)",
+      format: (_v: unknown, row: CsvTxn) =>
+        !["CREDIT", "REFUND"].includes(row.type) ? paiseToRupees(row.amount) : "0.00",
+    },
+    { key: "status", label: "Status" },
+    {
+      key: "description",
+      label: "Description",
+      format: (v: unknown) => String(v ?? "Escrow settlement transaction"),
+    },
+  ];
+
+  const customSections = [
+    {
+      title: "STATEMENT PARAMETERS",
+      rows: [
+        ["Document Type", "Escrow & Wallet Ledger Statement"],
+        ["Scope / Filter", filterDesc],
+        ["Total Records", String(txns.length)],
+        ["Base Currency", "INR (Indian Rupee)"],
+      ] as Array<[string, string | number]>,
+    },
+    {
+      title: "ACCOUNT HOLDER DOSSIER",
+      rows: [
+        ["Account Name", displayName || "Verified Platform Member"],
+        ["Registered Email", user.email || ""],
+        ["Location / State", location || "India"],
+        ["Account Classification", user.userType || "Standard"],
+      ] as Array<[string, string | number]>,
+    },
+    {
+      title: "EXECUTIVE FINANCIAL SUMMARY",
+      rows: [
+        ["Total Inflow / Deposits (INR)", paiseToRupees(totalCredit)],
+        ["Total Outflow / Settlements (INR)", paiseToRupees(totalDebit)],
+        ["Net Movement for Period (INR)", paiseToRupees(totalCredit - totalDebit)],
+      ] as Array<[string, string | number]>,
+    },
+    {
+      title: "STATUTORY & REGULATORY COMPLIANCE",
+      rows: [
+        ["Service Accounting Code (SAC)", "998365 (Advertising, Marketing & Influencer Services)"],
+        [
+          "TDS Compliance",
+          "TDS withheld under Section 194-O / 194-J of the Income Tax Act 1961 as applicable",
+        ],
+        [
+          "Escrow Reassurance",
+          "Funds held in RBI-compliant escrow trust accounts prior to milestone disbursement",
+        ],
+        [
+          "Legal Certification",
+          "This is a computer-generated document issued by the automated ledger system and does not require a physical signature.",
+        ],
+      ] as Array<[string, string | number]>,
+    },
+  ];
+
+  const csv = buildBrandedCsv<CsvTxn>({
+    meta: reportMeta,
+    columns,
+    rows: txns,
+    customSections,
+  });
+
+  const filename = buildReportFilename("Statement", displayName || "Account");
+  return csvResponse(csv, filename);
 }
 
 export const GET = apiWrapper(async (req) => {
@@ -257,5 +315,8 @@ totalPages: result.totalPages,
 },
 { status: 200 }
 );
-}, { requireAuth: true });
+}, {
+  requireAuth: true,
+  userRateLimit: { bucket: "REPORTS" },
+});
 

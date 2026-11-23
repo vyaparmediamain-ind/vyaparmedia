@@ -1,6 +1,6 @@
 "use client";
 
-import { CheckCircle2, AlertTriangle, Clock, XCircle } from "lucide-react";
+import { CheckCircle2, AlertTriangle, Clock, XCircle, Info } from "lucide-react";
 import { Button, Input } from "@/components/ui";
 
 interface SocialPlatformCardProps {
@@ -12,6 +12,7 @@ interface SocialPlatformCardProps {
   needsReconnect?: boolean | undefined;
   pendingApproval?: boolean | undefined;
   lastSynced?: string | null | undefined;
+  viewsAccess?: "ACTIVE" | "RECONNECT_NEEDED" | "PERSONAL_ACCOUNT" | "BASIC_ONLY" | undefined;
   followersOrSubscribers: number;
   engagementRate: number;
   isSaving: boolean;
@@ -45,6 +46,7 @@ export default function SocialPlatformCard({
   needsReconnect = false,
   pendingApproval = false,
   lastSynced = null,
+  viewsAccess,
   followersOrSubscribers,
   engagementRate,
   isSaving,
@@ -128,8 +130,45 @@ export default function SocialPlatformCard({
               Last synced: {formattedSync}
             </p>
           ) : null}
+          {isInstagram && connected && (
+            <div className="mt-2 flex flex-wrap items-center gap-2">
+              {viewsAccess === "ACTIVE" ? (
+                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-verified-muted/60 text-verified border border-verified-border">
+                  <CheckCircle2 className="w-3.5 h-3.5" />
+                  Views access: Active
+                </span>
+              ) : viewsAccess === "RECONNECT_NEEDED" || needsReconnect ? (
+                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-pending-muted text-pending border border-pending-border">
+                  <AlertTriangle className="w-3.5 h-3.5" />
+                  Views access: Reconnect needed
+                </span>
+              ) : viewsAccess === "PERSONAL_ACCOUNT" ? (
+                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-muted text-muted-foreground border border-border">
+                  <Info className="w-3.5 h-3.5" />
+                  Views access: Not available for personal accounts
+                </span>
+              ) : (
+                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-secondary text-secondary-foreground border border-border">
+                  <Info className="w-3.5 h-3.5" />
+                  Views access: Basic (Estimated)
+                </span>
+              )}
+            </div>
+          )}
         </div>
       </div>
+
+      {isInstagram && connected && viewsAccess === "BASIC_ONLY" && (
+        <div className="p-3 mb-4 rounded-md bg-secondary/60 border border-border text-xs text-muted-foreground">
+          Abhi estimated views track ho rahe hain. Meta Insights connect karein to get real, verified views and reach for campaigns!
+        </div>
+      )}
+
+      {isInstagram && connected && viewsAccess === "PERSONAL_ACCOUNT" && (
+        <div className="p-3 mb-4 rounded-md bg-muted border border-border text-xs text-muted-foreground">
+          Personal accounts ke liye Meta Insights available nahi hain. Instagram par Creator ya Business account me switch karein for verified views.
+        </div>
+      )}
 
       {needsReconnect && (
         <div className="p-3 mb-4 rounded-md bg-pending-muted border border-pending-border text-xs text-pending">
@@ -205,6 +244,17 @@ export default function SocialPlatformCard({
             </div>
           </div>
           <div className="flex gap-2">
+            {isInstagram && viewsAccess !== "ACTIVE" && (
+              <Button
+                variant="primary"
+                className="text-xs p-2"
+                aria-label="Reconnect Instagram for verified views"
+                onClick={onConnect}
+                disabled={isSaving || isRedirecting}
+              >
+                {isRedirecting ? "Connecting..." : "Enable Verified Views"}
+              </Button>
+            )}
             <Button
               variant="secondary"
               className="flex-1 text-xs p-2"

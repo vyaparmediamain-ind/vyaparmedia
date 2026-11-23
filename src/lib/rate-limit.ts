@@ -376,6 +376,7 @@ export const RATE_LIMIT_CONFIGS = {
   PASSWORD_RESET: { limit: 3, window: 3600, securityCritical: true }, // 3 requests per hour
   REPORTS: { limit: 10, window: 60 }, // 10 report downloads per minute (prevent heavy DB query abuse)
   USER_REPORTS: { limit: 5, window: 3600 }, // 5 user report submissions per hour
+  PRICING: { limit: 30, window: 3600 }, // 30 pricing evaluations per hour
 };
 
 export async function checkRateLimit(

@@ -62,6 +62,8 @@ async function _handler(_req: NextRequest) {
         provider: true,
         accessToken: true,
         expiresAt: true,
+        scope: true,
+        grantedScopes: true,
       },
     });
 
@@ -92,7 +94,8 @@ async function _handler(_req: NextRequest) {
           data: {
             accessToken: encrypt(refreshed.accessToken),
             expiresAt: newExpiresAt,
-            scope: "instagram_business_basic",
+            scope: account.scope || "instagram_business_basic",
+            grantedScopes: account.grantedScopes,
           },
         });
 

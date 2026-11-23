@@ -258,8 +258,34 @@ VyaparMedia par influencer marketing koi andha risk ya gambling nahi hai. Yeh ek
 
 ---
 
+# Page 5: V3 Naye Super-Features — Fair Rate AI, Live Analytics aur Verified CA Reports
+
+### 5.1 "Kahin Zyada Paise Toh Nahi De Rahe?" — AI Fair-Price Calculator
+* **Puraani Problem**: Creator aapse ₹15,000 maang raha hai, par market rate sirf ₹6,000 hai. Vyapariyon ko pata hi nahi chalta ki sahi rate kya hai.
+* **V3 Solution**: Campaign banate samay VyaparMedia ka **AI Fair-Price Engine** aapko instantly creator ki category, follower slab, aur verified engagement ke hisaab se 3 clear figures batata hai:
+  1. **Floor Rate (Minimum Justified)**: Isse kam me creator kaam reject karega.
+  2. **Target Rate (Fair Market Value)**: Category benchmark ke hisaab se sabse balanced rate.
+  3. **Ceiling Rate (Maximum Cap)**: Isse zyada rupiya dena bilkul nuksan ka sauda hai.
+* Har rate ke sath **"VERIFIED"** ya **"ESTIMATED"** badge hota hai, taaki aapko pata ho ki data real API se aya hai ya statistical baseline se.
+
+### 5.2 Real-Time Campaign Hub & Live Pacing
+* Aapke brand dashboard me har active campaign ka **Dedicated Analytics Hub** (`/dashboard/campaigns/[id]/analytics`) hai.
+* Yahan aapko live graph dikhta hai:
+  * Kitne logo ne reel dekhi (Real-Time Impressions).
+  * Kitne logo ne bio link ya sticker par click kiya (Real CTR).
+  * Budget burn aur pacing speed — kya campaign deadline se pehle target deliver kar raha hai ya nahi.
+
+### 5.3 Cryptographic Signed Audit Reports (CA & Income Tax Ready)
+* Har campaign complete hone par 1-click me **Verified ROI Report (PDF & CSV)** download karein.
+* Har report me ek **Cryptographic SHA-256 Seal** aur **Public Verification Code (`REP-...`)** hota hai.
+* Aapka CA ya auditor bina login kiye public portal `vyaparmedia.in/verify-report/[code]` par code daal kar confirm kar sakta hai ki report 100% asli hai aur koi tampering nahi hui hai.
+* Saath hi, sabhi Excel/CSV exports **Formula-Injection Safe (`csvEsc`)** hain, jisse aapke computer ko kisi malicious formula ka darr nahi rehta.
+
+---
+
 ### 🚀 Pehla Safe Campaign Shuru Karein
 Bina kisi advance ke darr ke apne business ke liye pehla verified influencer campaign live karein:  
 👉 **[vyaparmedia.in/register](https://vyaparmedia.in/register)**
+
 
 

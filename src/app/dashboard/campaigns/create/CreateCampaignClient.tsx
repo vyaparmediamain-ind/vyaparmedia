@@ -13,7 +13,9 @@ import {
   CampaignFormData,
   validateCampaignForm,
   calculateCampaignEscrowPaise,
+  getRecommendedRate,
 } from "@/components/dashboard/campaigns/create/CampaignCreateHelpers";
+import { MarketRangeCard } from "@/components/pricing/MarketRangeCard";
 import { ProductSeedingCard } from "@/components/dashboard/campaigns/create/ProductSeedingCard";
 import { DeliverablesList } from "@/components/dashboard/campaigns/create/DeliverablesList";
 import { CampaignSummarySidebar } from "@/components/dashboard/campaigns/create/CampaignSummarySidebar";
@@ -298,6 +300,20 @@ export default function CreateCampaignClient() {
   const shortfallPaise = isBalanceInsufficient
     ? totalEscrowRequiredPaise - walletBalancePaise
     : 0;
+
+  const suggestedDeliverableMinPaise = React.useMemo(() => {
+    return formData.deliverables.reduce((acc, d) => {
+      const base = getRecommendedRate(d.type, formData.minFollowers || 1000);
+      return acc + Math.round(base * 0.8 * (d.count || 1) * 100);
+    }, 0);
+  }, [formData.deliverables, formData.minFollowers]);
+
+  const suggestedDeliverableMaxPaise = React.useMemo(() => {
+    return formData.deliverables.reduce((acc, d) => {
+      const base = getRecommendedRate(d.type, formData.maxFollowers || (formData.minFollowers ? formData.minFollowers * 3 : 10000));
+      return acc + Math.round(base * 1.25 * (d.count || 1) * 100);
+    }, 0);
+  }, [formData.deliverables, formData.maxFollowers, formData.minFollowers]);
 
   useEffect(() => {
     if (!invitedInfluencerId) return;
@@ -1058,6 +1074,23 @@ export default function CreateCampaignClient() {
 
                   {/* Deliverables Builder */}
                   <DeliverablesList formData={formData} setFormData={setFormData} />
+
+                  {/* Suggested Per-Influencer Market Range Guidance */}
+                  {formData.deliverables.length > 0 && suggestedDeliverableMinPaise > 0 && (
+                    <div className="space-y-2">
+                      <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground block">
+                        Estimated Market Range for Selected Deliverables
+                      </span>
+                      <MarketRangeCard
+                        minPaise={suggestedDeliverableMinPaise}
+                        maxPaise={suggestedDeliverableMaxPaise}
+                        confidence="HIGH"
+                        dataQuality="ESTIMATED"
+                        quotedRatePaise={formData.perInfluencerBudget * 100}
+                        compact={true}
+                      />
+                    </div>
+                  )}
 
                   {/* Creator Follower Criteria & Slots */}
                   <div className="p-5 rounded-2xl border border-border bg-muted/40 space-y-4">

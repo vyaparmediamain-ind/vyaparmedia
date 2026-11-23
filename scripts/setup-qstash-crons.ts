@@ -153,6 +153,46 @@ export const CRON_JOBS: CronJobDefinition[] = [
     description: "Refreshes Instagram and social OAuth tokens expiring within 10 days",
     timeoutSeconds: 60,
   },
+  {
+    id: "cron-creator-metrics",
+    name: "Creator Weekly Metric Snapshots & Retention",
+    path: "/api/cron/creator-metrics",
+    cron: "0 6 * * *",
+    description: "Captures weekly verified metrics per creator with jitter and prunes snapshots > 12 months",
+    timeoutSeconds: 60,
+  },
+  {
+    id: "cron-telemetry-flush",
+    name: "Flush In-Flight Telemetry Events",
+    path: "/api/cron/telemetry-flush",
+    cron: "* * * * *",
+    description: "Flushes queued beacon telemetry events from Redis buffer into PostgreSQL PageViewEvent",
+    timeoutSeconds: 60,
+  },
+  {
+    id: "cron-telemetry-rollup",
+    name: "Hourly Telemetry Rollup",
+    path: "/api/cron/telemetry-rollup",
+    cron: "0 * * * *",
+    description: "Hourly idempotent statistical rollups to DailyRouteStat and DailyFunnelStat in Asia/Kolkata",
+    timeoutSeconds: 60,
+  },
+  {
+    id: "cron-telemetry-retention",
+    name: "Purge Expired Telemetry Events",
+    path: "/api/cron/telemetry-retention",
+    cron: "0 7 * * *",
+    description: "Daily batch purge of raw PageViewEvent records older than 30 days",
+    timeoutSeconds: 60,
+  },
+  {
+    id: "cron-campaign-metrics",
+    name: "Campaign Daily Metrics Aggregator",
+    path: "/api/cron/campaign-metrics",
+    cron: "0 8 * * *",
+    description: "Daily statistical rollups of campaign funnel, engagement, delivered views, and financial metrics",
+    timeoutSeconds: 60,
+  },
 ];
 
 async function main() {

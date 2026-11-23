@@ -1,7 +1,13 @@
 import { apiWrapper } from "@/lib/api-wrapper";
 import { NextRequest } from "next/server";
 import prisma from "@/lib/db";
-import { exchangeInstagramCode, getInstagramProfile } from "@/lib/instagram";
+import {
+  exchangeInstagramCode,
+  getInstagramProfile,
+  fetchInstagramPermissions,
+  getRecentPosts,
+  getMediaInsights,
+} from "@/lib/instagram";
 import { logger } from "@/lib/logger";
 import { encrypt } from "@/lib/encryption";
 import { appUrl } from "@/lib/app-url";
@@ -43,6 +49,37 @@ try {
   const expiresAt = tokens.expiresIn
     ? new Date(Date.now() + tokens.expiresIn * 1000)
     : new Date(Date.now() + 60 * 86400 * 1000);
+
+  // Determine actually granted scopes (handle user-denied insights gracefully)
+  let grantedScopes: string[] = ["instagram_business_basic"];
+
+  if (tokens.permissions && tokens.permissions.length > 0) {
+    const candidateScopes = tokens.permissions.filter((p) =>
+      ["instagram_business_basic", "instagram_business_manage_insights"].includes(p)
+    );
+    if (candidateScopes.length > 0) {
+      grantedScopes = Array.from(new Set([...grantedScopes, ...candidateScopes]));
+    }
+  } else {
+    // Verify via /me/permissions or test insights call
+    const verifiedPermissions = await fetchInstagramPermissions(tokens.accessToken);
+    if (verifiedPermissions.includes("instagram_business_manage_insights")) {
+      grantedScopes = ["instagram_business_basic", "instagram_business_manage_insights"];
+    } else {
+      try {
+        const recent = await getRecentPosts(tokens.accessToken, 1);
+        const samplePost = recent[0];
+        if (samplePost) {
+          const testInsights = await getMediaInsights(tokens.accessToken, samplePost.id, samplePost.mediaProductType);
+          if (testInsights) {
+            grantedScopes = ["instagram_business_basic", "instagram_business_manage_insights"];
+          }
+        }
+      } catch {
+        // Fall back gracefully to basic scope if user denied insights or call failed
+      }
+    }
+  }
 
   // Clean up any legacy Facebook-user-id rows for this user now that we have the canonical Instagram ID
   await prisma.oAuthAccount.deleteMany({
@@ -109,6 +146,7 @@ try {
           accessToken: encrypt(tokens.accessToken),
           expiresAt,
           scope: "instagram_business_basic",
+          grantedScopes,
         },
       }),
     ]);
@@ -125,6 +163,7 @@ try {
         accessToken: encrypt(tokens.accessToken),
         expiresAt,
         scope: "instagram_business_basic",
+        grantedScopes,
       },
     });
   } else {
@@ -137,6 +176,7 @@ try {
         accessToken: encrypt(tokens.accessToken),
         expiresAt,
         scope: "instagram_business_basic",
+        grantedScopes,
       },
     });
   }

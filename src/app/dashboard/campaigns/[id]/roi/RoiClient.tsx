@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from "react";
-import { RefreshCw, AlertCircle } from "lucide-react";
+import { RefreshCw, AlertCircle, TrendingUp } from "lucide-react";
 import { apiClient } from "@/lib/api-client";
 import { formatUserError } from "@/lib/user-messages";
 import { Skeleton, Button, PageHeader } from "@/components/ui";
@@ -46,17 +46,28 @@ export function RoiClient({ campaignId }: RoiClientProps) {
         backHref={`/dashboard/campaigns/${campaignId}`}
         backLabel="Back to Campaign Workspace"
         actions={
-          <Button
-            variant="secondary"
-            size="sm"
-            onClick={fetchRoi}
-            disabled={loading}
-            className="text-xs font-semibold gap-1.5"
-            title="Refresh real-time analytics"
-          >
-            <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} />
-            <span>Sync Realtime</span>
-          </Button>
+          <div className="flex items-center gap-2 flex-wrap">
+            <Button
+              href={`/dashboard/campaigns/${campaignId}/analytics`}
+              variant="primary"
+              size="sm"
+              className="text-xs font-semibold gap-1.5"
+            >
+              <TrendingUp className="w-3.5 h-3.5" />
+              <span>Full Analytics &amp; Funnel</span>
+            </Button>
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={fetchRoi}
+              disabled={loading}
+              className="text-xs font-semibold gap-1.5"
+              title="Refresh real-time analytics"
+            >
+              <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} />
+              <span>Sync Realtime</span>
+            </Button>
+          </div>
         }
       />
 

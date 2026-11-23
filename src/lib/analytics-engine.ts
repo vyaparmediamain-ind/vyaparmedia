@@ -14,7 +14,22 @@ import { logger } from "./logger";
 import { subMonths, format } from "date-fns";
 import { getIndianFYBounds } from "./csv-export";
 import { WalletService } from "@/services/wallet.service";
+import { VisibilityAnalyticsService } from "@/services/visibility-analytics.service";
 import { cache } from "./cache";
+import { computeDrsTrend, type DrsTrendSummary } from "./drs-analytics";
+import { getCategoryBaselineCpvSync } from "./roi-calculator";
+import {
+  calculateCampaignCpv,
+  rankBestCreatorsByRoi,
+  calculateRepeatCreators,
+  generateBrandOperationalAlerts,
+  type CampaignCpvComparison,
+  type BestCreatorItem,
+  type RepeatCreatorsSummary,
+  type BrandOperationalAlert,
+  type BrandDealCreatorInput,
+  type BrandCampaignMetricInput,
+} from "./brand-analytics-calc";
 
 function getPrimaryCategory(value: unknown): string {
 if (Array.isArray(value)) {
@@ -64,6 +79,8 @@ throw AppError.notFound("Influencer profile not found");
     topDeals,
     allDeals,
     dealsByStatus,
+    visibility,
+    drsSnapshots,
   ] = await Promise.all([
     // Earnings history
     getMonthlyEarnings(profile.id, fy),
@@ -111,6 +128,26 @@ throw AppError.notFound("Influencer profile not found");
       where: { influencerId: profile.id },
       _count: { id: true },
     }),
+    // Creator 30-day profile visibility metrics
+    VisibilityAnalyticsService.getCreatorVisibilityStats(userId).catch((err) => {
+      logger.error("Failed to fetch creator visibility stats", err, { userId });
+      return null;
+    }),
+    // DRS trust score history snapshots
+    prisma.drsScoreSnapshot.findMany({
+      where: { userId },
+      orderBy: { createdAt: "desc" },
+      take: 10,
+      select: {
+        id: true,
+        previousScore: true,
+        calculatedScore: true,
+        finalScore: true,
+        trigger: true,
+        tier: true,
+        createdAt: true,
+      },
+    }),
   ]);
 
   const recentBadges = userBadges.map((ub) => ({
@@ -149,39 +186,59 @@ throw AppError.notFound("Influencer profile not found");
   const successRate = totalClosed > 0 ? Math.round((completedCount / totalClosed) * 100) : 100;
   const deliveryRate = successRate;
 
-logger.debug("InfluencerAnalytics data fetched successfully", { userId });
-return {
-overview: {
-totalEarnings,
-completedDeals,
-activeDeals,
-averageRating: profile.averageRating,
-trustScore: Math.max(300, Math.min(profile.user?.trustScore ?? 600, 900)),
-level: profile.user?.level || 1,
-xp: profile.user?.xp || 0,
-successRate,
-memberSince: profile.user?.createdAt,
-},
-earningsHistory,
-performance: {
-deliveryRate,
-engagementRate: profile.instagramEngagementRate || 0,
-successRate,
-},
-topContent: topDeals.map((d) => ({
-id: d.id,
-campaignTitle: d.campaign?.title || "Direct Deal",
-amount: d.amount,
-completedAt: d.completedAt,
-postUrl: d.postUrl,
-})),
-categoryBreakdown,
-recentActivity,
-      gamification: {
-        recentBadges,
-        referralStats,
-      },
-    };
+  const drsTrend: DrsTrendSummary = computeDrsTrend(
+    drsSnapshots,
+    profile.user?.trustScore ?? 600,
+    "BRONZE"
+  );
+
+  const marketRangeSummary = {
+    minPaise: profile.fairRateMinPaise ?? null,
+    maxPaise: profile.fairRateMaxPaise ?? null,
+    confidence: profile.fairRateConfidence ?? "MEDIUM",
+    dataQuality: (profile.fairRateDataQuality as "VERIFIED" | "ESTIMATED") ?? "ESTIMATED",
+    computedAt: profile.fairRateComputedAt ?? null,
+    quotedRatePaise: profile.minRate ?? null,
+  };
+
+  logger.debug("InfluencerAnalytics data fetched successfully", { userId });
+  return {
+    overview: {
+      totalEarnings,
+      completedDeals,
+      activeDeals,
+      averageRating: profile.averageRating,
+      trustScore: Math.max(300, Math.min(profile.user?.trustScore ?? 600, 900)),
+      level: profile.user?.level || 1,
+      xp: profile.user?.xp || 0,
+      successRate,
+      memberSince: profile.user?.createdAt,
+    },
+    earningsHistory,
+    performance: {
+      deliveryRate,
+      engagementRate: profile.instagramEngagementRate || 0,
+      successRate,
+      completedDeals: completedCount,
+      cancelledDeals: cancelledCount,
+    },
+    topContent: topDeals.map((d) => ({
+      id: d.id,
+      campaignTitle: d.campaign?.title || "Direct Deal",
+      amount: d.amount,
+      completedAt: d.completedAt,
+      postUrl: d.postUrl,
+    })),
+    categoryBreakdown,
+    recentActivity,
+    gamification: {
+      recentBadges,
+      referralStats,
+    },
+    visibility,
+    drsTrend,
+    marketRangeSummary,
+  };
   }, 60);
 }
 
@@ -297,10 +354,11 @@ const [
   categoryPerf,
   influencerDeals,
   referralStats,
+  campaignVisibility,
 ] = await Promise.all([
   // Spend History (Last 12 Months or FY)
   getMonthlySpend(userId, fy),
-  // Campaign Performance
+  // Campaign Performance with Deal & Metrics Intelligence
   prisma.campaign.findMany({
     where: { brandId: profile.id },
     select: {
@@ -309,14 +367,37 @@ const [
       status: true,
       totalBudget: true,
       targetCategories: true,
+      applicationDeadline: true,
+      postingDeadline: true,
       _count: { select: { deals: true } },
       deals: {
-        where: { status: "COMPLETED" },
-        select: { amount: true },
+        select: {
+          id: true,
+          amount: true,
+          status: true,
+          submittedAt: true,
+          influencerId: true,
+          influencer: {
+            select: {
+              id: true,
+              displayName: true,
+              avatar: true,
+              instagramHandle: true,
+              instagramFollowers: true,
+              instagramEngagementRate: true,
+              averageRating: true,
+            },
+          },
+          engagementSnapshots: {
+            orderBy: { capturedAt: "desc" },
+            take: 1,
+            select: { views: true, isEstimated: true },
+          },
+        },
       },
     },
     orderBy: { createdAt: "desc" },
-    take: 10,
+    take: 20,
   }),
   // ROI Calculation aggregate
   prisma.deal.aggregate({
@@ -347,6 +428,11 @@ const [
   }),
   // Referrals
   getReferralStats(userId, { includeUsers: false }),
+  // Brand 30-day campaign visibility metrics
+  VisibilityAnalyticsService.getBrandCampaignVisibilityStats(userId).catch((err) => {
+    logger.error("Failed to fetch brand campaign visibility stats", err, { userId });
+    return null;
+  }),
 ]);
 
 const activeDeals = categoryPerf
@@ -409,6 +495,93 @@ macro.reduce(
 },
 };
 
+  const brandDealList: BrandDealCreatorInput[] = [];
+  let totalDeliveredViews = 0;
+  let totalVerifiedViews = 0;
+  let totalEstimatedViews = 0;
+  let pendingSubmissionsCount = 0;
+
+  const campaignMetricsInputs: BrandCampaignMetricInput[] = campaigns.map((c) => {
+    let campSpend = 0;
+    let campViews = 0;
+    let campVerifiedViews = 0;
+    let campEstimatedViews = 0;
+    let activeDealsInCamp = 0;
+
+    for (const d of c.deals) {
+      if (d.status === "CONTENT_SUBMITTED") pendingSubmissionsCount++;
+      if (!["COMPLETED", "CANCELLED", "DISPUTED"].includes(d.status)) activeDealsInCamp++;
+
+      if (d.status === "COMPLETED") {
+        campSpend += d.amount;
+        const snap = d.engagementSnapshots[0];
+        const views = snap?.views ?? Math.round(d.amount / 35);
+        const isVerified = snap ? !snap.isEstimated : false;
+
+        campViews += views;
+        if (isVerified) {
+          campVerifiedViews += views;
+        } else {
+          campEstimatedViews += views;
+        }
+
+        brandDealList.push({
+          dealId: d.id,
+          campaignId: c.id,
+          campaignTitle: c.title,
+          creatorId: d.influencerId,
+          creatorName: d.influencer?.displayName || "Creator",
+          creatorHandle: d.influencer?.instagramHandle,
+          avatar: d.influencer?.avatar,
+          amountPaise: d.amount,
+          deliveredViews: views,
+          isVerifiedViews: isVerified,
+          engagementRateBps: Math.round((d.influencer?.instagramEngagementRate || 3) * 100),
+          completedAt: null,
+        });
+      }
+    }
+
+    totalDeliveredViews += campViews;
+    totalVerifiedViews += campVerifiedViews;
+    totalEstimatedViews += campEstimatedViews;
+
+    const rawCategories = Array.isArray(c.targetCategories)
+      ? c.targetCategories
+      : [String(c.targetCategories || "lifestyle")];
+    const baselineCpvPaise = getCategoryBaselineCpvSync(rawCategories);
+
+    return {
+      id: c.id,
+      title: c.title,
+      status: c.status,
+      category: getPrimaryCategory(c.targetCategories),
+      budgetPaise: c.totalBudget,
+      spendPaise: campSpend,
+      deliveredViews: campViews,
+      verifiedViews: campVerifiedViews,
+      estimatedViews: campEstimatedViews,
+      baselineCpvPaise,
+      applicationDeadline: c.applicationDeadline,
+      postingDeadline: c.postingDeadline,
+      activeDealsCount: activeDealsInCamp,
+    };
+  });
+
+  const campaignCpvMetrics: CampaignCpvComparison[] = campaignMetricsInputs.map(calculateCampaignCpv);
+  const bestCreators: BestCreatorItem[] = rankBestCreatorsByRoi(brandDealList);
+  const repeatCreators: RepeatCreatorsSummary = calculateRepeatCreators(brandDealList);
+  const alerts: BrandOperationalAlert[] = generateBrandOperationalAlerts(campaignMetricsInputs, pendingSubmissionsCount);
+
+  const spendVsViews = {
+    totalSpendPaise: totalDealSpend,
+    totalDeliveredViews,
+    verifiedViews: totalVerifiedViews,
+    estimatedViews: totalEstimatedViews,
+    verifiedSharePercent: totalDeliveredViews > 0 ? Math.round((totalVerifiedViews / totalDeliveredViews) * 100) : 0,
+    dataQuality: (totalVerifiedViews >= totalEstimatedViews ? "VERIFIED" : "ESTIMATED") as "VERIFIED" | "ESTIMATED",
+  };
+
 return {
 overview: {
 totalSpent,
@@ -428,8 +601,8 @@ status: c.status,
 budget: c.totalBudget,
 dealsCount: c._count.deals,
 category: getPrimaryCategory(c.targetCategories),
-completedDeals: c.deals.length,
-amountSpent: c.deals.reduce((s: number, d) => s + d.amount, 0),
+completedDeals: c.deals.filter((d) => d.status === "COMPLETED").length,
+amountSpent: c.deals.filter((d) => d.status === "COMPLETED").reduce((s: number, d) => s + d.amount, 0),
 })),
 dealStatusBreakdown: categoryPerf.map((p) => ({
 status: p.status,
@@ -438,6 +611,12 @@ totalAmount: p._sum.amount || 0,
 })),
       microVsMacro,
       referralStats,
+      campaignVisibility,
+      spendVsViews,
+      campaignCpvMetrics,
+      bestCreators,
+      repeatCreators,
+      alerts,
     };
   }, 60);
 }

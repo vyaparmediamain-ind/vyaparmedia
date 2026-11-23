@@ -238,6 +238,7 @@ describe("OAuth State Security, Trusted Redirect URI & Idempotent Callbacks", ()
         refreshToken: null,
         expiresAt: new Date(Date.now() + 1000000),
         scope: "instagram_business_basic",
+        grantedScopes: [],
         createdAt: new Date(),
         updatedAt: new Date(),
       });

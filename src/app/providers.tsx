@@ -8,6 +8,8 @@ import PWARegister from "@/components/pwa/PWARegister";
 import OfflineIndicator from "@/components/pwa/OfflineIndicator";
 import CustomInstallBanner from "@/components/pwa/CustomInstallBanner";
 import BetaModeBanner from "@/components/navigation/BetaModeBanner";
+import { TelemetryConsentBanner } from "@/components/telemetry/TelemetryConsentBanner";
+import { PageViewTracker } from "@/components/analytics/PageViewTracker";
 import { SWRConfig } from "swr";
 
 export function Providers({
@@ -41,6 +43,8 @@ export function Providers({
               <OfflineIndicator />
               <CustomInstallBanner />
               <BetaModeBanner />
+              <TelemetryConsentBanner />
+              <PageViewTracker />
               {children}
             </SecurityProvider>
           </ErrorBoundary>

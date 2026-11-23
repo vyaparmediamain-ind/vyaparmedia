@@ -2,6 +2,7 @@ import { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { auth } from "@/lib/auth";
+import { isFeatureEnabled, FEATURE_FLAGS } from "@/lib/feature-flags";
 import { getPublicCreatorProfile } from "@/lib/creator-profile";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -78,6 +79,9 @@ export default async function PublicCreatorProfilePage({
   if (!profile) {
     notFound();
   }
+
+  const isBadgeEnabled = await isFeatureEnabled(FEATURE_FLAGS.FAIR_PRICE_PUBLIC_BADGE);
+  profile.showFairPricePublicBadge = isBadgeEnabled;
 
   const isOwnProfile = session?.user?.id === profile.userId;
   const viewerRole = session?.user?.userType || null;

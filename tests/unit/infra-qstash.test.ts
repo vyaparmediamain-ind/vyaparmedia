@@ -275,11 +275,11 @@ describe("INFRA-QSTASH-01: QStash Guard, Anti-Replay, Idempotency & Cron Automat
   });
 
   describe("Cron Automation & Verification (P11 REL-06)", () => {
-    it("verifies that all 16 background cron jobs are properly configured and route files exist", () => {
+    it("verifies that all 21 background cron jobs are properly configured and route files exist", () => {
       const verification = verifyCronSchedules();
       expect(verification.success).toBe(true);
       expect(verification.errors).toHaveLength(0);
-      expect(verification.schedules.length).toBe(16);
+      expect(verification.schedules.length).toBe(21);
     });
   });
 });

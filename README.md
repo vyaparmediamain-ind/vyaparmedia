@@ -20,7 +20,7 @@ VyaparMedia is an enterprise-grade fintech and marketing marketplace connecting 
 
 ## 2. Complete Application Page & Route Catalog
 
-The platform encompasses **57 distinct page entrypoints** (56 `page.tsx` routes + 1 branded `not-found.tsx`) organized cleanly across public marketing, authentication/onboarding, dynamic creator portfolios, authenticated user dashboards, admin governance, and system error boundaries:
+The platform encompasses **61 distinct page entrypoints** (60 `page.tsx` routes + 1 branded `not-found.tsx`) organized cleanly across public marketing, authentication/onboarding, dynamic creator portfolios, authenticated user dashboards, admin governance, and system error boundaries:
 
 ### 2.1 Public Marketing & Informational Routes
 | Route | Source File | Purpose & Description |
@@ -37,6 +37,7 @@ The platform encompasses **57 distinct page entrypoints** (56 `page.tsx` routes 
 | `/refund` | `src/app/refund/page.tsx` | Escrow cancellation, refund timelines, dispute settlement, and fee return policies |
 | `/cookie-policy` | `src/app/cookie-policy/page.tsx` | Session cookies, local storage, analytics, and security tracking disclosures |
 | `/status` | `src/app/status/page.tsx` | Real-time system operations status, provider availability metrics, and maintenance logs |
+| `/verify-report/[code]` | `src/app/verify-report/[code]/page.tsx` | Public tamper-proof report verification portal with HMAC-SHA256 signature check |
 
 ### 2.2 Authentication & User Onboarding
 | Route | Source File | Purpose & Description |
@@ -58,9 +59,10 @@ The platform encompasses **57 distinct page entrypoints** (56 `page.tsx` routes 
 | :--- | :--- | :--- |
 | `/dashboard` | `src/app/dashboard/page.tsx` | Central command center: active deals, wallet summary, notifications, and quick actions |
 | `/dashboard/campaigns` | `src/app/dashboard/campaigns/page.tsx` | Campaign management (Brand: my campaigns; Creator: discovery & open briefs) |
-| `/dashboard/campaigns/create` | `src/app/dashboard/campaigns/create/page.tsx` | Multi-step campaign creation wizard with budget escrow calculator |
+| `/dashboard/campaigns/create` | `src/app/dashboard/campaigns/create/page.tsx` | Multi-step campaign creation wizard with budget escrow calculator and fair-rate guidance |
 | `/dashboard/campaigns/[id]` | `src/app/dashboard/campaigns/[id]/page.tsx` | Campaign detail view, deliverables specification, applicant management, and status |
 | `/dashboard/campaigns/[id]/roi` | `src/app/dashboard/campaigns/[id]/roi/page.tsx` | Campaign ROI report: 4-tier category benchmarks, predictive matchmaking accuracy, and A4 print export |
+| `/dashboard/campaigns/[id]/analytics` | `src/app/dashboard/campaigns/[id]/analytics/page.tsx` | Campaign deep analytics: time-series pacing, CTR/impressions breakdown, and verified audience reach |
 | `/dashboard/applications` | `src/app/dashboard/applications/page.tsx` | Application tracker (proposals sent by creator or received by brand) |
 | `/dashboard/deals` | `src/app/dashboard/deals/page.tsx` | Active and past collaboration deal roster with milestone status pills |
 | `/dashboard/deals/[id]` | `src/app/dashboard/deals/[id]/page.tsx` | Full deal lifecycle room: contract terms, timeline, draft submission, revision requests |
@@ -83,16 +85,18 @@ The platform encompasses **57 distinct page entrypoints** (56 `page.tsx` routes 
 | Route | Source File | Purpose & Description |
 | :--- | :--- | :--- |
 | `/admin` | `src/app/admin/page.tsx` | System overview, platform health metrics, GMV, and active escrow volumes |
-| `/admin/analytics` | `src/app/admin/analytics/page.tsx` | Macro platform growth metrics, retention curves, and category breakdowns |
+| `/admin/analytics` | `src/app/admin/analytics/page.tsx` | Macro platform growth metrics, retention curves, traffic analytics, and conversion funnels |
 | `/admin/applications` | `src/app/admin/applications/page.tsx` | Platform-wide application monitoring and moderation |
 | `/admin/audit-logs` | `src/app/admin/audit-logs/page.tsx` | Append-only immutable security audit logs with cryptographic action records |
 | `/admin/benchmarks` | `src/app/admin/benchmarks/page.tsx` | Category benchmark registry & dynamic ROI scoring weight tuning console |
+| `/admin/campaigns` | `src/app/admin/campaigns/page.tsx` | Platform campaign health governance, delivery audit & risk metrics |
 | `/admin/disputes` | `src/app/admin/disputes/page.tsx` | Arbitration court: pending dispute cases and escrow arbitration controls |
 | `/admin/disputes/[id]` | `src/app/admin/disputes/[id]/page.tsx` | Evidence review room, party statements, and split-settlement release execution |
 | `/admin/financial` | `src/app/admin/financial/page.tsx` | Platform fee ledger, escrow balance reconciliation, and drift audit |
 | `/admin/newsletter` | `src/app/admin/newsletter/page.tsx` | Platform broadcasts, system announcements, and email campaigns |
 | `/admin/payouts` | `src/app/admin/payouts/page.tsx` | RazorpayX payout queues, pending withdrawals, and batch approval controls |
 | `/admin/suspicious-reviews` | `src/app/admin/suspicious-reviews/page.tsx` | Suspicious review fraud detection, sentiment collusion audit & moderation console |
+| `/admin/system` | `src/app/admin/system/page.tsx` | Background cron heartbeat monitor, feature flags console, and Meta Graph token audit |
 | `/admin/users` | `src/app/admin/users/page.tsx` | User directory, account bans, role changes, and trust score overrides |
 | `/admin/verifications` | `src/app/admin/verifications/page.tsx` | KYC queue: pending PAN/Aadhaar/GST documents awaiting approval |
 | `/admin/verifications/[id]` | `src/app/admin/verifications/[id]/page.tsx` | Detailed KYC document inspection and manual verification decision panel |
