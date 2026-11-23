@@ -1,0 +1,1217 @@
+{
+  "generatedAt": "2026-11-23T08:06:08.544Z",
+  "totalCallSites": 77,
+  "brokenCallSitesCount": 1,
+  "candidateDeadRoutesCount": 56,
+  "methodMismatchesCount": 0,
+  "callSites": [
+    {
+      "file": "src/app/admin/audit-logs/page.tsx",
+      "line": 32,
+      "rawExpression": "`/api/admin/audit-logs?${queryParams.toString()}`",
+      "normalizedRoute": "/api/admin/audit-logs",
+      "method": "GET",
+      "sourceType": "swr",
+      "matchedRoute": true
+    },
+    {
+      "file": "src/app/admin/payouts/page.tsx",
+      "line": 70,
+      "rawExpression": "`/api/admin/payouts?status=${encodeURIComponent(filter)}&page=1&limit=50`",
+      "normalizedRoute": "/api/admin/payouts",
+      "method": "GET",
+      "sourceType": "swr",
+      "matchedRoute": true
+    },
+    {
+      "file": "src/app/admin/scouts/page.tsx",
+      "line": 113,
+      "rawExpression": "`/api/admin/scouts?${queryParams.toString()}`",
+      "normalizedRoute": "/api/admin/scouts",
+      "method": "GET",
+      "sourceType": "swr",
+      "matchedRoute": true
+    },
+    {
+      "file": "src/app/admin/scouts/page.tsx",
+      "line": 124,
+      "rawExpression": "`/api/admin/scouts/${scoutId}`",
+      "normalizedRoute": "/api/admin/scouts/[id]",
+      "method": "PATCH",
+      "sourceType": "fetch",
+      "matchedRoute": true
+    },
+    {
+      "file": "src/app/admin/suspicious-reviews/page.tsx",
+      "line": 67,
+      "rawExpression": "`/api/admin/reports/suspicious-reviews?status=${statusFilter}`",
+      "normalizedRoute": "/api/admin/reports/suspicious-reviews",
+      "method": "GET",
+      "sourceType": "swr",
+      "matchedRoute": true
+    },
+    {
+      "file": "src/app/admin/suspicious-reviews/page.tsx",
+      "line": 94,
+      "rawExpression": "\"/api/admin/reports/suspicious-reviews\"",
+      "normalizedRoute": "/api/admin/reports/suspicious-reviews",
+      "method": "PATCH",
+      "sourceType": "fetch",
+      "matchedRoute": true
+    },
+    {
+      "file": "src/app/admin/system/page.tsx",
+      "line": 39,
+      "rawExpression": "\"/api/admin/system/kill-switches\"",
+      "normalizedRoute": "/api/admin/system/kill-switches",
+      "method": "GET",
+      "sourceType": "swr",
+      "matchedRoute": true
+    },
+    {
+      "file": "src/app/admin/system/page.tsx",
+      "line": 82,
+      "rawExpression": "\"/api/admin/system/kill-switches\"",
+      "normalizedRoute": "/api/admin/system/kill-switches",
+      "method": "POST",
+      "sourceType": "fetch",
+      "matchedRoute": true
+    },
+    {
+      "file": "src/app/admin/users/page.tsx",
+      "line": 770,
+      "rawExpression": "`/api/admin/users?${queryParams.toString()}`",
+      "normalizedRoute": "/api/admin/users",
+      "method": "GET",
+      "sourceType": "swr",
+      "matchedRoute": true
+    },
+    {
+      "file": "src/app/admin/violations/page.tsx",
+      "line": 55,
+      "rawExpression": "`/api/admin/violations?${queryParams.toString()}`",
+      "normalizedRoute": "/api/admin/violations",
+      "method": "GET",
+      "sourceType": "swr",
+      "matchedRoute": true
+    },
+    {
+      "file": "src/app/dashboard/badges/page.tsx",
+      "line": 88,
+      "rawExpression": "\"/api/gamification/badges\"",
+      "normalizedRoute": "/api/gamification/badges",
+      "method": "GET",
+      "sourceType": "swr",
+      "matchedRoute": true
+    },
+    {
+      "file": "src/app/dashboard/campaigns/CampaignsClient.tsx",
+      "line": 180,
+      "rawExpression": "`/api/campaigns?${queryString}`",
+      "normalizedRoute": "/api/campaigns",
+      "method": "GET",
+      "sourceType": "swr",
+      "matchedRoute": true
+    },
+    {
+      "file": "src/app/dashboard/deals/page.tsx",
+      "line": 98,
+      "rawExpression": "`/api/deals?page=${currentPage}&limit=${DEALS_PER_PAGE}${statusParam}${campaignParam}`",
+      "normalizedRoute": "/api/deals",
+      "method": "GET",
+      "sourceType": "swr",
+      "matchedRoute": true
+    },
+    {
+      "file": "src/app/dashboard/disputes/page.tsx",
+      "line": 212,
+      "rawExpression": "\"/api/disputes\"",
+      "normalizedRoute": "/api/disputes",
+      "method": "GET",
+      "sourceType": "swr",
+      "matchedRoute": true
+    },
+    {
+      "file": "src/app/dashboard/leaderboard/page.tsx",
+      "line": 80,
+      "rawExpression": "`/api/gamification/leaderboard?${params.toString()}`",
+      "normalizedRoute": "/api/gamification/leaderboard",
+      "method": "GET",
+      "sourceType": "swr",
+      "matchedRoute": true
+    },
+    {
+      "file": "src/app/dashboard/referrals/page.tsx",
+      "line": 243,
+      "rawExpression": "\"/api/gamification/referrals\"",
+      "normalizedRoute": "/api/gamification/referrals",
+      "method": "GET",
+      "sourceType": "swr",
+      "matchedRoute": true
+    },
+    {
+      "file": "src/app/dashboard/settings/page.tsx",
+      "line": 160,
+      "rawExpression": "\"/api/settings\"",
+      "normalizedRoute": "/api/settings",
+      "method": "GET",
+      "sourceType": "swr",
+      "matchedRoute": true
+    },
+    {
+      "file": "src/app/onboarding/page.tsx",
+      "line": 97,
+      "rawExpression": "\"/api/user/onboarding\"",
+      "normalizedRoute": "/api/user/onboarding",
+      "method": "GET",
+      "sourceType": "fetch",
+      "matchedRoute": true
+    },
+    {
+      "file": "src/app/onboarding/page.tsx",
+      "line": 205,
+      "rawExpression": "\"/api/user/onboarding\"",
+      "normalizedRoute": "/api/user/onboarding",
+      "method": "POST",
+      "sourceType": "fetch",
+      "matchedRoute": true
+    },
+    {
+      "file": "src/app/page.tsx",
+      "line": 86,
+      "rawExpression": "\"/api/public/landing\"",
+      "normalizedRoute": "/api/public/landing",
+      "method": "GET",
+      "sourceType": "swr",
+      "matchedRoute": true
+    },
+    {
+      "file": "src/components/admin/newsletter/NewsletterBroadcastForm.tsx",
+      "line": 72,
+      "rawExpression": "\"/api/admin/newsletter\"",
+      "normalizedRoute": "/api/admin/newsletter",
+      "method": "POST",
+      "sourceType": "fetch",
+      "matchedRoute": true
+    },
+    {
+      "file": "src/components/admin/system/CronHeartbeatsCard.tsx",
+      "line": 31,
+      "rawExpression": "\"/api/admin/system/cron-health\"",
+      "normalizedRoute": "/api/admin/system/cron-health",
+      "method": "GET",
+      "sourceType": "swr",
+      "matchedRoute": true
+    },
+    {
+      "file": "src/components/admin/system/DeadLetterQueueManager.tsx",
+      "line": 53,
+      "rawExpression": "`/api/admin/jobs/dlq?${queryParams.toString()}`",
+      "normalizedRoute": "/api/admin/jobs/dlq",
+      "method": "GET",
+      "sourceType": "swr",
+      "matchedRoute": true
+    },
+    {
+      "file": "src/components/admin/system/DeadLetterQueueManager.tsx",
+      "line": 73,
+      "rawExpression": "\"/api/admin/jobs/dlq\"",
+      "normalizedRoute": "/api/admin/jobs/dlq",
+      "method": "POST",
+      "sourceType": "fetch",
+      "matchedRoute": true
+    },
+    {
+      "file": "src/components/admin/system/FeatureFlagManager.tsx",
+      "line": 36,
+      "rawExpression": "\"/api/admin/system/feature-flags\"",
+      "normalizedRoute": "/api/admin/system/feature-flags",
+      "method": "GET",
+      "sourceType": "swr",
+      "matchedRoute": true
+    },
+    {
+      "file": "src/components/admin/system/FeatureFlagManager.tsx",
+      "line": 110,
+      "rawExpression": "\"/api/admin/system/feature-flags\"",
+      "normalizedRoute": "/api/admin/system/feature-flags",
+      "method": "PATCH",
+      "sourceType": "fetch",
+      "matchedRoute": true
+    },
+    {
+      "file": "src/components/admin/system/FeatureFlagManager.tsx",
+      "line": 144,
+      "rawExpression": "\"/api/admin/system/feature-flags\"",
+      "normalizedRoute": "/api/admin/system/feature-flags",
+      "method": "PATCH",
+      "sourceType": "fetch",
+      "matchedRoute": true
+    },
+    {
+      "file": "src/components/admin/system/InstagramInsightsCard.tsx",
+      "line": 21,
+      "rawExpression": "\"/api/admin/system/social-insights\"",
+      "normalizedRoute": "/api/admin/system/social-insights",
+      "method": "GET",
+      "sourceType": "swr",
+      "matchedRoute": true
+    },
+    {
+      "file": "src/components/admin/system/IpBlacklistManager.tsx",
+      "line": 39,
+      "rawExpression": "\"/api/admin/ip-blacklist\"",
+      "normalizedRoute": "/api/admin/ip-blacklist",
+      "method": "GET",
+      "sourceType": "swr",
+      "matchedRoute": true
+    },
+    {
+      "file": "src/components/admin/system/IpBlacklistManager.tsx",
+      "line": 69,
+      "rawExpression": "\"/api/admin/ip-blacklist\"",
+      "normalizedRoute": "/api/admin/ip-blacklist",
+      "method": "POST",
+      "sourceType": "fetch",
+      "matchedRoute": true
+    },
+    {
+      "file": "src/components/admin/system/IpBlacklistManager.tsx",
+      "line": 102,
+      "rawExpression": "\"/api/admin/ip-blacklist\"",
+      "normalizedRoute": "/api/admin/ip-blacklist",
+      "method": "DELETE",
+      "sourceType": "fetch",
+      "matchedRoute": true
+    },
+    {
+      "file": "src/components/admin/system/RegistrationGateManager.tsx",
+      "line": 34,
+      "rawExpression": "\"/api/admin/system/registration-gate\"",
+      "normalizedRoute": "/api/admin/system/registration-gate",
+      "method": "GET",
+      "sourceType": "swr",
+      "matchedRoute": true
+    },
+    {
+      "file": "src/components/admin/system/RegistrationGateManager.tsx",
+      "line": 54,
+      "rawExpression": "\"/api/admin/system/registration-gate\"",
+      "normalizedRoute": "/api/admin/system/registration-gate",
+      "method": "POST",
+      "sourceType": "fetch",
+      "matchedRoute": true
+    },
+    {
+      "file": "src/components/admin/violations/UserReportsQueue.tsx",
+      "line": 51,
+      "rawExpression": "\"/api/admin/user-reports\"",
+      "normalizedRoute": "/api/admin/user-reports",
+      "method": "GET",
+      "sourceType": "swr",
+      "matchedRoute": true
+    },
+    {
+      "file": "src/components/admin/violations/UserReportsQueue.tsx",
+      "line": 80,
+      "rawExpression": "\"/api/admin/user-reports\"",
+      "normalizedRoute": "/api/admin/user-reports",
+      "method": "POST",
+      "sourceType": "fetch",
+      "matchedRoute": true
+    },
+    {
+      "file": "src/components/analytics/PageViewTracker.tsx",
+      "line": 95,
+      "rawExpression": "\"/api/telemetry/track\"",
+      "normalizedRoute": "/api/telemetry/track",
+      "method": "POST",
+      "sourceType": "beacon",
+      "matchedRoute": true
+    },
+    {
+      "file": "src/components/analytics/TrafficAndBehaviourTab.tsx",
+      "line": 40,
+      "rawExpression": "`/api/admin/reports/traffic?range=${selectedRange}`",
+      "normalizedRoute": "/api/admin/reports/traffic",
+      "method": "GET",
+      "sourceType": "fetch",
+      "matchedRoute": true
+    },
+    {
+      "file": "src/components/auth/AuthLayout.tsx",
+      "line": 24,
+      "rawExpression": "\"/api/public/landing\"",
+      "normalizedRoute": "/api/public/landing",
+      "method": "GET",
+      "sourceType": "swr",
+      "matchedRoute": true
+    },
+    {
+      "file": "src/components/dashboard/AuthenticityAppealBanner.tsx",
+      "line": 44,
+      "rawExpression": "\"/api/influencers/appeal\"",
+      "normalizedRoute": "/api/influencers/appeal",
+      "method": "GET",
+      "sourceType": "swr",
+      "matchedRoute": true
+    },
+    {
+      "file": "src/components/dashboard/AuthenticityAppealBanner.tsx",
+      "line": 87,
+      "rawExpression": "\"/api/influencers/appeal\"",
+      "normalizedRoute": "/api/influencers/appeal",
+      "method": "POST",
+      "sourceType": "fetch",
+      "matchedRoute": true
+    },
+    {
+      "file": "src/components/dashboard/challenges/WeeklyChallenges.tsx",
+      "line": 160,
+      "rawExpression": "\"/api/gamification/challenges\"",
+      "normalizedRoute": "/api/gamification/challenges",
+      "method": "GET",
+      "sourceType": "swr",
+      "matchedRoute": true
+    },
+    {
+      "file": "src/components/dashboard/CreatorAppealBanner.tsx",
+      "line": 60,
+      "rawExpression": "\"/api/influencers/appeal\"",
+      "normalizedRoute": "/api/influencers/appeal",
+      "method": "POST",
+      "sourceType": "fetch",
+      "matchedRoute": true
+    },
+    {
+      "file": "src/components/dashboard/deals/DealModals.tsx",
+      "line": 170,
+      "rawExpression": "\"/api/settings\"",
+      "normalizedRoute": "/api/settings",
+      "method": "GET",
+      "sourceType": "fetch",
+      "matchedRoute": true
+    },
+    {
+      "file": "src/components/dashboard/deals/DealRatingReviewModal.tsx",
+      "line": 60,
+      "rawExpression": "\"/api/reviews\"",
+      "normalizedRoute": "/api/reviews",
+      "method": "POST",
+      "sourceType": "fetch",
+      "matchedRoute": true
+    },
+    {
+      "file": "src/components/dashboard/deals/ShipmentTrackingModal.tsx",
+      "line": 79,
+      "rawExpression": "`/api/deals/${deal.id}/product`",
+      "normalizedRoute": "/api/deals/[id]/product",
+      "method": "GET",
+      "sourceType": "fetch",
+      "matchedRoute": true
+    },
+    {
+      "file": "src/components/dashboard/home/DashboardHomeClient.tsx",
+      "line": 55,
+      "rawExpression": "\"/api/deals?limit=10&status=active\"",
+      "normalizedRoute": "/api/deals",
+      "method": "GET",
+      "sourceType": "swr",
+      "matchedRoute": true
+    },
+    {
+      "file": "src/components/dashboard/referrals/ReferralList.tsx",
+      "line": 24,
+      "rawExpression": "\"/api/referrals/list\"",
+      "normalizedRoute": "/api/referrals/list",
+      "method": "GET",
+      "sourceType": "swr",
+      "matchedRoute": true
+    },
+    {
+      "file": "src/components/dashboard/settings/AuthenticityAuditCard.tsx",
+      "line": 68,
+      "rawExpression": "\"/api/influencers/audit\"",
+      "normalizedRoute": "/api/influencers/audit",
+      "method": "POST",
+      "sourceType": "fetch",
+      "matchedRoute": true
+    },
+    {
+      "file": "src/components/dashboard/settings/BlockedUsersPanel.tsx",
+      "line": 33,
+      "rawExpression": "\"/api/users/block\"",
+      "normalizedRoute": "/api/users/block",
+      "method": "GET",
+      "sourceType": "swr",
+      "matchedRoute": true
+    },
+    {
+      "file": "src/components/dashboard/settings/FairPriceGuidanceCard.tsx",
+      "line": 56,
+      "rawExpression": "\"/api/pricing/me\"",
+      "normalizedRoute": "/api/pricing/me",
+      "method": "GET",
+      "sourceType": "fetch",
+      "matchedRoute": true
+    },
+    {
+      "file": "src/components/dashboard/settings/FairPriceGuidanceCard.tsx",
+      "line": 83,
+      "rawExpression": "\"/api/pricing/evaluate\"",
+      "normalizedRoute": "/api/pricing/evaluate",
+      "method": "POST",
+      "sourceType": "fetch",
+      "matchedRoute": true
+    },
+    {
+      "file": "src/components/dashboard/settings/LoginActivityPanel.tsx",
+      "line": 30,
+      "rawExpression": "\"/api/user/activity\"",
+      "normalizedRoute": "/api/user/activity",
+      "method": "GET",
+      "sourceType": "swr",
+      "matchedRoute": true
+    },
+    {
+      "file": "src/components/dashboard/settings/NotificationPreferencesPanel.tsx",
+      "line": 115,
+      "rawExpression": "\"/api/notifications/preferences\"",
+      "normalizedRoute": "/api/notifications/preferences",
+      "method": "GET",
+      "sourceType": "swr",
+      "matchedRoute": true
+    },
+    {
+      "file": "src/components/dashboard/settings/NotificationPreferencesPanel.tsx",
+      "line": 173,
+      "rawExpression": "\"/api/notifications/push-subscription\"",
+      "normalizedRoute": "/api/notifications/push-subscription",
+      "method": "GET",
+      "sourceType": "fetch",
+      "matchedRoute": true
+    },
+    {
+      "file": "src/components/dashboard/settings/ProfileTab.tsx",
+      "line": 209,
+      "rawExpression": "\"/api/upload\"",
+      "normalizedRoute": "/api/upload",
+      "method": "POST",
+      "sourceType": "fetch",
+      "matchedRoute": true
+    },
+    {
+      "file": "src/components/dashboard/settings/TelemetryConsentPanel.tsx",
+      "line": 27,
+      "rawExpression": "\"/api/settings/telemetry-consent\"",
+      "normalizedRoute": "/api/settings/telemetry-consent",
+      "method": "GET",
+      "sourceType": "fetch",
+      "matchedRoute": true
+    },
+    {
+      "file": "src/components/dashboard/settings/TelemetryConsentPanel.tsx",
+      "line": 51,
+      "rawExpression": "\"/api/settings/telemetry-consent\"",
+      "normalizedRoute": "/api/settings/telemetry-consent",
+      "method": "POST",
+      "sourceType": "fetch",
+      "matchedRoute": true
+    },
+    {
+      "file": "src/components/dashboard/settings/TwoFactorAuthPanel.tsx",
+      "line": 35,
+      "rawExpression": "\"/api/settings\"",
+      "normalizedRoute": "/api/settings",
+      "method": "GET",
+      "sourceType": "swr",
+      "matchedRoute": true
+    },
+    {
+      "file": "src/components/dashboard/wallet/BankAccountManager.tsx",
+      "line": 77,
+      "rawExpression": "\"/api/wallet/bank-accounts\"",
+      "normalizedRoute": "/api/wallet/bank-accounts",
+      "method": "GET",
+      "sourceType": "swr",
+      "matchedRoute": true
+    },
+    {
+      "file": "src/components/dashboard/WeeklyChallengesCard.tsx",
+      "line": 46,
+      "rawExpression": "\"/api/gamification/challenges\"",
+      "normalizedRoute": "/api/gamification/challenges",
+      "method": "GET",
+      "sourceType": "swr",
+      "matchedRoute": true
+    },
+    {
+      "file": "src/components/discovery/DiscoveryFeed.tsx",
+      "line": 64,
+      "rawExpression": "`/api/campaigns?${params.toString()}`",
+      "normalizedRoute": "/api/campaigns",
+      "method": "GET",
+      "sourceType": "api-client",
+      "matchedRoute": true
+    },
+    {
+      "file": "src/components/discovery/DiscoveryFeed.tsx",
+      "line": 98,
+      "rawExpression": "`/api/influencers?${params.toString()}`",
+      "normalizedRoute": "/api/influencers",
+      "method": "GET",
+      "sourceType": "api-client",
+      "matchedRoute": true
+    },
+    {
+      "file": "src/components/discovery/DiscoveryFeed.tsx",
+      "line": 150,
+      "rawExpression": "/api/discovery-feed",
+      "normalizedRoute": "/api/discovery-feed",
+      "method": "GET",
+      "sourceType": "swr",
+      "matchedRoute": false,
+      "notes": "Array literal SWR key"
+    },
+    {
+      "file": "src/components/navigation/BetaModeBanner.tsx",
+      "line": 18,
+      "rawExpression": "\"/api/auth/registration-config\"",
+      "normalizedRoute": "/api/auth/registration-config",
+      "method": "GET",
+      "sourceType": "swr",
+      "matchedRoute": true
+    },
+    {
+      "file": "src/components/navigation/EscrowStoriesBar.tsx",
+      "line": 30,
+      "rawExpression": "\"/api/deals?limit=10&status=active\"",
+      "normalizedRoute": "/api/deals",
+      "method": "GET",
+      "sourceType": "swr",
+      "matchedRoute": true
+    },
+    {
+      "file": "src/components/profile/InfluencerProfileClient.tsx",
+      "line": 137,
+      "rawExpression": "`/api/messages/can-message?with=${encodeURIComponent(profile.userId)}`",
+      "normalizedRoute": "/api/messages/can-message",
+      "method": "GET",
+      "sourceType": "fetch",
+      "matchedRoute": true
+    },
+    {
+      "file": "src/components/register/useRegistration.ts",
+      "line": 37,
+      "rawExpression": "\"/api/auth/registration-config\"",
+      "normalizedRoute": "/api/auth/registration-config",
+      "method": "GET",
+      "sourceType": "fetch",
+      "matchedRoute": true
+    },
+    {
+      "file": "src/components/register/useRegistration.ts",
+      "line": 279,
+      "rawExpression": "`/api/referrals/validate?code=${encodeURIComponent(formData.referralCode.trim())}`",
+      "normalizedRoute": "/api/referrals/validate",
+      "method": "GET",
+      "sourceType": "fetch",
+      "matchedRoute": true
+    },
+    {
+      "file": "src/components/reports/CampaignGovernanceReportModal.tsx",
+      "line": 26,
+      "rawExpression": "`/api/admin/campaigns/${campaignId}/reports/governance`",
+      "normalizedRoute": "/api/admin/campaigns/[id]/reports/governance",
+      "method": "GET",
+      "sourceType": "fetch",
+      "matchedRoute": true
+    },
+    {
+      "file": "src/components/reports/CampaignPerformanceReportModal.tsx",
+      "line": 32,
+      "rawExpression": "`/api/campaigns/${campaignId}/reports/performance`",
+      "normalizedRoute": "/api/campaigns/[id]/reports/performance",
+      "method": "GET",
+      "sourceType": "fetch",
+      "matchedRoute": true
+    },
+    {
+      "file": "src/components/reports/MarketRangeReportModal.tsx",
+      "line": 26,
+      "rawExpression": "`/api/reports/creator/${influencerId}/market-range`",
+      "normalizedRoute": "/api/reports/creator/[id]/market-range",
+      "method": "GET",
+      "sourceType": "fetch",
+      "matchedRoute": true
+    },
+    {
+      "file": "src/components/reports/TrafficReportModal.tsx",
+      "line": 31,
+      "rawExpression": "`/api/admin/reports/traffic?range=${range}`",
+      "normalizedRoute": "/api/admin/reports/traffic",
+      "method": "GET",
+      "sourceType": "fetch",
+      "matchedRoute": true
+    },
+    {
+      "file": "src/components/scout/ScoutDashboardClient.tsx",
+      "line": 84,
+      "rawExpression": "\"/api/scout/dashboard\"",
+      "normalizedRoute": "/api/scout/dashboard",
+      "method": "GET",
+      "sourceType": "swr",
+      "matchedRoute": true
+    },
+    {
+      "file": "src/components/scout/ScoutDashboardClient.tsx",
+      "line": 89,
+      "rawExpression": "\"/api/scout/network\"",
+      "normalizedRoute": "/api/scout/network",
+      "method": "GET",
+      "sourceType": "swr",
+      "matchedRoute": true
+    },
+    {
+      "file": "src/components/scout/ScoutVerificationGate.tsx",
+      "line": 39,
+      "rawExpression": "\"/api/scout/verification\"",
+      "normalizedRoute": "/api/scout/verification",
+      "method": "GET",
+      "sourceType": "swr",
+      "matchedRoute": true
+    },
+    {
+      "file": "src/components/scout/ScoutVerificationGate.tsx",
+      "line": 117,
+      "rawExpression": "\"/api/scout/verification\"",
+      "normalizedRoute": "/api/scout/verification",
+      "method": "POST",
+      "sourceType": "fetch",
+      "matchedRoute": true
+    },
+    {
+      "file": "src/components/telemetry/TelemetryConsentBanner.tsx",
+      "line": 33,
+      "rawExpression": "\"/api/settings/telemetry-consent\"",
+      "normalizedRoute": "/api/settings/telemetry-consent",
+      "method": "POST",
+      "sourceType": "fetch",
+      "matchedRoute": true
+    }
+  ],
+  "brokenCallSites": [
+    {
+      "file": "src/components/discovery/DiscoveryFeed.tsx",
+      "line": 150,
+      "rawExpression": "/api/discovery-feed",
+      "normalizedRoute": "/api/discovery-feed",
+      "method": "GET",
+      "sourceType": "swr",
+      "matchedRoute": false,
+      "notes": "Array literal SWR key"
+    }
+  ],
+  "candidateDeadRoutes": [
+    {
+      "route": "/api/admin/campaigns/[id]",
+      "file": "src/app/api/admin/campaigns/[id]/route.ts",
+      "methods": [
+        "GET"
+      ],
+      "reason": "Zero client call sites detected in src/ (not on allow-list)"
+    },
+    {
+      "route": "/api/admin/financial",
+      "file": "src/app/api/admin/financial/route.ts",
+      "methods": [
+        "GET"
+      ],
+      "reason": "Zero client call sites detected in src/ (not on allow-list)"
+    },
+    {
+      "route": "/api/admin/payouts/[id]",
+      "file": "src/app/api/admin/payouts/[id]/route.ts",
+      "methods": [
+        "PUT"
+      ],
+      "reason": "Zero client call sites detected in src/ (not on allow-list)"
+    },
+    {
+      "route": "/api/admin/reports/gst-tcs",
+      "file": "src/app/api/admin/reports/gst-tcs/route.ts",
+      "methods": [
+        "GET"
+      ],
+      "reason": "Zero client call sites detected in src/ (not on allow-list)"
+    },
+    {
+      "route": "/api/admin/reports/revenue",
+      "file": "src/app/api/admin/reports/revenue/route.ts",
+      "methods": [
+        "GET"
+      ],
+      "reason": "Zero client call sites detected in src/ (not on allow-list)"
+    },
+    {
+      "route": "/api/admin/reports/tds",
+      "file": "src/app/api/admin/reports/tds/route.ts",
+      "methods": [
+        "GET"
+      ],
+      "reason": "Zero client call sites detected in src/ (not on allow-list)"
+    },
+    {
+      "route": "/api/admin/users/[id]",
+      "file": "src/app/api/admin/users/[id]/route.ts",
+      "methods": [
+        "GET",
+        "PUT"
+      ],
+      "reason": "Zero client call sites detected in src/ (not on allow-list)"
+    },
+    {
+      "route": "/api/analytics/brand/visibility",
+      "file": "src/app/api/analytics/brand/visibility/route.ts",
+      "methods": [
+        "GET"
+      ],
+      "reason": "Zero client call sites detected in src/ (not on allow-list)"
+    },
+    {
+      "route": "/api/analytics/creator/visibility",
+      "file": "src/app/api/analytics/creator/visibility/route.ts",
+      "methods": [
+        "GET"
+      ],
+      "reason": "Zero client call sites detected in src/ (not on allow-list)"
+    },
+    {
+      "route": "/api/applications",
+      "file": "src/app/api/applications/route.ts",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "reason": "Zero client call sites detected in src/ (not on allow-list)"
+    },
+    {
+      "route": "/api/applications/[id]/accept",
+      "file": "src/app/api/applications/[id]/accept/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "reason": "Zero client call sites detected in src/ (not on allow-list)"
+    },
+    {
+      "route": "/api/applications/[id]/reject",
+      "file": "src/app/api/applications/[id]/reject/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "reason": "Zero client call sites detected in src/ (not on allow-list)"
+    },
+    {
+      "route": "/api/blog/subscribe",
+      "file": "src/app/api/blog/subscribe/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "reason": "Zero client call sites detected in src/ (not on allow-list)"
+    },
+    {
+      "route": "/api/blog/unsubscribe",
+      "file": "src/app/api/blog/unsubscribe/route.ts",
+      "methods": [
+        "GET"
+      ],
+      "reason": "Zero client call sites detected in src/ (not on allow-list)"
+    },
+    {
+      "route": "/api/blog/verify",
+      "file": "src/app/api/blog/verify/route.ts",
+      "methods": [
+        "GET"
+      ],
+      "reason": "Zero client call sites detected in src/ (not on allow-list)"
+    },
+    {
+      "route": "/api/bookmarks",
+      "file": "src/app/api/bookmarks/route.ts",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "reason": "Zero client call sites detected in src/ (not on allow-list)"
+    },
+    {
+      "route": "/api/campaigns/[id]",
+      "file": "src/app/api/campaigns/[id]/route.ts",
+      "methods": [
+        "DELETE",
+        "GET",
+        "PATCH",
+        "PUT"
+      ],
+      "reason": "Zero client call sites detected in src/ (not on allow-list)"
+    },
+    {
+      "route": "/api/campaigns/[id]/analytics",
+      "file": "src/app/api/campaigns/[id]/analytics/route.ts",
+      "methods": [
+        "GET"
+      ],
+      "reason": "Zero client call sites detected in src/ (not on allow-list)"
+    },
+    {
+      "route": "/api/campaigns/[id]/finance/export",
+      "file": "src/app/api/campaigns/[id]/finance/export/route.ts",
+      "methods": [
+        "GET"
+      ],
+      "reason": "Zero client call sites detected in src/ (not on allow-list)"
+    },
+    {
+      "route": "/api/deals/[id]",
+      "file": "src/app/api/deals/[id]/route.ts",
+      "methods": [
+        "GET"
+      ],
+      "reason": "Zero client call sites detected in src/ (not on allow-list)"
+    },
+    {
+      "route": "/api/deals/[id]/cancel",
+      "file": "src/app/api/deals/[id]/cancel/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "reason": "Zero client call sites detected in src/ (not on allow-list)"
+    },
+    {
+      "route": "/api/deals/[id]/contract",
+      "file": "src/app/api/deals/[id]/contract/route.ts",
+      "methods": [
+        "GET"
+      ],
+      "reason": "Zero client call sites detected in src/ (not on allow-list)"
+    },
+    {
+      "route": "/api/deals/[id]/engagement",
+      "file": "src/app/api/deals/[id]/engagement/route.ts",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "reason": "Zero client call sites detected in src/ (not on allow-list)"
+    },
+    {
+      "route": "/api/deals/[id]/fund",
+      "file": "src/app/api/deals/[id]/fund/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "reason": "Zero client call sites detected in src/ (not on allow-list)"
+    },
+    {
+      "route": "/api/deals/[id]/reject",
+      "file": "src/app/api/deals/[id]/reject/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "reason": "Zero client call sites detected in src/ (not on allow-list)"
+    },
+    {
+      "route": "/api/deals/[id]/sign",
+      "file": "src/app/api/deals/[id]/sign/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "reason": "Zero client call sites detected in src/ (not on allow-list)"
+    },
+    {
+      "route": "/api/disputes/[id]",
+      "file": "src/app/api/disputes/[id]/route.ts",
+      "methods": [
+        "GET",
+        "PATCH"
+      ],
+      "reason": "Zero client call sites detected in src/ (not on allow-list)"
+    },
+    {
+      "route": "/api/influencers/[id]",
+      "file": "src/app/api/influencers/[id]/route.ts",
+      "methods": [
+        "GET"
+      ],
+      "reason": "Zero client call sites detected in src/ (not on allow-list)"
+    },
+    {
+      "route": "/api/messages",
+      "file": "src/app/api/messages/route.ts",
+      "methods": [
+        "GET",
+        "PATCH",
+        "POST"
+      ],
+      "reason": "Zero client call sites detected in src/ (not on allow-list)"
+    },
+    {
+      "route": "/api/messages/stream",
+      "file": "src/app/api/messages/stream/route.ts",
+      "methods": [
+        "GET"
+      ],
+      "reason": "Zero client call sites detected in src/ (not on allow-list)"
+    },
+    {
+      "route": "/api/notifications",
+      "file": "src/app/api/notifications/route.ts",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "reason": "Zero client call sites detected in src/ (not on allow-list)"
+    },
+    {
+      "route": "/api/payments/withdraw",
+      "file": "src/app/api/payments/withdraw/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "reason": "Zero client call sites detected in src/ (not on allow-list)"
+    },
+    {
+      "route": "/api/reports/brand/campaign/[id]/roi",
+      "file": "src/app/api/reports/brand/campaign/[id]/roi/route.ts",
+      "methods": [
+        "GET"
+      ],
+      "reason": "Zero client call sites detected in src/ (not on allow-list)"
+    },
+    {
+      "route": "/api/reports/brand/spend",
+      "file": "src/app/api/reports/brand/spend/route.ts",
+      "methods": [
+        "GET"
+      ],
+      "reason": "Zero client call sites detected in src/ (not on allow-list)"
+    },
+    {
+      "route": "/api/reports/influencer/income",
+      "file": "src/app/api/reports/influencer/income/route.ts",
+      "methods": [
+        "GET"
+      ],
+      "reason": "Zero client call sites detected in src/ (not on allow-list)"
+    },
+    {
+      "route": "/api/social/verify",
+      "file": "src/app/api/social/verify/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "reason": "Zero client call sites detected in src/ (not on allow-list)"
+    },
+    {
+      "route": "/api/telemetry/event",
+      "file": "src/app/api/telemetry/event/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "reason": "Zero client call sites detected in src/ (not on allow-list)"
+    },
+    {
+      "route": "/api/upload/confirm",
+      "file": "src/app/api/upload/confirm/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "reason": "Zero client call sites detected in src/ (not on allow-list)"
+    },
+    {
+      "route": "/api/upload/presign",
+      "file": "src/app/api/upload/presign/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "reason": "Zero client call sites detected in src/ (not on allow-list)"
+    },
+    {
+      "route": "/api/user/2fa/disable",
+      "file": "src/app/api/user/2fa/disable/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "reason": "Zero client call sites detected in src/ (not on allow-list)"
+    },
+    {
+      "route": "/api/user/2fa/setup",
+      "file": "src/app/api/user/2fa/setup/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "reason": "Zero client call sites detected in src/ (not on allow-list)"
+    },
+    {
+      "route": "/api/user/2fa/verify",
+      "file": "src/app/api/user/2fa/verify/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "reason": "Zero client call sites detected in src/ (not on allow-list)"
+    },
+    {
+      "route": "/api/user/change-contact",
+      "file": "src/app/api/user/change-contact/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "reason": "Zero client call sites detected in src/ (not on allow-list)"
+    },
+    {
+      "route": "/api/user/delete-account",
+      "file": "src/app/api/user/delete-account/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "reason": "Zero client call sites detected in src/ (not on allow-list)"
+    },
+    {
+      "route": "/api/user/send-otp",
+      "file": "src/app/api/user/send-otp/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "reason": "Zero client call sites detected in src/ (not on allow-list)"
+    },
+    {
+      "route": "/api/user/switch-role",
+      "file": "src/app/api/user/switch-role/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "reason": "Zero client call sites detected in src/ (not on allow-list)"
+    },
+    {
+      "route": "/api/user/verify-contact",
+      "file": "src/app/api/user/verify-contact/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "reason": "Zero client call sites detected in src/ (not on allow-list)"
+    },
+    {
+      "route": "/api/users/feedback",
+      "file": "src/app/api/users/feedback/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "reason": "Zero client call sites detected in src/ (not on allow-list)"
+    },
+    {
+      "route": "/api/users/report",
+      "file": "src/app/api/users/report/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "reason": "Zero client call sites detected in src/ (not on allow-list)"
+    },
+    {
+      "route": "/api/verification",
+      "file": "src/app/api/verification/route.ts",
+      "methods": [
+        "GET",
+        "POST",
+        "PUT"
+      ],
+      "reason": "Zero client call sites detected in src/ (not on allow-list)"
+    },
+    {
+      "route": "/api/verify-report/[id]",
+      "file": "src/app/api/verify-report/[id]/route.ts",
+      "methods": [
+        "GET"
+      ],
+      "reason": "Zero client call sites detected in src/ (not on allow-list)"
+    },
+    {
+      "route": "/api/wallet",
+      "file": "src/app/api/wallet/route.ts",
+      "methods": [
+        "GET"
+      ],
+      "reason": "Zero client call sites detected in src/ (not on allow-list)"
+    },
+    {
+      "route": "/api/wallet/add-funds",
+      "file": "src/app/api/wallet/add-funds/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "reason": "Zero client call sites detected in src/ (not on allow-list)"
+    },
+    {
+      "route": "/api/wallet/add-funds/verify",
+      "file": "src/app/api/wallet/add-funds/verify/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "reason": "Zero client call sites detected in src/ (not on allow-list)"
+    },
+    {
+      "route": "/api/wallet/bank-accounts/verify",
+      "file": "src/app/api/wallet/bank-accounts/verify/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "reason": "Zero client call sites detected in src/ (not on allow-list)"
+    },
+    {
+      "route": "/api/wallet/transactions",
+      "file": "src/app/api/wallet/transactions/route.ts",
+      "methods": [
+        "GET"
+      ],
+      "reason": "Zero client call sites detected in src/ (not on allow-list)"
+    }
+  ],
+  "methodMismatches": [],
+  "investigations": {
+    "/api/discovery-feed": {
+      "endpoint": "/api/discovery-feed",
+      "status": "VIRTUAL_SWR_KEY",
+      "description": "Used as an SWR Infinite cache key in DiscoveryFeed.tsx (~L150). The custom fetcher (`fetchDiscoveryPage`) actually calls `/api/campaigns` or `/api/influencers` under the hood. No standalone `/api/discovery-feed` route exists or is required.",
+      "details": {
+        "file": "src/components/discovery/DiscoveryFeed.tsx",
+        "underlyingEndpoints": [
+          "/api/campaigns",
+          "/api/influencers"
+        ],
+        "fetcherFunction": "fetchDiscoveryPage",
+        "actionableRecommendation": "Harmless virtual cache key. Document in route matrix to prevent false-positive alarms."
+      }
+    },
+    "/api/telemetry/event": {
+      "endpoint": "/api/telemetry/event",
+      "status": "UNREFERENCED_ROUTE",
+      "description": "Route exists at `src/app/api/telemetry/event/route.ts` (accepts PageViewEventInputSchema via POST), but client PageViewTracker.tsx uses `/api/telemetry/track` via navigator.sendBeacon instead.",
+      "details": {
+        "routeFile": "src/app/api/telemetry/event/route.ts",
+        "actualClientEndpoint": "/api/telemetry/track",
+        "clientCaller": "src/components/analytics/PageViewTracker.tsx",
+        "actionableRecommendation": "Retain as fallback REST ingest or consolidate client tracking into /api/telemetry/track."
+      }
+    },
+    "/api/upload/confirm": {
+      "endpoint": "/api/upload/confirm",
+      "status": "UNREFERENCED_ROUTE",
+      "description": "Route exists at `src/app/api/upload/confirm/route.ts` to perform post-upload magic-byte security scans on presigned S3/R2 uploads. Current frontend upload flow in ProfileTab.tsx uses direct `/api/upload` multipart stream.",
+      "details": {
+        "routeFile": "src/app/api/upload/confirm/route.ts",
+        "directUploadEndpoint": "/api/upload",
+        "presignEndpoint": "/api/upload/presign",
+        "actionableRecommendation": "Keep route intact as security post-verification hook for presigned uploads."
+      }
+    }
+  }
+}

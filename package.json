@@ -24,7 +24,11 @@
     "db:verify-rls": "npx tsx scripts/verify-database-rls.ts",
     "load-test": "node load-tests/run-autocannon.mjs",
     "load-test:k6": "k6 run load-tests/k6-read-heavy.js",
-    "load-test:explain": "npx tsx load-tests/explain-analyze-scenarios.ts"
+    "load-test:explain": "npx tsx load-tests/explain-analyze-scenarios.ts",
+    "audit:routes": "npx tsx scripts/audit/route-manifest.ts",
+    "audit:connections": "npx tsx scripts/audit/connections.ts",
+    "audit:tests": "npx tsx scripts/audit/test-matrix.ts",
+    "audit:fallbacks": "npx tsx scripts/audit/fallbacks.ts"
   },
   "engines": {
     "node": "24.x"

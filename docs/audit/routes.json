@@ -1,0 +1,4541 @@
+{
+  "generatedAt": "2026-11-23T08:05:58.616Z",
+  "totalApiRoutes": 154,
+  "totalPageRoutes": 63,
+  "apiRoutes": [
+    {
+      "path": "/api/admin/audit-logs",
+      "file": "src/app/api/admin/audit-logs/route.ts",
+      "type": "api",
+      "methods": [
+        "GET"
+      ],
+      "authOptions": {
+        "GET": {
+          "requireAuth": true,
+          "requireAdmin": true,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": null,
+          "validateSchemas": {},
+          "skipCsrf": false
+        }
+      },
+      "serverActions": []
+    },
+    {
+      "path": "/api/admin/campaigns/[id]",
+      "file": "src/app/api/admin/campaigns/[id]/route.ts",
+      "type": "api",
+      "methods": [
+        "GET"
+      ],
+      "authOptions": {
+        "GET": {
+          "requireAuth": true,
+          "requireAdmin": true,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": "API_DEFAULT",
+          "validateSchemas": {},
+          "skipCsrf": false
+        }
+      },
+      "serverActions": []
+    },
+    {
+      "path": "/api/admin/campaigns/[id]/reports/governance",
+      "file": "src/app/api/admin/campaigns/[id]/reports/governance/route.ts",
+      "type": "api",
+      "methods": [
+        "GET"
+      ],
+      "authOptions": {
+        "GET": {
+          "requireAuth": true,
+          "requireAdmin": true,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": "REPORTS",
+          "validateSchemas": {},
+          "skipCsrf": false
+        }
+      },
+      "serverActions": []
+    },
+    {
+      "path": "/api/admin/financial",
+      "file": "src/app/api/admin/financial/route.ts",
+      "type": "api",
+      "methods": [
+        "GET"
+      ],
+      "authOptions": {
+        "GET": {
+          "requireAuth": true,
+          "requireAdmin": true,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": "RATE_LIMIT_CONFIGS.REPORTS",
+          "validateSchemas": {},
+          "skipCsrf": false
+        }
+      },
+      "serverActions": []
+    },
+    {
+      "path": "/api/admin/ip-blacklist",
+      "file": "src/app/api/admin/ip-blacklist/route.ts",
+      "type": "api",
+      "methods": [
+        "DELETE",
+        "GET",
+        "POST"
+      ],
+      "authOptions": {
+        "GET": {
+          "requireAuth": false,
+          "requireAdmin": false,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": "MANAGE_USERS",
+          "rateBucket": null,
+          "validateSchemas": {},
+          "skipCsrf": false
+        },
+        "POST": {
+          "requireAuth": false,
+          "requireAdmin": false,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": "MANAGE_USERS",
+          "rateBucket": null,
+          "validateSchemas": {},
+          "skipCsrf": false
+        },
+        "DELETE": {
+          "requireAuth": false,
+          "requireAdmin": false,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": "MANAGE_USERS",
+          "rateBucket": null,
+          "validateSchemas": {},
+          "skipCsrf": false
+        }
+      },
+      "serverActions": []
+    },
+    {
+      "path": "/api/admin/jobs/dlq",
+      "file": "src/app/api/admin/jobs/dlq/route.ts",
+      "type": "api",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "authOptions": {
+        "GET": {
+          "requireAuth": false,
+          "requireAdmin": false,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": "SYSTEM_ADMIN",
+          "rateBucket": null,
+          "validateSchemas": {},
+          "skipCsrf": false
+        },
+        "POST": {
+          "requireAuth": false,
+          "requireAdmin": false,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": "SYSTEM_ADMIN",
+          "rateBucket": null,
+          "validateSchemas": {},
+          "skipCsrf": false
+        }
+      },
+      "serverActions": []
+    },
+    {
+      "path": "/api/admin/newsletter",
+      "file": "src/app/api/admin/newsletter/route.ts",
+      "type": "api",
+      "methods": [
+        "POST"
+      ],
+      "authOptions": {
+        "POST": {
+          "requireAuth": true,
+          "requireAdmin": true,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": null,
+          "validateSchemas": {},
+          "skipCsrf": false
+        }
+      },
+      "serverActions": []
+    },
+    {
+      "path": "/api/admin/payouts",
+      "file": "src/app/api/admin/payouts/route.ts",
+      "type": "api",
+      "methods": [
+        "GET"
+      ],
+      "authOptions": {
+        "GET": {
+          "requireAuth": true,
+          "requireAdmin": true,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": null,
+          "validateSchemas": {},
+          "skipCsrf": false
+        }
+      },
+      "serverActions": []
+    },
+    {
+      "path": "/api/admin/payouts/[id]",
+      "file": "src/app/api/admin/payouts/[id]/route.ts",
+      "type": "api",
+      "methods": [
+        "PUT"
+      ],
+      "authOptions": {
+        "PUT": {
+          "requireAuth": true,
+          "requireAdmin": true,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": null,
+          "validateSchemas": {},
+          "skipCsrf": false
+        }
+      },
+      "serverActions": []
+    },
+    {
+      "path": "/api/admin/reports/gst-tcs",
+      "file": "src/app/api/admin/reports/gst-tcs/route.ts",
+      "type": "api",
+      "methods": [
+        "GET"
+      ],
+      "authOptions": {
+        "GET": {
+          "requireAuth": true,
+          "requireAdmin": true,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": "RATE_LIMIT_CONFIGS.REPORTS",
+          "validateSchemas": {},
+          "skipCsrf": false
+        }
+      },
+      "serverActions": []
+    },
+    {
+      "path": "/api/admin/reports/revenue",
+      "file": "src/app/api/admin/reports/revenue/route.ts",
+      "type": "api",
+      "methods": [
+        "GET"
+      ],
+      "authOptions": {
+        "GET": {
+          "requireAuth": false,
+          "requireAdmin": false,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": "MANAGE_PLATFORM_FINANCE",
+          "rateBucket": "RATE_LIMIT_CONFIGS.REPORTS",
+          "validateSchemas": {},
+          "skipCsrf": false
+        }
+      },
+      "serverActions": []
+    },
+    {
+      "path": "/api/admin/reports/suspicious-reviews",
+      "file": "src/app/api/admin/reports/suspicious-reviews/route.ts",
+      "type": "api",
+      "methods": [
+        "GET",
+        "PATCH"
+      ],
+      "authOptions": {
+        "GET": {
+          "requireAuth": true,
+          "requireAdmin": true,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": null,
+          "validateSchemas": {},
+          "skipCsrf": false
+        },
+        "PATCH": {
+          "requireAuth": true,
+          "requireAdmin": true,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": null,
+          "validateSchemas": {},
+          "skipCsrf": false
+        }
+      },
+      "serverActions": []
+    },
+    {
+      "path": "/api/admin/reports/tds",
+      "file": "src/app/api/admin/reports/tds/route.ts",
+      "type": "api",
+      "methods": [
+        "GET"
+      ],
+      "authOptions": {
+        "GET": {
+          "requireAuth": true,
+          "requireAdmin": true,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": "MANAGE_PLATFORM_FINANCE",
+          "rateBucket": "RATE_LIMIT_CONFIGS.REPORTS",
+          "validateSchemas": {},
+          "skipCsrf": false
+        }
+      },
+      "serverActions": []
+    },
+    {
+      "path": "/api/admin/reports/traffic",
+      "file": "src/app/api/admin/reports/traffic/route.ts",
+      "type": "api",
+      "methods": [
+        "GET"
+      ],
+      "authOptions": {
+        "GET": {
+          "requireAuth": true,
+          "requireAdmin": true,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": "REPORTS",
+          "validateSchemas": {},
+          "skipCsrf": false
+        }
+      },
+      "serverActions": []
+    },
+    {
+      "path": "/api/admin/scouts",
+      "file": "src/app/api/admin/scouts/route.ts",
+      "type": "api",
+      "methods": [
+        "GET"
+      ],
+      "authOptions": {
+        "GET": {
+          "requireAuth": true,
+          "requireAdmin": true,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": null,
+          "validateSchemas": {},
+          "skipCsrf": false
+        }
+      },
+      "serverActions": []
+    },
+    {
+      "path": "/api/admin/scouts/[id]",
+      "file": "src/app/api/admin/scouts/[id]/route.ts",
+      "type": "api",
+      "methods": [
+        "GET",
+        "PATCH"
+      ],
+      "authOptions": {
+        "GET": {
+          "requireAuth": true,
+          "requireAdmin": true,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": null,
+          "validateSchemas": {},
+          "skipCsrf": false
+        },
+        "PATCH": {
+          "requireAuth": true,
+          "requireAdmin": true,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": null,
+          "validateSchemas": {},
+          "skipCsrf": false
+        }
+      },
+      "serverActions": []
+    },
+    {
+      "path": "/api/admin/system/cron-health",
+      "file": "src/app/api/admin/system/cron-health/route.ts",
+      "type": "api",
+      "methods": [
+        "GET"
+      ],
+      "authOptions": {
+        "GET": {
+          "requireAuth": true,
+          "requireAdmin": true,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": "API_DEFAULT",
+          "validateSchemas": {},
+          "skipCsrf": false
+        }
+      },
+      "serverActions": []
+    },
+    {
+      "path": "/api/admin/system/feature-flags",
+      "file": "src/app/api/admin/system/feature-flags/route.ts",
+      "type": "api",
+      "methods": [
+        "GET",
+        "PATCH"
+      ],
+      "authOptions": {
+        "GET": {
+          "requireAuth": true,
+          "requireAdmin": true,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": "API_DEFAULT",
+          "validateSchemas": {},
+          "skipCsrf": false
+        },
+        "PATCH": {
+          "requireAuth": true,
+          "requireAdmin": true,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": "API_DEFAULT",
+          "validateSchemas": {
+            "body": "updateFeatureFlagSchema"
+          },
+          "skipCsrf": false
+        }
+      },
+      "serverActions": []
+    },
+    {
+      "path": "/api/admin/system/kill-switches",
+      "file": "src/app/api/admin/system/kill-switches/route.ts",
+      "type": "api",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "authOptions": {
+        "GET": {
+          "requireAuth": true,
+          "requireAdmin": true,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": null,
+          "validateSchemas": {},
+          "skipCsrf": false
+        },
+        "POST": {
+          "requireAuth": true,
+          "requireAdmin": true,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": null,
+          "validateSchemas": {},
+          "skipCsrf": false
+        }
+      },
+      "serverActions": []
+    },
+    {
+      "path": "/api/admin/system/registration-gate",
+      "file": "src/app/api/admin/system/registration-gate/route.ts",
+      "type": "api",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "authOptions": {
+        "GET": {
+          "requireAuth": true,
+          "requireAdmin": true,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": null,
+          "validateSchemas": {},
+          "skipCsrf": false
+        },
+        "POST": {
+          "requireAuth": true,
+          "requireAdmin": true,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": null,
+          "validateSchemas": {},
+          "skipCsrf": false
+        }
+      },
+      "serverActions": []
+    },
+    {
+      "path": "/api/admin/system/social-insights",
+      "file": "src/app/api/admin/system/social-insights/route.ts",
+      "type": "api",
+      "methods": [
+        "GET"
+      ],
+      "authOptions": {
+        "GET": {
+          "requireAuth": true,
+          "requireAdmin": true,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": "API_DEFAULT",
+          "validateSchemas": {},
+          "skipCsrf": false
+        }
+      },
+      "serverActions": []
+    },
+    {
+      "path": "/api/admin/user-reports",
+      "file": "src/app/api/admin/user-reports/route.ts",
+      "type": "api",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "authOptions": {
+        "GET": {
+          "requireAuth": true,
+          "requireAdmin": true,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": null,
+          "validateSchemas": {},
+          "skipCsrf": false
+        },
+        "POST": {
+          "requireAuth": true,
+          "requireAdmin": true,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": null,
+          "validateSchemas": {},
+          "skipCsrf": false
+        }
+      },
+      "serverActions": []
+    },
+    {
+      "path": "/api/admin/users",
+      "file": "src/app/api/admin/users/route.ts",
+      "type": "api",
+      "methods": [
+        "GET"
+      ],
+      "authOptions": {
+        "GET": {
+          "requireAuth": true,
+          "requireAdmin": true,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": null,
+          "validateSchemas": {},
+          "skipCsrf": false
+        }
+      },
+      "serverActions": []
+    },
+    {
+      "path": "/api/admin/users/[id]",
+      "file": "src/app/api/admin/users/[id]/route.ts",
+      "type": "api",
+      "methods": [
+        "GET",
+        "PUT"
+      ],
+      "authOptions": {
+        "GET": {
+          "requireAuth": true,
+          "requireAdmin": true,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": null,
+          "validateSchemas": {},
+          "skipCsrf": false
+        },
+        "PUT": {
+          "requireAuth": true,
+          "requireAdmin": true,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": null,
+          "validateSchemas": {},
+          "skipCsrf": false
+        }
+      },
+      "serverActions": []
+    },
+    {
+      "path": "/api/admin/violations",
+      "file": "src/app/api/admin/violations/route.ts",
+      "type": "api",
+      "methods": [
+        "GET"
+      ],
+      "authOptions": {
+        "GET": {
+          "requireAuth": true,
+          "requireAdmin": true,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": null,
+          "validateSchemas": {},
+          "skipCsrf": false
+        }
+      },
+      "serverActions": []
+    },
+    {
+      "path": "/api/analytics/brand/visibility",
+      "file": "src/app/api/analytics/brand/visibility/route.ts",
+      "type": "api",
+      "methods": [
+        "GET"
+      ],
+      "authOptions": {
+        "GET": {
+          "requireAuth": true,
+          "requireAdmin": false,
+          "requireBrand": true,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": "API_DEFAULT",
+          "validateSchemas": {},
+          "skipCsrf": false
+        }
+      },
+      "serverActions": []
+    },
+    {
+      "path": "/api/analytics/creator/visibility",
+      "file": "src/app/api/analytics/creator/visibility/route.ts",
+      "type": "api",
+      "methods": [
+        "GET"
+      ],
+      "authOptions": {
+        "GET": {
+          "requireAuth": true,
+          "requireAdmin": false,
+          "requireBrand": false,
+          "requireInfluencer": true,
+          "requirePermission": null,
+          "rateBucket": "API_DEFAULT",
+          "validateSchemas": {},
+          "skipCsrf": false
+        }
+      },
+      "serverActions": []
+    },
+    {
+      "path": "/api/applications",
+      "file": "src/app/api/applications/route.ts",
+      "type": "api",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "authOptions": {
+        "GET": {
+          "requireAuth": true,
+          "requireAdmin": false,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": null,
+          "validateSchemas": {},
+          "skipCsrf": false
+        },
+        "POST": {
+          "requireAuth": false,
+          "requireAdmin": false,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": "APPLY_CAMPAIGN",
+          "rateBucket": null,
+          "validateSchemas": {},
+          "skipCsrf": false
+        }
+      },
+      "serverActions": []
+    },
+    {
+      "path": "/api/applications/[id]/accept",
+      "file": "src/app/api/applications/[id]/accept/route.ts",
+      "type": "api",
+      "methods": [
+        "POST"
+      ],
+      "authOptions": {
+        "POST": {
+          "requireAuth": true,
+          "requireAdmin": false,
+          "requireBrand": true,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": "APPLICATIONS",
+          "validateSchemas": {},
+          "skipCsrf": false
+        }
+      },
+      "serverActions": []
+    },
+    {
+      "path": "/api/applications/[id]/reject",
+      "file": "src/app/api/applications/[id]/reject/route.ts",
+      "type": "api",
+      "methods": [
+        "POST"
+      ],
+      "authOptions": {
+        "POST": {
+          "requireAuth": true,
+          "requireAdmin": false,
+          "requireBrand": true,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": "APPLICATIONS",
+          "validateSchemas": {},
+          "skipCsrf": false
+        }
+      },
+      "serverActions": []
+    },
+    {
+      "path": "/api/auth/[...nextauth]",
+      "file": "src/app/api/auth/[...nextauth]/route.ts",
+      "type": "api",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "authOptions": {
+        "GET": {
+          "requireAuth": false,
+          "requireAdmin": false,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": null,
+          "validateSchemas": {},
+          "skipCsrf": false
+        },
+        "POST": {
+          "requireAuth": false,
+          "requireAdmin": false,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": null,
+          "validateSchemas": {},
+          "skipCsrf": false
+        }
+      },
+      "serverActions": []
+    },
+    {
+      "path": "/api/auth/change-password",
+      "file": "src/app/api/auth/change-password/route.ts",
+      "type": "api",
+      "methods": [
+        "POST"
+      ],
+      "authOptions": {
+        "POST": {
+          "requireAuth": false,
+          "requireAdmin": false,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": null,
+          "validateSchemas": {},
+          "skipCsrf": false
+        }
+      },
+      "serverActions": []
+    },
+    {
+      "path": "/api/auth/digilocker/authorize",
+      "file": "src/app/api/auth/digilocker/authorize/route.ts",
+      "type": "api",
+      "methods": [
+        "GET"
+      ],
+      "authOptions": {
+        "GET": {
+          "requireAuth": false,
+          "requireAdmin": false,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": null,
+          "validateSchemas": {},
+          "skipCsrf": false
+        }
+      },
+      "serverActions": []
+    },
+    {
+      "path": "/api/auth/digilocker/callback",
+      "file": "src/app/api/auth/digilocker/callback/route.ts",
+      "type": "api",
+      "methods": [
+        "GET"
+      ],
+      "authOptions": {
+        "GET": {
+          "requireAuth": false,
+          "requireAdmin": false,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": null,
+          "validateSchemas": {},
+          "skipCsrf": false
+        }
+      },
+      "serverActions": []
+    },
+    {
+      "path": "/api/auth/instagram/authorize",
+      "file": "src/app/api/auth/instagram/authorize/route.ts",
+      "type": "api",
+      "methods": [
+        "GET"
+      ],
+      "authOptions": {
+        "GET": {
+          "requireAuth": false,
+          "requireAdmin": false,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": null,
+          "validateSchemas": {},
+          "skipCsrf": false
+        }
+      },
+      "serverActions": []
+    },
+    {
+      "path": "/api/auth/instagram/callback",
+      "file": "src/app/api/auth/instagram/callback/route.ts",
+      "type": "api",
+      "methods": [
+        "GET"
+      ],
+      "authOptions": {
+        "GET": {
+          "requireAuth": false,
+          "requireAdmin": false,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": null,
+          "validateSchemas": {},
+          "skipCsrf": false
+        }
+      },
+      "serverActions": []
+    },
+    {
+      "path": "/api/auth/instagram/disconnect",
+      "file": "src/app/api/auth/instagram/disconnect/route.ts",
+      "type": "api",
+      "methods": [
+        "POST"
+      ],
+      "authOptions": {
+        "POST": {
+          "requireAuth": true,
+          "requireAdmin": false,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": null,
+          "validateSchemas": {},
+          "skipCsrf": false
+        }
+      },
+      "serverActions": []
+    },
+    {
+      "path": "/api/auth/register",
+      "file": "src/app/api/auth/register/route.ts",
+      "type": "api",
+      "methods": [
+        "POST"
+      ],
+      "authOptions": {
+        "POST": {
+          "requireAuth": false,
+          "requireAdmin": false,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": null,
+          "validateSchemas": {},
+          "skipCsrf": false
+        }
+      },
+      "serverActions": []
+    },
+    {
+      "path": "/api/auth/registration-config",
+      "file": "src/app/api/auth/registration-config/route.ts",
+      "type": "api",
+      "methods": [
+        "GET"
+      ],
+      "authOptions": {
+        "GET": {
+          "requireAuth": false,
+          "requireAdmin": false,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": null,
+          "validateSchemas": {},
+          "skipCsrf": false
+        }
+      },
+      "serverActions": []
+    },
+    {
+      "path": "/api/auth/reset-password",
+      "file": "src/app/api/auth/reset-password/route.ts",
+      "type": "api",
+      "methods": [
+        "POST"
+      ],
+      "authOptions": {
+        "POST": {
+          "requireAuth": false,
+          "requireAdmin": false,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": null,
+          "validateSchemas": {},
+          "skipCsrf": false
+        }
+      },
+      "serverActions": []
+    },
+    {
+      "path": "/api/auth/verify-email-otp",
+      "file": "src/app/api/auth/verify-email-otp/route.ts",
+      "type": "api",
+      "methods": [
+        "POST",
+        "PUT"
+      ],
+      "authOptions": {
+        "PUT": {
+          "requireAuth": false,
+          "requireAdmin": false,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": null,
+          "validateSchemas": {},
+          "skipCsrf": false
+        },
+        "POST": {
+          "requireAuth": false,
+          "requireAdmin": false,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": null,
+          "validateSchemas": {},
+          "skipCsrf": false
+        }
+      },
+      "serverActions": []
+    },
+    {
+      "path": "/api/auth/verify-otp",
+      "file": "src/app/api/auth/verify-otp/route.ts",
+      "type": "api",
+      "methods": [
+        "POST",
+        "PUT"
+      ],
+      "authOptions": {
+        "PUT": {
+          "requireAuth": false,
+          "requireAdmin": false,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": null,
+          "validateSchemas": {},
+          "skipCsrf": false
+        },
+        "POST": {
+          "requireAuth": false,
+          "requireAdmin": false,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": null,
+          "validateSchemas": {},
+          "skipCsrf": false
+        }
+      },
+      "serverActions": []
+    },
+    {
+      "path": "/api/auth/youtube/authorize",
+      "file": "src/app/api/auth/youtube/authorize/route.ts",
+      "type": "api",
+      "methods": [
+        "GET"
+      ],
+      "authOptions": {
+        "GET": {
+          "requireAuth": false,
+          "requireAdmin": false,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": null,
+          "validateSchemas": {},
+          "skipCsrf": false
+        }
+      },
+      "serverActions": []
+    },
+    {
+      "path": "/api/auth/youtube/callback",
+      "file": "src/app/api/auth/youtube/callback/route.ts",
+      "type": "api",
+      "methods": [
+        "GET"
+      ],
+      "authOptions": {
+        "GET": {
+          "requireAuth": false,
+          "requireAdmin": false,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": null,
+          "validateSchemas": {},
+          "skipCsrf": false
+        }
+      },
+      "serverActions": []
+    },
+    {
+      "path": "/api/auth/youtube/disconnect",
+      "file": "src/app/api/auth/youtube/disconnect/route.ts",
+      "type": "api",
+      "methods": [
+        "POST"
+      ],
+      "authOptions": {
+        "POST": {
+          "requireAuth": true,
+          "requireAdmin": false,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": null,
+          "validateSchemas": {},
+          "skipCsrf": false
+        }
+      },
+      "serverActions": []
+    },
+    {
+      "path": "/api/blog/subscribe",
+      "file": "src/app/api/blog/subscribe/route.ts",
+      "type": "api",
+      "methods": [
+        "POST"
+      ],
+      "authOptions": {
+        "POST": {
+          "requireAuth": false,
+          "requireAdmin": false,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": "CUSTOM",
+          "validateSchemas": {
+            "body": "subscribeSchema"
+          },
+          "skipCsrf": false
+        }
+      },
+      "serverActions": []
+    },
+    {
+      "path": "/api/blog/unsubscribe",
+      "file": "src/app/api/blog/unsubscribe/route.ts",
+      "type": "api",
+      "methods": [
+        "GET"
+      ],
+      "authOptions": {
+        "GET": {
+          "requireAuth": false,
+          "requireAdmin": false,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": null,
+          "validateSchemas": {},
+          "skipCsrf": false
+        }
+      },
+      "serverActions": []
+    },
+    {
+      "path": "/api/blog/verify",
+      "file": "src/app/api/blog/verify/route.ts",
+      "type": "api",
+      "methods": [
+        "GET"
+      ],
+      "authOptions": {
+        "GET": {
+          "requireAuth": false,
+          "requireAdmin": false,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": null,
+          "validateSchemas": {},
+          "skipCsrf": false
+        }
+      },
+      "serverActions": []
+    },
+    {
+      "path": "/api/bookmarks",
+      "file": "src/app/api/bookmarks/route.ts",
+      "type": "api",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "authOptions": {
+        "GET": {
+          "requireAuth": true,
+          "requireAdmin": false,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": null,
+          "validateSchemas": {},
+          "skipCsrf": false
+        },
+        "POST": {
+          "requireAuth": true,
+          "requireAdmin": false,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": null,
+          "validateSchemas": {
+            "body": "bookmarkRequestSchema"
+          },
+          "skipCsrf": false
+        }
+      },
+      "serverActions": []
+    },
+    {
+      "path": "/api/campaigns",
+      "file": "src/app/api/campaigns/route.ts",
+      "type": "api",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "authOptions": {
+        "GET": {
+          "requireAuth": true,
+          "requireAdmin": false,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": null,
+          "validateSchemas": {},
+          "skipCsrf": false
+        },
+        "POST": {
+          "requireAuth": false,
+          "requireAdmin": false,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": "CREATE_CAMPAIGN",
+          "rateBucket": null,
+          "validateSchemas": {},
+          "skipCsrf": false
+        }
+      },
+      "serverActions": []
+    },
+    {
+      "path": "/api/campaigns/[id]",
+      "file": "src/app/api/campaigns/[id]/route.ts",
+      "type": "api",
+      "methods": [
+        "DELETE",
+        "GET",
+        "PATCH",
+        "PUT"
+      ],
+      "authOptions": {
+        "GET": {
+          "requireAuth": true,
+          "requireAdmin": false,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": null,
+          "validateSchemas": {},
+          "skipCsrf": false
+        },
+        "PUT": {
+          "requireAuth": false,
+          "requireAdmin": false,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": null,
+          "validateSchemas": {},
+          "skipCsrf": false
+        },
+        "DELETE": {
+          "requireAuth": false,
+          "requireAdmin": false,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": null,
+          "validateSchemas": {},
+          "skipCsrf": false
+        },
+        "PATCH": {
+          "requireAuth": false,
+          "requireAdmin": false,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": null,
+          "validateSchemas": {},
+          "skipCsrf": false
+        }
+      },
+      "serverActions": []
+    },
+    {
+      "path": "/api/campaigns/[id]/analytics",
+      "file": "src/app/api/campaigns/[id]/analytics/route.ts",
+      "type": "api",
+      "methods": [
+        "GET"
+      ],
+      "authOptions": {
+        "GET": {
+          "requireAuth": true,
+          "requireAdmin": false,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": "REPORTS",
+          "validateSchemas": {},
+          "skipCsrf": false
+        }
+      },
+      "serverActions": []
+    },
+    {
+      "path": "/api/campaigns/[id]/finance/export",
+      "file": "src/app/api/campaigns/[id]/finance/export/route.ts",
+      "type": "api",
+      "methods": [
+        "GET"
+      ],
+      "authOptions": {
+        "GET": {
+          "requireAuth": true,
+          "requireAdmin": false,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": "REPORTS",
+          "validateSchemas": {},
+          "skipCsrf": false
+        }
+      },
+      "serverActions": []
+    },
+    {
+      "path": "/api/campaigns/[id]/reports/performance",
+      "file": "src/app/api/campaigns/[id]/reports/performance/route.ts",
+      "type": "api",
+      "methods": [
+        "GET"
+      ],
+      "authOptions": {
+        "GET": {
+          "requireAuth": true,
+          "requireAdmin": false,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": "REPORTS",
+          "validateSchemas": {},
+          "skipCsrf": false
+        }
+      },
+      "serverActions": []
+    },
+    {
+      "path": "/api/compliance/india-tax",
+      "file": "src/app/api/compliance/india-tax/route.ts",
+      "type": "api",
+      "methods": [
+        "GET",
+        "POST",
+        "PUT"
+      ],
+      "authOptions": {
+        "GET": {
+          "requireAuth": false,
+          "requireAdmin": false,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": null,
+          "validateSchemas": {},
+          "skipCsrf": false
+        },
+        "PUT": {
+          "requireAuth": false,
+          "requireAdmin": false,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": null,
+          "validateSchemas": {},
+          "skipCsrf": false
+        },
+        "POST": {
+          "requireAuth": false,
+          "requireAdmin": false,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": null,
+          "validateSchemas": {},
+          "skipCsrf": false
+        }
+      },
+      "serverActions": []
+    },
+    {
+      "path": "/api/cron/campaign-metrics",
+      "file": "src/app/api/cron/campaign-metrics/route.ts",
+      "type": "api",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "authOptions": {
+        "GET": {
+          "requireAuth": false,
+          "requireAdmin": false,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": null,
+          "validateSchemas": {},
+          "skipCsrf": false
+        },
+        "POST": {
+          "requireAuth": false,
+          "requireAdmin": false,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": null,
+          "validateSchemas": {},
+          "skipCsrf": false
+        }
+      },
+      "serverActions": []
+    },
+    {
+      "path": "/api/cron/cleanup-idempotency",
+      "file": "src/app/api/cron/cleanup-idempotency/route.ts",
+      "type": "api",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "authOptions": {
+        "GET": {
+          "requireAuth": false,
+          "requireAdmin": false,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": null,
+          "validateSchemas": {},
+          "skipCsrf": false
+        },
+        "POST": {
+          "requireAuth": false,
+          "requireAdmin": false,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": null,
+          "validateSchemas": {},
+          "skipCsrf": false
+        }
+      },
+      "serverActions": []
+    },
+    {
+      "path": "/api/cron/cleanup-oauth",
+      "file": "src/app/api/cron/cleanup-oauth/route.ts",
+      "type": "api",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "authOptions": {
+        "GET": {
+          "requireAuth": false,
+          "requireAdmin": false,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": null,
+          "validateSchemas": {},
+          "skipCsrf": false
+        },
+        "POST": {
+          "requireAuth": false,
+          "requireAdmin": false,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": null,
+          "validateSchemas": {},
+          "skipCsrf": false
+        }
+      },
+      "serverActions": []
+    },
+    {
+      "path": "/api/cron/content-auto-approve",
+      "file": "src/app/api/cron/content-auto-approve/route.ts",
+      "type": "api",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "authOptions": {
+        "GET": {
+          "requireAuth": false,
+          "requireAdmin": false,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": null,
+          "validateSchemas": {},
+          "skipCsrf": false
+        },
+        "POST": {
+          "requireAuth": false,
+          "requireAdmin": false,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": null,
+          "validateSchemas": {},
+          "skipCsrf": false
+        }
+      },
+      "serverActions": []
+    },
+    {
+      "path": "/api/cron/creator-metrics",
+      "file": "src/app/api/cron/creator-metrics/route.ts",
+      "type": "api",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "authOptions": {
+        "GET": {
+          "requireAuth": false,
+          "requireAdmin": false,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": null,
+          "validateSchemas": {},
+          "skipCsrf": false
+        },
+        "POST": {
+          "requireAuth": false,
+          "requireAdmin": false,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": null,
+          "validateSchemas": {},
+          "skipCsrf": false
+        }
+      },
+      "serverActions": []
+    },
+    {
+      "path": "/api/cron/engagement",
+      "file": "src/app/api/cron/engagement/route.ts",
+      "type": "api",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "authOptions": {
+        "GET": {
+          "requireAuth": false,
+          "requireAdmin": false,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": null,
+          "validateSchemas": {},
+          "skipCsrf": false
+        },
+        "POST": {
+          "requireAuth": false,
+          "requireAdmin": false,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": null,
+          "validateSchemas": {},
+          "skipCsrf": false
+        }
+      },
+      "serverActions": []
+    },
+    {
+      "path": "/api/cron/expire-campaigns",
+      "file": "src/app/api/cron/expire-campaigns/route.ts",
+      "type": "api",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "authOptions": {
+        "GET": {
+          "requireAuth": false,
+          "requireAdmin": false,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": null,
+          "validateSchemas": {},
+          "skipCsrf": false
+        },
+        "POST": {
+          "requireAuth": false,
+          "requireAdmin": false,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": null,
+          "validateSchemas": {},
+          "skipCsrf": false
+        }
+      },
+      "serverActions": []
+    },
+    {
+      "path": "/api/cron/expire-signatures",
+      "file": "src/app/api/cron/expire-signatures/route.ts",
+      "type": "api",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "authOptions": {
+        "GET": {
+          "requireAuth": false,
+          "requireAdmin": false,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": null,
+          "validateSchemas": {},
+          "skipCsrf": false
+        },
+        "POST": {
+          "requireAuth": false,
+          "requireAdmin": false,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": null,
+          "validateSchemas": {},
+          "skipCsrf": false
+        }
+      },
+      "serverActions": []
+    },
+    {
+      "path": "/api/cron/ledger-scan",
+      "file": "src/app/api/cron/ledger-scan/route.ts",
+      "type": "api",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "authOptions": {
+        "GET": {
+          "requireAuth": false,
+          "requireAdmin": false,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": null,
+          "validateSchemas": {},
+          "skipCsrf": false
+        },
+        "POST": {
+          "requireAuth": false,
+          "requireAdmin": false,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": null,
+          "validateSchemas": {},
+          "skipCsrf": false
+        }
+      },
+      "serverActions": []
+    },
+    {
+      "path": "/api/cron/lift-suspensions",
+      "file": "src/app/api/cron/lift-suspensions/route.ts",
+      "type": "api",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "authOptions": {
+        "GET": {
+          "requireAuth": false,
+          "requireAdmin": false,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": null,
+          "validateSchemas": {},
+          "skipCsrf": false
+        },
+        "POST": {
+          "requireAuth": false,
+          "requireAdmin": false,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": null,
+          "validateSchemas": {},
+          "skipCsrf": false
+        }
+      },
+      "serverActions": []
+    },
+    {
+      "path": "/api/cron/post-monitor",
+      "file": "src/app/api/cron/post-monitor/route.ts",
+      "type": "api",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "authOptions": {
+        "GET": {
+          "requireAuth": false,
+          "requireAdmin": false,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": null,
+          "validateSchemas": {},
+          "skipCsrf": false
+        },
+        "POST": {
+          "requireAuth": false,
+          "requireAdmin": false,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": null,
+          "validateSchemas": {},
+          "skipCsrf": false
+        }
+      },
+      "serverActions": []
+    },
+    {
+      "path": "/api/cron/reconcile-ledger-settlements",
+      "file": "src/app/api/cron/reconcile-ledger-settlements/route.ts",
+      "type": "api",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "authOptions": {
+        "GET": {
+          "requireAuth": false,
+          "requireAdmin": false,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": null,
+          "validateSchemas": {},
+          "skipCsrf": false
+        },
+        "POST": {
+          "requireAuth": false,
+          "requireAdmin": false,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": null,
+          "validateSchemas": {},
+          "skipCsrf": false
+        }
+      },
+      "serverActions": []
+    },
+    {
+      "path": "/api/cron/reconcile-payouts",
+      "file": "src/app/api/cron/reconcile-payouts/route.ts",
+      "type": "api",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "authOptions": {
+        "GET": {
+          "requireAuth": false,
+          "requireAdmin": false,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": null,
+          "validateSchemas": {},
+          "skipCsrf": false
+        },
+        "POST": {
+          "requireAuth": false,
+          "requireAdmin": false,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": null,
+          "validateSchemas": {},
+          "skipCsrf": false
+        }
+      },
+      "serverActions": []
+    },
+    {
+      "path": "/api/cron/refresh-social-tokens",
+      "file": "src/app/api/cron/refresh-social-tokens/route.ts",
+      "type": "api",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "authOptions": {
+        "GET": {
+          "requireAuth": false,
+          "requireAdmin": false,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": null,
+          "validateSchemas": {},
+          "skipCsrf": false
+        },
+        "POST": {
+          "requireAuth": false,
+          "requireAdmin": false,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": null,
+          "validateSchemas": {},
+          "skipCsrf": false
+        }
+      },
+      "serverActions": []
+    },
+    {
+      "path": "/api/cron/social-proof",
+      "file": "src/app/api/cron/social-proof/route.ts",
+      "type": "api",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "authOptions": {
+        "GET": {
+          "requireAuth": false,
+          "requireAdmin": false,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": null,
+          "validateSchemas": {},
+          "skipCsrf": false
+        },
+        "POST": {
+          "requireAuth": false,
+          "requireAdmin": false,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": null,
+          "validateSchemas": {},
+          "skipCsrf": false
+        }
+      },
+      "serverActions": []
+    },
+    {
+      "path": "/api/cron/stale-fulfillment",
+      "file": "src/app/api/cron/stale-fulfillment/route.ts",
+      "type": "api",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "authOptions": {
+        "GET": {
+          "requireAuth": false,
+          "requireAdmin": false,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": null,
+          "validateSchemas": {},
+          "skipCsrf": false
+        },
+        "POST": {
+          "requireAuth": false,
+          "requireAdmin": false,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": null,
+          "validateSchemas": {},
+          "skipCsrf": false
+        }
+      },
+      "serverActions": []
+    },
+    {
+      "path": "/api/cron/telemetry-flush",
+      "file": "src/app/api/cron/telemetry-flush/route.ts",
+      "type": "api",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "authOptions": {
+        "GET": {
+          "requireAuth": false,
+          "requireAdmin": false,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": null,
+          "validateSchemas": {},
+          "skipCsrf": false
+        },
+        "POST": {
+          "requireAuth": false,
+          "requireAdmin": false,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": null,
+          "validateSchemas": {},
+          "skipCsrf": false
+        }
+      },
+      "serverActions": []
+    },
+    {
+      "path": "/api/cron/telemetry-retention",
+      "file": "src/app/api/cron/telemetry-retention/route.ts",
+      "type": "api",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "authOptions": {
+        "GET": {
+          "requireAuth": false,
+          "requireAdmin": false,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": null,
+          "validateSchemas": {},
+          "skipCsrf": false
+        },
+        "POST": {
+          "requireAuth": false,
+          "requireAdmin": false,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": null,
+          "validateSchemas": {},
+          "skipCsrf": false
+        }
+      },
+      "serverActions": []
+    },
+    {
+      "path": "/api/cron/telemetry-rollup",
+      "file": "src/app/api/cron/telemetry-rollup/route.ts",
+      "type": "api",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "authOptions": {
+        "GET": {
+          "requireAuth": false,
+          "requireAdmin": false,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": null,
+          "validateSchemas": {},
+          "skipCsrf": false
+        },
+        "POST": {
+          "requireAuth": false,
+          "requireAdmin": false,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": null,
+          "validateSchemas": {},
+          "skipCsrf": false
+        }
+      },
+      "serverActions": []
+    },
+    {
+      "path": "/api/cron/tenure-badges",
+      "file": "src/app/api/cron/tenure-badges/route.ts",
+      "type": "api",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "authOptions": {
+        "GET": {
+          "requireAuth": false,
+          "requireAdmin": false,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": null,
+          "validateSchemas": {},
+          "skipCsrf": false
+        },
+        "POST": {
+          "requireAuth": false,
+          "requireAdmin": false,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": null,
+          "validateSchemas": {},
+          "skipCsrf": false
+        }
+      },
+      "serverActions": []
+    },
+    {
+      "path": "/api/cron/weekly-challenges",
+      "file": "src/app/api/cron/weekly-challenges/route.ts",
+      "type": "api",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "authOptions": {
+        "GET": {
+          "requireAuth": false,
+          "requireAdmin": false,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": null,
+          "validateSchemas": {},
+          "skipCsrf": false
+        },
+        "POST": {
+          "requireAuth": false,
+          "requireAdmin": false,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": null,
+          "validateSchemas": {},
+          "skipCsrf": false
+        }
+      },
+      "serverActions": []
+    },
+    {
+      "path": "/api/deals",
+      "file": "src/app/api/deals/route.ts",
+      "type": "api",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "authOptions": {
+        "GET": {
+          "requireAuth": true,
+          "requireAdmin": false,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": null,
+          "validateSchemas": {},
+          "skipCsrf": false
+        },
+        "POST": {
+          "requireAuth": true,
+          "requireAdmin": false,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": null,
+          "validateSchemas": {},
+          "skipCsrf": false
+        }
+      },
+      "serverActions": []
+    },
+    {
+      "path": "/api/deals/[id]",
+      "file": "src/app/api/deals/[id]/route.ts",
+      "type": "api",
+      "methods": [
+        "GET"
+      ],
+      "authOptions": {
+        "GET": {
+          "requireAuth": true,
+          "requireAdmin": false,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": "CUSTOM",
+          "validateSchemas": {},
+          "skipCsrf": false
+        }
+      },
+      "serverActions": []
+    },
+    {
+      "path": "/api/deals/[id]/cancel",
+      "file": "src/app/api/deals/[id]/cancel/route.ts",
+      "type": "api",
+      "methods": [
+        "POST"
+      ],
+      "authOptions": {
+        "POST": {
+          "requireAuth": true,
+          "requireAdmin": false,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": null,
+          "validateSchemas": {},
+          "skipCsrf": false
+        }
+      },
+      "serverActions": []
+    },
+    {
+      "path": "/api/deals/[id]/contract",
+      "file": "src/app/api/deals/[id]/contract/route.ts",
+      "type": "api",
+      "methods": [
+        "GET"
+      ],
+      "authOptions": {
+        "GET": {
+          "requireAuth": true,
+          "requireAdmin": false,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": "RATE_LIMIT_CONFIGS.REPORTS",
+          "validateSchemas": {},
+          "skipCsrf": false
+        }
+      },
+      "serverActions": []
+    },
+    {
+      "path": "/api/deals/[id]/engagement",
+      "file": "src/app/api/deals/[id]/engagement/route.ts",
+      "type": "api",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "authOptions": {
+        "GET": {
+          "requireAuth": true,
+          "requireAdmin": false,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": null,
+          "validateSchemas": {},
+          "skipCsrf": false
+        },
+        "POST": {
+          "requireAuth": true,
+          "requireAdmin": false,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": null,
+          "validateSchemas": {},
+          "skipCsrf": false
+        }
+      },
+      "serverActions": []
+    },
+    {
+      "path": "/api/deals/[id]/fund",
+      "file": "src/app/api/deals/[id]/fund/route.ts",
+      "type": "api",
+      "methods": [
+        "POST"
+      ],
+      "authOptions": {
+        "POST": {
+          "requireAuth": true,
+          "requireAdmin": false,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": null,
+          "validateSchemas": {},
+          "skipCsrf": false
+        }
+      },
+      "serverActions": []
+    },
+    {
+      "path": "/api/deals/[id]/product",
+      "file": "src/app/api/deals/[id]/product/route.ts",
+      "type": "api",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "authOptions": {
+        "POST": {
+          "requireAuth": true,
+          "requireAdmin": false,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": null,
+          "validateSchemas": {},
+          "skipCsrf": false
+        },
+        "GET": {
+          "requireAuth": true,
+          "requireAdmin": false,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": null,
+          "validateSchemas": {},
+          "skipCsrf": false
+        }
+      },
+      "serverActions": []
+    },
+    {
+      "path": "/api/deals/[id]/reject",
+      "file": "src/app/api/deals/[id]/reject/route.ts",
+      "type": "api",
+      "methods": [
+        "POST"
+      ],
+      "authOptions": {
+        "POST": {
+          "requireAuth": true,
+          "requireAdmin": false,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": "DEAL_UPDATES",
+          "validateSchemas": {
+            "body": "rejectSchema",
+            "params": "routeParamsSchema"
+          },
+          "skipCsrf": false
+        }
+      },
+      "serverActions": []
+    },
+    {
+      "path": "/api/deals/[id]/sign",
+      "file": "src/app/api/deals/[id]/sign/route.ts",
+      "type": "api",
+      "methods": [
+        "POST"
+      ],
+      "authOptions": {
+        "POST": {
+          "requireAuth": true,
+          "requireAdmin": false,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": null,
+          "validateSchemas": {},
+          "skipCsrf": false
+        }
+      },
+      "serverActions": []
+    },
+    {
+      "path": "/api/disputes",
+      "file": "src/app/api/disputes/route.ts",
+      "type": "api",
+      "methods": [
+        "GET",
+        "PATCH",
+        "POST"
+      ],
+      "authOptions": {
+        "GET": {
+          "requireAuth": true,
+          "requireAdmin": false,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": null,
+          "validateSchemas": {},
+          "skipCsrf": false
+        },
+        "POST": {
+          "requireAuth": true,
+          "requireAdmin": false,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": null,
+          "validateSchemas": {},
+          "skipCsrf": false
+        },
+        "PATCH": {
+          "requireAuth": true,
+          "requireAdmin": false,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": null,
+          "validateSchemas": {},
+          "skipCsrf": false
+        }
+      },
+      "serverActions": []
+    },
+    {
+      "path": "/api/disputes/[id]",
+      "file": "src/app/api/disputes/[id]/route.ts",
+      "type": "api",
+      "methods": [
+        "GET",
+        "PATCH"
+      ],
+      "authOptions": {
+        "GET": {
+          "requireAuth": true,
+          "requireAdmin": false,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": null,
+          "validateSchemas": {},
+          "skipCsrf": false
+        },
+        "PATCH": {
+          "requireAuth": true,
+          "requireAdmin": false,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": null,
+          "validateSchemas": {},
+          "skipCsrf": false
+        }
+      },
+      "serverActions": []
+    },
+    {
+      "path": "/api/gamification/badges",
+      "file": "src/app/api/gamification/badges/route.ts",
+      "type": "api",
+      "methods": [
+        "GET"
+      ],
+      "authOptions": {
+        "GET": {
+          "requireAuth": false,
+          "requireAdmin": false,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": null,
+          "validateSchemas": {},
+          "skipCsrf": false
+        }
+      },
+      "serverActions": []
+    },
+    {
+      "path": "/api/gamification/challenges",
+      "file": "src/app/api/gamification/challenges/route.ts",
+      "type": "api",
+      "methods": [
+        "GET"
+      ],
+      "authOptions": {
+        "GET": {
+          "requireAuth": false,
+          "requireAdmin": false,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": null,
+          "validateSchemas": {},
+          "skipCsrf": false
+        }
+      },
+      "serverActions": []
+    },
+    {
+      "path": "/api/gamification/leaderboard",
+      "file": "src/app/api/gamification/leaderboard/route.ts",
+      "type": "api",
+      "methods": [
+        "GET"
+      ],
+      "authOptions": {
+        "GET": {
+          "requireAuth": false,
+          "requireAdmin": false,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": null,
+          "validateSchemas": {},
+          "skipCsrf": false
+        }
+      },
+      "serverActions": []
+    },
+    {
+      "path": "/api/gamification/referrals",
+      "file": "src/app/api/gamification/referrals/route.ts",
+      "type": "api",
+      "methods": [
+        "GET"
+      ],
+      "authOptions": {
+        "GET": {
+          "requireAuth": false,
+          "requireAdmin": false,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": null,
+          "validateSchemas": {},
+          "skipCsrf": false
+        }
+      },
+      "serverActions": []
+    },
+    {
+      "path": "/api/health",
+      "file": "src/app/api/health/route.ts",
+      "type": "api",
+      "methods": [
+        "GET"
+      ],
+      "authOptions": {
+        "GET": {
+          "requireAuth": false,
+          "requireAdmin": false,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": null,
+          "validateSchemas": {},
+          "skipCsrf": false
+        }
+      },
+      "serverActions": []
+    },
+    {
+      "path": "/api/influencers",
+      "file": "src/app/api/influencers/route.ts",
+      "type": "api",
+      "methods": [
+        "GET"
+      ],
+      "authOptions": {
+        "GET": {
+          "requireAuth": false,
+          "requireAdmin": false,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": "VIEW_INFLUENCERS",
+          "rateBucket": null,
+          "validateSchemas": {},
+          "skipCsrf": false
+        }
+      },
+      "serverActions": []
+    },
+    {
+      "path": "/api/influencers/[id]",
+      "file": "src/app/api/influencers/[id]/route.ts",
+      "type": "api",
+      "methods": [
+        "GET"
+      ],
+      "authOptions": {
+        "GET": {
+          "requireAuth": false,
+          "requireAdmin": false,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": "VIEW_INFLUENCERS",
+          "rateBucket": null,
+          "validateSchemas": {},
+          "skipCsrf": false
+        }
+      },
+      "serverActions": []
+    },
+    {
+      "path": "/api/influencers/appeal",
+      "file": "src/app/api/influencers/appeal/route.ts",
+      "type": "api",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "authOptions": {
+        "GET": {
+          "requireAuth": false,
+          "requireAdmin": false,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": null,
+          "validateSchemas": {},
+          "skipCsrf": false
+        },
+        "POST": {
+          "requireAuth": false,
+          "requireAdmin": false,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": null,
+          "validateSchemas": {},
+          "skipCsrf": false
+        }
+      },
+      "serverActions": []
+    },
+    {
+      "path": "/api/influencers/audit",
+      "file": "src/app/api/influencers/audit/route.ts",
+      "type": "api",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "authOptions": {
+        "GET": {
+          "requireAuth": false,
+          "requireAdmin": false,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": null,
+          "validateSchemas": {},
+          "skipCsrf": false
+        },
+        "POST": {
+          "requireAuth": false,
+          "requireAdmin": false,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": null,
+          "validateSchemas": {},
+          "skipCsrf": false
+        }
+      },
+      "serverActions": []
+    },
+    {
+      "path": "/api/jobs/consumer",
+      "file": "src/app/api/jobs/consumer/route.ts",
+      "type": "api",
+      "methods": [
+        "POST"
+      ],
+      "authOptions": {
+        "POST": {
+          "requireAuth": false,
+          "requireAdmin": false,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": null,
+          "validateSchemas": {},
+          "skipCsrf": false
+        }
+      },
+      "serverActions": []
+    },
+    {
+      "path": "/api/jobs/dlq",
+      "file": "src/app/api/jobs/dlq/route.ts",
+      "type": "api",
+      "methods": [
+        "POST"
+      ],
+      "authOptions": {
+        "POST": {
+          "requireAuth": false,
+          "requireAdmin": false,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": null,
+          "validateSchemas": {},
+          "skipCsrf": false
+        }
+      },
+      "serverActions": []
+    },
+    {
+      "path": "/api/messages",
+      "file": "src/app/api/messages/route.ts",
+      "type": "api",
+      "methods": [
+        "GET",
+        "PATCH",
+        "POST"
+      ],
+      "authOptions": {
+        "GET": {
+          "requireAuth": true,
+          "requireAdmin": false,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": null,
+          "validateSchemas": {},
+          "skipCsrf": false
+        },
+        "POST": {
+          "requireAuth": true,
+          "requireAdmin": false,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": null,
+          "validateSchemas": {},
+          "skipCsrf": false
+        },
+        "PATCH": {
+          "requireAuth": true,
+          "requireAdmin": false,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": null,
+          "validateSchemas": {},
+          "skipCsrf": false
+        }
+      },
+      "serverActions": []
+    },
+    {
+      "path": "/api/messages/can-message",
+      "file": "src/app/api/messages/can-message/route.ts",
+      "type": "api",
+      "methods": [
+        "GET"
+      ],
+      "authOptions": {
+        "GET": {
+          "requireAuth": false,
+          "requireAdmin": false,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": null,
+          "validateSchemas": {},
+          "skipCsrf": false
+        }
+      },
+      "serverActions": []
+    },
+    {
+      "path": "/api/messages/stream",
+      "file": "src/app/api/messages/stream/route.ts",
+      "type": "api",
+      "methods": [
+        "GET"
+      ],
+      "authOptions": {
+        "GET": {
+          "requireAuth": true,
+          "requireAdmin": false,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": null,
+          "validateSchemas": {},
+          "skipCsrf": false
+        }
+      },
+      "serverActions": []
+    },
+    {
+      "path": "/api/metrics",
+      "file": "src/app/api/metrics/route.ts",
+      "type": "api",
+      "methods": [
+        "GET"
+      ],
+      "authOptions": {
+        "GET": {
+          "requireAuth": false,
+          "requireAdmin": false,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": null,
+          "validateSchemas": {},
+          "skipCsrf": false
+        }
+      },
+      "serverActions": []
+    },
+    {
+      "path": "/api/notifications",
+      "file": "src/app/api/notifications/route.ts",
+      "type": "api",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "authOptions": {
+        "GET": {
+          "requireAuth": true,
+          "requireAdmin": false,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": null,
+          "validateSchemas": {},
+          "skipCsrf": false
+        },
+        "POST": {
+          "requireAuth": true,
+          "requireAdmin": false,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": null,
+          "validateSchemas": {},
+          "skipCsrf": false
+        }
+      },
+      "serverActions": []
+    },
+    {
+      "path": "/api/notifications/preferences",
+      "file": "src/app/api/notifications/preferences/route.ts",
+      "type": "api",
+      "methods": [
+        "GET",
+        "PATCH",
+        "POST"
+      ],
+      "authOptions": {
+        "GET": {
+          "requireAuth": false,
+          "requireAdmin": false,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": null,
+          "validateSchemas": {},
+          "skipCsrf": false
+        },
+        "PATCH": {
+          "requireAuth": false,
+          "requireAdmin": false,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": null,
+          "validateSchemas": {},
+          "skipCsrf": false
+        },
+        "POST": {
+          "requireAuth": false,
+          "requireAdmin": false,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": null,
+          "validateSchemas": {},
+          "skipCsrf": false
+        }
+      },
+      "serverActions": []
+    },
+    {
+      "path": "/api/notifications/push-subscription",
+      "file": "src/app/api/notifications/push-subscription/route.ts",
+      "type": "api",
+      "methods": [
+        "DELETE",
+        "GET",
+        "POST"
+      ],
+      "authOptions": {
+        "POST": {
+          "requireAuth": false,
+          "requireAdmin": false,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": null,
+          "validateSchemas": {},
+          "skipCsrf": false
+        },
+        "DELETE": {
+          "requireAuth": false,
+          "requireAdmin": false,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": null,
+          "validateSchemas": {},
+          "skipCsrf": false
+        },
+        "GET": {
+          "requireAuth": false,
+          "requireAdmin": false,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": null,
+          "validateSchemas": {},
+          "skipCsrf": false
+        }
+      },
+      "serverActions": []
+    },
+    {
+      "path": "/api/payments/webhook",
+      "file": "src/app/api/payments/webhook/route.ts",
+      "type": "api",
+      "methods": [
+        "POST"
+      ],
+      "authOptions": {
+        "POST": {
+          "requireAuth": false,
+          "requireAdmin": false,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": null,
+          "validateSchemas": {},
+          "skipCsrf": true
+        }
+      },
+      "serverActions": []
+    },
+    {
+      "path": "/api/payments/withdraw",
+      "file": "src/app/api/payments/withdraw/route.ts",
+      "type": "api",
+      "methods": [
+        "POST"
+      ],
+      "authOptions": {
+        "POST": {
+          "requireAuth": false,
+          "requireAdmin": false,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": "WITHDRAW_FUNDS",
+          "rateBucket": null,
+          "validateSchemas": {},
+          "skipCsrf": false
+        }
+      },
+      "serverActions": []
+    },
+    {
+      "path": "/api/pricing/evaluate",
+      "file": "src/app/api/pricing/evaluate/route.ts",
+      "type": "api",
+      "methods": [
+        "POST"
+      ],
+      "authOptions": {
+        "POST": {
+          "requireAuth": true,
+          "requireAdmin": false,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": "PRICING",
+          "validateSchemas": {
+            "body": "evaluatePricingSchema"
+          },
+          "skipCsrf": false
+        }
+      },
+      "serverActions": []
+    },
+    {
+      "path": "/api/pricing/me",
+      "file": "src/app/api/pricing/me/route.ts",
+      "type": "api",
+      "methods": [
+        "GET"
+      ],
+      "authOptions": {
+        "GET": {
+          "requireAuth": true,
+          "requireAdmin": false,
+          "requireBrand": false,
+          "requireInfluencer": true,
+          "requirePermission": null,
+          "rateBucket": "API_DEFAULT",
+          "validateSchemas": {},
+          "skipCsrf": false
+        }
+      },
+      "serverActions": []
+    },
+    {
+      "path": "/api/public/landing",
+      "file": "src/app/api/public/landing/route.ts",
+      "type": "api",
+      "methods": [
+        "GET"
+      ],
+      "authOptions": {
+        "GET": {
+          "requireAuth": false,
+          "requireAdmin": false,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": "CUSTOM",
+          "validateSchemas": {},
+          "skipCsrf": false
+        }
+      },
+      "serverActions": []
+    },
+    {
+      "path": "/api/referrals/list",
+      "file": "src/app/api/referrals/list/route.ts",
+      "type": "api",
+      "methods": [
+        "GET"
+      ],
+      "authOptions": {
+        "GET": {
+          "requireAuth": false,
+          "requireAdmin": false,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": null,
+          "validateSchemas": {},
+          "skipCsrf": false
+        }
+      },
+      "serverActions": []
+    },
+    {
+      "path": "/api/referrals/validate",
+      "file": "src/app/api/referrals/validate/route.ts",
+      "type": "api",
+      "methods": [
+        "GET"
+      ],
+      "authOptions": {
+        "GET": {
+          "requireAuth": false,
+          "requireAdmin": false,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": "CUSTOM",
+          "validateSchemas": {},
+          "skipCsrf": false
+        }
+      },
+      "serverActions": []
+    },
+    {
+      "path": "/api/reports/brand/campaign/[id]/roi",
+      "file": "src/app/api/reports/brand/campaign/[id]/roi/route.ts",
+      "type": "api",
+      "methods": [
+        "GET"
+      ],
+      "authOptions": {
+        "GET": {
+          "requireAuth": false,
+          "requireAdmin": false,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": "VIEW_OWN_FINANCE",
+          "rateBucket": "REPORTS",
+          "validateSchemas": {},
+          "skipCsrf": false
+        }
+      },
+      "serverActions": []
+    },
+    {
+      "path": "/api/reports/brand/spend",
+      "file": "src/app/api/reports/brand/spend/route.ts",
+      "type": "api",
+      "methods": [
+        "GET"
+      ],
+      "authOptions": {
+        "GET": {
+          "requireAuth": false,
+          "requireAdmin": false,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": "VIEW_OWN_FINANCE",
+          "rateBucket": "REPORTS",
+          "validateSchemas": {},
+          "skipCsrf": false
+        }
+      },
+      "serverActions": []
+    },
+    {
+      "path": "/api/reports/creator/[id]/market-range",
+      "file": "src/app/api/reports/creator/[id]/market-range/route.ts",
+      "type": "api",
+      "methods": [
+        "GET"
+      ],
+      "authOptions": {
+        "GET": {
+          "requireAuth": true,
+          "requireAdmin": false,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": "REPORTS",
+          "validateSchemas": {},
+          "skipCsrf": false
+        }
+      },
+      "serverActions": []
+    },
+    {
+      "path": "/api/reports/influencer/income",
+      "file": "src/app/api/reports/influencer/income/route.ts",
+      "type": "api",
+      "methods": [
+        "GET"
+      ],
+      "authOptions": {
+        "GET": {
+          "requireAuth": false,
+          "requireAdmin": false,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": "VIEW_OWN_FINANCE",
+          "rateBucket": "REPORTS",
+          "validateSchemas": {},
+          "skipCsrf": false
+        }
+      },
+      "serverActions": []
+    },
+    {
+      "path": "/api/reviews",
+      "file": "src/app/api/reviews/route.ts",
+      "type": "api",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "authOptions": {
+        "GET": {
+          "requireAuth": false,
+          "requireAdmin": false,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": null,
+          "validateSchemas": {},
+          "skipCsrf": false
+        },
+        "POST": {
+          "requireAuth": false,
+          "requireAdmin": false,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": null,
+          "validateSchemas": {},
+          "skipCsrf": false
+        }
+      },
+      "serverActions": []
+    },
+    {
+      "path": "/api/scout/dashboard",
+      "file": "src/app/api/scout/dashboard/route.ts",
+      "type": "api",
+      "methods": [
+        "GET"
+      ],
+      "authOptions": {
+        "GET": {
+          "requireAuth": true,
+          "requireAdmin": false,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": null,
+          "validateSchemas": {},
+          "skipCsrf": false
+        }
+      },
+      "serverActions": []
+    },
+    {
+      "path": "/api/scout/network",
+      "file": "src/app/api/scout/network/route.ts",
+      "type": "api",
+      "methods": [
+        "GET"
+      ],
+      "authOptions": {
+        "GET": {
+          "requireAuth": true,
+          "requireAdmin": false,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": null,
+          "validateSchemas": {},
+          "skipCsrf": false
+        }
+      },
+      "serverActions": []
+    },
+    {
+      "path": "/api/scout/verification",
+      "file": "src/app/api/scout/verification/route.ts",
+      "type": "api",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "authOptions": {
+        "POST": {
+          "requireAuth": true,
+          "requireAdmin": false,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": null,
+          "validateSchemas": {},
+          "skipCsrf": false
+        },
+        "GET": {
+          "requireAuth": true,
+          "requireAdmin": false,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": null,
+          "validateSchemas": {},
+          "skipCsrf": false
+        }
+      },
+      "serverActions": []
+    },
+    {
+      "path": "/api/settings",
+      "file": "src/app/api/settings/route.ts",
+      "type": "api",
+      "methods": [
+        "GET",
+        "PATCH",
+        "PUT"
+      ],
+      "authOptions": {
+        "GET": {
+          "requireAuth": false,
+          "requireAdmin": false,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": null,
+          "validateSchemas": {},
+          "skipCsrf": false
+        },
+        "PUT": {
+          "requireAuth": false,
+          "requireAdmin": false,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": null,
+          "validateSchemas": {},
+          "skipCsrf": false
+        },
+        "PATCH": {
+          "requireAuth": false,
+          "requireAdmin": false,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": null,
+          "validateSchemas": {},
+          "skipCsrf": false
+        }
+      },
+      "serverActions": []
+    },
+    {
+      "path": "/api/settings/telemetry-consent",
+      "file": "src/app/api/settings/telemetry-consent/route.ts",
+      "type": "api",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "authOptions": {
+        "GET": {
+          "requireAuth": true,
+          "requireAdmin": false,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": "API_DEFAULT",
+          "validateSchemas": {},
+          "skipCsrf": false
+        },
+        "POST": {
+          "requireAuth": true,
+          "requireAdmin": false,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": "API_DEFAULT",
+          "validateSchemas": {
+            "body": "TelemetryConsentInputSchema"
+          },
+          "skipCsrf": false
+        }
+      },
+      "serverActions": []
+    },
+    {
+      "path": "/api/social/verify",
+      "file": "src/app/api/social/verify/route.ts",
+      "type": "api",
+      "methods": [
+        "POST"
+      ],
+      "authOptions": {
+        "POST": {
+          "requireAuth": false,
+          "requireAdmin": false,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": "SUBMIT_VERIFICATION",
+          "rateBucket": null,
+          "validateSchemas": {},
+          "skipCsrf": false
+        }
+      },
+      "serverActions": []
+    },
+    {
+      "path": "/api/telemetry/event",
+      "file": "src/app/api/telemetry/event/route.ts",
+      "type": "api",
+      "methods": [
+        "POST"
+      ],
+      "authOptions": {
+        "POST": {
+          "requireAuth": false,
+          "requireAdmin": false,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": "API_DEFAULT",
+          "validateSchemas": {
+            "body": "PageViewEventInputSchema"
+          },
+          "skipCsrf": false,
+          "maxBodySize": 32768
+        }
+      },
+      "serverActions": []
+    },
+    {
+      "path": "/api/telemetry/track",
+      "file": "src/app/api/telemetry/track/route.ts",
+      "type": "api",
+      "methods": [
+        "POST"
+      ],
+      "authOptions": {
+        "POST": {
+          "requireAuth": false,
+          "requireAdmin": false,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": null,
+          "validateSchemas": {},
+          "skipCsrf": false
+        }
+      },
+      "serverActions": []
+    },
+    {
+      "path": "/api/upload",
+      "file": "src/app/api/upload/route.ts",
+      "type": "api",
+      "methods": [
+        "POST"
+      ],
+      "authOptions": {
+        "POST": {
+          "requireAuth": false,
+          "requireAdmin": false,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": null,
+          "validateSchemas": {},
+          "skipCsrf": false
+        }
+      },
+      "serverActions": []
+    },
+    {
+      "path": "/api/upload/confirm",
+      "file": "src/app/api/upload/confirm/route.ts",
+      "type": "api",
+      "methods": [
+        "POST"
+      ],
+      "authOptions": {
+        "POST": {
+          "requireAuth": false,
+          "requireAdmin": false,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": null,
+          "validateSchemas": {},
+          "skipCsrf": false
+        }
+      },
+      "serverActions": []
+    },
+    {
+      "path": "/api/upload/presign",
+      "file": "src/app/api/upload/presign/route.ts",
+      "type": "api",
+      "methods": [
+        "POST"
+      ],
+      "authOptions": {
+        "POST": {
+          "requireAuth": false,
+          "requireAdmin": false,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": null,
+          "validateSchemas": {},
+          "skipCsrf": false
+        }
+      },
+      "serverActions": []
+    },
+    {
+      "path": "/api/user/2fa/disable",
+      "file": "src/app/api/user/2fa/disable/route.ts",
+      "type": "api",
+      "methods": [
+        "POST"
+      ],
+      "authOptions": {
+        "POST": {
+          "requireAuth": false,
+          "requireAdmin": false,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": null,
+          "validateSchemas": {},
+          "skipCsrf": false
+        }
+      },
+      "serverActions": []
+    },
+    {
+      "path": "/api/user/2fa/setup",
+      "file": "src/app/api/user/2fa/setup/route.ts",
+      "type": "api",
+      "methods": [
+        "POST"
+      ],
+      "authOptions": {
+        "POST": {
+          "requireAuth": false,
+          "requireAdmin": false,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": null,
+          "validateSchemas": {},
+          "skipCsrf": false
+        }
+      },
+      "serverActions": []
+    },
+    {
+      "path": "/api/user/2fa/verify",
+      "file": "src/app/api/user/2fa/verify/route.ts",
+      "type": "api",
+      "methods": [
+        "POST"
+      ],
+      "authOptions": {
+        "POST": {
+          "requireAuth": false,
+          "requireAdmin": false,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": null,
+          "validateSchemas": {},
+          "skipCsrf": false
+        }
+      },
+      "serverActions": []
+    },
+    {
+      "path": "/api/user/activity",
+      "file": "src/app/api/user/activity/route.ts",
+      "type": "api",
+      "methods": [
+        "GET"
+      ],
+      "authOptions": {
+        "GET": {
+          "requireAuth": false,
+          "requireAdmin": false,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": null,
+          "validateSchemas": {},
+          "skipCsrf": false
+        }
+      },
+      "serverActions": []
+    },
+    {
+      "path": "/api/user/change-contact",
+      "file": "src/app/api/user/change-contact/route.ts",
+      "type": "api",
+      "methods": [
+        "POST"
+      ],
+      "authOptions": {
+        "POST": {
+          "requireAuth": false,
+          "requireAdmin": false,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": null,
+          "validateSchemas": {},
+          "skipCsrf": false
+        }
+      },
+      "serverActions": []
+    },
+    {
+      "path": "/api/user/delete-account",
+      "file": "src/app/api/user/delete-account/route.ts",
+      "type": "api",
+      "methods": [
+        "POST"
+      ],
+      "authOptions": {
+        "POST": {
+          "requireAuth": true,
+          "requireAdmin": false,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": "AUTH",
+          "validateSchemas": {
+            "body": "deleteSchema"
+          },
+          "skipCsrf": false
+        }
+      },
+      "serverActions": []
+    },
+    {
+      "path": "/api/user/onboarding",
+      "file": "src/app/api/user/onboarding/route.ts",
+      "type": "api",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "authOptions": {
+        "GET": {
+          "requireAuth": true,
+          "requireAdmin": false,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": null,
+          "validateSchemas": {},
+          "skipCsrf": false
+        },
+        "POST": {
+          "requireAuth": true,
+          "requireAdmin": false,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": null,
+          "validateSchemas": {},
+          "skipCsrf": false
+        }
+      },
+      "serverActions": []
+    },
+    {
+      "path": "/api/user/send-otp",
+      "file": "src/app/api/user/send-otp/route.ts",
+      "type": "api",
+      "methods": [
+        "POST"
+      ],
+      "authOptions": {
+        "POST": {
+          "requireAuth": false,
+          "requireAdmin": false,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": null,
+          "validateSchemas": {},
+          "skipCsrf": false
+        }
+      },
+      "serverActions": []
+    },
+    {
+      "path": "/api/user/switch-role",
+      "file": "src/app/api/user/switch-role/route.ts",
+      "type": "api",
+      "methods": [
+        "POST"
+      ],
+      "authOptions": {
+        "POST": {
+          "requireAuth": false,
+          "requireAdmin": false,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": null,
+          "validateSchemas": {},
+          "skipCsrf": false
+        }
+      },
+      "serverActions": []
+    },
+    {
+      "path": "/api/user/verify-contact",
+      "file": "src/app/api/user/verify-contact/route.ts",
+      "type": "api",
+      "methods": [
+        "POST"
+      ],
+      "authOptions": {
+        "POST": {
+          "requireAuth": false,
+          "requireAdmin": false,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": null,
+          "validateSchemas": {},
+          "skipCsrf": false
+        }
+      },
+      "serverActions": []
+    },
+    {
+      "path": "/api/users/block",
+      "file": "src/app/api/users/block/route.ts",
+      "type": "api",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "authOptions": {
+        "POST": {
+          "requireAuth": true,
+          "requireAdmin": false,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": null,
+          "validateSchemas": {},
+          "skipCsrf": false
+        },
+        "GET": {
+          "requireAuth": true,
+          "requireAdmin": false,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": null,
+          "validateSchemas": {},
+          "skipCsrf": false
+        }
+      },
+      "serverActions": []
+    },
+    {
+      "path": "/api/users/feedback",
+      "file": "src/app/api/users/feedback/route.ts",
+      "type": "api",
+      "methods": [
+        "POST"
+      ],
+      "authOptions": {
+        "POST": {
+          "requireAuth": true,
+          "requireAdmin": false,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": null,
+          "validateSchemas": {},
+          "skipCsrf": false
+        }
+      },
+      "serverActions": []
+    },
+    {
+      "path": "/api/users/report",
+      "file": "src/app/api/users/report/route.ts",
+      "type": "api",
+      "methods": [
+        "POST"
+      ],
+      "authOptions": {
+        "POST": {
+          "requireAuth": true,
+          "requireAdmin": false,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": null,
+          "validateSchemas": {},
+          "skipCsrf": false
+        }
+      },
+      "serverActions": []
+    },
+    {
+      "path": "/api/verification",
+      "file": "src/app/api/verification/route.ts",
+      "type": "api",
+      "methods": [
+        "GET",
+        "POST",
+        "PUT"
+      ],
+      "authOptions": {
+        "GET": {
+          "requireAuth": false,
+          "requireAdmin": false,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": null,
+          "validateSchemas": {},
+          "skipCsrf": false
+        },
+        "POST": {
+          "requireAuth": false,
+          "requireAdmin": false,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": null,
+          "validateSchemas": {},
+          "skipCsrf": false
+        },
+        "PUT": {
+          "requireAuth": false,
+          "requireAdmin": false,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": null,
+          "validateSchemas": {},
+          "skipCsrf": false
+        }
+      },
+      "serverActions": []
+    },
+    {
+      "path": "/api/verify-report/[id]",
+      "file": "src/app/api/verify-report/[id]/route.ts",
+      "type": "api",
+      "methods": [
+        "GET"
+      ],
+      "authOptions": {
+        "GET": {
+          "requireAuth": false,
+          "requireAdmin": false,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": "API_DEFAULT",
+          "validateSchemas": {},
+          "skipCsrf": false
+        }
+      },
+      "serverActions": []
+    },
+    {
+      "path": "/api/wallet",
+      "file": "src/app/api/wallet/route.ts",
+      "type": "api",
+      "methods": [
+        "GET"
+      ],
+      "authOptions": {
+        "GET": {
+          "requireAuth": true,
+          "requireAdmin": false,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": null,
+          "validateSchemas": {},
+          "skipCsrf": false
+        }
+      },
+      "serverActions": []
+    },
+    {
+      "path": "/api/wallet/add-funds",
+      "file": "src/app/api/wallet/add-funds/route.ts",
+      "type": "api",
+      "methods": [
+        "POST"
+      ],
+      "authOptions": {
+        "POST": {
+          "requireAuth": true,
+          "requireAdmin": false,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": null,
+          "validateSchemas": {},
+          "skipCsrf": false
+        }
+      },
+      "serverActions": []
+    },
+    {
+      "path": "/api/wallet/add-funds/verify",
+      "file": "src/app/api/wallet/add-funds/verify/route.ts",
+      "type": "api",
+      "methods": [
+        "POST"
+      ],
+      "authOptions": {
+        "POST": {
+          "requireAuth": true,
+          "requireAdmin": false,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": "PAYMENTS",
+          "validateSchemas": {
+            "body": "verifyTopUpSchema"
+          },
+          "skipCsrf": false
+        }
+      },
+      "serverActions": []
+    },
+    {
+      "path": "/api/wallet/bank-accounts",
+      "file": "src/app/api/wallet/bank-accounts/route.ts",
+      "type": "api",
+      "methods": [
+        "DELETE",
+        "GET",
+        "POST",
+        "PUT"
+      ],
+      "authOptions": {
+        "GET": {
+          "requireAuth": false,
+          "requireAdmin": false,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": "WITHDRAW_FUNDS",
+          "rateBucket": null,
+          "validateSchemas": {},
+          "skipCsrf": false
+        },
+        "POST": {
+          "requireAuth": false,
+          "requireAdmin": false,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": "WITHDRAW_FUNDS",
+          "rateBucket": null,
+          "validateSchemas": {},
+          "skipCsrf": false
+        },
+        "PUT": {
+          "requireAuth": false,
+          "requireAdmin": false,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": "WITHDRAW_FUNDS",
+          "rateBucket": null,
+          "validateSchemas": {},
+          "skipCsrf": false
+        },
+        "DELETE": {
+          "requireAuth": false,
+          "requireAdmin": false,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": "WITHDRAW_FUNDS",
+          "rateBucket": null,
+          "validateSchemas": {},
+          "skipCsrf": false
+        }
+      },
+      "serverActions": []
+    },
+    {
+      "path": "/api/wallet/bank-accounts/verify",
+      "file": "src/app/api/wallet/bank-accounts/verify/route.ts",
+      "type": "api",
+      "methods": [
+        "POST"
+      ],
+      "authOptions": {
+        "POST": {
+          "requireAuth": false,
+          "requireAdmin": false,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": "WITHDRAW_FUNDS",
+          "rateBucket": null,
+          "validateSchemas": {},
+          "skipCsrf": false
+        }
+      },
+      "serverActions": []
+    },
+    {
+      "path": "/api/wallet/transactions",
+      "file": "src/app/api/wallet/transactions/route.ts",
+      "type": "api",
+      "methods": [
+        "GET"
+      ],
+      "authOptions": {
+        "GET": {
+          "requireAuth": true,
+          "requireAdmin": false,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": "REPORTS",
+          "validateSchemas": {},
+          "skipCsrf": false
+        }
+      },
+      "serverActions": []
+    },
+    {
+      "path": "/api/webhooks/msg91",
+      "file": "src/app/api/webhooks/msg91/route.ts",
+      "type": "api",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "authOptions": {
+        "POST": {
+          "requireAuth": false,
+          "requireAdmin": false,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": null,
+          "validateSchemas": {},
+          "skipCsrf": false
+        },
+        "GET": {
+          "requireAuth": false,
+          "requireAdmin": false,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": null,
+          "validateSchemas": {},
+          "skipCsrf": false
+        }
+      },
+      "serverActions": []
+    },
+    {
+      "path": "/api/webhooks/razorpay",
+      "file": "src/app/api/webhooks/razorpay/route.ts",
+      "type": "api",
+      "methods": [
+        "POST"
+      ],
+      "authOptions": {
+        "POST": {
+          "requireAuth": false,
+          "requireAdmin": false,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": null,
+          "validateSchemas": {},
+          "skipCsrf": false
+        }
+      },
+      "serverActions": []
+    },
+    {
+      "path": "/api/webhooks/razorpay/process",
+      "file": "src/app/api/webhooks/razorpay/process/route.ts",
+      "type": "api",
+      "methods": [
+        "POST"
+      ],
+      "authOptions": {
+        "POST": {
+          "requireAuth": false,
+          "requireAdmin": false,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": null,
+          "validateSchemas": {},
+          "skipCsrf": false
+        }
+      },
+      "serverActions": []
+    },
+    {
+      "path": "/api/webhooks/resend",
+      "file": "src/app/api/webhooks/resend/route.ts",
+      "type": "api",
+      "methods": [
+        "POST"
+      ],
+      "authOptions": {
+        "POST": {
+          "requireAuth": false,
+          "requireAdmin": false,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": null,
+          "validateSchemas": {},
+          "skipCsrf": false
+        }
+      },
+      "serverActions": []
+    },
+    {
+      "path": "/api/webhooks/shiprocket",
+      "file": "src/app/api/webhooks/shiprocket/route.ts",
+      "type": "api",
+      "methods": [
+        "POST"
+      ],
+      "authOptions": {
+        "POST": {
+          "requireAuth": false,
+          "requireAdmin": false,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": null,
+          "validateSchemas": {},
+          "skipCsrf": false
+        }
+      },
+      "serverActions": []
+    }
+  ],
+  "pageRoutes": [
+    {
+      "path": "/",
+      "file": "src/app/page.tsx",
+      "type": "page",
+      "isClientComponent": true,
+      "authGuard": null,
+      "serverActions": []
+    },
+    {
+      "path": "/about",
+      "file": "src/app/about/page.tsx",
+      "type": "page",
+      "isClientComponent": false,
+      "authGuard": null,
+      "serverActions": []
+    },
+    {
+      "path": "/admin",
+      "file": "src/app/admin/page.tsx",
+      "type": "page",
+      "isClientComponent": false,
+      "authGuard": "admin-layout",
+      "serverActions": []
+    },
+    {
+      "path": "/admin/analytics",
+      "file": "src/app/admin/analytics/page.tsx",
+      "type": "page",
+      "isClientComponent": false,
+      "authGuard": "requireActiveAdmin",
+      "serverActions": []
+    },
+    {
+      "path": "/admin/applications",
+      "file": "src/app/admin/applications/page.tsx",
+      "type": "page",
+      "isClientComponent": false,
+      "authGuard": "admin-layout",
+      "serverActions": [
+        "AdminApplicationsPage"
+      ]
+    },
+    {
+      "path": "/admin/audit-logs",
+      "file": "src/app/admin/audit-logs/page.tsx",
+      "type": "page",
+      "isClientComponent": true,
+      "authGuard": "admin-layout",
+      "serverActions": []
+    },
+    {
+      "path": "/admin/benchmarks",
+      "file": "src/app/admin/benchmarks/page.tsx",
+      "type": "page",
+      "isClientComponent": false,
+      "authGuard": "requireActiveAdmin",
+      "serverActions": []
+    },
+    {
+      "path": "/admin/campaigns",
+      "file": "src/app/admin/campaigns/page.tsx",
+      "type": "page",
+      "isClientComponent": false,
+      "authGuard": "requireActiveAdmin",
+      "serverActions": []
+    },
+    {
+      "path": "/admin/campaigns/[id]",
+      "file": "src/app/admin/campaigns/[id]/page.tsx",
+      "type": "page",
+      "isClientComponent": false,
+      "authGuard": "requireActiveAdmin",
+      "serverActions": []
+    },
+    {
+      "path": "/admin/disputes",
+      "file": "src/app/admin/disputes/page.tsx",
+      "type": "page",
+      "isClientComponent": false,
+      "authGuard": "requireActiveAdmin",
+      "serverActions": []
+    },
+    {
+      "path": "/admin/disputes/[id]",
+      "file": "src/app/admin/disputes/[id]/page.tsx",
+      "type": "page",
+      "isClientComponent": false,
+      "authGuard": "auth()",
+      "serverActions": []
+    },
+    {
+      "path": "/admin/financial",
+      "file": "src/app/admin/financial/page.tsx",
+      "type": "page",
+      "isClientComponent": false,
+      "authGuard": "requireActiveAdmin",
+      "serverActions": []
+    },
+    {
+      "path": "/admin/newsletter",
+      "file": "src/app/admin/newsletter/page.tsx",
+      "type": "page",
+      "isClientComponent": false,
+      "authGuard": "auth()",
+      "serverActions": []
+    },
+    {
+      "path": "/admin/payouts",
+      "file": "src/app/admin/payouts/page.tsx",
+      "type": "page",
+      "isClientComponent": true,
+      "authGuard": "admin-layout",
+      "serverActions": []
+    },
+    {
+      "path": "/admin/scouts",
+      "file": "src/app/admin/scouts/page.tsx",
+      "type": "page",
+      "isClientComponent": true,
+      "authGuard": "admin-layout",
+      "serverActions": []
+    },
+    {
+      "path": "/admin/suspicious-reviews",
+      "file": "src/app/admin/suspicious-reviews/page.tsx",
+      "type": "page",
+      "isClientComponent": true,
+      "authGuard": "admin-layout",
+      "serverActions": []
+    },
+    {
+      "path": "/admin/system",
+      "file": "src/app/admin/system/page.tsx",
+      "type": "page",
+      "isClientComponent": true,
+      "authGuard": "admin-layout",
+      "serverActions": []
+    },
+    {
+      "path": "/admin/users",
+      "file": "src/app/admin/users/page.tsx",
+      "type": "page",
+      "isClientComponent": true,
+      "authGuard": "admin-layout",
+      "serverActions": []
+    },
+    {
+      "path": "/admin/verifications",
+      "file": "src/app/admin/verifications/page.tsx",
+      "type": "page",
+      "isClientComponent": false,
+      "authGuard": "admin-layout",
+      "serverActions": []
+    },
+    {
+      "path": "/admin/verifications/[id]",
+      "file": "src/app/admin/verifications/[id]/page.tsx",
+      "type": "page",
+      "isClientComponent": false,
+      "authGuard": "auth()",
+      "serverActions": [
+        "VerificationDetailPage"
+      ]
+    },
+    {
+      "path": "/admin/violations",
+      "file": "src/app/admin/violations/page.tsx",
+      "type": "page",
+      "isClientComponent": true,
+      "authGuard": "admin-layout",
+      "serverActions": []
+    },
+    {
+      "path": "/blog",
+      "file": "src/app/blog/page.tsx",
+      "type": "page",
+      "isClientComponent": true,
+      "authGuard": null,
+      "serverActions": []
+    },
+    {
+      "path": "/brand/[id]",
+      "file": "src/app/brand/[id]/page.tsx",
+      "type": "page",
+      "isClientComponent": false,
+      "authGuard": "auth()",
+      "serverActions": []
+    },
+    {
+      "path": "/contact",
+      "file": "src/app/contact/page.tsx",
+      "type": "page",
+      "isClientComponent": true,
+      "authGuard": null,
+      "serverActions": []
+    },
+    {
+      "path": "/cookie-policy",
+      "file": "src/app/cookie-policy/page.tsx",
+      "type": "page",
+      "isClientComponent": false,
+      "authGuard": null,
+      "serverActions": []
+    },
+    {
+      "path": "/creator/[username]",
+      "file": "src/app/creator/[username]/page.tsx",
+      "type": "page",
+      "isClientComponent": false,
+      "authGuard": "auth()",
+      "serverActions": []
+    },
+    {
+      "path": "/dashboard",
+      "file": "src/app/dashboard/page.tsx",
+      "type": "page",
+      "isClientComponent": false,
+      "authGuard": "auth()",
+      "serverActions": []
+    },
+    {
+      "path": "/dashboard/analytics",
+      "file": "src/app/dashboard/analytics/page.tsx",
+      "type": "page",
+      "isClientComponent": false,
+      "authGuard": "auth()",
+      "serverActions": []
+    },
+    {
+      "path": "/dashboard/applications",
+      "file": "src/app/dashboard/applications/page.tsx",
+      "type": "page",
+      "isClientComponent": true,
+      "authGuard": "dashboard-layout",
+      "serverActions": []
+    },
+    {
+      "path": "/dashboard/badges",
+      "file": "src/app/dashboard/badges/page.tsx",
+      "type": "page",
+      "isClientComponent": true,
+      "authGuard": "dashboard-layout",
+      "serverActions": []
+    },
+    {
+      "path": "/dashboard/campaigns",
+      "file": "src/app/dashboard/campaigns/page.tsx",
+      "type": "page",
+      "isClientComponent": false,
+      "authGuard": "auth()",
+      "serverActions": []
+    },
+    {
+      "path": "/dashboard/campaigns/[id]",
+      "file": "src/app/dashboard/campaigns/[id]/page.tsx",
+      "type": "page",
+      "isClientComponent": false,
+      "authGuard": "auth()",
+      "serverActions": []
+    },
+    {
+      "path": "/dashboard/campaigns/[id]/analytics",
+      "file": "src/app/dashboard/campaigns/[id]/analytics/page.tsx",
+      "type": "page",
+      "isClientComponent": false,
+      "authGuard": "auth()",
+      "serverActions": []
+    },
+    {
+      "path": "/dashboard/campaigns/[id]/roi",
+      "file": "src/app/dashboard/campaigns/[id]/roi/page.tsx",
+      "type": "page",
+      "isClientComponent": false,
+      "authGuard": "auth()",
+      "serverActions": []
+    },
+    {
+      "path": "/dashboard/campaigns/create",
+      "file": "src/app/dashboard/campaigns/create/page.tsx",
+      "type": "page",
+      "isClientComponent": false,
+      "authGuard": "auth()",
+      "serverActions": []
+    },
+    {
+      "path": "/dashboard/deals",
+      "file": "src/app/dashboard/deals/page.tsx",
+      "type": "page",
+      "isClientComponent": true,
+      "authGuard": "dashboard-layout",
+      "serverActions": []
+    },
+    {
+      "path": "/dashboard/deals/[id]",
+      "file": "src/app/dashboard/deals/[id]/page.tsx",
+      "type": "page",
+      "isClientComponent": true,
+      "authGuard": "dashboard-layout",
+      "serverActions": []
+    },
+    {
+      "path": "/dashboard/deals/[id]/dispute",
+      "file": "src/app/dashboard/deals/[id]/dispute/page.tsx",
+      "type": "page",
+      "isClientComponent": true,
+      "authGuard": "dashboard-layout",
+      "serverActions": []
+    },
+    {
+      "path": "/dashboard/disputes",
+      "file": "src/app/dashboard/disputes/page.tsx",
+      "type": "page",
+      "isClientComponent": true,
+      "authGuard": "dashboard-layout",
+      "serverActions": []
+    },
+    {
+      "path": "/dashboard/disputes/[id]",
+      "file": "src/app/dashboard/disputes/[id]/page.tsx",
+      "type": "page",
+      "isClientComponent": true,
+      "authGuard": "dashboard-layout",
+      "serverActions": []
+    },
+    {
+      "path": "/dashboard/influencers",
+      "file": "src/app/dashboard/influencers/page.tsx",
+      "type": "page",
+      "isClientComponent": true,
+      "authGuard": "dashboard-layout",
+      "serverActions": []
+    },
+    {
+      "path": "/dashboard/influencers/[id]",
+      "file": "src/app/dashboard/influencers/[id]/page.tsx",
+      "type": "page",
+      "isClientComponent": false,
+      "authGuard": "auth()",
+      "serverActions": []
+    },
+    {
+      "path": "/dashboard/leaderboard",
+      "file": "src/app/dashboard/leaderboard/page.tsx",
+      "type": "page",
+      "isClientComponent": true,
+      "authGuard": "dashboard-layout",
+      "serverActions": []
+    },
+    {
+      "path": "/dashboard/messages",
+      "file": "src/app/dashboard/messages/page.tsx",
+      "type": "page",
+      "isClientComponent": true,
+      "authGuard": "dashboard-layout",
+      "serverActions": []
+    },
+    {
+      "path": "/dashboard/notifications",
+      "file": "src/app/dashboard/notifications/page.tsx",
+      "type": "page",
+      "isClientComponent": true,
+      "authGuard": "dashboard-layout",
+      "serverActions": []
+    },
+    {
+      "path": "/dashboard/referrals",
+      "file": "src/app/dashboard/referrals/page.tsx",
+      "type": "page",
+      "isClientComponent": true,
+      "authGuard": "dashboard-layout",
+      "serverActions": []
+    },
+    {
+      "path": "/dashboard/settings",
+      "file": "src/app/dashboard/settings/page.tsx",
+      "type": "page",
+      "isClientComponent": true,
+      "authGuard": "dashboard-layout",
+      "serverActions": []
+    },
+    {
+      "path": "/dashboard/support",
+      "file": "src/app/dashboard/support/page.tsx",
+      "type": "page",
+      "isClientComponent": true,
+      "authGuard": "dashboard-layout",
+      "serverActions": []
+    },
+    {
+      "path": "/dashboard/wallet",
+      "file": "src/app/dashboard/wallet/page.tsx",
+      "type": "page",
+      "isClientComponent": true,
+      "authGuard": "dashboard-layout",
+      "serverActions": []
+    },
+    {
+      "path": "/forgot-password",
+      "file": "src/app/forgot-password/page.tsx",
+      "type": "page",
+      "isClientComponent": true,
+      "authGuard": null,
+      "serverActions": []
+    },
+    {
+      "path": "/help",
+      "file": "src/app/help/page.tsx",
+      "type": "page",
+      "isClientComponent": false,
+      "authGuard": null,
+      "serverActions": []
+    },
+    {
+      "path": "/legal",
+      "file": "src/app/legal/page.tsx",
+      "type": "page",
+      "isClientComponent": true,
+      "authGuard": null,
+      "serverActions": []
+    },
+    {
+      "path": "/login",
+      "file": "src/app/login/page.tsx",
+      "type": "page",
+      "isClientComponent": true,
+      "authGuard": null,
+      "serverActions": []
+    },
+    {
+      "path": "/onboarding",
+      "file": "src/app/onboarding/page.tsx",
+      "type": "page",
+      "isClientComponent": true,
+      "authGuard": null,
+      "serverActions": []
+    },
+    {
+      "path": "/pricing",
+      "file": "src/app/pricing/page.tsx",
+      "type": "page",
+      "isClientComponent": true,
+      "authGuard": null,
+      "serverActions": []
+    },
+    {
+      "path": "/privacy",
+      "file": "src/app/privacy/page.tsx",
+      "type": "page",
+      "isClientComponent": false,
+      "authGuard": null,
+      "serverActions": []
+    },
+    {
+      "path": "/refund",
+      "file": "src/app/refund/page.tsx",
+      "type": "page",
+      "isClientComponent": false,
+      "authGuard": null,
+      "serverActions": []
+    },
+    {
+      "path": "/register",
+      "file": "src/app/register/page.tsx",
+      "type": "page",
+      "isClientComponent": true,
+      "authGuard": null,
+      "serverActions": []
+    },
+    {
+      "path": "/reset-password",
+      "file": "src/app/reset-password/page.tsx",
+      "type": "page",
+      "isClientComponent": true,
+      "authGuard": null,
+      "serverActions": []
+    },
+    {
+      "path": "/status",
+      "file": "src/app/status/page.tsx",
+      "type": "page",
+      "isClientComponent": false,
+      "authGuard": null,
+      "serverActions": []
+    },
+    {
+      "path": "/terms",
+      "file": "src/app/terms/page.tsx",
+      "type": "page",
+      "isClientComponent": false,
+      "authGuard": null,
+      "serverActions": []
+    },
+    {
+      "path": "/verify-report",
+      "file": "src/app/verify-report/page.tsx",
+      "type": "page",
+      "isClientComponent": true,
+      "authGuard": null,
+      "serverActions": []
+    },
+    {
+      "path": "/verify-report/[id]",
+      "file": "src/app/verify-report/[id]/page.tsx",
+      "type": "page",
+      "isClientComponent": false,
+      "authGuard": null,
+      "serverActions": []
+    }
+  ]
+}
