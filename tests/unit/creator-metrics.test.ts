@@ -525,11 +525,23 @@ describe("Creator Metrics Subsystem (P11 REL-07)", () => {
       vi.spyOn(instagramModule, "getRecentPostsWithInsights").mockResolvedValue([
         {
           post: { id: "p1", likeCount: 400, commentsCount: 30, mediaProductType: "REELS" } as unknown as instagramModule.InstagramPost,
-          insights: { views: 8000, reach: 6500, quality: "API" },
+          insights: {
+            status: "OK",
+            values: { views: 8000, reach: 6500 },
+            quality: "API",
+            views: 8000,
+            reach: 6500,
+          },
         },
         {
           post: { id: "p2", likeCount: 500, commentsCount: 50, mediaProductType: "REELS" } as unknown as instagramModule.InstagramPost,
-          insights: { views: 12000, reach: 9500, quality: "API" },
+          insights: {
+            status: "OK",
+            values: { views: 12000, reach: 9500 },
+            quality: "API",
+            views: 12000,
+            reach: 9500,
+          },
         },
       ]);
 

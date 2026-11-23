@@ -178,9 +178,11 @@ const instagramOAuth = user.oauthAccounts?.find((a) => a.provider === "instagram
 const youtubeOAuth = user.oauthAccounts?.find((a) => a.provider === "youtube");
 const igCaps = instagramCapabilities(instagramOAuth);
 
-let igViewsAccess: "ACTIVE" | "RECONNECT_NEEDED" | "PERSONAL_ACCOUNT" | "BASIC_ONLY" = "BASIC_ONLY";
+let igViewsAccess: "ACTIVE" | "RECONNECT_NEEDED" | "PERSONAL_ACCOUNT" | "UNKNOWN" | "BASIC_ONLY" = "BASIC_ONLY";
 if (igCaps.needsReconnect) {
   igViewsAccess = "RECONNECT_NEEDED";
+} else if (igCaps.capability) {
+  igViewsAccess = igCaps.capability;
 } else if (igCaps.insights) {
   igViewsAccess = "ACTIVE";
 } else {

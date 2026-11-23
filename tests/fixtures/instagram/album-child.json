@@ -1,0 +1,8 @@
+{
+  "error": {
+    "message": "(#100) Insights cannot be retrieved for media inside an album/carousel container",
+    "type": "IGApiException",
+    "code": 100,
+    "fbtrace_id": "F6g7H8i9J0k"
+  }
+}

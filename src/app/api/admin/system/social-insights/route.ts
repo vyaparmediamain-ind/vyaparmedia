@@ -2,7 +2,7 @@ import { apiWrapper, ApiResponse } from "@/lib/api-wrapper";
 import prisma from "@/lib/db";
 
 async function _handler_GET() {
-  const [total, active, insightsActive, needsReconnect] = await Promise.all([
+  const [total, active, insightsActive, unknownScope, personalAccount, needsReconnect] = await Promise.all([
     prisma.oAuthAccount.count({
       where: { provider: "instagram" },
     }),
@@ -24,12 +24,24 @@ async function _handler_GET() {
     prisma.oAuthAccount.count({
       where: {
         provider: "instagram",
+        scope: "UNKNOWN",
+      },
+    }),
+    prisma.oAuthAccount.count({
+      where: {
+        provider: "instagram",
+        scope: "PERSONAL_ACCOUNT",
+      },
+    }),
+    prisma.oAuthAccount.count({
+      where: {
+        provider: "instagram",
         scope: "NEEDS_RECONNECT",
       },
     }),
   ]);
 
-  const insightsMissing = Math.max(0, active - insightsActive);
+  const insightsMissing = Math.max(0, active - insightsActive - unknownScope - personalAccount);
 
   return ApiResponse.success(
     {
@@ -37,6 +49,8 @@ async function _handler_GET() {
       active,
       insightsActive,
       insightsMissing,
+      unknownScope,
+      personalAccount,
       needsReconnect,
     },
     "Social insights connection statistics retrieved",

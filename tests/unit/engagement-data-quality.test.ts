@@ -224,6 +224,17 @@ describe("Engagement Data Quality & Baseline Exclusion (P01 Requirements)", () =
       });
 
       vi.mocked(instagramModule.getMediaInsights).mockResolvedValue({
+        status: "OK",
+        values: {
+          views: 18500,
+          reach: 14200,
+          likes: 1200,
+          comments: 95,
+          shares: 80,
+          saved: 150,
+          totalInteractions: 1525,
+        },
+        quality: "API",
         views: 18500,
         reach: 14200,
         likes: 1200,
@@ -231,7 +242,6 @@ describe("Engagement Data Quality & Baseline Exclusion (P01 Requirements)", () =
         shares: 80,
         saved: 150,
         totalInteractions: 1525,
-        quality: "API",
       });
 
       await captureEngagement("deal-ig-insights-001", "24h");

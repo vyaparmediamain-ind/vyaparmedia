@@ -1,0 +1,8 @@
+{
+  "error": {
+    "message": "(#200) Provide valid active access token to query insights",
+    "type": "OAuthException",
+    "code": 200,
+    "fbtrace_id": "C3d4E5f6G7h"
+  }
+}

@@ -15,6 +15,7 @@ import {
   getFreshInstagramAccessToken,
   getMediaInsights,
   type InstagramMediaInsightsResult,
+  type InstagramMediaInsightsValues,
 } from "./instagram";
 import { verifyYouTubeVideoIsLive } from "./youtube";
 import { Prisma } from "@prisma/client";
@@ -238,29 +239,33 @@ async function fetchRealInstagramMetrics(postUrl: string, userId: string): Promi
           });
         }
 
-        const likes = typeof insights?.likes === "number" ? insights.likes : post.likeCount;
-        const comments = typeof insights?.comments === "number" ? insights.comments : post.commentsCount;
+        const values = insights?.status === "OK"
+          ? insights.values
+          : (insights && typeof (insights as unknown as { views?: number }).views === "number" ? (insights as unknown as InstagramMediaInsightsValues) : undefined);
 
-        const hasApiViews = typeof insights?.views === "number";
-        const viewsMetric: MetricWithQuality = hasApiViews
-          ? { value: Math.max(0, insights!.views!), quality: "API" }
+        const likes = typeof values?.likes === "number" ? values.likes : post.likeCount;
+        const comments = typeof values?.comments === "number" ? values.comments : post.commentsCount;
+
+        const hasApiViews = typeof values?.views === "number";
+        const viewsMetric: MetricWithQuality = hasApiViews && values
+          ? { value: Math.max(0, values.views ?? 0), quality: "API" }
           : buildInstagramViews(likes, comments);
 
-        const hasApiShares = typeof insights?.shares === "number";
-        const sharesMetric: MetricWithQuality = hasApiShares
-          ? { value: Math.max(0, insights!.shares!), quality: "API" }
+        const hasApiShares = typeof values?.shares === "number";
+        const sharesMetric: MetricWithQuality = hasApiShares && values
+          ? { value: Math.max(0, values.shares ?? 0), quality: "API" }
           : buildInstagramShares(likes);
 
-        const hasApiSaves = typeof insights?.saved === "number";
-        const savesMetric: MetricWithQuality = hasApiSaves
-          ? { value: Math.max(0, insights!.saved!), quality: "API" }
+        const hasApiSaves = typeof values?.saved === "number";
+        const savesMetric: MetricWithQuality = hasApiSaves && values
+          ? { value: Math.max(0, values.saved ?? 0), quality: "API" }
           : buildInstagramSaves(likes);
 
         const clicksMetric = buildInstagramClicks();
 
-        const hasApiReach = typeof insights?.reach === "number";
-        const reachMetric: MetricWithQuality = hasApiReach
-          ? { value: Math.max(0, insights!.reach!), quality: "API" }
+        const hasApiReach = typeof values?.reach === "number";
+        const reachMetric: MetricWithQuality = hasApiReach && values
+          ? { value: Math.max(0, values.reach ?? 0), quality: "API" }
           : buildInstagramReach(likes);
 
         const totalEngagements = likes + comments + sharesMetric.value + savesMetric.value;

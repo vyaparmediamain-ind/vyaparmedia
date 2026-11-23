@@ -31,9 +31,10 @@ import { isKillSwitchActive, KILL_SWITCH_FEATURES } from "@/lib/kill-switch";
 import { instagramInsightsRequestsTotal } from "@/lib/metrics";
 
 // ─── API Constants ─────────────────────────────────────────────────────────────
-const IG_OAUTH_AUTHORIZE_URL = "https://www.instagram.com/oauth/authorize";
-const IG_OAUTH_TOKEN_URL = "https://api.instagram.com/oauth/access_token";
-const IG_GRAPH_BASE_URL = "https://graph.instagram.com";
+export const IG_API_VERSION = "v21.0";
+export const IG_OAUTH_AUTHORIZE_URL = "https://www.instagram.com/oauth/authorize";
+export const IG_OAUTH_TOKEN_URL = "https://api.instagram.com/oauth/access_token";
+export const IG_GRAPH_BASE_URL = `https://graph.instagram.com/${IG_API_VERSION}`;
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
 
@@ -65,13 +66,21 @@ export interface InstagramPost {
   isPaidPartnership?: boolean;
 }
 
+export type InstagramCapabilityState =
+  | "ACTIVE"
+  | "RECONNECT_NEEDED"
+  | "PERSONAL_ACCOUNT"
+  | "UNKNOWN"
+  | "BASIC_ONLY";
+
 export interface InstagramCapabilities {
   basic: boolean;
   insights: boolean;
   needsReconnect: boolean;
+  capability?: InstagramCapabilityState | undefined;
 }
 
-export interface InstagramMediaInsightsResult {
+export interface InstagramMediaInsightsValues {
   views?: number | undefined;
   reach?: number | undefined;
   likes?: number | undefined;
@@ -79,7 +88,179 @@ export interface InstagramMediaInsightsResult {
   shares?: number | undefined;
   saved?: number | undefined;
   totalInteractions?: number | undefined;
-  quality: "API";
+}
+
+export type InstagramMediaInsightsResult =
+  | {
+      status: "OK";
+      values: InstagramMediaInsightsValues;
+      quality: "API";
+      views?: number | undefined;
+      reach?: number | undefined;
+      likes?: number | undefined;
+      comments?: number | undefined;
+      shares?: number | undefined;
+      saved?: number | undefined;
+      totalInteractions?: number | undefined;
+    }
+  | {
+      status: "EMPTY";
+      quality?: "API" | undefined;
+      views?: undefined;
+      reach?: undefined;
+      likes?: undefined;
+      comments?: undefined;
+      shares?: undefined;
+      saved?: undefined;
+      totalInteractions?: undefined;
+    }
+  | {
+      status: "NOT_ENOUGH_VIEWERS";
+      quality?: "API" | undefined;
+      views?: undefined;
+      reach?: undefined;
+      likes?: undefined;
+      comments?: undefined;
+      shares?: undefined;
+      saved?: undefined;
+      totalInteractions?: undefined;
+    }
+  | {
+      status: "UNSUPPORTED_MEDIA";
+      quality?: "API" | undefined;
+      views?: undefined;
+      reach?: undefined;
+      likes?: undefined;
+      comments?: undefined;
+      shares?: undefined;
+      saved?: undefined;
+      totalInteractions?: undefined;
+    }
+  | {
+      status: "PERMISSION_DENIED";
+      quality?: undefined;
+      views?: undefined;
+      reach?: undefined;
+      likes?: undefined;
+      comments?: undefined;
+      shares?: undefined;
+      saved?: undefined;
+      totalInteractions?: undefined;
+    }
+  | {
+      status: "TOKEN_INVALID";
+      quality?: undefined;
+      views?: undefined;
+      reach?: undefined;
+      likes?: undefined;
+      comments?: undefined;
+      shares?: undefined;
+      saved?: undefined;
+      totalInteractions?: undefined;
+    }
+  | {
+      status: "RATE_LIMITED";
+      retryAfterMs?: number | undefined;
+      quality?: undefined;
+      views?: undefined;
+      reach?: undefined;
+      likes?: undefined;
+      comments?: undefined;
+      shares?: undefined;
+      saved?: undefined;
+      totalInteractions?: undefined;
+    }
+  | {
+      status: "METRIC_UNSUPPORTED";
+      quality?: undefined;
+      views?: undefined;
+      reach?: undefined;
+      likes?: undefined;
+      comments?: undefined;
+      shares?: undefined;
+      saved?: undefined;
+      totalInteractions?: undefined;
+    }
+  | {
+      status: "ERROR";
+      message?: string | undefined;
+      code?: number | undefined;
+      quality?: undefined;
+      views?: undefined;
+      reach?: undefined;
+      likes?: undefined;
+      comments?: undefined;
+      shares?: undefined;
+      saved?: undefined;
+      totalInteractions?: undefined;
+    };
+
+export type InstagramInsightsStatus = InstagramMediaInsightsResult["status"];
+
+export type InstagramInsightsErrorClassification =
+  | { status: "PERMISSION_DENIED"; message?: string | undefined; code?: number | undefined }
+  | { status: "NOT_ENOUGH_VIEWERS"; message?: string | undefined; code?: number | undefined }
+  | { status: "TOKEN_INVALID"; message?: string | undefined; code?: number | undefined; subcode?: number | undefined }
+  | { status: "METRIC_UNSUPPORTED"; message?: string | undefined; code?: number | undefined }
+  | { status: "UNSUPPORTED_MEDIA"; message?: string | undefined; code?: number | undefined }
+  | { status: "RATE_LIMITED"; retryAfterMs?: number | undefined; message?: string | undefined; code?: number | undefined }
+  | { status: "ERROR"; message?: string | undefined; code?: number | undefined };
+
+export function classifyInstagramInsightsError(
+  httpStatus: number,
+  errorBody: unknown
+): InstagramInsightsErrorClassification {
+  const errObj = errorBody && typeof errorBody === "object"
+    ? ((errorBody as { error?: { message?: string; code?: number; error_subcode?: number } }).error ||
+       (errorBody as { message?: string; code?: number; error_subcode?: number }))
+    : undefined;
+
+  const code = typeof errObj?.code === "number" ? errObj.code : undefined;
+  const subcode = typeof (errObj as { error_subcode?: number })?.error_subcode === "number"
+    ? (errObj as { error_subcode?: number }).error_subcode
+    : undefined;
+  const message = typeof errObj?.message === "string" ? errObj.message : "";
+  const lowerMsg = message.toLowerCase();
+
+  // 1. Rate limit (Code 80002 or HTTP 429)
+  if (code === 80002 || httpStatus === 429 || lowerMsg.includes("too many calls") || lowerMsg.includes("rate limit")) {
+    return { status: "RATE_LIMITED", message, code };
+  }
+
+  // 2. Token invalid / expired (Code 190, HTTP 401, subcodes 463, 467)
+  if (code === 190 || httpStatus === 401 || lowerMsg.includes("validating access token") || lowerMsg.includes("session has expired") || lowerMsg.includes("invalid oauth")) {
+    return { status: "TOKEN_INVALID", message, code, subcode };
+  }
+
+  // 3. Code 10: Disambiguate "not enough viewers" vs "permission denied"
+  if (code === 10) {
+    if (lowerMsg.includes("not enough viewers") || lowerMsg.includes("viewers for the media")) {
+      return { status: "NOT_ENOUGH_VIEWERS", message, code };
+    }
+    return { status: "PERMISSION_DENIED", message, code };
+  }
+
+  if (lowerMsg.includes("not enough viewers") || lowerMsg.includes("viewers for the media")) {
+    return { status: "NOT_ENOUGH_VIEWERS", message, code };
+  }
+
+  // 4. Code 200 or HTTP 403: Permission denied
+  if (code === 200 || httpStatus === 403 || lowerMsg.includes("permission") || lowerMsg.includes("not have permission")) {
+    return { status: "PERMISSION_DENIED", message, code };
+  }
+
+  // 5. Code 100 / Unsupported Media / Unsupported Metric
+  if (code === 100 || lowerMsg.includes("album") || lowerMsg.includes("carousel") || lowerMsg.includes("child")) {
+    if (lowerMsg.includes("album") || lowerMsg.includes("carousel") || lowerMsg.includes("child")) {
+      return { status: "UNSUPPORTED_MEDIA", message, code };
+    }
+    if (lowerMsg.includes("metric") || lowerMsg.includes("not supported")) {
+      return { status: "METRIC_UNSUPPORTED", message, code };
+    }
+    return { status: "METRIC_UNSUPPORTED", message, code };
+  }
+
+  return { status: "ERROR", message, code };
 }
 
 export interface InstagramPostWithInsights {
@@ -100,7 +281,7 @@ export function instagramCapabilities(oauthAccount?: {
   accessToken?: string | null;
 } | null): InstagramCapabilities {
   if (!oauthAccount) {
-    return { basic: false, insights: false, needsReconnect: false };
+    return { basic: false, insights: false, needsReconnect: false, capability: "BASIC_ONLY" };
   }
 
   const isExplicitReconnect = oauthAccount.scope === "NEEDS_RECONNECT";
@@ -108,7 +289,7 @@ export function instagramCapabilities(oauthAccount?: {
   const needsReconnect = isExplicitReconnect || hasNoToken;
 
   if (needsReconnect) {
-    return { basic: false, insights: false, needsReconnect: true };
+    return { basic: false, insights: false, needsReconnect: true, capability: "RECONNECT_NEEDED" };
   }
 
   const granted = Array.isArray(oauthAccount.grantedScopes) ? oauthAccount.grantedScopes : [];
@@ -122,10 +303,22 @@ export function instagramCapabilities(oauthAccount?: {
     granted.includes("instagram_business_manage_insights") ||
     scopeStr.includes("instagram_business_manage_insights");
 
+  let capability: InstagramCapabilityState = "BASIC_ONLY";
+  if (hasInsights) {
+    capability = "ACTIVE";
+  } else if (scopeStr === "UNKNOWN" || granted.includes("unknown") || granted.includes("insights_unknown")) {
+    capability = "UNKNOWN";
+  } else if (scopeStr === "PERSONAL_ACCOUNT" || granted.includes("personal_account")) {
+    capability = "PERSONAL_ACCOUNT";
+  } else {
+    capability = "BASIC_ONLY";
+  }
+
   return {
     basic: hasBasic,
     insights: hasInsights,
     needsReconnect: false,
+    capability,
   };
 }
 
@@ -792,6 +985,69 @@ export async function findPostByUrl(
  * - Returns empty metrics on Story error code 10 and carousel album children
  * - Never logs OAuth tokens
  */
+async function fetchInsightsSingleCall(
+  accessToken: string,
+  mediaId: string,
+  metrics: string[],
+): Promise<{ ok: boolean; status: number; data?: unknown; errorData?: unknown }> {
+  const metricQuery = metrics.join(",");
+  const url = `${IG_GRAPH_BASE_URL}/${mediaId}/insights?metric=${metricQuery}`;
+
+  let res: Response;
+  try {
+    res = await withCircuitBreaker("instagram:insights", async () => {
+      return await fetch(url, {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+        signal: AbortSignal.timeout(SOCIAL_API_TIMEOUT_MS),
+      });
+    });
+  } catch (netErr) {
+    return { ok: false, status: 500, errorData: { error: { message: netErr instanceof Error ? netErr.message : String(netErr) } } };
+  }
+
+  if (!res.ok) {
+    let errorData: unknown = null;
+    try {
+      errorData = await res.json();
+    } catch {
+      // ignore json parse error
+    }
+    return { ok: false, status: res.status, errorData };
+  }
+
+  let data: unknown;
+  try {
+    data = await res.json();
+  } catch {
+    data = {};
+  }
+  return { ok: true, status: res.status, data };
+}
+
+async function fetchInsightsWithRetry(
+  accessToken: string,
+  mediaId: string,
+  metrics: string[],
+  maxRetries = 2
+): Promise<{ ok: boolean; status: number; data?: unknown; errorData?: unknown }> {
+  let attempt = 0;
+  while (true) {
+    const res = await fetchInsightsSingleCall(accessToken, mediaId, metrics);
+    if (res.ok) return res;
+
+    const classified = classifyInstagramInsightsError(res.status, res.errorData);
+    if (classified.status === "RATE_LIMITED" && attempt < maxRetries) {
+      attempt++;
+      const backoffMs = attempt * 300;
+      await new Promise((resolve) => setTimeout(resolve, backoffMs));
+      continue;
+    }
+    return res;
+  }
+}
+
 export async function getMediaInsights(
   accessToken: string,
   mediaId: string,
@@ -805,92 +1061,70 @@ export async function getMediaInsights(
     return null;
   }
 
-  // 2. Metric selection per product type
   const normalizedType = (productType || "").toUpperCase();
-  let metrics: string[];
-  if (normalizedType === "STORY") {
-    metrics = ["views", "reach"];
-  } else if (normalizedType === "REELS") {
-    metrics = ["views", "reach", "likes", "comments", "shares", "saved", "total_interactions"];
-  } else {
-    // FEED / CAROUSEL_ALBUM / default
-    metrics = ["views", "reach", "likes", "comments", "shares", "saved", "total_interactions"];
-  }
-
-  const metricQuery = metrics.join(",");
-  const url = `${IG_GRAPH_BASE_URL}/${mediaId}/insights?metric=${metricQuery}`;
 
   try {
-    const res = await withCircuitBreaker("instagram:insights", async () => {
-      return await fetch(url, {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-        signal: AbortSignal.timeout(SOCIAL_API_TIMEOUT_MS),
-      });
-    });
+    // 2. Request minimal safe set first: views, reach
+    const safeMetrics = ["views", "reach"];
+    const safeRes = await fetchInsightsWithRetry(accessToken, mediaId, safeMetrics);
 
-    if (!res.ok) {
-      let errData: { error?: { message?: string; code?: number; error_subcode?: number } } | null = null;
-      try {
-        errData = (await res.json()) as { error?: { message?: string; code?: number; error_subcode?: number } };
-      } catch {
-        // ignore parse error
-      }
+    if (!safeRes.ok) {
+      const classification = classifyInstagramInsightsError(safeRes.status, safeRes.errorData);
+      instagramInsightsRequestsTotal.inc({ status: classification.status });
 
-      const errCode = errData?.error?.code;
-      const errMsg = errData?.error?.message || "";
-
-      // Error code 10: "(#10) Not enough viewers to show insights" on stories < 5 viewers
-      if (errCode === 10 || errMsg.toLowerCase().includes("not enough viewers")) {
+      if (classification.status === "NOT_ENOUGH_VIEWERS") {
         logger.info("Instagram story has <5 viewers; insights dataset empty", { mediaId });
-        return { quality: "API" };
+        return { status: "NOT_ENOUGH_VIEWERS", quality: "API" };
       }
-
-      // Carousel child / media inside album: insights are not supported on children
-      if (
-        errMsg.toLowerCase().includes("album") ||
-        errMsg.toLowerCase().includes("carousel") ||
-        errMsg.toLowerCase().includes("child") ||
-        errCode === 100
-      ) {
+      if (classification.status === "UNSUPPORTED_MEDIA") {
         logger.info("Instagram media is inside an album or unsupported child item", { mediaId });
-        return { quality: "API" };
+        return { status: "UNSUPPORTED_MEDIA", quality: "API" };
+      }
+      if (classification.status === "PERMISSION_DENIED") {
+        logger.warn("Instagram media insights permission denied", { mediaId, code: classification.code });
+        return { status: "PERMISSION_DENIED" };
+      }
+      if (classification.status === "TOKEN_INVALID") {
+        logger.warn("Instagram media insights token invalid / expired", { mediaId });
+        return { status: "TOKEN_INVALID" };
+      }
+      if (classification.status === "RATE_LIMITED") {
+        logger.warn("Instagram media insights rate limited", { mediaId });
+        return { status: "RATE_LIMITED", retryAfterMs: classification.retryAfterMs };
+      }
+      if (classification.status === "METRIC_UNSUPPORTED") {
+        return { status: "METRIC_UNSUPPORTED" };
       }
 
       logger.warn("Instagram media insights fetch HTTP failure", {
-        status: res.status,
-        code: errCode,
+        status: safeRes.status,
+        code: classification.code,
       });
-      instagramInsightsRequestsTotal.inc({ status: "error" });
-      return null;
+      return { status: "ERROR", message: classification.message, code: classification.code };
     }
 
-    instagramInsightsRequestsTotal.inc({ status: "success" });
-    const data = await res.json() as {
+    const safeData = safeRes.data as {
       data?: Array<{
         name: string;
-        period?: string;
         values?: Array<{ value: number }>;
         total_value?: { value: number };
       }>;
       error?: { message: string; code?: number };
     };
 
-    if (data.error || !data.data || data.data.length === 0) {
-      // Empty dataset instead of 0 when unavailable
-      return { quality: "API" };
+    if (safeData?.error) {
+      const classification = classifyInstagramInsightsError(safeRes.status, safeData);
+      instagramInsightsRequestsTotal.inc({ status: classification.status });
+      return classification;
     }
 
-    let views: number | undefined;
-    let reach: number | undefined;
-    let likes: number | undefined;
-    let comments: number | undefined;
-    let shares: number | undefined;
-    let saved: number | undefined;
-    let totalInteractions: number | undefined;
+    if (!safeData?.data || safeData.data.length === 0) {
+      instagramInsightsRequestsTotal.inc({ status: "EMPTY" });
+      return { status: "EMPTY", quality: "API" };
+    }
 
-    for (const item of data.data) {
+    const values: InstagramMediaInsightsValues = {};
+    for (const item of safeData.data) {
       const val = typeof item.total_value?.value === "number"
         ? item.total_value.value
         : typeof item.values?.[0]?.value === "number"
@@ -898,49 +1132,99 @@ export async function getMediaInsights(
           : undefined;
 
       if (typeof val !== "number") continue;
+      if (item.name === "views") values.views = val;
+      if (item.name === "reach") values.reach = val;
+    }
 
-      switch (item.name) {
-        case "views":
-          views = val;
-          break;
-        case "reach":
-          reach = val;
-          break;
-        case "likes":
-          likes = val;
-          break;
-        case "comments":
-          comments = val;
-          break;
-        case "shares":
-          shares = val;
-          break;
-        case "saved":
-          saved = val;
-          break;
-        case "total_interactions":
-          totalInteractions = val;
-          break;
+    // 3. Request optional groups for non-story content
+    if (normalizedType !== "STORY") {
+      const optionalMetrics = ["likes", "comments", "shares", "saved", "total_interactions"];
+      const optRes = await fetchInsightsWithRetry(accessToken, mediaId, optionalMetrics);
+
+      if (optRes.ok && optRes.data) {
+        const optData = optRes.data as {
+          data?: Array<{
+            name: string;
+            values?: Array<{ value: number }>;
+            total_value?: { value: number };
+          }>;
+        };
+
+        if (Array.isArray(optData?.data)) {
+          for (const item of optData.data) {
+            const val = typeof item.total_value?.value === "number"
+              ? item.total_value.value
+              : typeof item.values?.[0]?.value === "number"
+                ? item.values[0].value
+                : undefined;
+
+            if (typeof val !== "number") continue;
+            if (item.name === "likes") values.likes = val;
+            if (item.name === "comments") values.comments = val;
+            if (item.name === "shares") values.shares = val;
+            if (item.name === "saved") values.saved = val;
+            if (item.name === "total_interactions") values.totalInteractions = val;
+          }
+        }
+      } else if (!optRes.ok) {
+        const optClassification = classifyInstagramInsightsError(optRes.status, optRes.errorData);
+        // On code 100 retry per-metric so one unsupported metric never nukes the rest
+        if (optClassification.status === "METRIC_UNSUPPORTED") {
+          for (const metric of optionalMetrics) {
+            try {
+              const singleRes = await fetchInsightsSingleCall(accessToken, mediaId, [metric]);
+              if (singleRes.ok && singleRes.data) {
+                const sData = singleRes.data as {
+                  data?: Array<{
+                    name: string;
+                    values?: Array<{ value: number }>;
+                    total_value?: { value: number };
+                  }>;
+                };
+                if (Array.isArray(sData?.data) && sData.data[0]) {
+                  const item = sData.data[0];
+                  const val = typeof item.total_value?.value === "number"
+                    ? item.total_value.value
+                    : typeof item.values?.[0]?.value === "number"
+                      ? item.values[0].value
+                      : undefined;
+                  if (typeof val === "number") {
+                    if (metric === "likes") values.likes = val;
+                    if (metric === "comments") values.comments = val;
+                    if (metric === "shares") values.shares = val;
+                    if (metric === "saved") values.saved = val;
+                    if (metric === "total_interactions") values.totalInteractions = val;
+                  }
+                }
+              }
+            } catch {
+              // Isolated per-metric failure, continue
+            }
+          }
+        }
       }
     }
 
+    instagramInsightsRequestsTotal.inc({ status: "OK" });
     return {
-      views,
-      reach,
-      likes,
-      comments,
-      shares,
-      saved,
-      totalInteractions,
+      status: "OK",
+      values,
       quality: "API",
+      views: values.views,
+      reach: values.reach,
+      likes: values.likes,
+      comments: values.comments,
+      shares: values.shares,
+      saved: values.saved,
+      totalInteractions: values.totalInteractions,
     };
   } catch (error) {
-    instagramInsightsRequestsTotal.inc({ status: "error" });
+    instagramInsightsRequestsTotal.inc({ status: "ERROR" });
     logger.error("Instagram media insights exception", {
       mediaId,
       error: error instanceof Error ? error.message : String(error),
     });
-    return null;
+    return { status: "ERROR", message: error instanceof Error ? error.message : String(error) };
   }
 }
 

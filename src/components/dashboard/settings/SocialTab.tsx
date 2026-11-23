@@ -15,7 +15,7 @@ export interface SocialConnectionDetail {
   pendingApproval?: boolean;
   lastSynced?: string | null;
   handle?: string | null;
-  viewsAccess?: "ACTIVE" | "RECONNECT_NEEDED" | "PERSONAL_ACCOUNT" | "BASIC_ONLY";
+  viewsAccess?: "ACTIVE" | "RECONNECT_NEEDED" | "PERSONAL_ACCOUNT" | "UNKNOWN" | "BASIC_ONLY";
   grantedScopes?: string[];
 }
 

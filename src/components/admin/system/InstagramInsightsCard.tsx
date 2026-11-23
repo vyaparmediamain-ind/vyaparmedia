@@ -13,6 +13,8 @@ interface SocialInsightsApiResponse {
     active: number;
     insightsActive: number;
     insightsMissing: number;
+    unknownScope?: number;
+    personalAccount?: number;
     needsReconnect: number;
   };
 }

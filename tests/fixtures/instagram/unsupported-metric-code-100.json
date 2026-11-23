@@ -1,0 +1,8 @@
+{
+  "error": {
+    "message": "(#100) The metric 'saved' is not supported for media of type 'STORY'",
+    "type": "IGApiException",
+    "code": 100,
+    "fbtrace_id": "E5f6G7h8I9j"
+  }
+}

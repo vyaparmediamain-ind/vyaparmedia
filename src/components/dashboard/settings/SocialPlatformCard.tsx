@@ -12,7 +12,7 @@ interface SocialPlatformCardProps {
   needsReconnect?: boolean | undefined;
   pendingApproval?: boolean | undefined;
   lastSynced?: string | null | undefined;
-  viewsAccess?: "ACTIVE" | "RECONNECT_NEEDED" | "PERSONAL_ACCOUNT" | "BASIC_ONLY" | undefined;
+  viewsAccess?: "ACTIVE" | "RECONNECT_NEEDED" | "PERSONAL_ACCOUNT" | "UNKNOWN" | "BASIC_ONLY" | undefined;
   followersOrSubscribers: number;
   engagementRate: number;
   isSaving: boolean;
@@ -147,6 +147,11 @@ export default function SocialPlatformCard({
                   <Info className="w-3.5 h-3.5" />
                   Views access: Not available for personal accounts
                 </span>
+              ) : viewsAccess === "UNKNOWN" ? (
+                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-secondary text-secondary-foreground border border-border">
+                  <Info className="w-3.5 h-3.5" />
+                  Views access: Unknown until first post
+                </span>
               ) : (
                 <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-secondary text-secondary-foreground border border-border">
                   <Info className="w-3.5 h-3.5" />
@@ -157,6 +162,12 @@ export default function SocialPlatformCard({
           )}
         </div>
       </div>
+
+      {isInstagram && connected && viewsAccess === "UNKNOWN" && (
+        <div className="p-3 mb-4 rounded-md bg-secondary/60 border border-border text-xs text-muted-foreground">
+          Views access will be checked after your first post. Once you publish content, we will automatically test Meta Insights access.
+        </div>
+      )}
 
       {isInstagram && connected && viewsAccess === "BASIC_ONLY" && (
         <div className="p-3 mb-4 rounded-md bg-secondary/60 border border-border text-xs text-muted-foreground">
