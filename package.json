@@ -1,6 +1,7 @@
 {
   "name": "vyaparmedia",
   "version": "0.1.0",
+  "type": "module",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -17,7 +18,7 @@
     "test:coverage": "vitest run --coverage",
     "validate": "npm run lint && npm run lint:theme && npm run lint:actions && npm run typecheck && npm run db:verify-rls && npx prisma validate",
     "deploy:check": "npm run validate && npm run test && npm run build",
-    "seed": "npx tsx -r ./scripts/mock-server-only.js scripts/seed-test-accounts.ts",
+    "seed": "npx tsx -r ./scripts/mock-server-only.cjs scripts/seed-test-accounts.ts",
     "cron:verify": "npx tsx scripts/verify-qstash-crons.ts",
     "cron:sync": "npx tsx scripts/setup-qstash-crons.ts",
     "db:verify-rls": "npx tsx scripts/verify-database-rls.ts",
