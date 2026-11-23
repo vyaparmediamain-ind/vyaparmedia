@@ -318,7 +318,7 @@ export default function ScoutDashboardClient() {
               </span>
               <span className="text-[11px] text-muted-foreground">Scout Code: {d.scoutCode}</span>
             </div>
-            <h3 className="mt-2 text-base font-bold text-foreground">Invite Influencers & Content Creators</h3>
+            <h2 className="mt-2 text-base font-bold text-foreground">Invite Influencers & Content Creators</h2>
             <p className="mt-1 text-xs text-muted-foreground">
               Share with local vloggers, reels creators, and college influencers to earn 1% on every deal they close.
             </p>
@@ -353,7 +353,7 @@ export default function ScoutDashboardClient() {
               </span>
               <span className="text-[11px] text-muted-foreground">Scout Code: {d.scoutCode}</span>
             </div>
-            <h3 className="mt-2 text-base font-bold text-foreground">Invite Local Brands & Businesses</h3>
+            <h2 className="mt-2 text-base font-bold text-foreground">Invite Local Brands & Businesses</h2>
             <p className="mt-1 text-xs text-muted-foreground">
               Pitch local cafe owners, fitness gyms, and retail stores to run 100% escrow protected influencer marketing.
             </p>

@@ -135,7 +135,8 @@ export default function DesktopSidebar({
       </div>
 
       {/* Navigation List */}
-      <nav className="flex-1 space-y-1.5" role="tablist">
+      <nav className="flex-1 space-y-1.5" aria-label="Main Navigation">
+        <div role="tablist" className="space-y-1.5">
         {navItems.map((item) => {
           const active = isActive(item);
 
@@ -203,6 +204,7 @@ export default function DesktopSidebar({
             </Link>
           );
         })}
+        </div>
 
         {/* Quick Ecosystem Links (Creators & Brands only) */}
         {!isScout && (

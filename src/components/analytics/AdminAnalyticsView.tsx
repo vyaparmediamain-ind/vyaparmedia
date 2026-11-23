@@ -259,10 +259,14 @@ export default function AdminAnalyticsView({ data }: AdminAnalyticsProps) {
         </motion.div>
 
         {/* Tab Content */}
-        {currentTab === "traffic" && <TrafficAndBehaviourTab />}
+        {currentTab === "traffic" && (
+          <div id="panel-traffic" role="tabpanel" aria-label="Traffic & Behaviour">
+            <TrafficAndBehaviourTab />
+          </div>
+        )}
 
         {currentTab === "funnel" && (
-          <div className="space-y-6">
+          <div id="panel-funnel" role="tabpanel" aria-label="Funnel & Quality" className="space-y-6">
             {/* 5-Stage Conversion Funnel */}
             <motion.div variants={itemVariants} className="card p-6 sm:p-8 border border-border glass rounded-2xl space-y-6">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border pb-4">
@@ -379,7 +383,7 @@ export default function AdminAnalyticsView({ data }: AdminAnalyticsProps) {
         )}
 
         {currentTab === "crons" && (
-      <div className="space-y-6">
+      <div id="panel-crons" role="tabpanel" aria-label="Cron Health & Config" className="space-y-6">
         {/* Cron Health Monitor */}
         <motion.div variants={itemVariants} className="card p-6 sm:p-8 border border-border glass rounded-2xl space-y-6">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border pb-4">
@@ -501,7 +505,7 @@ export default function AdminAnalyticsView({ data }: AdminAnalyticsProps) {
     )}
 
     {currentTab === "overview" && (
-      <div className="space-y-6">
+      <div id="panel-overview" role="tabpanel" aria-label="Overview & Financials" className="space-y-6">
         {/* Real-Time Metrics Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           <MetricCard

@@ -279,10 +279,11 @@ export default function HelpCenterClient() {
 
       {/* ==================== 3. FAQ ACCORDION LIST ==================== */}
       <section aria-label="Frequently Asked Questions" className="space-y-3">
+        <h2 className="sr-only">Frequently Asked Questions</h2>
         {filteredFaqs.length === 0 ? (
           <div className="p-12 rounded-3xl border border-border bg-card text-center space-y-3">
             <HelpCircle className="w-8 h-8 text-muted-foreground mx-auto" />
-            <h4 className="text-sm font-bold text-foreground">No matching questions found</h4>
+            <h3 className="text-sm font-bold text-foreground">No matching questions found</h3>
             <p className="text-xs text-muted-foreground max-w-sm mx-auto">
               We couldn&apos;t find any articles matching &ldquo;{searchQuery}&rdquo;. Try another search term or raise a support ticket below.
             </p>
@@ -353,9 +354,9 @@ export default function HelpCenterClient() {
               <MessageSquare className="w-6 h-6" />
             </div>
             <div>
-              <h3 className="text-base sm:text-lg font-black text-foreground">
+              <h2 className="text-base sm:text-lg font-black text-foreground">
                 Still have questions or need assistance?
-              </h3>
+              </h2>
               <p className="text-xs text-muted-foreground mt-0.5">
                 Our support team and escrow arbitration desk are active Monday through Saturday, 9 AM – 8 PM IST.
               </p>

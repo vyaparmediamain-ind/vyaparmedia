@@ -320,6 +320,7 @@ export default function ScoutVerificationGate({
               ref={selfieInputRef}
               accept="image/*"
               capture="user"
+              aria-label="Upload front-facing selfie photo"
               className="hidden"
               onChange={handleSelfieChange}
             />

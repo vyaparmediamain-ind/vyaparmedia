@@ -292,7 +292,7 @@ export default function DiscoveryFeed({
 
         {/* Loading State: Exact Card Shape Skeletons */}
         {isLoading && (
-          <div className="space-y-6" aria-busy="true" aria-label="Loading discovery feed">
+          <div role="status" className="space-y-6" aria-busy="true" aria-label="Loading discovery feed">
             <DiscoveryCardSkeleton />
             <DiscoveryCardSkeleton />
             <DiscoveryCardSkeleton />
