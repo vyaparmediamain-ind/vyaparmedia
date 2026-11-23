@@ -305,6 +305,11 @@ async function _handler(req: NextRequest, context: { params: Promise<Record<stri
         label: "Data Quality",
         format: (v: unknown) => (v ? "Estimated" : "Verified API"),
       },
+      {
+        key: "ratesQuality",
+        label: "Rates Quality",
+        format: (_v: unknown, row: Record<string, unknown>) => (row?.isEstimated ? "DERIVED" : "API"),
+      },
     ];
 
     const summaryRows = [

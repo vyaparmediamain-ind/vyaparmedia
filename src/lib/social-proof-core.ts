@@ -553,7 +553,7 @@ export function analyzeInfluencerFraudProfile(profile: {
 }): InfluencerFraudAnalysis {
   const igFollowers = profile.instagramFollowers ?? 0;
   const ytSubs = profile.youtubeSubscribers ?? 0;
-  const followers = igFollowers || ytSubs || 1000;
+  const followers = igFollowers || ytSubs || 0;
   const igER = profile.instagramEngagementRate ? profile.instagramEngagementRate / 100 : 0;
   const ytER = profile.youtubeEngagementRate ? profile.youtubeEngagementRate / 100 : 0;
   const engagementRate = Math.max(igER, ytER);

@@ -116,6 +116,20 @@ shares?: number;
 saves?: number;
 estimatedReach?: number;
 engagementRate?: number;
+clickThroughRate?: number;
+metricsQuality?: {
+  views?: string;
+  likes?: string;
+  comments?: string;
+  shares?: string;
+  saves?: string;
+  clicks?: string;
+  reach?: string;
+  ratesQuality?: {
+    engagementRate?: string;
+    clickThroughRate?: string;
+  };
+};
 }
 
 export interface EngagementSnapshot {
@@ -123,6 +137,19 @@ interval?: string;
 isEstimated?: boolean;
 timestamp: string;
 metrics: EngagementMetricsData;
+metricsQuality?: {
+  views?: string;
+  likes?: string;
+  comments?: string;
+  shares?: string;
+  saves?: string;
+  clicks?: string;
+  reach?: string;
+  ratesQuality?: {
+    engagementRate?: string;
+    clickThroughRate?: string;
+  };
+};
 }
 
 interface ROIData {

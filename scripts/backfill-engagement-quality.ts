@@ -136,6 +136,10 @@ export async function runEngagementQualityBackfill(options?: {
           saves: "DERIVED",
           clicks: "UNAVAILABLE",
           reach: "DERIVED",
+          ratesQuality: {
+            engagementRate: "DERIVED",
+            clickThroughRate: "UNAVAILABLE",
+          },
         };
       } else if (isYouTube) {
         summary.byPlatform.youtube++;
@@ -148,6 +152,10 @@ export async function runEngagementQualityBackfill(options?: {
           saves: "UNAVAILABLE",
           clicks: "UNAVAILABLE",
           reach: "DERIVED",
+          ratesQuality: {
+            engagementRate: "DERIVED",
+            clickThroughRate: "UNAVAILABLE",
+          },
         };
       } else {
         summary.byPlatform.fallback++;
@@ -160,6 +168,10 @@ export async function runEngagementQualityBackfill(options?: {
           saves: "DERIVED",
           clicks: "UNAVAILABLE",
           reach: "DERIVED",
+          ratesQuality: {
+            engagementRate: "DERIVED",
+            clickThroughRate: "UNAVAILABLE",
+          },
         };
       }
 
@@ -172,7 +184,9 @@ export async function runEngagementQualityBackfill(options?: {
         currentQuality.likes === targetQuality.likes &&
         currentQuality.comments === targetQuality.comments &&
         currentQuality.shares === targetQuality.shares &&
-        currentQuality.clicks === targetQuality.clicks;
+        currentQuality.clicks === targetQuality.clicks &&
+        currentQuality.ratesQuality?.engagementRate === targetQuality.ratesQuality?.engagementRate &&
+        currentQuality.ratesQuality?.clickThroughRate === targetQuality.ratesQuality?.clickThroughRate;
 
       if (isAlreadyUpToDate) {
         summary.skipped++;

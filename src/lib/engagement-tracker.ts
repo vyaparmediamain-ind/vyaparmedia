@@ -27,6 +27,11 @@ export interface MetricWithQuality {
   quality: MetricQuality;
 }
 
+export interface RatesQuality {
+  engagementRate: MetricQuality;
+  clickThroughRate: MetricQuality;
+}
+
 export interface SnapshotMetricsQuality {
   views: MetricQuality;
   likes: MetricQuality;
@@ -35,6 +40,7 @@ export interface SnapshotMetricsQuality {
   saves: MetricQuality;
   clicks: MetricQuality;
   reach: MetricQuality;
+  ratesQuality?: RatesQuality;
 }
 
 export interface EngagementMetrics {
@@ -192,6 +198,17 @@ async function fetchRealYouTubeMetrics(postUrl: string): Promise<EngagementMetri
       const er = viewsMetric.value > 0 ? (totalEngagements / viewsMetric.value) * 100 : 0;
       const ctr = viewsMetric.value > 0 ? (clicksMetric.value / viewsMetric.value) * 100 : 0;
 
+      const erQuality: MetricQuality =
+        viewsMetric.quality === "API" &&
+        likesMetric.quality === "API" &&
+        commentsMetric.quality === "API" &&
+        sharesMetric.quality === "API" &&
+        savesMetric.quality === "API"
+          ? "API"
+          : "DERIVED";
+      const ctrQuality: MetricQuality =
+        clicksMetric.quality === "UNAVAILABLE" ? "UNAVAILABLE" : viewsMetric.quality === "API" ? "API" : "DERIVED";
+
       return {
         views: viewsMetric.value,
         likes: likesMetric.value,
@@ -210,6 +227,10 @@ async function fetchRealYouTubeMetrics(postUrl: string): Promise<EngagementMetri
           saves: savesMetric.quality,
           clicks: clicksMetric.quality,
           reach: reachMetric.quality,
+          ratesQuality: {
+            engagementRate: erQuality,
+            clickThroughRate: ctrQuality,
+          },
         },
       };
     }
@@ -272,6 +293,15 @@ async function fetchRealInstagramMetrics(postUrl: string, userId: string): Promi
         const er = viewsMetric.value > 0 ? (totalEngagements / viewsMetric.value) * 100 : 0;
         const ctr = viewsMetric.value > 0 ? (clicksMetric.value / viewsMetric.value) * 100 : 0;
 
+        const erQuality: MetricQuality =
+          viewsMetric.quality === "API" &&
+          sharesMetric.quality === "API" &&
+          savesMetric.quality === "API"
+            ? "API"
+            : "DERIVED";
+        const ctrQuality: MetricQuality =
+          clicksMetric.quality === "UNAVAILABLE" ? "UNAVAILABLE" : viewsMetric.quality === "API" ? "API" : "DERIVED";
+
         return {
           views: viewsMetric.value,
           likes,
@@ -290,6 +320,10 @@ async function fetchRealInstagramMetrics(postUrl: string, userId: string): Promi
             saves: savesMetric.quality,
             clicks: clicksMetric.quality,
             reach: reachMetric.quality,
+            ratesQuality: {
+              engagementRate: erQuality,
+              clickThroughRate: ctrQuality,
+            },
           },
         };
       }
@@ -386,6 +420,10 @@ export async function captureEngagement(
       saves: "UNAVAILABLE",
       clicks: "UNAVAILABLE",
       reach: "DERIVED",
+      ratesQuality: {
+        engagementRate: "DERIVED",
+        clickThroughRate: "UNAVAILABLE",
+      },
     };
 
     // Headline metric rule: isEstimated is true if headline views are not API-sourced
@@ -474,6 +512,10 @@ export function estimateMetrics(
       saves: "DERIVED",
       clicks: "UNAVAILABLE",
       reach: "DERIVED",
+      ratesQuality: {
+        engagementRate: "DERIVED",
+        clickThroughRate: "UNAVAILABLE",
+      },
     },
   };
 }

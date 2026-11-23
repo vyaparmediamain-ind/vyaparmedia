@@ -870,7 +870,7 @@ export default function InfluencerProfileClient({
                         </span>
                       </div>
                       <p className="text-[11px] text-muted-foreground mt-0.5">
-                        {formatNumber(profile.instagramFollowers)} Followers • {profile.instagramEngagementRate || 4.2}% Eng.{profile.followerAuthenticityScore ? ` • ${profile.followerAuthenticityScore}% Quality` : ""}
+                        {formatNumber(profile.instagramFollowers)} Followers • {profile.instagramEngagementRate != null ? `${profile.instagramEngagementRate}%` : "—"} Eng.{profile.followerAuthenticityScore ? ` • ${profile.followerAuthenticityScore}% Quality` : ""}
                       </p>
                     </div>
                   </div>

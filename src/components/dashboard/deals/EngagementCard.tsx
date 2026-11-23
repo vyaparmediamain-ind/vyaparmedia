@@ -54,31 +54,39 @@ export function EngagementCard({
       )}
 
       <div className="flex gap-2 flex-wrap mb-4">
-        {engagement.snapshots.map((snap: EngagementSnapshot & { interval?: string; isEstimated?: boolean }, idx: number) => (
-          <div
-            key={`${snap.timestamp || snap.interval || "snapshot"}_${idx}`}
-            className="p-3 bg-muted/40 rounded-xl border border-border text-xs flex-1 min-w-[140px]"
-          >
-            <div className="text-muted-foreground mb-2 font-bold text-[11px] uppercase tracking-wider">
-              {snap.interval || "Interval"}{snap.isEstimated ? " (est.)" : ""}
+        {engagement.snapshots.map((snap: EngagementSnapshot & { interval?: string; isEstimated?: boolean }, idx: number) => {
+          const erQuality = snap.metricsQuality?.ratesQuality?.engagementRate ?? snap.metrics.metricsQuality?.ratesQuality?.engagementRate;
+          const isErEstimated = erQuality ? erQuality !== "API" : snap.isEstimated;
+          const erDisplay = snap.metrics.engagementRate != null
+            ? `${(snap.metrics.engagementRate / (snap.metrics.engagementRate > 100 ? 100 : 1)).toFixed(2)}%${isErEstimated ? " (est.)" : ""}`
+            : "—";
+
+          return (
+            <div
+              key={`${snap.timestamp || snap.interval || "snapshot"}_${idx}`}
+              className="p-3 bg-muted/40 rounded-xl border border-border text-xs flex-1 min-w-[140px]"
+            >
+              <div className="text-muted-foreground mb-2 font-bold text-[11px] uppercase tracking-wider">
+                {snap.interval || "Interval"}{snap.isEstimated ? " (est.)" : ""}
+              </div>
+              <div className="grid gap-1">
+                {([
+                  ["Views", formatNumber(snap.metrics.views)],
+                  ["Likes", formatNumber(snap.metrics.likes)],
+                  ["Comments", formatNumber(snap.metrics.comments)],
+                  ["Shares", formatNumber(snap.metrics.shares || 0)],
+                  ["Reach", formatNumber(snap.metrics.estimatedReach ?? 0)],
+                  ["Eng. Rate", erDisplay],
+                ] as [string, string][]).map(([label, val]) => (
+                  <div key={label} className="flex justify-between text-xs">
+                    <span className="text-muted-foreground">{label}</span>
+                    <span className="font-semibold text-foreground tabular-nums font-mono">{val}</span>
+                  </div>
+                ))}
+              </div>
             </div>
-            <div className="grid gap-1">
-              {([
-                ["Views", formatNumber(snap.metrics.views)],
-                ["Likes", formatNumber(snap.metrics.likes)],
-                ["Comments", formatNumber(snap.metrics.comments)],
-                ["Shares", formatNumber(snap.metrics.shares || 0)],
-                ["Reach", formatNumber(snap.metrics.estimatedReach ?? 0)],
-                ["Eng. Rate", `${(snap.metrics.engagementRate ?? 0).toFixed(2)}%`],
-              ] as [string, string][]).map(([label, val]) => (
-                <div key={label} className="flex justify-between text-xs">
-                  <span className="text-muted-foreground">{label}</span>
-                  <span className="font-semibold text-foreground tabular-nums font-mono">{val}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       {isClient && roi && (

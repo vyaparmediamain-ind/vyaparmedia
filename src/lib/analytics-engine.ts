@@ -536,7 +536,10 @@ macro.reduce(
           amountPaise: d.amount,
           deliveredViews: views,
           isVerifiedViews: isVerified,
-          engagementRateBps: Math.round((d.influencer?.instagramEngagementRate || 3) * 100),
+          engagementRateBps:
+            d.influencer?.instagramEngagementRate != null
+              ? Math.round(d.influencer.instagramEngagementRate * 100)
+              : null,
           completedAt: null,
         });
       }

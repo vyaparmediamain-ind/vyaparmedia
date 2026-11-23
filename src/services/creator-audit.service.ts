@@ -230,7 +230,7 @@ export class CreatorAuditService {
       // Evaluate historical post metrics
       const metrics = evaluateHistoricalPostMetrics(
         posts,
-        profile.instagramFollowers || 1000,
+        profile.instagramFollowers ?? 0,
         sampleComments,
       );
 

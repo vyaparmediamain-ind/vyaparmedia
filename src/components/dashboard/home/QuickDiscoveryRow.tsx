@@ -148,7 +148,7 @@ export function QuickDiscoveryRow({ isBrand, isInfluencer }: Readonly<QuickDisco
                   <div className="text-sm font-semibold text-muted-foreground">
                     Starting at{" "}
                     <span className="font-mono tabular-nums text-foreground font-extrabold">
-                      {formatCurrency(inf.startingRatePaise || 300000)}
+                      {formatCurrency(inf.startingRatePaise ?? 0)}
                     </span>
                   </div>
                 </div>

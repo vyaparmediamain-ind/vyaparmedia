@@ -35,7 +35,7 @@ export interface BrandDealCreatorInput {
   amountPaise: number;
   deliveredViews: number;
   isVerifiedViews: boolean;
-  engagementRateBps?: number | undefined;
+  engagementRateBps?: number | null | undefined;
   completedAt?: Date | null | undefined;
 }
 
@@ -176,7 +176,9 @@ export function rankBestCreatorsByRoi(
     item.totalSpendPaise += d.amountPaise;
     item.deliveredViews += d.deliveredViews;
     if (d.isVerifiedViews) item.verifiedViewsCount += 1;
-    item.totalEngagementBps += d.engagementRateBps || 300;
+    if (d.engagementRateBps != null) {
+      item.totalEngagementBps += d.engagementRateBps;
+    }
   }
 
   const creators = Array.from(creatorMap.values()).map((c) => {
@@ -189,7 +191,7 @@ export function rankBestCreatorsByRoi(
     const efficiencyPts = Math.min(50, Math.round(efficiencyRatio * 35));
 
     // 2. Engagement factor: up to 30 pts
-    const avgEngagementBps = c.dealsCount > 0 ? c.totalEngagementBps / c.dealsCount : 300;
+    const avgEngagementBps = c.dealsCount > 0 ? c.totalEngagementBps / c.dealsCount : 0;
     const engagementPts = Math.min(30, Math.round((avgEngagementBps / 600) * 30));
 
     // 3. Repeat reliability: 20 pts for multiple successful deliveries
