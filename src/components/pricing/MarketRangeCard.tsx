@@ -251,13 +251,12 @@ export function MarketRangeCard({
       {/* Non-blocking Quoted Rate Hint */}
       {comparison && (
         <div
-          className={`p-2.5 rounded-lg mb-3 text-xs flex items-start gap-2 ${
-            comparison.position === "WITHIN"
-              ? "bg-verified-muted/60 text-verified border border-verified-border"
-              : comparison.position === "ABOVE"
+          className={`p-2.5 rounded-lg mb-3 text-xs flex items-start gap-2 ${comparison.position === "WITHIN"
+            ? "bg-verified-muted/60 text-verified border border-verified-border"
+            : comparison.position === "ABOVE"
               ? "bg-pending/10 text-pending border border-pending/20"
               : "bg-muted text-foreground border border-border"
-          }`}
+            }`}
           role="status"
         >
           <Info className="h-4 w-4 shrink-0 mt-0.5" aria-hidden="true" />
@@ -266,8 +265,8 @@ export function MarketRangeCard({
               {comparison.position === "WITHIN"
                 ? "Within estimated market range"
                 : comparison.position === "ABOVE"
-                ? `${comparison.deltaPercent}% above benchmark midpoint`
-                : `${Math.abs(comparison.deltaPercent)}% below benchmark midpoint`}
+                  ? `${comparison.deltaPercent}% above benchmark midpoint`
+                  : `${Math.abs(comparison.deltaPercent)}% below benchmark midpoint`}
             </p>
             <p className="text-[11px] opacity-90 mt-0.5">{comparison.statusMessage}</p>
           </div>
@@ -403,11 +402,9 @@ export function MarketRangeBadge({
   );
 }
 
-
-
 /**
- * Comparison Pill for Applications Review & Pitch Comparison
- * Renders quoted rate vs estimated market range using compareQuotedRate.
+ * Comparison Pill for Applications, Proposals & Rate cards
+ * Compares a quoted/proposed rate in paise with the estimated market range [minPaise, maxPaise].
  */
 export function MarketRangeComparisonPill({
   quotedPaise,
@@ -415,59 +412,59 @@ export function MarketRangeComparisonPill({
   maxPaise,
   className = "",
 }: {
-  readonly quotedPaise: number;
+  readonly quotedPaise?: number | null | undefined;
   readonly minPaise?: number | null | undefined;
   readonly maxPaise?: number | null | undefined;
   readonly className?: string | undefined;
 }) {
-  if (!minPaise || !maxPaise || minPaise <= 0 || maxPaise <= 0 || !quotedPaise || quotedPaise <= 0) {
+  if (
+    quotedPaise === undefined ||
+    quotedPaise === null ||
+    quotedPaise <= 0 ||
+    minPaise === undefined ||
+    minPaise === null ||
+    minPaise <= 0 ||
+    maxPaise === undefined ||
+    maxPaise === null ||
+    maxPaise <= 0 ||
+    minPaise > maxPaise
+  ) {
     return null;
   }
 
-  const mockOutput: FairPriceOutput = {
-    basePaise: Math.round((minPaise + maxPaise) / 2),
-    minPaise,
-    maxPaise,
-    expectedViews: 0,
-    viewStatistic: "MEDIAN",
-    confidence: "MEDIUM",
-    dataQuality: "ESTIMATED",
-    flags: [],
-    explanation: [],
-    engineVersion: "1.0.0",
-  };
+  const midpoint = Math.round((minPaise + maxPaise) / 2);
 
-  const comparison = compareQuotedRate(quotedPaise, mockOutput);
-
-  if (comparison.position === "WITHIN") {
+  if (quotedPaise >= minPaise && quotedPaise <= maxPaise) {
     return (
       <span
-        className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-semibold bg-verified-muted text-verified border border-verified-border shrink-0 ${className}`}
-        title={comparison.statusMessage}
+        className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-verified-muted text-verified border border-verified-border shrink-0 whitespace-nowrap ${className}`}
+        title="Quoted rate is within estimated market range"
       >
-        <ShieldCheck className="w-3 h-3" aria-hidden="true" />
         <span>Within estimated market range</span>
       </span>
     );
   }
 
-  if (comparison.position === "ABOVE") {
+  if (quotedPaise > maxPaise) {
+    const deltaPercent = Math.round(((quotedPaise - midpoint) / midpoint) * 100);
     return (
       <span
-        className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-semibold bg-pending/10 text-pending border border-pending/20 shrink-0 ${className}`}
-        title={comparison.statusMessage}
+        className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-pending/10 text-pending border border-pending/20 shrink-0 whitespace-nowrap ${className}`}
+        title={`${deltaPercent}% above benchmark midpoint`}
       >
-        <span>+{comparison.deltaPercent}% above benchmark</span>
+        <span>+{deltaPercent}% above benchmark</span>
       </span>
     );
   }
 
+  const deltaPercent = Math.round(((midpoint - quotedPaise) / midpoint) * 100);
   return (
     <span
-      className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-semibold bg-muted text-muted-foreground border border-border shrink-0 ${className}`}
-      title={comparison.statusMessage}
+      className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-muted text-muted-foreground border border-border shrink-0 whitespace-nowrap ${className}`}
+      title={`${deltaPercent}% below benchmark midpoint`}
     >
-      <span>{comparison.deltaPercent}% below benchmark</span>
+      <span>{deltaPercent}% below benchmark</span>
     </span>
   );
 }
+
