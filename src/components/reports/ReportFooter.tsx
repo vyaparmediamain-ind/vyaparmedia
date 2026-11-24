@@ -29,7 +29,7 @@ export function ReportFooter({
     const origin =
       typeof window !== "undefined" && window.location.origin
         ? window.location.origin
-        : PLATFORM_CONFIG.website || "https://vyaparmedia.in";
+        : PLATFORM_CONFIG.website || "https://vyaparmedia.vercel.app";
 
     const verifyUrl = `${origin}/verify-report/${reportId}`;
 
@@ -47,7 +47,7 @@ export function ReportFooter({
       });
   }, [reportId, showQrCode]);
 
-  const website = PLATFORM_CONFIG.website ? PLATFORM_CONFIG.website.replace(/^https?:\/\//, "") : "vyaparmedia.in";
+  const website = PLATFORM_CONFIG.website ? PLATFORM_CONFIG.website.replace(/^https?:\/\//, "") : "vyaparmedia.vercel.app";
   const email = PLATFORM_CONFIG.email || "support@vyaparmedia.in";
 
   return (

@@ -151,8 +151,8 @@ export default async function RootLayout({
                 {
                   "@type": "Organization",
                   "@id": `${siteUrl}/#organization`,
-                  "name": "VyaparMedia",
-                  "legalName": "Krishna Mangal (Proprietorship) t/a VyaparMedia",
+                  "name": "Vyapar Media",
+                  "legalName": "Krishna Mangal",
                   "url": siteUrl,
                   "logo": {
                     "@type": "ImageObject",
@@ -166,7 +166,7 @@ export default async function RootLayout({
                   "vatID": "09KPIPM8835Q1ZK",
                   "address": {
                     "@type": "PostalAddress",
-                    "streetAddress": "46/90 F-1, Laxmi Nagar, Jagdeeshpura",
+                    "streetAddress": "46/90 F-1, Laxmi Nagar, Jagdeeshpura, Behind Prabhu Talkies",
                     "addressLocality": "Agra",
                     "addressRegion": "Uttar Pradesh",
                     "postalCode": "282002",

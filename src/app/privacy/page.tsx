@@ -238,10 +238,10 @@ export default function PrivacyPage() {
           For privacy inquiries, data rectification, or formal grievances under Indian Information Technology regulations, contact our Data Protection and Grievance Cell:
         </p>
         <div className="rounded-xl border border-border bg-card p-5 mt-4 space-y-2 text-sm not-prose">
-          <p><strong className="text-foreground">Corporate Entity:</strong> {PLATFORM_CONFIG.legalName}</p>
-          <p><strong className="text-foreground">Corporate Identity Number (CIN):</strong> <span className="font-mono">{PLATFORM_CONFIG.cin}</span></p>
+          <p><strong className="text-foreground">Corporate Entity:</strong> {PLATFORM_CONFIG.legalName} ({PLATFORM_CONFIG.tradeName})</p>
+          <p><strong className="text-foreground">Business Constitution &amp; PAN:</strong> <span className="font-mono">{PLATFORM_CONFIG.constitution} &bull; {PLATFORM_CONFIG.pan}</span></p>
           <p><strong className="text-foreground">Registered Office Address:</strong> {PLATFORM_CONFIG.address}</p>
-          <p><strong className="text-foreground">Designated Officer:</strong> Grievance Redressal &amp; Data Protection Officer</p>
+          <p><strong className="text-foreground">Designated Grievance Officer:</strong> {PLATFORM_CONFIG.grievanceOfficer}</p>
           <p>
             <strong className="text-foreground">Privacy Desk:</strong>{" "}
             <a href={`mailto:${PLATFORM_CONFIG.privacyEmail}`} className="text-primary font-bold hover:underline">

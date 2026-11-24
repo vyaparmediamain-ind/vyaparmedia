@@ -90,10 +90,10 @@ export function LegalLayout({ title, lastUpdated, description, sections, childre
                       </div>
                       <div>
                         <span className="text-2xs uppercase tracking-wider font-semibold text-muted-foreground block mb-0.5">
-                          Corporate Identity Number (CIN)
+                          Business Constitution &amp; PAN
                         </span>
                         <span className="font-mono font-bold text-foreground block">
-                          {PLATFORM_CONFIG.cin}
+                          {PLATFORM_CONFIG.constitution} &bull; {PLATFORM_CONFIG.pan}
                         </span>
                       </div>
                       <div>
@@ -109,7 +109,7 @@ export function LegalLayout({ title, lastUpdated, description, sections, childre
                           Tax &amp; Service Classification
                         </span>
                         <span className="font-mono text-muted-foreground block">
-                          GSTIN: {PLATFORM_CONFIG.gstin} | SAC: 998365
+                          GSTIN: {PLATFORM_CONFIG.gstin} {PLATFORM_CONFIG.udyam ? `| MSME: ${PLATFORM_CONFIG.udyam}` : ""} | SAC: 998365
                         </span>
                       </div>
                     </div>

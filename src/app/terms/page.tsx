@@ -201,12 +201,12 @@ export default function TermsPage() {
       {/* 12 */}
       <LegalSection id="contact" heading="12. Corporate Disclosure, Legal Inquiries &amp; Jurisdiction">
         <p>
-          These Terms of Service are governed by and construed under the laws of the Republic of India. Any legal proceedings or dispute claims shall be subject to the exclusive jurisdiction of the competent courts in Bengaluru, Karnataka, India.
+          These Terms of Service are governed by and construed under the laws of the Republic of India. Any legal proceedings or dispute claims shall be subject to the exclusive jurisdiction of the competent courts in Agra, Uttar Pradesh, India.
         </p>
         <div className="rounded-xl border border-border bg-card p-5 mt-4 space-y-2 text-sm not-prose">
-          <p><strong className="text-foreground">Corporate Entity:</strong> {PLATFORM_CONFIG.legalName}</p>
-          <p><strong className="text-foreground">Corporate Identity Number (CIN):</strong> <span className="font-mono">{PLATFORM_CONFIG.cin}</span></p>
-          <p><strong className="text-foreground">GSTIN:</strong> <span className="font-mono">{PLATFORM_CONFIG.gstin}</span> (SAC Code: 998365)</p>
+          <p><strong className="text-foreground">Corporate Entity:</strong> {PLATFORM_CONFIG.legalName} ({PLATFORM_CONFIG.tradeName})</p>
+          <p><strong className="text-foreground">Business Constitution &amp; PAN:</strong> <span className="font-mono">{PLATFORM_CONFIG.constitution} &bull; {PLATFORM_CONFIG.pan}</span></p>
+          <p><strong className="text-foreground">GSTIN &amp; MSME:</strong> <span className="font-mono">{PLATFORM_CONFIG.gstin} {PLATFORM_CONFIG.udyam ? `&bull; ${PLATFORM_CONFIG.udyam}` : ""}</span> (SAC Code: 998365)</p>
           <p><strong className="text-foreground">Registered Office:</strong> {PLATFORM_CONFIG.address}</p>
           <p className="pt-1">
             <strong className="text-foreground">Formal Legal Notices:</strong>{" "}

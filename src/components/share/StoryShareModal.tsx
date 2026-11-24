@@ -72,7 +72,7 @@ export default function StoryShareModal({
   const [activeProgress, setActiveProgress] = useState(0);
 
   // Compute URLs
-  const origin = typeof window !== "undefined" ? window.location.origin : "https://vyaparmedia.in";
+  const origin = typeof window !== "undefined" ? window.location.origin : "https://vyaparmedia.vercel.app";
   const profileSlug =
     profile?.username ||
     (isBrand
@@ -537,9 +537,9 @@ export default function StoryShareModal({
     const stickerText =
       activeTab === "profile"
         ? isBrand
-          ? `🔗 vyaparmedia.in/brand/${profileSlug}`
-          : `🔗 vyaparmedia.in/creator/${profileSlug}`
-        : `🔗 vyaparmedia.in/register?ref=${referralCode || ""}`;
+          ? `🔗 vyaparmedia.vercel.app/brand/${profileSlug}`
+          : `🔗 vyaparmedia.vercel.app/creator/${profileSlug}`
+        : `🔗 vyaparmedia.vercel.app/register?ref=${referralCode || ""}`;
 
     ctx.fillText(
       stickerText.length > 38 ? stickerText.slice(0, 37) + "…" : stickerText,

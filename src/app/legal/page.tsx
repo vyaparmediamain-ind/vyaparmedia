@@ -202,10 +202,10 @@ export default function LegalPage() {
                       Corporate Entity
                     </span>
                     <span className="text-sm font-bold text-foreground block">
-                      {PLATFORM_CONFIG.legalName}
+                      {PLATFORM_CONFIG.legalName} ({PLATFORM_CONFIG.tradeName})
                     </span>
                     <span className="text-xs font-mono text-muted-foreground block">
-                      CIN: {PLATFORM_CONFIG.cin}
+                      {PLATFORM_CONFIG.constitution} &bull; PAN: {PLATFORM_CONFIG.pan} &bull; GSTIN: {PLATFORM_CONFIG.gstin}
                     </span>
                   </div>
 

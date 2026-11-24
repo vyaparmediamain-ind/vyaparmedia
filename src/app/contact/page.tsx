@@ -239,10 +239,13 @@ export default function ContactPage() {
               </div>
               <div>
                 <span className="text-2xs uppercase tracking-wider font-semibold text-muted-foreground block mb-1">
-                  Corporate Identity Number (CIN)
+                  Constitution &amp; PAN
                 </span>
                 <span className="font-mono font-bold text-foreground block">
-                  {PLATFORM_CONFIG.cin}
+                  {PLATFORM_CONFIG.constitution} &bull; {PLATFORM_CONFIG.pan}
+                </span>
+                <span className="text-2xs text-muted-foreground block mt-0.5">
+                  Phone: {PLATFORM_CONFIG.phone}
                 </span>
               </div>
               <div>
