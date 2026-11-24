@@ -330,7 +330,7 @@ export default function InfluencerDashboard({
             <div className="flex items-center justify-between gap-2 mt-2">
               <div className="flex items-center gap-1.5">
                 <span className="inline-flex items-center text-[11px] font-bold px-1.5 py-0.5 rounded-md bg-verified-muted text-verified">
-                  ★ {overview.averageRating ? overview.averageRating.toFixed(1) : "5.0"}
+                  ★ {overview.averageRating ? overview.averageRating.toFixed(1) : "—"}
                 </span>
                 <span className="text-xs text-muted-foreground">Avg Rating</span>
               </div>
@@ -785,13 +785,13 @@ export default function InfluencerDashboard({
               <div className="flex items-center justify-between text-xs font-semibold mb-1.5">
                 <span className="text-muted-foreground">Brand Satisfaction Rating</span>
                 <span className="text-foreground font-bold tabular-nums">
-                  {overview.averageRating ? overview.averageRating.toFixed(1) : "5.0"} / 5.0
+                  {overview.averageRating ? `${overview.averageRating.toFixed(1)} / 5.0` : "Unrated"}
                 </span>
               </div>
               <div className="w-full bg-muted rounded-full h-2 overflow-hidden">
                 <div
                   className="bg-pending h-full rounded-full"
-                  style={{ width: `${((overview.averageRating || 5) / 5) * 100}%` }}
+                  style={{ width: `${overview.averageRating ? (overview.averageRating / 5) * 100 : 0}%` }}
                 />
               </div>
             </div>

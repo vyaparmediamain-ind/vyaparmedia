@@ -129,6 +129,7 @@ export class CampaignRoiService {
             influencer: {
               select: {
                 id: true,
+                user: { select: { trustScore: true } },
                 displayName: true,
                 instagramHandle: true,
                 instagramFollowers: true,
@@ -291,7 +292,7 @@ export class CampaignRoiService {
           isEstimated: snapshot?.isEstimated ?? true,
           metricsQuality: snapshot?.metricsQuality ?? null,
           snapshotInterval: snapshot?.interval ?? "pending",
-          drsScore: deal.influencer.followerAuthenticityScore || 75,
+          drsScore: deal.influencer.user?.trustScore ?? 600,
           isOnTime,
           approvalCycleHours,
         };

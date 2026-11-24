@@ -184,13 +184,13 @@ export default function AuthenticityAuditCard({
                   Follower Authenticity (CAS)
                 </span>
                 <span className="font-bold text-foreground font-mono">
-                  {audit?.followerAuthenticityScore ?? 85} / 100
+                  {audit?.followerAuthenticityScore != null ? `${audit.followerAuthenticityScore} / 100` : "Unmeasured"}
                 </span>
               </div>
               <div className="w-full h-2 rounded-full bg-muted overflow-hidden">
                 <div
                   className="h-full rounded-full bg-emerald-500 transition-all duration-500"
-                  style={{ width: `${audit?.followerAuthenticityScore ?? 85}%` }}
+                  style={{ width: `${audit?.followerAuthenticityScore ?? 0}%` }}
                 />
               </div>
               <span className="text-[10px] text-muted-foreground block">
@@ -206,13 +206,13 @@ export default function AuthenticityAuditCard({
                   Content Quality (CQS)
                 </span>
                 <span className="font-bold text-foreground font-mono">
-                  {audit?.contentQualityScore ?? 80} / 100
+                  {audit?.contentQualityScore != null ? `${audit.contentQualityScore} / 100` : "Unmeasured"}
                 </span>
               </div>
               <div className="w-full h-2 rounded-full bg-muted overflow-hidden">
                 <div
                   className="h-full rounded-full bg-escrow transition-all duration-500"
-                  style={{ width: `${audit?.contentQualityScore ?? 80}%` }}
+                  style={{ width: `${audit?.contentQualityScore ?? 0}%` }}
                 />
               </div>
               <span className="text-[10px] text-muted-foreground block">

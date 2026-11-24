@@ -235,5 +235,30 @@ describe("PUSH-01: Web Push Security, SSRF Allowlist & Resilience", () => {
       expect(sanitizedMessage).not.toMatch(/\b\d{9,18}\b/); // No Bank Account
     });
   });
+
+  describe("5. Push Subscription Key Security Guard", () => {
+    it("does not expose hardcoded dummy VAPID keys when NEXT_PUBLIC_VAPID_PUBLIC_KEY is unset", async () => {
+      const prevKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
+      delete process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
+
+      const authModule = await import("@/lib/auth");
+      vi.spyOn(authModule, "auth").mockResolvedValueOnce({
+        user: { id: "user_test_vapid", role: "CREATOR" },
+      } as any);
+
+      const { NextRequest } = await import("next/server");
+      const { GET } = await import("@/app/api/notifications/push-subscription/route");
+      const req = new NextRequest("http://localhost:3000/api/notifications/push-subscription");
+      const res = await GET(req as any);
+      const json = await res.json();
+
+      expect(json.supported).toBe(false);
+      expect(json.vapidPublicKey).toBeNull();
+
+      if (prevKey) {
+        process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY = prevKey;
+      }
+    });
+  });
 });
 

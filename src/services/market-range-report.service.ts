@@ -59,7 +59,7 @@ export interface MarketRangeReportData {
     primaryPlatform: string;
     followers: number;
     followerTier: CreatorFollowerTier;
-    authenticityScore: number;
+    authenticityScore: number | null;
     drsScore: number;
   };
   marketRange: {
@@ -116,7 +116,7 @@ export class MarketRangeReportService {
     const profile = await prisma.influencerProfile.findUnique({
       where: { id: influencerId },
       include: {
-        user: { select: { email: true } },
+        user: { select: { email: true, trustScore: true } },
       },
     });
 
@@ -292,10 +292,12 @@ export class MarketRangeReportService {
       (profile.instagramFollowers || 0) >= (profile.youtubeSubscribers || 0)
         ? "INSTAGRAM"
         : "YOUTUBE";
-    const drsScore = Math.min(
-      900,
-      Math.max(300, Math.round((profile.followerAuthenticityScore ?? 75) * 8.5))
-    );
+    const drsSnapshot = await prisma.drsScoreSnapshot.findFirst({
+      where: { userId: profile.userId },
+      orderBy: { createdAt: "desc" },
+      select: { finalScore: true },
+    });
+    const drsScore = drsSnapshot?.finalScore ?? profile.user?.trustScore ?? 600;
 
     return {
       creator: {
@@ -308,7 +310,7 @@ export class MarketRangeReportService {
         primaryPlatform,
         followers,
         followerTier,
-        authenticityScore: profile.followerAuthenticityScore ?? 75,
+        authenticityScore: profile.followerAuthenticityScore ?? null,
         drsScore,
       },
       marketRange: {

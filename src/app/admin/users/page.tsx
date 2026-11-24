@@ -598,24 +598,35 @@ function UserRow({ user, onBan, onUnban, onAwardBadge, onInspectFraud, onConfigu
           <div>
             <div className="flex items-center gap-1.5">
               <span className="font-black text-sm text-foreground">
-                {user.influencerProfile.followerAuthenticityScore ?? 75}
+                {user.influencerProfile.followerAuthenticityScore != null
+                  ? user.influencerProfile.followerAuthenticityScore
+                  : "—"}
               </span>
-              <span className="text-[10px] text-muted-foreground">/100</span>
+              {user.influencerProfile.followerAuthenticityScore != null && (
+                <span className="text-[10px] text-muted-foreground">/100</span>
+              )}
               <Badge
                 variant={
-                  user.status === "FLAGGED" || (user.influencerProfile.followerAuthenticityScore ?? 75) < 40
+                  user.status === "FLAGGED" ||
+                  (user.influencerProfile.followerAuthenticityScore != null &&
+                    user.influencerProfile.followerAuthenticityScore < 40)
                     ? "danger"
-                    : (user.influencerProfile.followerAuthenticityScore ?? 75) < 60
+                    : user.influencerProfile.followerAuthenticityScore != null &&
+                      user.influencerProfile.followerAuthenticityScore < 60
                     ? "warning"
-                    : "success"
+                    : user.influencerProfile.followerAuthenticityScore != null
+                    ? "success"
+                    : "ghost"
                 }
                 className="text-[9px] uppercase px-1.5 py-0"
               >
                 {user.status === "FLAGGED"
                   ? "FLAGGED"
-                  : (user.influencerProfile.followerAuthenticityScore ?? 75) < 40
+                  : user.influencerProfile.followerAuthenticityScore == null
+                  ? "UNAUDITED"
+                  : user.influencerProfile.followerAuthenticityScore < 40
                   ? "HIGH RISK"
-                  : (user.influencerProfile.followerAuthenticityScore ?? 75) < 60
+                  : user.influencerProfile.followerAuthenticityScore < 60
                   ? "MED RISK"
                   : "GENUINE"}
               </Badge>
@@ -976,19 +987,30 @@ export default function AdminUsersPage() {
                       <span className="block text-[10px] uppercase font-bold text-muted-foreground">Authenticity</span>
                       <div className="flex items-center gap-1.5 mt-0.5">
                         <span className="font-black text-sm text-foreground">
-                          {user.influencerProfile.followerAuthenticityScore ?? 75}/100
+                          {user.influencerProfile.followerAuthenticityScore != null
+                            ? `${user.influencerProfile.followerAuthenticityScore}/100`
+                            : "—"}
                         </span>
                         <Badge
                           variant={
-                            user.status === "FLAGGED" || (user.influencerProfile.followerAuthenticityScore ?? 75) < 40
+                            user.status === "FLAGGED" ||
+                            (user.influencerProfile.followerAuthenticityScore != null &&
+                              user.influencerProfile.followerAuthenticityScore < 40)
                               ? "danger"
-                              : (user.influencerProfile.followerAuthenticityScore ?? 75) < 60
+                              : user.influencerProfile.followerAuthenticityScore != null &&
+                                user.influencerProfile.followerAuthenticityScore < 60
                               ? "warning"
-                              : "success"
+                              : user.influencerProfile.followerAuthenticityScore != null
+                              ? "success"
+                              : "ghost"
                           }
                           className="text-[9px] uppercase px-1.5 py-0"
                         >
-                          {user.status === "FLAGGED" ? "FLAGGED" : "AUDITED"}
+                          {user.status === "FLAGGED"
+                            ? "FLAGGED"
+                            : user.influencerProfile.followerAuthenticityScore != null
+                            ? "AUDITED"
+                            : "UNAUDITED"}
                         </Badge>
                       </div>
                     </div>

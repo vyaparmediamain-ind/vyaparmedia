@@ -66,7 +66,13 @@ export const GET = apiWrapper(async () => {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const vapidPublicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || "BEl62iUYgUivxIkv69yViEuiBIa-Ib9-SkvMeAtA3LFgDzkrxZJjSPOsnf3Tap2jVOUMYDqq50F_ckqWAATLu48";
+  const vapidPublicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
+  if (!vapidPublicKey) {
+    return NextResponse.json({
+      vapidPublicKey: null,
+      supported: false,
+    });
+  }
 
   return NextResponse.json({
     vapidPublicKey,

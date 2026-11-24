@@ -173,12 +173,16 @@ export function BrandProfileClient({
             </span>
             <div className="mt-1 flex items-baseline gap-1.5">
               <span className="text-xl sm:text-2xl font-black text-foreground">
-                {brand.averageRating > 0 ? brand.averageRating.toFixed(1) : "5.0"}
+                {brand.totalReviews > 0 && brand.averageRating > 0 ? brand.averageRating.toFixed(1) : "—"}
               </span>
-              <span className="text-xs font-semibold text-muted-foreground">★</span>
+              {brand.totalReviews > 0 && brand.averageRating > 0 && (
+                <span className="text-xs font-semibold text-muted-foreground">★</span>
+              )}
             </div>
             <span className="text-[10px] font-medium text-muted-foreground block mt-1">
-              {brand.totalReviews} verified creator review{brand.totalReviews === 1 ? "" : "s"}
+              {brand.totalReviews > 0
+                ? `${brand.totalReviews} verified creator review${brand.totalReviews === 1 ? "" : "s"}`
+                : "No reviews yet"}
             </span>
           </div>
 

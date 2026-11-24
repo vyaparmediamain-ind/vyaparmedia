@@ -113,7 +113,7 @@ export function MarketRangeReportView({ data, className = "" }: Props) {
                 Authenticity
               </span>
               <strong className="text-sm font-bold text-foreground">
-                {creator.authenticityScore}/100
+                {creator.authenticityScore != null ? `${creator.authenticityScore}/100` : "Unmeasured"}
               </strong>
             </div>
             <div className="text-right border-l border-border pl-4">
