@@ -379,8 +379,22 @@ async function handleCronProtection(
 * Enterprise Middleware Logic
 */
 export default auth(async (req) => {
-const { pathname } = req.nextUrl;
-const session = req.auth;
+  const { pathname } = req.nextUrl;
+
+  // Ultra-fast path for static files, fonts, and assets - zero middleware latency
+  if (
+    pathname.startsWith("/_next") ||
+    pathname.startsWith("/static") ||
+    pathname === "/favicon.ico" ||
+    pathname === "/robots.txt" ||
+    pathname === "/sitemap.xml" ||
+    pathname === "/llms.txt" ||
+    /\.(?:svg|png|jpg|jpeg|gif|webp|ico|webmanifest|xml|txt|woff2?|ttf|eot)$/i.test(pathname)
+  ) {
+    return NextResponse.next();
+  }
+
+  const session = req.auth;
 
 const redirectTo = (targetPath: string) => {
   return new URL(targetPath, req.nextUrl.origin);
@@ -477,5 +491,7 @@ return response;
 });
 
 export const config = {
-  matcher: ["/((?!api/auth/(?:session|providers|csrf|callback)|api/payments/webhook|api/webhooks/razorpay/process|api/jobs|api/metrics|_next/static|_next/image|favicon.ico).*)"],
+  matcher: [
+    "/((?!api/auth/(?:session|providers|csrf|callback)|api/payments/webhook|api/webhooks/razorpay/process|api/jobs|api/metrics|_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|webmanifest|xml|txt|woff2?|ttf|eot)).*)",
+  ],
 };
