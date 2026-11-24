@@ -73,7 +73,7 @@ describe("Fair Price Service & API Authorization (P11 REL-08)", () => {
     it("allows ADMIN to evaluate any influencer", async () => {
       await expect(
         FairPriceService.verifyRelationshipOrOwnership(
-          { id: "admin_user_1", userType: "ADMIN" },
+          { id: "admin_user_1", userType: "ADMIN", isActiveAdmin: true },
           mockInfluencerId
         )
       ).resolves.toBeUndefined();

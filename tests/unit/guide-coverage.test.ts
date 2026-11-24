@@ -191,4 +191,16 @@ describe("Guide Coverage & In-Product Contextual Help Guards (Prompt G05)", () =
     expect(content).not.toContain("SCOUT_GUIDES");
     expect(content).toContain("useGuideDrawer");
   });
+
+  it("client bundle security guard: ensures client components GuideDrawer and GuideCenterClient never import ADMIN_GUIDES", () => {
+    const drawerFilePath = path.resolve(process.cwd(), "src/components/guides/GuideDrawer.tsx");
+    const drawerContent = fs.readFileSync(drawerFilePath, "utf8");
+    expect(drawerContent).not.toContain("ADMIN_GUIDES");
+    expect(drawerContent).not.toContain('import { ALL_GUIDES');
+
+    const centerFilePath = path.resolve(process.cwd(), "src/app/dashboard/guide/GuideCenterClient.tsx");
+    const centerContent = fs.readFileSync(centerFilePath, "utf8");
+    expect(centerContent).not.toContain("ADMIN_GUIDES");
+    expect(centerContent).not.toContain('import { ALL_GUIDES');
+  });
 });

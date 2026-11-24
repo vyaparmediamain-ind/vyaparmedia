@@ -197,8 +197,8 @@ export class CampaignRoiService {
             instagramEngagementRate: deal.influencer.instagramEngagementRate,
             youtubeSubscribers: deal.influencer.youtubeSubscribers,
             youtubeEngagementRate: deal.influencer.youtubeEngagementRate,
-            followerAuthenticityScore: deal.influencer.followerAuthenticityScore || 75,
-            averageRating: deal.influencer.averageRating || 450,
+            followerAuthenticityScore: deal.influencer.followerAuthenticityScore ?? null,
+            averageRating: deal.influencer.averageRating ?? null,
           },
           deal.amount
         );
@@ -206,9 +206,12 @@ export class CampaignRoiService {
         const predictedViews = matchResult.matchBreakdown.estimatedViews;
         const predictedCpvPaise = Math.round(deal.amount / Math.max(1, predictedViews));
         const predictedRoiScore = matchResult.matchBreakdown.roiScore;
-        const actualRoiScore = MatchingService.calculateRoiScore(cpvPaise, categoryBaselineCpvPaise);
+        const actualRoiScore =
+          views > 0 && cpvPaise > 0
+            ? MatchingService.calculateRoiScore(cpvPaise, categoryBaselineCpvPaise)
+            : 0;
 
-        // Accuracy metric (0-100%)
+        // Accuracy metric (0-100%): Never fabricate 100% when views are missing/unreported
         const accuracyPercentage =
           predictedViews > 0 && views > 0
             ? Math.round(
@@ -220,15 +223,19 @@ export class CampaignRoiService {
                   )
                 )
               )
-            : 100;
+            : 0;
 
-        const viewsVariance = views - predictedViews;
+        const viewsVariance = views > 0 ? views - predictedViews : -predictedViews;
         const viewsVariancePercent =
-          predictedViews > 0
+          views > 0 && predictedViews > 0
             ? Number((((views - predictedViews) / predictedViews) * 100).toFixed(1))
+            : predictedViews > 0
+            ? -100
             : 0;
         const deliveryMultiplier =
-          predictedViews > 0 ? Number((views / predictedViews).toFixed(2)) : 1;
+          predictedViews > 0 && views > 0
+            ? Number((views / predictedViews).toFixed(2))
+            : 0;
 
         // On-Time Delivery Check
         let isOnTime = true;

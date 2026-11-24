@@ -16,7 +16,7 @@ import {
 } from "lucide-react";
 import { Drawer } from "@/components/ui/Drawer";
 import { useGuideDrawer } from "./GuideDrawerContext";
-import { ALL_GUIDES, getGuideById } from "@/content/guides";
+import { PUBLIC_GUIDES, getPublicGuideById } from "@/content/guides/public";
 import { getGuidesForRoute } from "@/lib/guides/route-matcher";
 import { GuideFeedback } from "./GuideFeedback";
 import { GuidePrintModal } from "./GuidePrintModal";
@@ -36,33 +36,48 @@ export function GuideDrawer() {
   const [searchQuery, setSearchQuery] = useState("");
   const [currentGuideId, setCurrentGuideId] = useState<string | null>(selectedGuideId);
   const [isPrintModalOpen, setIsPrintModalOpen] = useState(false);
+  const [adminGuides, setAdminGuides] = useState<Guide[]>([]);
 
-  // Sync selectedGuideId from context
+  // Fetch admin-only guides on-demand only for authorized active admins
   useEffect(() => {
-    if (selectedGuideId) {
-      setCurrentGuideId(selectedGuideId);
+    let isCancelled = false;
+    if (userRole === "ADMIN" && isOpen && adminGuides.length === 0) {
+      fetch("/api/admin/guides")
+        .then((res) => (res.ok ? res.json() : null))
+        .then((data) => {
+          if (!isCancelled && data?.data?.guides && Array.isArray(data.data.guides)) {
+            setAdminGuides(data.data.guides);
+          }
+        })
+        .catch(() => {
+          // Non-blocking fallback; public guides remain active
+        });
     }
-  }, [selectedGuideId]);
+    return () => {
+      isCancelled = true;
+    };
+  }, [userRole, isOpen, adminGuides.length]);
 
-  // When drawer closes, reset search
-  useEffect(() => {
-    if (!isOpen) {
-      setSearchQuery("");
+  // Combined available guides
+  const allAvailableGuides = useMemo(() => {
+    if (userRole === "ADMIN" && adminGuides.length > 0) {
+      return [...PUBLIC_GUIDES, ...adminGuides];
     }
-  }, [isOpen]);
+    return PUBLIC_GUIDES;
+  }, [userRole, adminGuides]);
 
   // Resolve active guide object
   const activeGuide: Guide | undefined = useMemo(() => {
     if (!currentGuideId) return undefined;
-    return getGuideById(currentGuideId);
-  }, [currentGuideId]);
+    return allAvailableGuides.find((g) => g.id === currentGuideId) || getPublicGuideById(currentGuideId);
+  }, [currentGuideId, allAvailableGuides]);
 
   // Guides available to current user role
   const roleFilteredGuides = useMemo(() => {
-    if (!userRole) return ALL_GUIDES;
-    if (userRole === "ADMIN") return ALL_GUIDES;
-    return ALL_GUIDES.filter((g) => g.roles.includes(userRole));
-  }, [userRole]);
+    if (!userRole) return PUBLIC_GUIDES;
+    if (userRole === "ADMIN") return allAvailableGuides;
+    return PUBLIC_GUIDES.filter((g) => g.roles.includes(userRole));
+  }, [userRole, allAvailableGuides]);
 
   // Guides matching current route
   const routeSuggestedGuides = useMemo(() => {

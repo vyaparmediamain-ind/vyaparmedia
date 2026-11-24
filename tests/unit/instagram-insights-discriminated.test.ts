@@ -86,6 +86,13 @@ describe("Instagram Insights Error Classifier & Discriminated Union", () => {
       const classification = classifyInstagramInsightsError(500, { error: { message: "Internal Server Error", code: 2 } });
       expect(classification.status).toBe("ERROR");
     });
+
+    it("classifies code 100 with non-metric parameter errors as ERROR instead of METRIC_UNSUPPORTED", () => {
+      const classification = classifyInstagramInsightsError(400, {
+        error: { message: "Invalid parameter syntax", code: 100 },
+      });
+      expect(classification.status).toBe("ERROR");
+    });
   });
 
   describe("2. getMediaInsights Discriminated Union Return", () => {

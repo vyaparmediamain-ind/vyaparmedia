@@ -59,8 +59,8 @@ export interface EstimateExpectedViewsInput {
   platform?: ReachPlatform | string | null;
   contentType?: ReachContentType | string | null;
   followers: number;
-  authenticityScore: number; // 0 - 100
-  engagementRateBps: number; // basis points (e.g. 250 = 2.50%)
+  authenticityScore?: number | undefined; // 0 - 100
+  engagementRateBps?: number | undefined; // basis points (e.g. 250 = 2.50%)
   history?: ReachHistoryItem[] | null;
   customBands?: Partial<
     Record<
@@ -164,8 +164,20 @@ function calculateErMultiplier(engagementRateBps: number): number {
  */
 export function estimateExpectedViews(input: EstimateExpectedViewsInput): ExpectedViewsResult {
   const safeFollowers = Math.max(0, input.followers || 0);
-  const safeAuthenticity = Math.max(10, Math.min(100, Number.isFinite(input.authenticityScore) ? input.authenticityScore : 75));
-  const safeErBps = Math.max(0, input.engagementRateBps || 0);
+  const safeAuthenticity = Math.max(
+    10,
+    Math.min(
+      100,
+      typeof input.authenticityScore === "number" && Number.isFinite(input.authenticityScore)
+        ? input.authenticityScore
+        : 75
+    )
+  );
+  // Default to 250 bps (benchmark 2.50%) when ER is unmeasured/missing, yielding neutral 1.0x multiplier
+  const safeErBps =
+    typeof input.engagementRateBps === "number" && Number.isFinite(input.engagementRateBps)
+      ? Math.max(0, input.engagementRateBps)
+      : 250;
 
   // 1. Calculate authentic audience base
   const authenticFollowers = safeFollowers * (safeAuthenticity / 100);

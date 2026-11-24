@@ -17,10 +17,10 @@ import {
 import { PageContainer } from "@/components/ui/PageContainer";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { Button } from "@/components/ui/Button";
-import { ALL_GUIDES } from "@/content/guides";
+import { PUBLIC_GUIDES } from "@/content/guides/public";
 import { GuideFeedback } from "@/components/guides/GuideFeedback";
 import { GuidePrintModal } from "@/components/guides/GuidePrintModal";
-import type { GuideUserType } from "@/lib/guides/schema";
+import type { Guide, GuideUserType } from "@/lib/guides/schema";
 
 const LANGUAGE_STORAGE_KEY = "vm_guide_language_pref";
 
@@ -45,12 +45,14 @@ interface GuideCenterClientProps {
   readonly userRole: GuideUserType;
   readonly isAdminView?: boolean;
   readonly disabledFeatureFlags?: string[];
+  readonly initialGuides?: Guide[];
 }
 
 export function GuideCenterClient({
   userRole,
   isAdminView = false,
   disabledFeatureFlags = [],
+  initialGuides,
 }: Readonly<GuideCenterClientProps>) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -85,7 +87,8 @@ export function GuideCenterClient({
 
   // 1. Role Filtering & Feature Flag filtering
   const availableGuides = useMemo(() => {
-    return ALL_GUIDES.filter((guide) => {
+    const guidesPool = initialGuides || PUBLIC_GUIDES;
+    return guidesPool.filter((guide) => {
       // Role safety:
       if (!isAdminView && !guide.roles.includes(userRole)) {
         return false;
@@ -96,7 +99,7 @@ export function GuideCenterClient({
       }
       return true;
     });
-  }, [userRole, isAdminView, disabledFeatureFlags]);
+  }, [userRole, isAdminView, disabledFeatureFlags, initialGuides]);
 
   // Read deep link ?g=<id>
   const guideParam = searchParams.get("g");

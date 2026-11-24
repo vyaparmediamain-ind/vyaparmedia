@@ -25,7 +25,7 @@ export const ADMIN_GUIDES: Guide[] = [
           hinglish: "System Health aur Queue Depth Dekhein",
         },
         body: {
-          en: "Review the top status cards showing active background BullMQ workers, dead-letter queues (DLQ), and Redis cache health.",
+          en: "Review the top status cards showing active background QStash workers, dead-letter queues (DLQ), and Redis cache health.",
           hinglish: "Status cards se active workers, dead letter queues aur Redis cache ki health check karein.",
         },
         uiRef: "SystemHealthBar",
@@ -911,7 +911,7 @@ export const ADMIN_GUIDES: Guide[] = [
           hinglish: "Queue Bulk Dispatch aur Health Monitor Karein",
         },
         body: {
-          en: "Trigger background delivery via BullMQ. Monitor bounce rates and unsubscribe requests in real time.",
+          en: "Trigger background delivery via QStash. Monitor bounce rates and unsubscribe requests in real time.",
           hinglish: "Background queue me dispatch karein aur bounce rate ya delivery rate track karein.",
         },
         uiRef: "DispatchProgressBar",
@@ -1412,7 +1412,7 @@ export const ADMIN_GUIDES: Guide[] = [
     ],
     rules: [
       {
-        en: "[DESTRUCTIVE ACTION: DLQ Message Replay] What this does: Re-injects failed dead-letter queue payloads into the active BullMQ message broker queue for retry processing. Who is notified: System audit log records staff member ID, timestamp, job payload hash, and replay batch size. Can it be undone: NO. Once dispatched into the active worker queue, consumer jobs execute immediately and mutate downstream database states.",
+        en: "[DESTRUCTIVE ACTION: DLQ Message Replay] What this does: Re-injects failed dead-letter queue payloads into the active QStash message broker queue for retry processing. Who is notified: System audit log records staff member ID, timestamp, job payload hash, and replay batch size. Can it be undone: NO. Once dispatched into the active worker queue, consumer jobs execute immediately and mutate downstream database states.",
         hinglish: "[DESTRUCTIVE ACTION: DLQ Message Replay] What this does: Dead letter queue ke failed background jobs ko wapas active processing pipeline me inject karta hai. Who is notified: Audit log me staff ID, timestamp aur job payload hash record hota hai. Can it be undone: NAHI. Active queue me jane ke baad worker process job ko execute kar dega.",
       },
       {

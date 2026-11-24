@@ -780,8 +780,8 @@ export class MatchingService {
       instagramEngagementRate: number | null;
       youtubeSubscribers: number | null;
       youtubeEngagementRate: number | null;
-      followerAuthenticityScore: number;
-      averageRating: number; // 0-500 scale
+      followerAuthenticityScore?: number | null;
+      averageRating?: number | null; // 0-500 scale
       xp?: number;
     },
     proposedRatePaise?: number,
@@ -820,14 +820,21 @@ export class MatchingService {
         engagementScore = 50;
       }
 
-      const authenticityScore = Number.isFinite(influencer.followerAuthenticityScore)
-        ? influencer.followerAuthenticityScore
-        : 70;
+      const authenticityScore: number =
+        typeof influencer.followerAuthenticityScore === "number" &&
+        Number.isFinite(influencer.followerAuthenticityScore)
+          ? influencer.followerAuthenticityScore
+          : 70;
+
+      const safeRating: number =
+        typeof influencer.averageRating === "number" && Number.isFinite(influencer.averageRating)
+          ? influencer.averageRating
+          : 450;
 
       const qualityScore =
         options?.preloadedQualityScore !== undefined
           ? options.preloadedQualityScore
-          : await this.calculateQualityScore(influencer.id, influencer.averageRating);
+          : await this.calculateQualityScore(influencer.id, safeRating);
 
       const activeCostPaise = proposedRatePaise ?? campaign.perInfluencerBudget ?? 200000;
       const igFollowers = influencer.instagramFollowers || 0;

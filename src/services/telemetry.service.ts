@@ -247,7 +247,11 @@ export class TelemetryService {
 
     // 6. Compute sessionKey = HMAC(dailySalt, clientTabId) with daily rotation in Asia/Kolkata
     const rawTabId = input.tabId || input.sessionHash || "unknown_tab";
-    const serverSecret = process.env.TELEMETRY_DAILY_SALT || process.env.NEXTAUTH_SECRET || "vm_telemetry_default_salt";
+    const serverSecret =
+      process.env.TELEMETRY_DAILY_SALT_SECRET ||
+      process.env.TELEMETRY_DAILY_SALT ||
+      process.env.NEXTAUTH_SECRET ||
+      "vm_telemetry_default_salt";
     const nowClock = opts?.clock ?? new Date();
     // Bucket day in Asia/Kolkata
     const dateStr = nowClock.toLocaleDateString("en-CA", { timeZone: "Asia/Kolkata" }); // YYYY-MM-DD

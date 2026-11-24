@@ -38,6 +38,7 @@ describe("Market Range Report Service & Standard Compliance (Report Standard v3)
   const mockAdminUser = {
     id: "user_admin_super",
     userType: "ADMIN",
+    isActiveAdmin: true,
     name: "Platform Auditor",
     email: "auditor@vyaparmedia.in",
   };

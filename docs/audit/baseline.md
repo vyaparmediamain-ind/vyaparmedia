@@ -13,10 +13,10 @@ This baseline establishes a machine-verified audit of the VyaparMedia production
 
 | Audit Pillar | Total Targets | Verified / Pass | Gaps / Flags | Primary Artifact |
 | :--- | :---: | :---: | :---: | :--- |
-| **Route Manifest** | 217 (154 API + 63 Pages) | 100% Valid AST | 0 unhandled routes | [`docs/audit/routes.json`](file:///c:/Decisional-main/vyaparmedia/docs/audit/routes.json) |
-| **Client-Route Connections** | 77 Client Call Sites | 76 Matched | 1 SWR Virtual Key (`/api/discovery-feed`), 0 Method Mismatches | [`docs/audit/connections.json`](file:///c:/Decisional-main/vyaparmedia/docs/audit/connections.json) |
-| **Test Matrix Coverage** | 631 Modules | 235 Covered (37.2%) | 396 Gaps across components/routes | [`docs/audit/tests.json`](file:///c:/Decisional-main/vyaparmedia/docs/audit/tests.json) |
-| **Fallbacks & Code Smells** | 731 Source Files | 759 Catch Blocks | 0 Empty catches, 196 Log-only, 474 Metric Defaults | [`docs/audit/fallbacks.json`](file:///c:/Decisional-main/vyaparmedia/docs/audit/fallbacks.json) |
+| **Route Manifest** | 217 (154 API + 63 Pages) | 100% Valid AST | 0 unhandled routes | [`docs/audit/routes.json`](docs/audit/routes.json) |
+| **Client-Route Connections** | 77 Client Call Sites | 76 Matched | 1 SWR Virtual Key (`/api/discovery-feed`), 0 Method Mismatches | [`docs/audit/connections.json`](docs/audit/connections.json) |
+| **Test Matrix Coverage** | 631 Modules | 235 Covered (37.2%) | 396 Gaps across components/routes | [`docs/audit/tests.json`](docs/audit/tests.json) |
+| **Fallbacks & Code Smells** | 731 Source Files | 759 Catch Blocks | 0 Empty catches, 196 Log-only, 474 Metric Defaults | [`docs/audit/fallbacks.json`](docs/audit/fallbacks.json) |
 | **DLQ Endpoints** | 4 Replay Endpoints | 0 / 4 Exist in API | **4 Dead DLQ Endpoints** (404 on admin replay) | Section 4 Below |
 
 ---
@@ -59,20 +59,20 @@ Audited via `scripts/audit/connections.ts`. Resolves `fetch(...)`, `useSWR(...)`
 
 #### 1. `/api/discovery-feed` (`DiscoveryFeed.tsx` ~L150)
 - **Status**: **VIRTUAL SWR CACHE KEY (Harmless / Expected)**
-- **Caller**: [src/components/discovery/DiscoveryFeed.tsx](file:///c:/Decisional-main/vyaparmedia/src/components/discovery/DiscoveryFeed.tsx#L150)
+- **Caller**: [src/components/discovery/DiscoveryFeed.tsx](src/components/discovery/DiscoveryFeed.tsx#L150)
 - **Finding**: SWR Infinite uses `['/api/discovery-feed', mode, ...]` as a hierarchical cache key. The custom fetcher (`fetchDiscoveryPage`) intercepts the query and calls either `/api/campaigns` or `/api/influencers`.
 - **Verdict**: Not broken. No HTTP call is ever made to `/api/discovery-feed`.
 
 #### 2. `/api/telemetry/event`
 - **Status**: **UNREFERENCED BACKEND ROUTE**
-- **File**: [src/app/api/telemetry/event/route.ts](file:///c:/Decisional-main/vyaparmedia/src/app/api/telemetry/event/route.ts)
-- **Finding**: Route exists with full `apiWrapper`, `PageViewEventInputSchema` validation, and `userRateLimit`. However, frontend client telemetry in [PageViewTracker.tsx](file:///c:/Decisional-main/vyaparmedia/src/components/analytics/PageViewTracker.tsx#L95) dispatches beacon events to `/api/telemetry/track`.
+- **File**: [src/app/api/telemetry/event/route.ts](src/app/api/telemetry/event/route.ts)
+- **Finding**: Route exists with full `apiWrapper`, `PageViewEventInputSchema` validation, and `userRateLimit`. However, frontend client telemetry in [PageViewTracker.tsx](src/components/analytics/PageViewTracker.tsx#L95) dispatches beacon events to `/api/telemetry/track`.
 - **Verdict**: `/api/telemetry/event` is an orphan endpoint. Should be retained as a REST fallback or consolidated into `/api/telemetry/track`.
 
 #### 3. `/api/upload/confirm`
 - **Status**: **UNREFERENCED SECURITY POST-VERIFICATION HOOK**
-- **File**: [src/app/api/upload/confirm/route.ts](file:///c:/Decisional-main/vyaparmedia/src/app/api/upload/confirm/route.ts)
-- **Finding**: Route provides server-side magic-byte and SVG/XSS inspection (`confirmUploadedObject`) for direct S3/R2 presigned uploads. Current client upload components ([ProfileTab.tsx](file:///c:/Decisional-main/vyaparmedia/src/components/dashboard/settings/ProfileTab.tsx#L209)) use direct `/api/upload` multipart stream.
+- **File**: [src/app/api/upload/confirm/route.ts](src/app/api/upload/confirm/route.ts)
+- **Finding**: Route provides server-side magic-byte and SVG/XSS inspection (`confirmUploadedObject`) for direct S3/R2 presigned uploads. Current client upload components ([ProfileTab.tsx](src/components/dashboard/settings/ProfileTab.tsx#L209)) use direct `/api/upload` multipart stream.
 - **Verdict**: Valid enterprise hook for direct client-to-storage architecture. Kept intact for presigned upload workflows.
 
 ---
@@ -84,7 +84,7 @@ A critical reliability audit of `DeadLetterJob` persistence and admin dead-lette
 ### The Problem Architecture
 When operations fail in payment release, dispute refunding, debt distribution, or carrier sync, the backend creates a `DeadLetterJob` record with a designated `endpoint`.
 
-When an admin navigates to `/admin/system` (or calls `POST /api/admin/jobs/dlq`), line 122 of [src/app/api/admin/jobs/dlq/route.ts](file:///c:/Decisional-main/vyaparmedia/src/app/api/admin/jobs/dlq/route.ts#L122) attempts to re-enqueue the job into QStash:
+When an admin navigates to `/admin/system` (or calls `POST /api/admin/jobs/dlq`), line 122 of [src/app/api/admin/jobs/dlq/route.ts](src/app/api/admin/jobs/dlq/route.ts#L122) attempts to re-enqueue the job into QStash:
 ```ts
 const publishOptions = {
   endpoint: deadJob.endpoint,
@@ -100,10 +100,10 @@ QStash delivers the HTTP payload to the application host at `deadJob.endpoint`. 
 
 | # | Dead DLQ Endpoint | Originating Source File | Line | Trigger Event & DLQ Topic | Payload Contents | Replay Status |
 | :-: | :--- | :--- | :-: | :--- | :--- | :-: |
-| **1** | `/api/escrow/release` | [src/services/payment.service.ts](file:///c:/Decisional-main/vyaparmedia/src/services/payment.service.ts#L299) | 299, 343 | `payment.escrow_release_missing_transfer`, `payment.escrow_release_gateway_failed` | `{ dealId, paymentHoldId, transferId, amount }` | **404 NOT FOUND** |
-| **2** | `/api/payments/razorpay/refund` | [src/lib/dispute-mediator/transaction-helpers.ts](file:///c:/Decisional-main/vyaparmedia/src/lib/dispute-mediator/transaction-helpers.ts#L241) | 241 | `dispute.gateway_refund` | `{ dealId, paymentId, amount, refundPercentage }` | **404 NOT FOUND** |
-| **3** | `/api/wallet/reconcile-debt` | [src/lib/wallet-debt.ts](file:///c:/Decisional-main/vyaparmedia/src/lib/wallet-debt.ts#L186) | 186 | `wallet.debt_distribution_gap` | `{ walletId, userId, remainingDebtPaid, debtPaid, dealId }` | **404 NOT FOUND** |
-| **4** | `/api/cron/reconcile-shipments` | [src/services/deal/product.ts](file:///c:/Decisional-main/vyaparmedia/src/services/deal/product.ts#L356) | 356 | `shipping.unbilled_shipment_reconcile` | `{ dealId, brandUserId, awbCode, courierChargePaise }` | **404 NOT FOUND** |
+| **1** | `/api/escrow/release` | [src/services/payment.service.ts](src/services/payment.service.ts#L299) | 299, 343 | `payment.escrow_release_missing_transfer`, `payment.escrow_release_gateway_failed` | `{ dealId, paymentHoldId, transferId, amount }` | **404 NOT FOUND** |
+| **2** | `/api/payments/razorpay/refund` | [src/lib/dispute-mediator/transaction-helpers.ts](src/lib/dispute-mediator/transaction-helpers.ts#L241) | 241 | `dispute.gateway_refund` | `{ dealId, paymentId, amount, refundPercentage }` | **404 NOT FOUND** |
+| **3** | `/api/wallet/reconcile-debt` | [src/lib/wallet-debt.ts](src/lib/wallet-debt.ts#L186) | 186 | `wallet.debt_distribution_gap` | `{ walletId, userId, remainingDebtPaid, debtPaid, dealId }` | **404 NOT FOUND** |
+| **4** | `/api/cron/reconcile-shipments` | [src/services/deal/product.ts](src/services/deal/product.ts#L356) | 356 | `shipping.unbilled_shipment_reconcile` | `{ dealId, brandUserId, awbCode, courierChargePaise }` | **404 NOT FOUND** |
 
 ### Remediation Blueprint for Phase F01
 1. **Option A (Dedicated Internal Handlers)**: Implement minimal, authenticated internal worker route handlers at these 4 paths:
@@ -179,4 +179,4 @@ npm run audit:tests
 npm run audit:fallbacks
 ```
 
-All tooling is strictly validated by fixture tests in [tests/unit/audit-tools.test.ts](file:///c:/Decisional-main/vyaparmedia/tests/unit/audit-tools.test.ts).
+All tooling is strictly validated by fixture tests in [tests/unit/audit-tools.test.ts](tests/unit/audit-tools.test.ts).

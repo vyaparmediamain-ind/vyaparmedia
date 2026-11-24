@@ -120,10 +120,23 @@ async function _handler_POST(req: NextRequest) {
     );
   }
 
-  if (topicDef.isManualOnly) {
+  if (topicDef.isManualOnly || topicDef.maxReplays === 0) {
     return NextResponse.json(
       {
-        error: `Topic "${deadJob.topic}" is marked as manual-only and cannot be replayed automatically.`,
+        error: `Topic "${deadJob.topic}" is marked as manual-only or has maxReplays set to 0. Automated replay is forbidden.`,
+        runbookNote: topicDef.runbookNote,
+      },
+      { status: 400 }
+    );
+  }
+
+  // Strict Max Replays Enforcement (prevent infinite replay loops on money-impacting and system topics)
+  if (deadJob.attempts >= topicDef.maxReplays) {
+    return NextResponse.json(
+      {
+        error: `Topic "${deadJob.topic}" has reached its maximum replay limit of ${topicDef.maxReplays} attempts. Manual intervention or discard required.`,
+        attempts: deadJob.attempts,
+        maxReplays: topicDef.maxReplays,
         runbookNote: topicDef.runbookNote,
       },
       { status: 400 }

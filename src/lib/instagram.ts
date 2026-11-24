@@ -31,7 +31,7 @@ import { isKillSwitchActive, KILL_SWITCH_FEATURES } from "@/lib/kill-switch";
 import { instagramInsightsRequestsTotal } from "@/lib/metrics";
 
 // ─── API Constants ─────────────────────────────────────────────────────────────
-export const IG_API_VERSION = "v21.0";
+export const IG_API_VERSION = "v25.0";
 export const IG_OAUTH_AUTHORIZE_URL = "https://www.instagram.com/oauth/authorize";
 export const IG_OAUTH_TOKEN_URL = "https://api.instagram.com/oauth/access_token";
 export const IG_GRAPH_BASE_URL = `https://graph.instagram.com/${IG_API_VERSION}`;
@@ -92,108 +92,108 @@ export interface InstagramMediaInsightsValues {
 
 export type InstagramMediaInsightsResult =
   | {
-      status: "OK";
-      values: InstagramMediaInsightsValues;
-      quality: "API";
-      views?: number | undefined;
-      reach?: number | undefined;
-      likes?: number | undefined;
-      comments?: number | undefined;
-      shares?: number | undefined;
-      saved?: number | undefined;
-      totalInteractions?: number | undefined;
-    }
+    status: "OK";
+    values: InstagramMediaInsightsValues;
+    quality: "API";
+    views?: number | undefined;
+    reach?: number | undefined;
+    likes?: number | undefined;
+    comments?: number | undefined;
+    shares?: number | undefined;
+    saved?: number | undefined;
+    totalInteractions?: number | undefined;
+  }
   | {
-      status: "EMPTY";
-      quality?: "API" | undefined;
-      views?: undefined;
-      reach?: undefined;
-      likes?: undefined;
-      comments?: undefined;
-      shares?: undefined;
-      saved?: undefined;
-      totalInteractions?: undefined;
-    }
+    status: "EMPTY";
+    quality?: "API" | undefined;
+    views?: undefined;
+    reach?: undefined;
+    likes?: undefined;
+    comments?: undefined;
+    shares?: undefined;
+    saved?: undefined;
+    totalInteractions?: undefined;
+  }
   | {
-      status: "NOT_ENOUGH_VIEWERS";
-      quality?: "API" | undefined;
-      views?: undefined;
-      reach?: undefined;
-      likes?: undefined;
-      comments?: undefined;
-      shares?: undefined;
-      saved?: undefined;
-      totalInteractions?: undefined;
-    }
+    status: "NOT_ENOUGH_VIEWERS";
+    quality?: "API" | undefined;
+    views?: undefined;
+    reach?: undefined;
+    likes?: undefined;
+    comments?: undefined;
+    shares?: undefined;
+    saved?: undefined;
+    totalInteractions?: undefined;
+  }
   | {
-      status: "UNSUPPORTED_MEDIA";
-      quality?: "API" | undefined;
-      views?: undefined;
-      reach?: undefined;
-      likes?: undefined;
-      comments?: undefined;
-      shares?: undefined;
-      saved?: undefined;
-      totalInteractions?: undefined;
-    }
+    status: "UNSUPPORTED_MEDIA";
+    quality?: "API" | undefined;
+    views?: undefined;
+    reach?: undefined;
+    likes?: undefined;
+    comments?: undefined;
+    shares?: undefined;
+    saved?: undefined;
+    totalInteractions?: undefined;
+  }
   | {
-      status: "PERMISSION_DENIED";
-      quality?: undefined;
-      views?: undefined;
-      reach?: undefined;
-      likes?: undefined;
-      comments?: undefined;
-      shares?: undefined;
-      saved?: undefined;
-      totalInteractions?: undefined;
-    }
+    status: "PERMISSION_DENIED";
+    quality?: undefined;
+    views?: undefined;
+    reach?: undefined;
+    likes?: undefined;
+    comments?: undefined;
+    shares?: undefined;
+    saved?: undefined;
+    totalInteractions?: undefined;
+  }
   | {
-      status: "TOKEN_INVALID";
-      quality?: undefined;
-      views?: undefined;
-      reach?: undefined;
-      likes?: undefined;
-      comments?: undefined;
-      shares?: undefined;
-      saved?: undefined;
-      totalInteractions?: undefined;
-    }
+    status: "TOKEN_INVALID";
+    quality?: undefined;
+    views?: undefined;
+    reach?: undefined;
+    likes?: undefined;
+    comments?: undefined;
+    shares?: undefined;
+    saved?: undefined;
+    totalInteractions?: undefined;
+  }
   | {
-      status: "RATE_LIMITED";
-      retryAfterMs?: number | undefined;
-      quality?: undefined;
-      views?: undefined;
-      reach?: undefined;
-      likes?: undefined;
-      comments?: undefined;
-      shares?: undefined;
-      saved?: undefined;
-      totalInteractions?: undefined;
-    }
+    status: "RATE_LIMITED";
+    retryAfterMs?: number | undefined;
+    quality?: undefined;
+    views?: undefined;
+    reach?: undefined;
+    likes?: undefined;
+    comments?: undefined;
+    shares?: undefined;
+    saved?: undefined;
+    totalInteractions?: undefined;
+  }
   | {
-      status: "METRIC_UNSUPPORTED";
-      quality?: undefined;
-      views?: undefined;
-      reach?: undefined;
-      likes?: undefined;
-      comments?: undefined;
-      shares?: undefined;
-      saved?: undefined;
-      totalInteractions?: undefined;
-    }
+    status: "METRIC_UNSUPPORTED";
+    quality?: undefined;
+    views?: undefined;
+    reach?: undefined;
+    likes?: undefined;
+    comments?: undefined;
+    shares?: undefined;
+    saved?: undefined;
+    totalInteractions?: undefined;
+  }
   | {
-      status: "ERROR";
-      message?: string | undefined;
-      code?: number | undefined;
-      quality?: undefined;
-      views?: undefined;
-      reach?: undefined;
-      likes?: undefined;
-      comments?: undefined;
-      shares?: undefined;
-      saved?: undefined;
-      totalInteractions?: undefined;
-    };
+    status: "ERROR";
+    message?: string | undefined;
+    code?: number | undefined;
+    quality?: undefined;
+    views?: undefined;
+    reach?: undefined;
+    likes?: undefined;
+    comments?: undefined;
+    shares?: undefined;
+    saved?: undefined;
+    totalInteractions?: undefined;
+  };
 
 export type InstagramInsightsStatus = InstagramMediaInsightsResult["status"];
 
@@ -212,7 +212,7 @@ export function classifyInstagramInsightsError(
 ): InstagramInsightsErrorClassification {
   const errObj = errorBody && typeof errorBody === "object"
     ? ((errorBody as { error?: { message?: string; code?: number; error_subcode?: number } }).error ||
-       (errorBody as { message?: string; code?: number; error_subcode?: number }))
+      (errorBody as { message?: string; code?: number; error_subcode?: number }))
     : undefined;
 
   const code = typeof errObj?.code === "number" ? errObj.code : undefined;
@@ -257,7 +257,7 @@ export function classifyInstagramInsightsError(
     if (lowerMsg.includes("metric") || lowerMsg.includes("not supported")) {
       return { status: "METRIC_UNSUPPORTED", message, code };
     }
-    return { status: "METRIC_UNSUPPORTED", message, code };
+    return { status: "ERROR", message, code };
   }
 
   return { status: "ERROR", message, code };
@@ -895,10 +895,9 @@ export async function findPostByUrlDetailed(
           if (errData?.error?.message || errData?.error?.code) {
             errorDetails = `${errData.error.message || "Error"} (code: ${errData.error.code ?? res.status})`;
           }
-        } catch (_err: unknown) {
-    // Handled fallback: ignore json parse error
-    void _err;
-  }
+        } catch {
+          // ignore json parse error
+        }
         return { status: "API_ERROR", error: errorDetails };
       }
       const data = await res.json() as {
@@ -1012,10 +1011,9 @@ async function fetchInsightsSingleCall(
     let errorData: unknown = null;
     try {
       errorData = await res.json();
-    } catch (_err: unknown) {
-    // Handled fallback: ignore json parse error
-    void _err;
-  }
+    } catch {
+      // ignore json parse error
+    }
     return { ok: false, status: res.status, errorData };
   }
 
@@ -1199,10 +1197,9 @@ export async function getMediaInsights(
                   }
                 }
               }
-            } catch (_err: unknown) {
-    // Handled fallback: Isolated per-metric failure, continue
-    void _err;
-  }
+            } catch {
+              // Isolated per-metric failure, continue
+            }
           }
         }
       }

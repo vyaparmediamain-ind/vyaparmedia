@@ -230,7 +230,7 @@ describe("INFRA-QSTASH-01: QStash Guard, Anti-Replay, Idempotency & Cron Automat
         deduplicationId: "dedup_456",
         payload: { withdrawalId: "w_456" },
         status: JobStatus.FAILED,
-        attempts: 5,
+        attempts: 1,
         maxRetries: 5,
         errorMessage: "Network timeout",
         errorStack: null,
@@ -271,6 +271,44 @@ describe("INFRA-QSTASH-01: QStash Guard, Anti-Replay, Idempotency & Cron Automat
           data: { status: JobStatus.FAILED },
         }),
       );
+    });
+
+    it("strictly rejects replaying jobs that have reached their topic maxReplays limit", async () => {
+      // payment.escrow_release_missing_transfer has maxReplays: 3
+      vi.spyOn(prisma.deadLetterJob, "findUnique").mockResolvedValue({
+        id: "dlq_money_exceeded",
+        jobId: "msg_123",
+        endpoint: "/api/jobs/consumer",
+        topic: "payment.escrow_release_missing_transfer",
+        category: JobCategory.TIME_CRITICAL,
+        payload: { dealId: "d1", amount: 50000 },
+        errorMessage: "Banking gateway failure",
+        errorStack: "Error...",
+        maxRetries: 3,
+        status: JobStatus.FAILED,
+        attempts: 3, // already at maxReplays (3)
+        deduplicationId: "escrow_dedup_1",
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        lastAttemptAt: new Date(),
+        resolvedAt: null,
+        resolvedBy: null,
+      });
+
+      const adminDlqModule = await import("@/app/api/admin/jobs/dlq/route");
+      const req = new NextRequest("http://localhost:3000/api/admin/jobs/dlq", {
+        method: "POST",
+        body: JSON.stringify({ dlqId: "dlq_money_exceeded", action: "retry", confirm: true }),
+      });
+      (req as unknown as { session: unknown }).session = {
+        user: { id: "admin_user_1", role: "ADMIN", permissions: ["SYSTEM_ADMIN"], isActiveAdmin: true },
+      };
+
+      const res = await adminDlqModule.POST(req);
+      expect(res.status).toBe(400);
+      const data = await res.json();
+      expect(data.error).toContain("maximum replay limit");
+      expect(data.maxReplays).toBe(3);
     });
   });
 

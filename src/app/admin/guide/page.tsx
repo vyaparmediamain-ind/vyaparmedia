@@ -1,5 +1,6 @@
 import React from "react";
 import { GuideCenterClient } from "@/app/dashboard/guide/GuideCenterClient";
+import { ALL_GUIDES } from "@/content/guides";
 
 export const dynamic = "force-dynamic";
 
@@ -14,6 +15,7 @@ export default async function AdminGuidePage() {
       userRole="ADMIN"
       isAdminView={true}
       disabledFeatureFlags={[]}
+      initialGuides={ALL_GUIDES}
     />
   );
 }

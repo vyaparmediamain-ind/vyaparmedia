@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import prisma from "@/lib/db";
 import { redis } from "@/lib/redis";
-import { resolveActor } from "@/lib/authz";
+import { resolveActor, normalizeActor } from "@/lib/authz";
 import { invalidateAdminCache } from "@/lib/admin-auth";
 import { AdminService } from "@/services/admin.service";
 import { FairPriceService } from "@/services/fair-price.service";
@@ -222,10 +222,9 @@ describe("Active Admin Authorization Hardening (IDOR Defense for Demoted/Banned 
     });
   });
 
-  describe("6. Cached-admin invalidation on ban/suspension/demotion", () => {
-    it("calls invalidateAdminCache and deletes the Redis key admin_verified:<userId>", async () => {
+  describe("6. Cache Invalidation on Role/Status Change", () => {
+    it("invalidateAdminCache removes admin_verified key from Redis", async () => {
       const delSpy = vi.spyOn(redis, "del").mockResolvedValue(1);
-
       await invalidateAdminCache(adminId);
 
       expect(delSpy).toHaveBeenCalledWith(`admin_verified:${adminId}`);
@@ -281,6 +280,29 @@ describe("Active Admin Authorization Hardening (IDOR Defense for Demoted/Banned 
 
       // Verify that admin_verified:<userId> was invalidated
       expect(delSpy).toHaveBeenCalledWith(`admin_verified:${adminId}`);
+    });
+  });
+
+  describe("5. normalizeActor JWT Role Hardening", () => {
+    it("never grants isActiveAdmin: true based on role or userType === 'ADMIN' alone", () => {
+      const actorFromJwt = normalizeActor({
+        id: "attacker_user_id",
+        role: "ADMIN",
+        userType: "ADMIN",
+      });
+      expect(actorFromJwt.id).toBe("attacker_user_id");
+      expect(actorFromJwt.role).toBe("ADMIN");
+      expect(actorFromJwt.isActiveAdmin).toBe(false);
+    });
+
+    it("honors explicit isActiveAdmin: true from verified active admin actor", () => {
+      const verifiedActor = normalizeActor({
+        id: "legit_admin_id",
+        role: "ADMIN",
+        userType: "ADMIN",
+        isActiveAdmin: true,
+      });
+      expect(verifiedActor.isActiveAdmin).toBe(true);
     });
   });
 });

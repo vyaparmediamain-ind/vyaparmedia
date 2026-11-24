@@ -5,7 +5,7 @@ import { logger } from "@/lib/logger";
 import { sendBlogNewsletterEmail } from "@/lib/email";
 
 // H10 FIX: maxDuration reduced - actual bulk sending must be batched across
-// multiple calls or moved to a background job queue (BullMQ / Redis).
+// multiple calls or moved to a background job queue (QStash / Redis).
 export const maxDuration = 60;
 
 // Maximum subscribers to email in a single HTTP request.

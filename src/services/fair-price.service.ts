@@ -258,13 +258,23 @@ export class FairPriceService {
         ? influencer.youtubeSubscribers || latestSnapshot?.followers || 0
         : influencer.instagramFollowers || latestSnapshot?.followers || 0;
 
-    const engagementRateBps =
-      latestSnapshot?.engagementRateBps ??
-      (targetPlatform === "YOUTUBE"
-        ? Math.round((influencer.youtubeEngagementRate || 0) * 100)
-        : Math.round((influencer.instagramEngagementRate || 0) * 100));
+    const rawEr =
+      targetPlatform === "YOUTUBE"
+        ? influencer.youtubeEngagementRate
+        : influencer.instagramEngagementRate;
 
-    const authenticityScore = influencer.followerAuthenticityScore ?? 75;
+    const engagementRateBps =
+      latestSnapshot?.engagementRateBps !== undefined && latestSnapshot?.engagementRateBps !== null
+        ? latestSnapshot.engagementRateBps
+        : typeof rawEr === "number" && Number.isFinite(rawEr) && rawEr > 0
+        ? Math.round(rawEr * 100)
+        : undefined;
+
+    const authenticityScore =
+      typeof influencer.followerAuthenticityScore === "number" &&
+      Number.isFinite(influencer.followerAuthenticityScore)
+        ? influencer.followerAuthenticityScore
+        : undefined;
 
     // 3. Query DRS Score
     const drsSnapshot = await prisma.drsScoreSnapshot.findFirst({

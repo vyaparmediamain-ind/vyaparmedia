@@ -421,5 +421,25 @@ describe("Hardened Telemetry Subsystem (F01 Security & Performance Spec)", () =>
 
       expect(durationMs).toBeLessThan(50);
     });
+
+    it("prefers TELEMETRY_DAILY_SALT_SECRET from DEPLOY.md spec when generating session hash", async () => {
+      delete process.env.TELEMETRY_DAILY_SALT;
+      vi.stubEnv("TELEMETRY_DAILY_SALT_SECRET", "prod_spec_secret_salt_value_64_chars");
+      const rpushSpy = vi.spyOn(redis, "rpush").mockResolvedValue(1);
+
+      const payload = {
+        tabId: "tab_salt_spec",
+        pathname: "/pricing",
+        deviceType: "desktop" as const,
+        activeMs: 1000,
+        maxScrollPct: 10,
+      };
+
+      await TelemetryService.enqueueTrackEvent(payload, null, { clock: fixedDate });
+      expect(rpushSpy).toHaveBeenCalled();
+      const enqueued = JSON.parse(rpushSpy.mock.calls[0]![1] as string);
+      expect(enqueued.sessionHash).toBeDefined();
+      expect(enqueued.sessionHash.length).toBe(32);
+    });
   });
 });

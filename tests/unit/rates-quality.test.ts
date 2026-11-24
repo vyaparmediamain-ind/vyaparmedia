@@ -100,4 +100,21 @@ describe("Rates Quality & Nullable ER Propagation", () => {
     expect(firstCreator.creatorId).toBe("cr1");
     expect(firstCreator.roiScore).toBeGreaterThanOrEqual(10);
   });
+
+  it("fair-price engine does NOT flag LOW_ENGAGEMENT or fabricate penalty when ER is unmeasured (undefined)", async () => {
+    const { calculateFairPrice } = await import("@/lib/fair-price-engine");
+    const output = calculateFairPrice({
+      platform: "INSTAGRAM",
+      contentType: "REEL",
+      followers: 50000,
+      categoryBaselineCpvPaise: 35,
+      deliverables: { count: 1 },
+      dataQuality: "ESTIMATED",
+    });
+
+    expect(output.flags).not.toContain("LOW_ENGAGEMENT");
+    expect(output.flags).not.toContain("LOW_AUTHENTICITY");
+    expect(output.minPaise).toBeGreaterThan(0);
+    expect(output.maxPaise).toBeGreaterThan(output.minPaise);
+  });
 });

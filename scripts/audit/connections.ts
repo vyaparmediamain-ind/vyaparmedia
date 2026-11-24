@@ -60,7 +60,6 @@ export interface ConnectionsResult {
 export const EXPLICIT_ROUTE_ALLOW_LIST: Record<string, string> = {
   "/api/health": "Automated infrastructure liveness and readiness probe",
   "/api/metrics": "Prometheus/internal performance metric scraper endpoint",
-  "/api/telemetry/event": "Direct REST fallback ingest for clients without Beacon API support",
   "/api/upload/confirm": "Post-upload magic byte & SVG sanitization verification hook for S3/R2 direct uploads",
   "/api/verify-report/[id]": "Public QR-code verification link for immutable campaign audit certificates",
   "/api/reports/creator/[id]/market-range": "Direct creator/brand market range report endpoint",
@@ -510,12 +509,12 @@ export function analyzeConnections(rootDir?: string): ConnectionsResult {
       endpoint: "/api/telemetry/event",
       status: "UNREFERENCED_ROUTE",
       description:
-        "Route exists at `src/app/api/telemetry/event/route.ts` (accepts PageViewEventInputSchema via POST), but client PageViewTracker.tsx uses `/api/telemetry/track` via navigator.sendBeacon instead.",
+        "Unhardened duplicate endpoint removed. Telemetry ingestion consolidated into hardened `/api/telemetry/track` with 2KB stream cap and strict origin verification.",
       details: {
         routeFile: "src/app/api/telemetry/event/route.ts",
         actualClientEndpoint: "/api/telemetry/track",
         clientCaller: "src/components/analytics/PageViewTracker.tsx",
-        actionableRecommendation: "Retain as fallback REST ingest or consolidate client tracking into /api/telemetry/track.",
+        actionableRecommendation: "Ingest strictly via hardened /api/telemetry/track.",
       },
     },
     "/api/upload/confirm": {

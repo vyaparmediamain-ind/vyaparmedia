@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-11-24T08:18:35.607Z",
+  "generatedAt": "2026-11-24T08:58:57.052Z",
   "totalApiRoutes": 155,
   "totalPageRoutes": 65,
   "apiRoutes": [
@@ -81,6 +81,27 @@
           "requireInfluencer": false,
           "requirePermission": null,
           "rateBucket": "RATE_LIMIT_CONFIGS.REPORTS",
+          "validateSchemas": {},
+          "skipCsrf": false
+        }
+      },
+      "serverActions": []
+    },
+    {
+      "path": "/api/admin/guides",
+      "file": "src/app/api/admin/guides/route.ts",
+      "type": "api",
+      "methods": [
+        "GET"
+      ],
+      "authOptions": {
+        "GET": {
+          "requireAuth": false,
+          "requireAdmin": false,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": "API_DEFAULT",
           "validateSchemas": {},
           "skipCsrf": false
         }
@@ -3301,30 +3322,6 @@
           "rateBucket": null,
           "validateSchemas": {},
           "skipCsrf": false
-        }
-      },
-      "serverActions": []
-    },
-    {
-      "path": "/api/telemetry/event",
-      "file": "src/app/api/telemetry/event/route.ts",
-      "type": "api",
-      "methods": [
-        "POST"
-      ],
-      "authOptions": {
-        "POST": {
-          "requireAuth": false,
-          "requireAdmin": false,
-          "requireBrand": false,
-          "requireInfluencer": false,
-          "requirePermission": null,
-          "rateBucket": "API_DEFAULT",
-          "validateSchemas": {
-            "body": "PageViewEventInputSchema"
-          },
-          "skipCsrf": false,
-          "maxBodySize": 32768
         }
       },
       "serverActions": []

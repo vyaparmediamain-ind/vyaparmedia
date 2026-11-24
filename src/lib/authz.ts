@@ -41,6 +41,8 @@ export function isActor(val: unknown): val is Actor {
     val !== null &&
     "id" in val &&
     typeof (val as Record<string, unknown>).id === "string" &&
+    "role" in val &&
+    typeof (val as Record<string, unknown>).role === "string" &&
     "isActiveAdmin" in val &&
     typeof (val as Record<string, unknown>).isActiveAdmin === "boolean"
   );
@@ -77,10 +79,12 @@ export function normalizeActor(
   }
 
   const role = actorOrUserId.role || actorOrUserId.userType || "USER";
+  // Security Hardening: Never infer isActiveAdmin from raw JWT/session role alone.
+  // Active administrative authority must be verified via requireActiveAdmin or an explicit active admin boolean.
   const activeAdmin =
     actorOrUserId.isActiveAdmin !== undefined
-      ? actorOrUserId.isActiveAdmin
-      : legacyIsAdmin || role === "ADMIN";
+      ? Boolean(actorOrUserId.isActiveAdmin)
+      : legacyIsAdmin;
 
   return {
     id: actorOrUserId.id,
