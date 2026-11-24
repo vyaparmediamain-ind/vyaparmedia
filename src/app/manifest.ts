@@ -5,7 +5,7 @@ const SHORTCUT_ICONS = [{ src: "/icon-192.png", sizes: "192x192", type: "image/p
 export default function manifest(): MetadataRoute.Manifest {
 return {
 id: "/",
-name: "VyaparMedia",
+name: "VyaparMedia — Trusted Creator Commerce",
 short_name: "VyaparMedia",
 description:
 "VyaparMedia — Where Brands & Creators Build Trusted Business. Smart escrow contracts, verified metrics, and zero-risk collaborations.",

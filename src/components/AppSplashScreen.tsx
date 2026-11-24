@@ -4,36 +4,33 @@ import React, { useEffect, useState } from "react";
 import Image from "next/image";
 
 export function AppSplashScreen() {
-  const [mounted, setMounted] = useState(false);
   const [visible, setVisible] = useState(true);
   const [fade, setFade] = useState(false);
 
   useEffect(() => {
-    setMounted(true);
-
-    // Check if splash screen was already displayed during this session
-    const hasSeenSplash = sessionStorage.getItem("vm_app_splash_seen");
-    if (hasSeenSplash) {
+    // Only suppress within the same active tab memory session (not on fresh open/reload)
+    if (typeof window !== "undefined" && (window as unknown as { __vm_splash_active?: boolean }).__vm_splash_active) {
       setVisible(false);
       return;
     }
 
-    // Mark as seen for subsequent internal navigations
-    sessionStorage.setItem("vm_app_splash_seen", "1");
+    if (typeof window !== "undefined") {
+      (window as unknown as { __vm_splash_active?: boolean }).__vm_splash_active = true;
+    }
 
-    // Display splash for 850ms, then start smooth 300ms fade-out
+    // Display splash for 900ms, then start smooth 350ms fade-out
     const timer = setTimeout(() => {
       setFade(true);
       const hideTimer = setTimeout(() => {
         setVisible(false);
       }, 350);
       return () => clearTimeout(hideTimer);
-    }, 850);
+    }, 900);
 
     return () => clearTimeout(timer);
   }, []);
 
-  if (!mounted || !visible) return null;
+  if (!visible) return null;
 
   return (
     <div

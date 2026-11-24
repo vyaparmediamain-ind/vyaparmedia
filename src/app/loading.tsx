@@ -38,6 +38,12 @@ export default function RootLoading() {
           Trusted Creator Commerce
         </p>
 
+        {/* Trust Badge */}
+        <div className="mt-3.5 inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full border border-primary/20 bg-primary/10 text-primary text-[10px] font-bold">
+          <span className="w-1.5 h-1.5 rounded-full bg-primary animate-ping" />
+          <span>Bharat&apos;s #1 Creator Escrow Platform</span>
+        </div>
+
         {/* Mini progress line */}
         <div className="w-28 h-1 bg-muted/60 rounded-full overflow-hidden mt-5">
           <div className="h-full bg-primary rounded-full animate-pulse w-3/4" />
