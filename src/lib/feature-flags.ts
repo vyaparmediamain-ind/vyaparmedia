@@ -4,13 +4,11 @@ import { logger } from "@/lib/logger";
 import { redis } from "@/lib/redis";
 import prisma from "@/lib/db";
 import {
-  FEATURE_FLAGS,
-  FEATURE_METADATA,
   type FeatureFlagKey,
-  type FeatureFlagMetadata,
   type FeatureFlagRecord,
   type FeatureFlagContext,
 } from "./feature-flags-metadata";
+import * as self from "./feature-flags";
 
 export * from "./feature-flags-metadata";
 
@@ -202,7 +200,7 @@ export async function assertFeatureEnabled(
   ctx?: FeatureFlagContext,
   customMessage?: string,
 ): Promise<void> {
-  const enabled = await isFeatureEnabled(key, ctx);
+  const enabled = await (self?.isFeatureEnabled ? self.isFeatureEnabled(key, ctx) : isFeatureEnabled(key, ctx));
   if (!enabled) {
     const msg = customMessage || `This feature is currently not available for your account.`;
     throw AppError.forbidden(msg);

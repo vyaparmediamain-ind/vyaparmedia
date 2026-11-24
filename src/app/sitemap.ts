@@ -156,7 +156,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: "weekly",
       priority: 0.7,
     }));
-  } catch (err: unknown) {
+  } catch (_err: unknown) {
     // If DB is offline during build time, gracefully return staticRoutes
     console.warn("[sitemap] DB query failed during build, falling back to static routes");
   }

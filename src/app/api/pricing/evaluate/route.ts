@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { apiWrapper } from "@/lib/api-wrapper";
-import { AppError } from "@/lib/errors";
 import { assertFeatureEnabled, FEATURE_FLAGS } from "@/lib/feature-flags";
 import { FairPriceService } from "@/services/fair-price.service";
 import { resolveActor } from "@/lib/authz";

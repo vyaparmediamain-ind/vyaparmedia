@@ -357,8 +357,9 @@ export function calculateFairPrice(
   // 4. Quality Multiplier (ER, Authenticity, DRS)
   // ─────────────────────────────────────────────────────────────
   const tierErBenchmark = config.tierErBenchmarksBps[tier];
-  const hasMeasuredEr = input.engagementRateBps !== undefined && Number.isFinite(input.engagementRateBps);
-  const safeErBps = hasMeasuredEr ? Math.max(0, input.engagementRateBps!) : tierErBenchmark;
+  const rawErBps = input.engagementRateBps;
+  const hasMeasuredEr = typeof rawErBps === "number" && Number.isFinite(rawErBps);
+  const safeErBps = hasMeasuredEr ? Math.max(0, rawErBps) : tierErBenchmark;
 
   // Check low engagement flag (only when measured)
   if (hasMeasuredEr && safeErBps < tierErBenchmark * 0.6) {
@@ -370,9 +371,10 @@ export function calculateFairPrice(
   const erFactor = 1.0 + (erRatio - 1.0) * 0.25;
 
   // Authenticity factor: benchmark 75, scaled up to 100 or down to 0
-  const hasMeasuredAuth = typeof input.authenticityScore === "number" && Number.isFinite(input.authenticityScore);
+  const rawAuth = input.authenticityScore;
+  const hasMeasuredAuth = typeof rawAuth === "number" && Number.isFinite(rawAuth);
   const safeAuth = hasMeasuredAuth
-    ? Math.max(0, Math.min(100, input.authenticityScore!))
+    ? Math.max(0, Math.min(100, rawAuth))
     : config.qualityBenchmarks.authenticity;
 
   if (hasMeasuredAuth && safeAuth < 60) {

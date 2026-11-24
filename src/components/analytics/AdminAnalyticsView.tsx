@@ -14,7 +14,6 @@ import {
   Tooltip,
   Legend,
   ResponsiveContainer,
-  Area,
 } from "recharts";
 import { formatCurrency, formatNumber } from "@/lib/utils-client";
 import { TrafficAndBehaviourTab } from "./TrafficAndBehaviourTab";
@@ -36,11 +35,7 @@ import {
   IndianRupee,
   TrendingUp,
   RefreshCw,
-  Sparkles,
-  ShieldAlert,
-  ArrowUpRight,
   Shield,
-  Layers,
 } from "lucide-react";
 import type {
   AdminFunnelStage,

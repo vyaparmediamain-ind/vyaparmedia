@@ -23,7 +23,7 @@ try {
     await AdminService.checkAdminAccess(session.user);
     isAdmin = true;
   }
-} catch (authErr: unknown) {
+} catch (_authErr: unknown) {
   // Caller is not an active admin; proceed with regular user object-level authz
   logger.debug("Dispute detail request evaluated under standard non-admin privileges", {
     userId: session.user.id,
