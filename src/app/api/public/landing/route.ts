@@ -339,7 +339,7 @@ async function _handler_GET() {
     };
 
     try {
-      await redis.setex("cache:public:landing", 60, JSON.stringify(payload));
+      await redis.setex("cache:public:landing", 1800, JSON.stringify(payload));
     } catch (cacheErr: unknown) {
       // Cache fail-open: log and proceed with direct DB query
       logger.warn("Landing page cache retrieval failed, failing open to DB", {
@@ -349,7 +349,7 @@ async function _handler_GET() {
 
     return NextResponse.json(payload, {
       headers: {
-        "Cache-Control": "public, s-maxage=60, stale-while-revalidate=300",
+        "Cache-Control": "public, s-maxage=1800, stale-while-revalidate=86400",
         "X-Cache": "MISS",
       },
     });

@@ -151,6 +151,7 @@ export function UserTypeSelection({ userType, handleUserTypeSelect }: Readonly<U
         Already have an account?{" "}
         <Link
           href="/login"
+          prefetch={true}
           className="auth-footer-link"
         >
           Sign In

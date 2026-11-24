@@ -145,7 +145,7 @@ return (
 <Link
 href={href}
 className={classes}
-{...(prefetch !== undefined ? { prefetch } : {})}
+prefetch={prefetch ?? true}
 {...(target !== undefined ? { target } : {})}
 {...(rel !== undefined ? { rel } : {})}
 {...(id !== undefined ? { id } : {})}

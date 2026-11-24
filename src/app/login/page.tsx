@@ -463,7 +463,7 @@ function LoginContent() {
 
       <p className="auth-footer-text">
         Don&apos;t have an account?{" "}
-        <Link href="/register" className="auth-footer-link">
+        <Link href="/register" prefetch={true} className="auth-footer-link">
           Sign Up
         </Link>
       </p>

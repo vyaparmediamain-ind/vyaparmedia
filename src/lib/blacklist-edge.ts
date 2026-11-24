@@ -9,9 +9,18 @@ import { logger } from "./logger-client";
 let warned = false;
 // In-memory cache of known banned IPs at the edge runtime to maintain protection during transient Redis hiccups
 const edgeKnownBannedIps = new Set<string>();
+// In-memory cache of verified clean IPs at edge runtime to eliminate round-trip Redis latency for normal users
+const edgeKnownCleanIps = new Map<string, number>();
+const CLEAN_IP_TTL_MS = 180_000; // 3 minutes
 
 export async function isIpBannedEdge(ip: string): Promise<boolean> {
-  // Fast path: Check local edge cache first
+  // Fast path 1: Check local edge clean IP cache first (0ms instantaneous lookup)
+  const cleanExpiresAt = edgeKnownCleanIps.get(ip);
+  if (cleanExpiresAt && cleanExpiresAt > Date.now()) {
+    return false;
+  }
+
+  // Fast path 2: Check local edge banned IP cache (0ms)
   if (edgeKnownBannedIps.has(ip)) {
     return true;
   }
@@ -56,6 +65,13 @@ export async function isIpBannedEdge(ip: string): Promise<boolean> {
       if (edgeKnownBannedIps.size > 5000) {
         const first = edgeKnownBannedIps.values().next().value;
         if (first) edgeKnownBannedIps.delete(first);
+      }
+    } else {
+      // Cache clean legitimate IP to prevent repeated external network calls (0ms for 3 minutes)
+      edgeKnownCleanIps.set(ip, Date.now() + CLEAN_IP_TTL_MS);
+      if (edgeKnownCleanIps.size > 10000) {
+        const oldest = edgeKnownCleanIps.keys().next().value;
+        if (oldest) edgeKnownCleanIps.delete(oldest);
       }
     }
     return isBanned;
