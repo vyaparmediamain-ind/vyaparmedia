@@ -22,8 +22,8 @@ const contactChannels = [
     icon: Headphones,
     title: "Creator & Brand Support",
     body: "Assistance with campaigns, deliverables, escrow withdrawals, verification, and dashboard tools.",
-    href: "mailto:support@vyaparmedia.in",
-    label: "support@vyaparmedia.in",
+    href: `mailto:${PLATFORM_CONFIG.email}`,
+    label: PLATFORM_CONFIG.email,
     color: "text-primary",
     bg: "bg-primary/10",
     border: "border-primary/20",
@@ -32,8 +32,8 @@ const contactChannels = [
     icon: Sparkles,
     title: "Agency & Brand Partnerships",
     body: "Enterprise campaign management, D2C brand onboarding, talent agency rosters, and custom escrow SLAs.",
-    href: "mailto:partnerships@vyaparmedia.in",
-    label: "partnerships@vyaparmedia.in",
+    href: `mailto:${PLATFORM_CONFIG.officialEmail || PLATFORM_CONFIG.email}`,
+    label: PLATFORM_CONFIG.officialEmail || PLATFORM_CONFIG.email,
     color: "text-verified",
     bg: "bg-verified/10",
     border: "border-verified-border",
@@ -42,8 +42,8 @@ const contactChannels = [
     icon: Scale,
     title: "Legal, Tax & Compliance",
     body: "GST invoicing queries, Section 194-O TDS certificate requests, contracts, and regulatory filings.",
-    href: "mailto:legal@vyaparmedia.in",
-    label: "legal@vyaparmedia.in",
+    href: `mailto:${PLATFORM_CONFIG.legalEmail}`,
+    label: PLATFORM_CONFIG.legalEmail,
     color: "text-accent-purple",
     bg: "bg-accent-purple/10",
     border: "border-accent-purple/20",
@@ -52,8 +52,8 @@ const contactChannels = [
     icon: ShieldAlert,
     title: "Privacy & Data Grievance",
     body: "Account deletion, personal data audit, consent withdrawal, and DPDP Act grievance escalation.",
-    href: "mailto:privacy@vyaparmedia.in",
-    label: "privacy@vyaparmedia.in",
+    href: `mailto:${PLATFORM_CONFIG.privacyEmail}`,
+    label: PLATFORM_CONFIG.privacyEmail,
     color: "text-warning",
     bg: "bg-warning/10",
     border: "border-warning-border",
@@ -71,7 +71,7 @@ const faqs = [
   },
   {
     q: "Where do I send legal notices or compliance summons?",
-    a: "Please dispatch formal notices to legal@vyaparmedia.in with registered user emails, deal reference numbers, and full corporate signatory details.",
+    a: `Please dispatch formal notices to ${PLATFORM_CONFIG.legalEmail} with registered user emails, deal reference numbers, and full corporate signatory details.`,
   },
 ];
 
@@ -264,7 +264,7 @@ export default function ContactPage() {
                   GSTIN: {PLATFORM_CONFIG.gstin}
                 </span>
                 <span className="text-2xs text-muted-foreground block mt-0.5">
-                  SAC: 998365 (Advertising &amp; Escrow Intermediary)
+                  SAC: {PLATFORM_CONFIG.sacCode} (Advertising &amp; Escrow Intermediary)
                 </span>
               </div>
             </div>

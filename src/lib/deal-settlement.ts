@@ -176,7 +176,7 @@ export async function creditInfluencerPayoutWithTax(
     const supplierStateCode =
       taxCompliance?.gstStateCode ||
       (taxCompliance?.gstin ? getGstinStateCode(taxCompliance.gstin) : null);
-    const operatorStateCode = PLATFORM_CONFIG.gstin ? PLATFORM_CONFIG.gstin.slice(0, 2) : "09";
+    const operatorStateCode = PLATFORM_CONFIG.stateCode || (PLATFORM_CONFIG.gstin ? PLATFORM_CONFIG.gstin.slice(0, 2) : "09");
     gstTcsResult = calculateGstTcs(grossPayout, supplierStateCode, operatorStateCode);
     gstTcsAmount = gstTcsResult.tcsAmountPaise;
   }

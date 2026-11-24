@@ -1,14 +1,15 @@
 import type { MetadataRoute } from "next";
+import { PLATFORM_CONFIG } from "@/lib/platform-config";
 
 const SHORTCUT_ICONS = [{ src: "/icon-192.png", sizes: "192x192", type: "image/png" }];
 
 export default function manifest(): MetadataRoute.Manifest {
 return {
 id: "/",
-name: "VyaparMedia — Trusted Creator Commerce",
-short_name: "VyaparMedia",
+name: `${PLATFORM_CONFIG.name} — Trusted Creator Commerce`,
+short_name: PLATFORM_CONFIG.name,
 description:
-"VyaparMedia — Where Brands & Creators Build Trusted Business. Smart escrow contracts, verified metrics, and zero-risk collaborations.",
+`${PLATFORM_CONFIG.name} — Where Brands & Creators Build Trusted Business. Smart escrow contracts, verified metrics, and zero-risk collaborations.`,
 start_url: "/dashboard",
 scope: "/",
 display: "standalone",

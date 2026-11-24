@@ -151,7 +151,7 @@ export default function RefundPage() {
             <ArrowRight className="w-4 h-4" />
           </Button>
           <a
-            href="mailto:support@vyaparmedia.in"
+            href={`mailto:${PLATFORM_CONFIG.billingEmail || PLATFORM_CONFIG.email}`}
             className="text-xs font-bold text-muted-foreground hover:text-foreground transition-colors"
           >
             Contact Billing Support →

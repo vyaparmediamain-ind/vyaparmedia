@@ -1,8 +1,8 @@
 import { MetadataRoute } from "next";
+import { PLATFORM_CONFIG } from "@/lib/platform-config";
 
 export default function robots(): MetadataRoute.Robots {
-  const rawBaseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://vyaparmedia.vercel.app";
-  const baseUrl = rawBaseUrl.replace(/\/+$/, "");
+  const baseUrl = (PLATFORM_CONFIG.website || process.env.NEXT_PUBLIC_APP_URL || "https://vyaparmedia.vercel.app").replace(/\/+$/, "");
 
   const publicAllowedPaths = [
     "/",

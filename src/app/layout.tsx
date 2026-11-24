@@ -5,6 +5,7 @@ import { Inter, Outfit, Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 import { Providers } from "./providers";
 import { AppSplashScreen } from "@/components/AppSplashScreen";
+import { PLATFORM_CONFIG } from "@/lib/platform-config";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -151,8 +152,8 @@ export default async function RootLayout({
                 {
                   "@type": "Organization",
                   "@id": `${siteUrl}/#organization`,
-                  "name": "Vyapar Media",
-                  "legalName": "Krishna Mangal",
+                  "name": PLATFORM_CONFIG.name,
+                  "legalName": PLATFORM_CONFIG.legalName,
                   "url": siteUrl,
                   "logo": {
                     "@type": "ImageObject",
@@ -162,14 +163,14 @@ export default async function RootLayout({
                   },
                   "description":
                     "India's premier influencer marketplace with smart escrow contracts, verified metrics, and guaranteed payouts.",
-                  "taxID": "09KPIPM8835Q1ZK",
-                  "vatID": "09KPIPM8835Q1ZK",
+                  "taxID": PLATFORM_CONFIG.gstin,
+                  "vatID": PLATFORM_CONFIG.gstin,
                   "address": {
                     "@type": "PostalAddress",
-                    "streetAddress": "46/90 F-1, Laxmi Nagar, Jagdeeshpura, Behind Prabhu Talkies",
-                    "addressLocality": "Agra",
-                    "addressRegion": "Uttar Pradesh",
-                    "postalCode": "282002",
+                    "streetAddress": PLATFORM_CONFIG.address,
+                    "addressLocality": PLATFORM_CONFIG.city,
+                    "addressRegion": PLATFORM_CONFIG.state,
+                    "postalCode": PLATFORM_CONFIG.pincode,
                     "addressCountry": "IN",
                   },
                   "sameAs": [
@@ -180,8 +181,8 @@ export default async function RootLayout({
                   "contactPoint": {
                     "@type": "ContactPoint",
                     "contactType": "Customer Support",
-                    "telephone": "+919639325726",
-                    "email": "support@vyaparmedia.in",
+                    "telephone": PLATFORM_CONFIG.phone,
+                    "email": PLATFORM_CONFIG.email,
                     "availableLanguage": ["English", "Hindi"],
                   },
                 },

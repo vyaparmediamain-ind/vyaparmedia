@@ -109,7 +109,7 @@ export function LegalLayout({ title, lastUpdated, description, sections, childre
                           Tax &amp; Service Classification
                         </span>
                         <span className="font-mono text-muted-foreground block">
-                          GSTIN: {PLATFORM_CONFIG.gstin} {PLATFORM_CONFIG.udyam ? `| MSME: ${PLATFORM_CONFIG.udyam}` : ""} | SAC: 998365
+                          GSTIN: {PLATFORM_CONFIG.gstin} {PLATFORM_CONFIG.udyam ? `| MSME: ${PLATFORM_CONFIG.udyam}` : ""} | SAC: {PLATFORM_CONFIG.sacCode}
                         </span>
                       </div>
                     </div>

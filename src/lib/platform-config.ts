@@ -15,34 +15,44 @@
 * placeholder string so that generated reports are never silently invalid.
 */
 
-function configValue(envKey: string, defaultValue = ""): string {
+export function configValue(envKey: string, defaultValue = ""): string {
   const clientKey = envKey.startsWith("NEXT_PUBLIC_") ? envKey : `NEXT_PUBLIC_${envKey}`;
+  const rawKey = envKey.startsWith("NEXT_PUBLIC_") ? envKey.replace(/^NEXT_PUBLIC_/, "") : envKey;
   const val =
-    (typeof process !== "undefined" && (process.env[clientKey] || process.env[envKey])) ||
+    (typeof process !== "undefined" && (process.env[clientKey] || process.env[rawKey])) ||
     "";
-  if (val?.trim() && !val.includes("XXXX")) return val.trim();
+  if (val && typeof val === "string" && val.trim() && !val.includes("XXXX")) return val.trim();
   return defaultValue;
 }
 
 export const PLATFORM_CONFIG = {
-  name: process.env.NEXT_PUBLIC_PLATFORM_NAME || process.env.PLATFORM_NAME || "Vyapar Media",
-  legalName: process.env.NEXT_PUBLIC_PLATFORM_LEGAL_NAME || process.env.PLATFORM_LEGAL_NAME || "Krishna Mangal",
-  tradeName: process.env.NEXT_PUBLIC_PLATFORM_TRADE_NAME || process.env.PLATFORM_TRADE_NAME || "Vyapar Media",
-  constitution: process.env.NEXT_PUBLIC_PLATFORM_CONSTITUTION || process.env.PLATFORM_CONSTITUTION || "Proprietorship",
-  address: process.env.NEXT_PUBLIC_PLATFORM_ADDRESS || process.env.PLATFORM_ADDRESS || "46/90 F-1, Laxmi Nagar, Jagdeeshpura, Behind Prabhu Talkies, Agra, Uttar Pradesh 282002",
-  gstin: process.env.NEXT_PUBLIC_PLATFORM_GSTIN || process.env.PLATFORM_GSTIN || "09KPIPM8835Q1ZK",
-  udyam: process.env.NEXT_PUBLIC_PLATFORM_UDYAM || process.env.PLATFORM_UDYAM || "UDYAM-UP-01-0220749",
-  email: process.env.NEXT_PUBLIC_PLATFORM_EMAIL || process.env.PLATFORM_EMAIL || "support@vyaparmedia.in",
-  phone: process.env.NEXT_PUBLIC_PLATFORM_PHONE || process.env.PLATFORM_PHONE || "+919639325726",
-  website: process.env.NEXT_PUBLIC_APP_URL || process.env.PLATFORM_WEBSITE || "https://vyaparmedia.vercel.app",
-  cin: process.env.NEXT_PUBLIC_PLATFORM_CIN || process.env.PLATFORM_CIN || "PROPRIETORSHIP",
-  pan: process.env.NEXT_PUBLIC_PLATFORM_PAN || process.env.PLATFORM_PAN || "KPIPM8835Q",
-  legalEmail: process.env.NEXT_PUBLIC_PLATFORM_LEGAL_EMAIL || process.env.PLATFORM_LEGAL_EMAIL || "legal@vyaparmedia.in",
-  privacyEmail: process.env.NEXT_PUBLIC_PLATFORM_PRIVACY_EMAIL || process.env.PLATFORM_PRIVACY_EMAIL || "privacy@vyaparmedia.in",
-  billingEmail: process.env.NEXT_PUBLIC_PLATFORM_BILLING_EMAIL || process.env.PLATFORM_BILLING_EMAIL || "billing@vyaparmedia.in",
-  grievanceEmail: process.env.NEXT_PUBLIC_PLATFORM_GRIEVANCE_EMAIL || process.env.PLATFORM_GRIEVANCE_EMAIL || "grievance@vyaparmedia.in",
-  grievanceOfficer: process.env.NEXT_PUBLIC_PLATFORM_GRIEVANCE_OFFICER || process.env.PLATFORM_GRIEVANCE_OFFICER || "Ms. Yogita Agarwal, Grievance Officer",
-  sacCode: process.env.NEXT_PUBLIC_PLATFORM_PRIMARY_SAC || process.env.PLATFORM_PRIMARY_SAC || "998365",
+  name: configValue("PLATFORM_NAME", "Vyapar Media"),
+  legalName: configValue("PLATFORM_LEGAL_NAME", "Krishna Mangal"),
+  tradeName: configValue("PLATFORM_TRADE_NAME", "Vyapar Media"),
+  constitution: configValue("PLATFORM_CONSTITUTION", "Proprietorship"),
+  address: configValue("PLATFORM_ADDRESS", "46/90 F-1, Laxmi Nagar, Jagdeeshpura, Behind Prabhu Talkies, Agra, Uttar Pradesh 282002"),
+  addressLine1: configValue("PLATFORM_ADDRESS_LINE1", "46/90 F-1, Laxmi Nagar"),
+  addressLine2: configValue("PLATFORM_ADDRESS_LINE2", "Jagdeeshpura, Behind Prabhu Talkies"),
+  city: configValue("PLATFORM_CITY", "Agra"),
+  district: configValue("PLATFORM_DISTRICT", "Agra"),
+  state: configValue("PLATFORM_STATE", "Uttar Pradesh"),
+  stateCode: configValue("PLATFORM_STATE_CODE", "09"),
+  pincode: configValue("PLATFORM_PINCODE", "282002"),
+  gstin: configValue("PLATFORM_GSTIN", "09KPIPM8835Q1ZK"),
+  udyam: configValue("PLATFORM_UDYAM", "UDYAM-UP-01-0220749"),
+  email: configValue("PLATFORM_EMAIL", "support@vyaparmedia.in"),
+  officialEmail: configValue("PLATFORM_OFFICIAL_EMAIL", "itzdhruvagarwal@gmail.com"),
+  phone: configValue("PLATFORM_PHONE", "+919639325726"),
+  website: configValue("APP_URL", configValue("PLATFORM_WEBSITE", "https://vyaparmedia.vercel.app")),
+  cin: configValue("PLATFORM_CIN", "PROPRIETORSHIP"),
+  pan: configValue("PLATFORM_PAN", "KPIPM8835Q"),
+  legalEmail: configValue("PLATFORM_LEGAL_EMAIL", "legal@vyaparmedia.in"),
+  privacyEmail: configValue("PLATFORM_PRIVACY_EMAIL", "privacy@vyaparmedia.in"),
+  billingEmail: configValue("PLATFORM_BILLING_EMAIL", "billing@vyaparmedia.in"),
+  grievanceEmail: configValue("PLATFORM_GRIEVANCE_EMAIL", "grievance@vyaparmedia.in"),
+  grievanceOfficer: configValue("PLATFORM_GRIEVANCE_OFFICER", "Ms. Yogita Agarwal, Grievance Officer"),
+  sacCode: configValue("PLATFORM_PRIMARY_SAC", "998365"),
+  domain: configValue("APP_URL", configValue("PLATFORM_WEBSITE", "https://vyaparmedia.vercel.app")).replace(/^https?:\/\//, "").replace(/\/+$/, ""),
 } as const;
 
 export function getPlatformHeader(): string[] {

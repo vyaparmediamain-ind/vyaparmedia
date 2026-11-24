@@ -5,6 +5,7 @@ import QRCode from "qrcode";
 import { BottomSheet, Button } from "@/components/ui";
 import { copyToClipboard } from "@/lib/clipboard";
 import { logger } from "@/lib/logger-client";
+import { PLATFORM_CONFIG } from "@/lib/platform-config";
 import {
   Download,
   Share2,
@@ -72,7 +73,7 @@ export default function StoryShareModal({
   const [activeProgress, setActiveProgress] = useState(0);
 
   // Compute URLs
-  const origin = typeof window !== "undefined" ? window.location.origin : "https://vyaparmedia.vercel.app";
+  const origin = typeof window !== "undefined" && window.location.origin ? window.location.origin : PLATFORM_CONFIG.website;
   const profileSlug =
     profile?.username ||
     (isBrand
@@ -534,12 +535,13 @@ export default function StoryShareModal({
 
     ctx.fillStyle = "#0F172A";
     ctx.font = "bold 30px sans-serif";
+    const hostDomain = PLATFORM_CONFIG.domain || (typeof window !== "undefined" ? window.location.host : "vyaparmedia.vercel.app");
     const stickerText =
       activeTab === "profile"
         ? isBrand
-          ? `🔗 vyaparmedia.vercel.app/brand/${profileSlug}`
-          : `🔗 vyaparmedia.vercel.app/creator/${profileSlug}`
-        : `🔗 vyaparmedia.vercel.app/register?ref=${referralCode || ""}`;
+          ? `🔗 ${hostDomain}/brand/${profileSlug}`
+          : `🔗 ${hostDomain}/creator/${profileSlug}`
+        : `🔗 ${hostDomain}/register?ref=${referralCode || ""}`;
 
     ctx.fillText(
       stickerText.length > 38 ? stickerText.slice(0, 37) + "…" : stickerText,

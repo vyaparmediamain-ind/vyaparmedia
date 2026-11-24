@@ -29,7 +29,7 @@ export function ReportFooter({
     const origin =
       typeof window !== "undefined" && window.location.origin
         ? window.location.origin
-        : PLATFORM_CONFIG.website || "https://vyaparmedia.vercel.app";
+        : PLATFORM_CONFIG.website;
 
     const verifyUrl = `${origin}/verify-report/${reportId}`;
 
@@ -47,8 +47,8 @@ export function ReportFooter({
       });
   }, [reportId, showQrCode]);
 
-  const website = PLATFORM_CONFIG.website ? PLATFORM_CONFIG.website.replace(/^https?:\/\//, "") : "vyaparmedia.vercel.app";
-  const email = PLATFORM_CONFIG.email || "support@vyaparmedia.in";
+  const website = PLATFORM_CONFIG.domain || (PLATFORM_CONFIG.website ? PLATFORM_CONFIG.website.replace(/^https?:\/\//, "") : "");
+  const email = PLATFORM_CONFIG.email;
 
   return (
     <footer className={`report-footer pt-6 border-t-2 border-border space-y-4 ${className}`}>

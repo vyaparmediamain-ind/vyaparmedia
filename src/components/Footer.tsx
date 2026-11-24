@@ -102,7 +102,7 @@ export function Footer() {
 
         <div className="flex justify-between items-center flex-wrap gap-3">
           <p className="text-muted-foreground text-sm">
-            © 2026 {PLATFORM_CONFIG.legalName}. All rights reserved.
+            © {new Date().getFullYear()} {PLATFORM_CONFIG.legalName} ({PLATFORM_CONFIG.tradeName}). All rights reserved.
           </p>
           <p className="text-muted-foreground text-xs">
             {PLATFORM_CONFIG.cin && !["N/A", "NONE", "PROPRIETORSHIP"].includes(PLATFORM_CONFIG.cin.toUpperCase()) ? `CIN: ${PLATFORM_CONFIG.cin} • ` : `GSTIN: ${PLATFORM_CONFIG.gstin} • `}Registered Office: {PLATFORM_CONFIG.address}
