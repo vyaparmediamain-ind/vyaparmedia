@@ -1,0 +1,29 @@
+# Vyapar Media (व्यापार मीडिया)
+> India's premier influencer marketing, creator discovery, and automated escrow marketplace.
+
+## Overview
+Vyapar Media is a dual-sided creator marketplace designed specifically for the Indian creator economy. It connects brands with verified nano, micro, and macro creators across Instagram, YouTube, and regional social networks, with legally binding contracts and automated milestone-based financial escrow.
+
+- Website: https://vyaparmedia.vercel.app
+- Legal Entity: Krishna Mangal (Proprietorship) t/a Vyapar Media
+- Location: Agra, Uttar Pradesh, India
+- Registered GSTIN: 09KPIPM8835Q1ZK
+- MSME Udyam: UDYAM-UP-01-0220749
+
+## Core Features
+- Automated Escrow: Funds are held securely until agreed campaign deliverables and engagement metrics are fulfilled.
+- Fair Price Calculator: Algorithmic pricing guidance evaluating follower counts, engagement rate (ER), and audience quality.
+- Statutory Indian Tax Compliance: Automatic GST invoice generation, TDS (Section 194-O / 194-J) deductions, and monthly tax summaries.
+- Verified Creator Profiles: Real audience demographics, authentic engagement audits, and fraud/bot detection.
+- Multi-Platform Logistics: Shiprocket integration for physical product seeding campaigns with automated AWB and tracking.
+
+## Key Public Pages
+- Home & Discovery: https://vyaparmedia.vercel.app
+- Pricing & Platform Fees: https://vyaparmedia.vercel.app/pricing
+- Compliance & Tax Guide: https://vyaparmedia.vercel.app/blog
+- About Vyapar Media: https://vyaparmedia.vercel.app/about
+- Help Center & Support: https://vyaparmedia.vercel.app/help
+- Status & Service Uptime: https://vyaparmedia.vercel.app/status
+- Terms of Service: https://vyaparmedia.vercel.app/terms
+- Privacy Policy: https://vyaparmedia.vercel.app/privacy
+- Refund & Cancellation Policy: https://vyaparmedia.vercel.app/refund
