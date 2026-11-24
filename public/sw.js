@@ -1,4 +1,4 @@
-const CACHE_NAME = "vyaparmedia-static-1795417113107";
+const CACHE_NAME = "vyaparmedia-static-1795521216380";
 const STATIC_ASSETS = [
   "/",
   "/offline.html",

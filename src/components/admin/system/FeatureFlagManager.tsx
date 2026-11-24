@@ -6,7 +6,11 @@ import { fetcher } from "@/lib/fetcher";
 import { Badge, Button, Input } from "@/components/ui";
 import { formatUserError } from "@/lib/user-messages";
 import { checkFeatureFlagMutationEligibility } from "@/lib/action-eligibility";
-import type { FeatureFlagRecord } from "@/lib/feature-flags";
+import {
+  type FeatureFlagRecord,
+  type FeatureFlagKey,
+  FEATURE_METADATA,
+} from "@/lib/feature-flags";
 import {
   Flag,
   Percent,
@@ -18,6 +22,7 @@ import {
   Sliders,
   AlertTriangle,
   Info,
+  Sparkles,
 } from "lucide-react";
 
 interface FeatureFlagsApiResponse {
@@ -31,6 +36,13 @@ interface FeatureFlagManagerProps {
 }
 
 const AVAILABLE_ROLES = ["ADMIN", "BRAND", "INFLUENCER", "SCOUT"] as const;
+
+const ROLE_DESCRIPTIONS: Record<string, string> = {
+  ADMIN: "Platform administrators with governance & financial oversight",
+  BRAND: "Businesses and marketers hiring creators & funding campaigns",
+  INFLUENCER: "Content creators executing deliverables & accepting deals",
+  SCOUT: "Talent discovery agents referring and managing creator rosters",
+};
 
 export default function FeatureFlagManager({ onShowToast }: Readonly<FeatureFlagManagerProps>) {
   const { data, isLoading, mutate } = useSWR<FeatureFlagsApiResponse>(
@@ -62,15 +74,22 @@ export default function FeatureFlagManager({ onShowToast }: Readonly<FeatureFlag
   }, [flags]);
 
   const filteredFlags = useMemo(() => {
-    return flags.filter((f) => {
+    return flags.filter((flag) => {
+      const meta = FEATURE_METADATA[flag.key as FeatureFlagKey];
       const matchesFilter =
         filterEnabled === "ALL" ||
-        (filterEnabled === "ENABLED" && f.enabled) ||
-        (filterEnabled === "DISABLED" && !f.enabled);
+        (filterEnabled === "ENABLED" && flag.enabled) ||
+        (filterEnabled === "DISABLED" && !flag.enabled);
+
+      const q = search.trim().toLowerCase();
       const matchesSearch =
-        search.trim() === "" ||
-        f.key.toLowerCase().includes(search.toLowerCase()) ||
-        f.description.toLowerCase().includes(search.toLowerCase());
+        q === "" ||
+        flag.key.toLowerCase().includes(q) ||
+        flag.description.toLowerCase().includes(q) ||
+        (meta && meta.title.toLowerCase().includes(q)) ||
+        (meta && meta.simpleDescription.toLowerCase().includes(q)) ||
+        (meta && meta.audienceLabel.toLowerCase().includes(q));
+
       return matchesFilter && matchesSearch;
     });
   }, [flags, filterEnabled, search]);
@@ -249,97 +268,111 @@ export default function FeatureFlagManager({ onShowToast }: Readonly<FeatureFlag
 
       {/* Flags Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {filteredFlags.map((flag) => (
-          <div
-            key={flag.key}
-            className={`p-4 rounded-2xl border transition-all ${
-              flag.enabled
-                ? "bg-card border-verified-border/60 shadow-xs"
-                : "bg-muted/40 border-border opacity-85"
-            }`}
-          >
-            <div className="flex items-start justify-between gap-3">
-              <div className="space-y-1 flex-1 min-w-0">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <span className="font-mono text-xs font-bold text-foreground break-all">
-                    {flag.key}
+        {filteredFlags.map((flag) => {
+          const meta = FEATURE_METADATA[flag.key as FeatureFlagKey];
+          return (
+            <div
+              key={flag.key}
+              className={`p-4 rounded-2xl border transition-all ${
+                flag.enabled
+                  ? "bg-card border-verified-border/60 shadow-xs"
+                  : "bg-muted/40 border-border opacity-85"
+              }`}
+            >
+              <div className="flex items-start justify-between gap-3">
+                <div className="space-y-1.5 flex-1 min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <h4 className="font-bold text-sm text-foreground">
+                      {meta?.title || flag.key}
+                    </h4>
+                    {flag.enabled ? (
+                      <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-verified bg-verified-muted px-2 py-0.5 rounded-full border border-verified-border">
+                        <CheckCircle2 className="w-3 h-3" />
+                        Active
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-muted-foreground bg-muted px-2 py-0.5 rounded-full border border-border">
+                        <XCircle className="w-3 h-3" />
+                        Off
+                      </span>
+                    )}
+                    {meta?.audienceLabel && (
+                      <span className="text-[10px] font-semibold text-primary bg-primary/10 px-2 py-0.5 rounded-full">
+                        {meta.audienceLabel}
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="flex items-center gap-1.5 text-[11px] font-mono text-muted-foreground">
+                    <span className="text-[10px] uppercase font-bold text-muted-foreground/70">System Key:</span>
+                    <code className="bg-muted px-1.5 py-0.5 rounded text-[11px] font-mono text-foreground">{flag.key}</code>
+                  </div>
+
+                  <p className="text-xs text-muted-foreground leading-relaxed">
+                    {meta?.simpleDescription || flag.description}
+                  </p>
+                </div>
+
+                {/* Action buttons */}
+                <div className="flex items-center gap-1.5 shrink-0">
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    size="sm"
+                    onClick={() => openEditModal(flag)}
+                    disabled={!mutationEligibility.allowed}
+                    className="text-xs px-2.5 h-8 cursor-pointer"
+                    title="Configure rollout parameters"
+                  >
+                    <Sliders className="w-3.5 h-3.5 mr-1" />
+                    <span>Configure</span>
+                  </Button>
+
+                  <Button
+                    type="button"
+                    variant={flag.enabled ? "secondary" : "primary"}
+                    size="sm"
+                    onClick={() => setConfirmToggleFlag(flag)}
+                    disabled={!mutationEligibility.allowed}
+                    className="text-xs px-2.5 h-8 cursor-pointer"
+                  >
+                    {flag.enabled ? "Disable" : "Enable"}
+                  </Button>
+                </div>
+              </div>
+
+              {/* Metrics Footer */}
+              <div className="mt-3.5 pt-3 border-t border-border flex items-center justify-between text-xs text-muted-foreground flex-wrap gap-2">
+                <div className="flex items-center gap-1 text-[11px]">
+                  <Percent className="w-3.5 h-3.5 text-muted-foreground" />
+                  <span>Rollout:</span>
+                  <span className="font-bold text-foreground tabular-nums">
+                    {flag.rolloutPercent}%
                   </span>
-                  {flag.enabled ? (
-                    <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-verified bg-verified-muted px-2 py-0.5 rounded-full border border-verified-border">
-                      <CheckCircle2 className="w-3 h-3" />
-                      Active
-                    </span>
+                </div>
+
+                <div className="flex items-center gap-1 text-[11px]">
+                  <Users className="w-3.5 h-3.5 text-muted-foreground" />
+                  <span>Roles:</span>
+                  {flag.allowRoles && flag.allowRoles.length > 0 ? (
+                    <div className="flex items-center gap-1">
+                      {flag.allowRoles.map((r) => (
+                        <span
+                          key={r}
+                          className="px-1.5 py-0.2 rounded-md bg-muted text-[10px] font-bold text-foreground border border-border"
+                        >
+                          {r}
+                        </span>
+                      ))}
+                    </div>
                   ) : (
-                    <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-muted-foreground bg-muted px-2 py-0.5 rounded-full border border-border">
-                      <XCircle className="w-3 h-3" />
-                      Off
-                    </span>
+                    <span className="text-[10px] text-muted-foreground font-medium">All Roles</span>
                   )}
                 </div>
-                <p className="text-xs text-muted-foreground line-clamp-2">
-                  {flag.description}
-                </p>
-              </div>
-
-              {/* Action buttons */}
-              <div className="flex items-center gap-1.5 shrink-0">
-                <Button
-                  type="button"
-                  variant="secondary"
-                  size="sm"
-                  onClick={() => openEditModal(flag)}
-                  disabled={!mutationEligibility.allowed}
-                  className="text-xs px-2.5 h-8 cursor-pointer"
-                  title="Configure rollout parameters"
-                >
-                  <Sliders className="w-3.5 h-3.5 mr-1" />
-                  <span>Configure</span>
-                </Button>
-
-                <Button
-                  type="button"
-                  variant={flag.enabled ? "secondary" : "primary"}
-                  size="sm"
-                  onClick={() => setConfirmToggleFlag(flag)}
-                  disabled={!mutationEligibility.allowed}
-                  className="text-xs px-2.5 h-8 cursor-pointer"
-                >
-                  {flag.enabled ? "Disable" : "Enable"}
-                </Button>
               </div>
             </div>
-
-            {/* Metrics Footer */}
-            <div className="mt-3.5 pt-3 border-t border-border flex items-center justify-between text-xs text-muted-foreground flex-wrap gap-2">
-              <div className="flex items-center gap-1 text-[11px]">
-                <Percent className="w-3.5 h-3.5 text-muted-foreground" />
-                <span>Rollout:</span>
-                <span className="font-bold text-foreground tabular-nums">
-                  {flag.rolloutPercent}%
-                </span>
-              </div>
-
-              <div className="flex items-center gap-1 text-[11px]">
-                <Users className="w-3.5 h-3.5 text-muted-foreground" />
-                <span>Roles:</span>
-                {flag.allowRoles && flag.allowRoles.length > 0 ? (
-                  <div className="flex items-center gap-1">
-                    {flag.allowRoles.map((r) => (
-                      <span
-                        key={r}
-                        className="px-1.5 py-0.2 rounded-md bg-muted text-[10px] font-bold text-foreground border border-border"
-                      >
-                        {r}
-                      </span>
-                    ))}
-                  </div>
-                ) : (
-                  <span className="text-[10px] text-muted-foreground font-medium">All Roles</span>
-                )}
-              </div>
-            </div>
-          </div>
-        ))}
+          );
+        })}
 
         {filteredFlags.length === 0 && (
           <div className="col-span-full p-8 rounded-2xl bg-card border border-border text-center space-y-2">
@@ -404,159 +437,206 @@ export default function FeatureFlagManager({ onShowToast }: Readonly<FeatureFlag
       )}
 
       {/* Configure Rollout Modal */}
-      {editingFlag && (
-        <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="w-full max-w-lg p-6 rounded-2xl bg-card border border-border shadow-xl space-y-5">
-            <div className="flex items-center justify-between border-b border-border pb-3">
-              <div>
-                <h3 className="text-sm font-bold text-foreground">Configure Feature Rollout</h3>
-                <p className="text-xs font-mono text-muted-foreground mt-0.5">{editingFlag.key}</p>
-              </div>
-              <button
-                type="button"
-                onClick={closeEditModal}
-                className="text-xs text-muted-foreground hover:text-foreground cursor-pointer"
-              >
-                ✕
-              </button>
-            </div>
-
-            <div className="space-y-4">
-              {/* Enable Switch */}
-              <div className="flex items-center justify-between p-3.5 rounded-xl bg-muted/30 border border-border">
+      {editingFlag && (() => {
+        const editingMeta = FEATURE_METADATA[editingFlag.key as FeatureFlagKey];
+        return (
+          <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-xs flex items-center justify-center p-4">
+            <div className="w-full max-w-lg p-6 rounded-2xl bg-card border border-border shadow-xl space-y-5 max-h-[90vh] overflow-y-auto">
+              <div className="flex items-center justify-between border-b border-border pb-3">
                 <div>
-                  <span className="text-xs font-bold text-foreground block">Feature Activation Status</span>
-                  <span className="text-[11px] text-muted-foreground">Master toggle for this capability</span>
+                  <h3 className="text-sm font-bold text-foreground">
+                    {editingMeta?.title || "Configure Feature Rollout"}
+                  </h3>
+                  <div className="flex items-center gap-2 mt-1">
+                    <span className="text-[10px] uppercase font-bold text-muted-foreground/70">Key:</span>
+                    <code className="text-xs font-mono text-muted-foreground bg-muted px-1.5 py-0.5 rounded">{editingFlag.key}</code>
+                    {editingMeta?.audienceLabel && (
+                      <span className="text-[10px] font-semibold text-primary bg-primary/10 px-2 py-0.5 rounded-full">
+                        {editingMeta.audienceLabel}
+                      </span>
+                    )}
+                  </div>
                 </div>
+                <button
+                  type="button"
+                  onClick={closeEditModal}
+                  className="text-xs text-muted-foreground hover:text-foreground cursor-pointer"
+                >
+                  ✕
+                </button>
+              </div>
+
+              <div className="space-y-4">
+                {/* Plain-English summary */}
+                {editingMeta?.simpleDescription && (
+                  <p className="text-xs text-muted-foreground bg-muted/20 p-3 rounded-xl border border-border/60 leading-relaxed">
+                    {editingMeta.simpleDescription}
+                  </p>
+                )}
+
+                {/* Enable Switch */}
+                <div className="flex items-center justify-between p-3.5 rounded-xl bg-muted/30 border border-border">
+                  <div>
+                    <span className="text-xs font-bold text-foreground block">Feature Activation Status</span>
+                    <span className="text-[11px] text-muted-foreground">Master toggle for this capability</span>
+                  </div>
+                  <Button
+                    type="button"
+                    variant={editEnabled ? "primary" : "secondary"}
+                    size="sm"
+                    onClick={() => setEditEnabled((prev) => !prev)}
+                    className="cursor-pointer text-xs"
+                  >
+                    {editEnabled ? "Enabled" : "Disabled"}
+                  </Button>
+                </div>
+
+                {/* Rollout Percentage Slider & Input */}
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <label htmlFor="rollout-percent-range" className="text-xs font-bold text-foreground">
+                      Rollout Percentage ({editPercent}%)
+                    </label>
+                    <span className="text-[11px] text-muted-foreground">0% = Disabled, 100% = All Users</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <input
+                      id="rollout-percent-range"
+                      type="range"
+                      min={0}
+                      max={100}
+                      step={5}
+                      value={editPercent}
+                      onChange={(e) => setEditPercent(Number(e.target.value))}
+                      className="flex-1 accent-primary cursor-pointer"
+                    />
+                    <Input
+                      id="rollout-percent-number"
+                      type="number"
+                      min={0}
+                      max={100}
+                      value={editPercent}
+                      onChange={(e) => {
+                        const val = Number(e.target.value);
+                        if (val >= 0 && val <= 100) setEditPercent(val);
+                      }}
+                      className="w-20 text-xs text-center tabular-nums"
+                    />
+                  </div>
+                </div>
+
+                {/* Role Allow-list Selection */}
+                <div className="space-y-2.5">
+                  <div className="flex items-center justify-between flex-wrap gap-2">
+                    <div>
+                      <label className="text-xs font-bold text-foreground block">Target User Roles</label>
+                      <span className="text-[11px] text-muted-foreground">
+                        {editRoles.length === 0 ? "Allowed for all platform users" : `Active for: ${editRoles.join(", ")}`}
+                      </span>
+                    </div>
+                    {editingMeta && (
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        size="sm"
+                        onClick={() => setEditRoles([...editingMeta.intendedRoles])}
+                        className="text-[11px] h-7 px-2.5 gap-1 font-semibold text-primary cursor-pointer"
+                        title="Set to recommended roles for this feature"
+                      >
+                        <Sparkles className="w-3 h-3 text-primary" />
+                        <span>Use Recommended ({editingMeta.intendedRoles.join(", ")})</span>
+                      </Button>
+                    )}
+                  </div>
+
+                  <div className="flex flex-wrap gap-2">
+                    {AVAILABLE_ROLES.map((role) => {
+                      const isSelected = editRoles.includes(role);
+                      return (
+                        <button
+                          key={role}
+                          type="button"
+                          onClick={() => handleRoleToggle(role)}
+                          className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                            isSelected
+                              ? "bg-primary text-primary-foreground border border-primary shadow-xs"
+                              : "bg-card border border-border text-muted-foreground hover:text-foreground"
+                          }`}
+                        >
+                          {role}
+                        </button>
+                      );
+                    })}
+                    {editRoles.length > 0 && (
+                      <button
+                        type="button"
+                        onClick={() => setEditRoles([])}
+                        className="px-2 py-1 text-[11px] text-muted-foreground hover:text-foreground underline cursor-pointer"
+                      >
+                        Clear filters (Allow all)
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Role explanations */}
+                  <div className="p-3 rounded-xl bg-muted/30 border border-border/60 text-[11px] space-y-1 text-muted-foreground">
+                    <div className="font-semibold text-foreground text-[10px] uppercase tracking-wider mb-1">Role Definitions:</div>
+                    {AVAILABLE_ROLES.map((r) => (
+                      <div key={r} className="flex items-baseline gap-1.5">
+                        <span className="font-bold text-foreground font-mono text-[10px] shrink-0">{r}:</span>
+                        <span>{ROLE_DESCRIPTIONS[r]}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Description */}
+                <div className="space-y-1.5">
+                  <label htmlFor="flag-description-input" className="text-xs font-bold text-foreground">
+                    Description &amp; Rollout Notes
+                  </label>
+                  <Input
+                    id="flag-description-input"
+                    value={editDescription}
+                    onChange={(e) => setEditDescription(e.target.value)}
+                    placeholder="Explain feature purpose and release timeline"
+                    className="text-xs"
+                  />
+                </div>
+              </div>
+
+              {!mutationEligibility.allowed && mutationEligibility.reason && (
+                <p className="text-xs text-destructive bg-destructive/10 p-2.5 rounded-lg border border-destructive/20">
+                  {mutationEligibility.reason}
+                </p>
+              )}
+
+              <div className="flex items-center justify-end gap-2.5 pt-2 border-t border-border">
                 <Button
                   type="button"
-                  variant={editEnabled ? "primary" : "secondary"}
+                  variant="secondary"
                   size="sm"
-                  onClick={() => setEditEnabled((prev) => !prev)}
-                  className="cursor-pointer text-xs"
+                  onClick={closeEditModal}
+                  disabled={isSaving}
+                  className="cursor-pointer"
                 >
-                  {editEnabled ? "Enabled" : "Disabled"}
+                  Cancel
+                </Button>
+                <Button
+                  type="button"
+                  variant="primary"
+                  size="sm"
+                  onClick={handleSaveFlag}
+                  disabled={!mutationEligibility.allowed || isSaving}
+                  className="cursor-pointer font-bold"
+                >
+                  {isSaving ? "Saving..." : "Save Configuration"}
                 </Button>
               </div>
-
-              {/* Rollout Percentage Slider & Input */}
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <label htmlFor="rollout-percent-range" className="text-xs font-bold text-foreground">
-                    Rollout Percentage ({editPercent}%)
-                  </label>
-                  <span className="text-[11px] text-muted-foreground">0% = Disabled, 100% = All Users</span>
-                </div>
-                <div className="flex items-center gap-3">
-                  <input
-                    id="rollout-percent-range"
-                    type="range"
-                    min={0}
-                    max={100}
-                    step={5}
-                    value={editPercent}
-                    onChange={(e) => setEditPercent(Number(e.target.value))}
-                    className="flex-1 accent-primary cursor-pointer"
-                  />
-                  <Input
-                    id="rollout-percent-number"
-                    type="number"
-                    min={0}
-                    max={100}
-                    value={editPercent}
-                    onChange={(e) => {
-                      const val = Number(e.target.value);
-                      if (val >= 0 && val <= 100) setEditPercent(val);
-                    }}
-                    className="w-20 text-xs text-center tabular-nums"
-                  />
-                </div>
-              </div>
-
-              {/* Role Allow-list Selection */}
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <label className="text-xs font-bold text-foreground">Permitted Roles</label>
-                  <span className="text-[11px] text-muted-foreground">
-                    {editRoles.length === 0 ? "All roles permitted" : "Restricted to selected"}
-                  </span>
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  {AVAILABLE_ROLES.map((role) => {
-                    const isSelected = editRoles.includes(role);
-                    return (
-                      <button
-                        key={role}
-                        type="button"
-                        onClick={() => handleRoleToggle(role)}
-                        className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                          isSelected
-                            ? "bg-primary text-primary-foreground border border-primary shadow-xs"
-                            : "bg-card border border-border text-muted-foreground hover:text-foreground"
-                        }`}
-                      >
-                        {role}
-                      </button>
-                    );
-                  })}
-                  {editRoles.length > 0 && (
-                    <button
-                      type="button"
-                      onClick={() => setEditRoles([])}
-                      className="px-2 py-1 text-[11px] text-muted-foreground hover:text-foreground underline cursor-pointer"
-                    >
-                      Clear filters (Allow all)
-                    </button>
-                  )}
-                </div>
-              </div>
-
-              {/* Description */}
-              <div className="space-y-1.5">
-                <label htmlFor="flag-description-input" className="text-xs font-bold text-foreground">
-                  Description &amp; Rollout Notes
-                </label>
-                <Input
-                  id="flag-description-input"
-                  value={editDescription}
-                  onChange={(e) => setEditDescription(e.target.value)}
-                  placeholder="Explain feature purpose and release timeline"
-                  className="text-xs"
-                />
-              </div>
-            </div>
-
-            {!mutationEligibility.allowed && mutationEligibility.reason && (
-              <p className="text-xs text-destructive bg-destructive/10 p-2.5 rounded-lg border border-destructive/20">
-                {mutationEligibility.reason}
-              </p>
-            )}
-
-            <div className="flex items-center justify-end gap-2.5 pt-2 border-t border-border">
-              <Button
-                type="button"
-                variant="secondary"
-                size="sm"
-                onClick={closeEditModal}
-                disabled={isSaving}
-                className="cursor-pointer"
-              >
-                Cancel
-              </Button>
-              <Button
-                type="button"
-                variant="primary"
-                size="sm"
-                onClick={handleSaveFlag}
-                disabled={!mutationEligibility.allowed}
-                className="cursor-pointer font-bold"
-              >
-                {isSaving ? "Saving..." : "Save Configuration"}
-              </Button>
             </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
     </div>
   );
 }

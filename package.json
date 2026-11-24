@@ -30,6 +30,7 @@
     "seed": "npx tsx --conditions=react-server scripts/seed-test-accounts.ts",
     "cron:verify": "npx tsx scripts/verify-qstash-crons.ts",
     "cron:sync": "npx tsx scripts/setup-qstash-crons.ts",
+    "flags:sync": "npx tsx --conditions=react-server scripts/sync-feature-flags-defaults.ts",
     "db:verify-rls": "npx tsx scripts/verify-database-rls.ts",
     "load-test": "node load-tests/run-autocannon.mjs",
     "load-test:k6": "k6 run load-tests/k6-read-heavy.js",
