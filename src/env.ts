@@ -19,19 +19,22 @@ const shouldSkipValidation =
   typeof process !== "undefined" &&
   (
     process.env.SKIP_ENV_VALIDATION === "true" ||
+    process.env.SKIP_ENV_VALIDATION === "1" ||
     process.env.NODE_ENV === "test" ||
     process.env.VITEST === "true"
   );
 
-const _isBuildTime =
+const isBuildTime =
   typeof process !== "undefined" &&
-  !shouldSkipValidation &&
   (
+    process.env.SKIP_ENV_VALIDATION === "true" ||
+    process.env.SKIP_ENV_VALIDATION === "1" ||
     process.env.NEXT_PHASE === "phase-production-build" ||
-    process.env.NEXT_PHASE?.includes("build") ||
+    Boolean(process.env.NEXT_PHASE?.includes("build")) ||
     process.env.npm_lifecycle_event === "build" ||
     process.env.npm_lifecycle_event === "deploy:check" ||
-    process.argv.some((arg) => /next|build/i.test(arg))
+    Boolean(process.argv?.some((arg) => /next|build/i.test(arg))) ||
+    Boolean(process.env.VERCEL && !process.env.NEXT_RUNTIME)
   );
 
 const detectedAppUrl =
@@ -568,10 +571,14 @@ if (!_env.success && !shouldSkipValidation) {
     2,
   )}`;
 
-  if (process.env.NODE_ENV === "production") {
+  if (process.env.NODE_ENV === "production" && !isBuildTime) {
     throw new Error(errorMessage);
   } else if (isServer) {
-    console.warn("[ENVIRONMENT NOTICE]", errorMessage);
+    console.warn(
+      isBuildTime
+        ? `[BUILD NOTICE] Environment variables validation skipped for build phase:\n${errorMessage}`
+        : `[ENVIRONMENT NOTICE] ${errorMessage}`,
+    );
   }
 }
 
@@ -603,7 +610,7 @@ if (isServer) {
     );
   }
 
-  if (!shouldSkipValidation) {
+  if (!shouldSkipValidation && !isBuildTime) {
     validateCriticalSecrets(process.env);
   }
 }
