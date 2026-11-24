@@ -114,47 +114,6 @@ export function AuthLayout({
               <span className="auth-stat-label">On-Time Release</span>
             </div>
           </div>
-
-          {/* Featured Creator & Brand Testimonial */}
-          <div className="auth-testimonial-box">
-            <div className="flex items-center gap-1 text-amber-400 text-xs mb-2">
-              <span>★</span><span>★</span><span>★</span><span>★</span><span>★</span>
-              <span className="text-muted-foreground text-[11px] ml-1.5 font-medium">5.0 Verified Collaboration</span>
-            </div>
-            <p className="auth-testimonial-quote">
-              &ldquo;VyaparMedia has completely transformed how we work with brands. With 100% upfront escrow protection, I never have to chase payments or worry about ghosting.&rdquo;
-            </p>
-            <div className="auth-testimonial-creator">
-              <div className="auth-testimonial-avatar">
-                <span>AS</span>
-              </div>
-              <div className="auth-testimonial-meta">
-                <span className="auth-creator-name">Aarav Sharma</span>
-                <span className="auth-creator-role">Verified Tech &amp; Lifestyle Creator (140K+)</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Trusted Brand Partners Strip */}
-          <div className="auth-partners-section">
-            <span className="auth-partners-heading">Trusted by leading creators &amp; D2C brands</span>
-            <div className="auth-partners-tags">
-              <span className="auth-partner-tag">Aura D2C</span>
-              <span className="auth-partner-tag">Myntra</span>
-              <span className="auth-partner-tag">Mamaearth</span>
-              <span className="auth-partner-tag">Nykaa</span>
-              <span className="auth-partner-tag">boAt</span>
-              <span className="auth-partner-tag">Lenskart</span>
-            </div>
-          </div>
-
-          {/* Live Escrow Activity Pulse */}
-          <div className="auth-live-pulse-card">
-            <span className="auth-pulse-dot" aria-hidden="true" />
-            <div className="auth-pulse-text">
-              <strong>Live Platform Activity:</strong> ₹45,000 milestone released to @priya.vlogs &middot; 14 new campaigns launched
-            </div>
-          </div>
         </div>
 
         {/* Footer Security Badges */}

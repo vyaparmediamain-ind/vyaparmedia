@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import { Download, X, ShieldCheck, Zap, WifiOff } from "lucide-react";
 import { useOptimizedMotion } from "@/hooks/useOptimizedMotion";
@@ -102,8 +103,14 @@ export default function CustomInstallBanner() {
       >
         <div className="flex items-start gap-3">
           {/* Logo / App Icon */}
-          <div className="w-12 h-12 rounded-xl bg-primary flex items-center justify-center text-primary-foreground font-black text-xl shadow-md shrink-0">
-            V
+          <div className="w-12 h-12 rounded-xl bg-card border border-border p-1.5 flex items-center justify-center shadow-sm shrink-0 relative overflow-hidden">
+            <Image
+              src="/logo-vm.png"
+              alt="VyaparMedia App Icon"
+              width={40}
+              height={40}
+              className="w-full h-full object-contain select-none"
+            />
           </div>
 
           {/* Info */}

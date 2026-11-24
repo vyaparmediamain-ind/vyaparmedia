@@ -14,29 +14,29 @@
   overflow-x: hidden;
 }
 
-@media (min-width: 1024px) {
+@media (min-width: 860px) {
   .auth-split-wrapper {
     display: grid;
-    grid-template-columns: minmax(420px, 42%) 1fr;
+    grid-template-columns: minmax(380px, 40%) 1fr;
     height: 100vh;
     overflow: hidden;
   }
 }
 
 /* ==========================================================================
-   Left Showcase Panel (Desktop)
+   Left Showcase Panel (Desktop & Tablet)
    ========================================================================== */
 .auth-showcase-panel {
   display: none;
 }
 
-@media (min-width: 1024px) {
+@media (min-width: 860px) {
   .auth-showcase-panel {
     display: flex;
     flex-direction: column;
     justify-content: space-between;
     height: 100vh;
-    padding: clamp(32px, 3.8vw, 54px);
+    padding: clamp(28px, 3.5vw, 52px);
     background: var(--color-bg-secondary);
     border-right: 1px solid var(--color-border);
     position: relative;
@@ -83,9 +83,8 @@
   z-index: 1;
   display: flex;
   flex-direction: column;
-  gap: 18px;
-  margin: 0;
-  padding: 4px 0;
+  gap: 32px;
+  margin: auto 0;
 }
 
 .auth-showcase-header {
@@ -144,8 +143,8 @@
 .auth-trust-item {
   display: flex;
   align-items: flex-start;
-  gap: 12px;
-  padding: 12px 14px;
+  gap: 14px;
+  padding: 16px;
   background: var(--color-bg-card);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
@@ -159,14 +158,14 @@
 }
 
 .auth-trust-icon {
-  width: 36px;
-  height: 36px;
+  width: 40px;
+  height: 40px;
   border-radius: var(--radius-md);
   background: var(--color-bg-tertiary);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 16px;
+  font-size: 18px;
   color: var(--color-primary);
   flex-shrink: 0;
 }
@@ -222,118 +221,6 @@
   font-weight: 500;
 }
 
-/* Testimonial Box in Showcase */
-.auth-testimonial-box {
-  padding: 14px 16px;
-  background: var(--color-bg-card);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-xs);
-}
-
-.auth-testimonial-quote {
-  font-size: 12px;
-  line-height: 1.55;
-  color: var(--color-text-primary);
-  margin: 0 0 10px 0;
-  font-style: italic;
-}
-
-.auth-testimonial-creator {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.auth-testimonial-avatar {
-  width: 32px;
-  height: 32px;
-  border-radius: var(--radius-full);
-  background: var(--gradient-primary);
-  color: var(--color-text-primary);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 11px;
-  font-weight: 700;
-  flex-shrink: 0;
-}
-
-.auth-testimonial-meta {
-  display: flex;
-  flex-direction: column;
-}
-
-.auth-creator-name {
-  font-size: 12px;
-  font-weight: 700;
-  color: var(--color-text-primary);
-}
-
-.auth-creator-role {
-  font-size: 10px;
-  color: var(--color-text-muted);
-}
-
-/* Trusted Partners Section */
-.auth-partners-section {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.auth-partners-heading {
-  font-size: 11px;
-  font-weight: 600;
-  color: var(--color-text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
-.auth-partners-tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-}
-
-.auth-partner-tag {
-  padding: 4px 10px;
-  font-size: 11px;
-  font-weight: 600;
-  background: var(--color-bg-tertiary);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-full);
-  color: var(--color-text-secondary);
-}
-
-/* Live Platform Activity Pulse */
-.auth-live-pulse-card {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 8px 12px;
-  background: rgba(16, 185, 129, 0.06);
-  border: 1px solid rgba(16, 185, 129, 0.2);
-  border-radius: var(--radius-md);
-  font-size: 11px;
-  color: var(--color-text-secondary);
-}
-
-.auth-pulse-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: var(--radius-full);
-  background: #10b981;
-  box-shadow: 0 0 8px #10b981;
-  flex-shrink: 0;
-  animation: pulse 2s infinite;
-}
-
-.auth-pulse-text strong {
-  color: #10b981;
-  font-weight: 700;
-}
-
 /* Showcase Footer */
 .auth-showcase-footer {
   position: relative;
@@ -387,7 +274,7 @@
   z-index: 0;
 }
 
-@media (max-width: 1023px) {
+@media (max-width: 859px) {
   .auth-form-panel {
     padding: 16px 16px 32px;
     justify-content: flex-start;
@@ -414,12 +301,9 @@
   }
 }
 
-@media (min-width: 1024px) {
+@media (min-width: 860px) {
   .auth-form-panel {
     height: 100vh;
-  }
-  .auth-mobile-showcase-strip {
-    display: none !important;
   }
 }
 

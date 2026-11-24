@@ -4,6 +4,7 @@ import { headers } from "next/headers";
 import { Inter, Outfit, Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 import { Providers } from "./providers";
+import { AppSplashScreen } from "@/components/AppSplashScreen";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -116,21 +117,21 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-width: "device-width",
-initialScale: 1,
-viewportFit: "cover",
-themeColor: "#070a13",
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+  themeColor: "#070a13",
 };
 
 export default async function RootLayout({
-children,
+  children,
 }: Readonly<{
-children: React.ReactNode;
+  children: React.ReactNode;
 }>) {
-const headersList = await headers();
-const nonce = headersList.get("x-nonce") || undefined;
+  const headersList = await headers();
+  const nonce = headersList.get("x-nonce") || undefined;
 
-return (
+  return (
     <html
       lang="en"
       suppressHydrationWarning
@@ -233,8 +234,11 @@ return (
         />
       </head>
       <body className={`${inter.className} min-h-screen bg-background text-foreground antialiased`}>
-        <Providers nonce={nonce}>{children}</Providers>
+        <Providers nonce={nonce}>
+          <AppSplashScreen />
+          {children}
+        </Providers>
       </body>
     </html>
-);
+  );
 }
