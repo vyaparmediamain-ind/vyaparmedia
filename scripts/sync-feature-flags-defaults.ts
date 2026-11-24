@@ -6,7 +6,7 @@
  */
 
 import prisma from "@/lib/db";
-import { FEATURE_METADATA, type FeatureFlagKey } from "@/lib/feature-flags";
+import { FEATURE_METADATA, type FeatureFlagKey } from "@/lib/feature-flags-metadata";
 import { redis } from "@/lib/redis";
 
 async function main() {

@@ -10,7 +10,7 @@ import {
   type FeatureFlagRecord,
   type FeatureFlagKey,
   FEATURE_METADATA,
-} from "@/lib/feature-flags";
+} from "@/lib/feature-flags-metadata";
 import {
   Flag,
   Percent,
@@ -303,10 +303,12 @@ export default function FeatureFlagManager({ onShowToast }: Readonly<FeatureFlag
                     )}
                   </div>
 
-                  <div className="flex items-center gap-1.5 text-[11px] font-mono text-muted-foreground">
-                    <span className="text-[10px] uppercase font-bold text-muted-foreground/70">System Key:</span>
-                    <code className="bg-muted px-1.5 py-0.5 rounded text-[11px] font-mono text-foreground">{flag.key}</code>
-                  </div>
+                  {meta?.title && (
+                    <div className="flex items-center gap-1.5 text-[11px] font-mono text-muted-foreground">
+                      <span className="text-[10px] uppercase font-bold text-muted-foreground/70">System Key:</span>
+                      <code className="bg-muted px-1.5 py-0.5 rounded text-[11px] font-mono text-foreground">{flag.key}</code>
+                    </div>
+                  )}
 
                   <p className="text-xs text-muted-foreground leading-relaxed">
                     {meta?.simpleDescription || flag.description}
