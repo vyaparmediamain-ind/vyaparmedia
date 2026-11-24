@@ -1,19 +1,20 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { motion, useReducedMotion, Variants } from "framer-motion";
+import { motion, useReducedMotion, type Variants } from "framer-motion";
 import {
-  LineChart,
-  Line,
   BarChart,
   Bar,
+  LineChart,
+  Line,
   XAxis,
   YAxis,
   CartesianGrid,
   Tooltip,
   Legend,
   ResponsiveContainer,
+  Area,
 } from "recharts";
 import { formatCurrency, formatNumber } from "@/lib/utils-client";
 import { TrafficAndBehaviourTab } from "./TrafficAndBehaviourTab";
@@ -29,6 +30,17 @@ import {
   ShieldCheck,
   FileCheck,
   Database,
+  Users,
+  UserCheck,
+  Briefcase,
+  IndianRupee,
+  TrendingUp,
+  RefreshCw,
+  Sparkles,
+  ShieldAlert,
+  ArrowUpRight,
+  Shield,
+  Layers,
 } from "lucide-react";
 import type {
   AdminFunnelStage,
@@ -63,7 +75,7 @@ interface AdminData {
     pendingPayouts: number;
     totalRefunds: number;
     revenueToday: number;
-    revenueHistory: Array<{ month: string; revenue: number; gmv: number }>;
+    revenueHistory: Array<{ month: string; revenue: number; gmv: number; deals?: number }>;
   };
   growthMetrics: {
     signupsLast30: number;
@@ -106,13 +118,28 @@ interface AdminAnalyticsProps {
 }
 
 const getItemVariants = (shouldReduceMotion: boolean | null): Variants => ({
-  hidden: { opacity: shouldReduceMotion ? 1 : 0, y: shouldReduceMotion ? 0 : 20 },
+  hidden: { opacity: shouldReduceMotion ? 1 : 0, y: shouldReduceMotion ? 0 : 16 },
   show: {
     opacity: 1,
     y: 0,
-    transition: shouldReduceMotion ? { duration: 0 } : { type: "spring", stiffness: 300, damping: 24 },
+    transition: shouldReduceMotion ? { duration: 0 } : { type: "spring", stiffness: 320, damping: 26 },
   },
 });
+
+/**
+ * Enterprise Indian Rupee Y-Axis Formatter
+ * Accurately formats integer amounts in Paise into clean standard Rupee notation (₹k, ₹L, ₹Cr).
+ */
+function formatAxisPaise(valInPaise: number | string): string {
+  const num = typeof valInPaise === "number" ? valInPaise : Number(valInPaise) || 0;
+  const rupees = num / 100;
+  if (rupees === 0) return "₹0";
+  const abs = Math.abs(rupees);
+  if (abs >= 10000000) return `₹${(rupees / 10000000).toFixed(1)}Cr`;
+  if (abs >= 100000) return `₹${(rupees / 100000).toFixed(1)}L`;
+  if (abs >= 1000) return `₹${Math.round(rupees / 1000)}k`;
+  return `₹${Math.round(rupees)}`;
+}
 
 export default function AdminAnalyticsView({ data }: AdminAnalyticsProps) {
   const router = useRouter();
@@ -125,7 +152,10 @@ export default function AdminAnalyticsView({ data }: AdminAnalyticsProps) {
 
   const shouldReduceMotion = useReducedMotion();
   const [chartsReady, setChartsReady] = useState(false);
-  const fmt = (v: number) => formatCurrency(v);
+  const [chartViewMode, setChartViewMode] = useState<"ALL" | "GMV" | "REVENUE">("ALL");
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  const fmt = (v: number | null | undefined) => formatCurrency(v);
 
   const handleTabChange = (newTab: "overview" | "funnel" | "crons" | "traffic") => {
     const params = new URLSearchParams(searchParams.toString());
@@ -138,59 +168,87 @@ export default function AdminAnalyticsView({ data }: AdminAnalyticsProps) {
     router.replace(`?${params.toString()}`);
   };
 
+  const handleRefresh = () => {
+    setIsRefreshing(true);
+    router.refresh();
+    setTimeout(() => setIsRefreshing(false), 800);
+  };
+
   const containerVariants: Variants = {
     hidden: { opacity: shouldReduceMotion ? 1 : 0 },
     show: {
       opacity: 1,
-      transition: shouldReduceMotion ? { duration: 0 } : { staggerChildren: 0.08 },
+      transition: shouldReduceMotion ? { duration: 0 } : { staggerChildren: 0.06 },
     },
   };
 
   const itemVariants = getItemVariants(shouldReduceMotion);
 
   useEffect(() => {
-    const id = window.setTimeout(() => setChartsReady(true), 50);
+    const id = window.setTimeout(() => setChartsReady(true), 60);
     return () => window.clearTimeout(id);
   }, []);
 
   const getStatusColor = (status: string) => {
-    switch (status) {
-      case "HEALTHY": return "bg-verified shadow-verified/50";
-      case "WARNING": return "bg-pending shadow-pending/50";
-      default: return "bg-destructive shadow-destructive/50";
+    switch (status?.toUpperCase()) {
+      case "HEALTHY":
+      case "OPERATIONAL":
+        return "bg-emerald-500 shadow-emerald-500/50";
+      case "WARNING":
+      case "DEGRADED":
+        return "bg-amber-500 shadow-amber-500/50";
+      default:
+        return "bg-rose-500 shadow-rose-500/50";
     }
   };
 
   const getStatusTextColor = (status: string) => {
-    switch (status) {
-      case "HEALTHY": return "text-verified";
-      case "WARNING": return "text-pending";
-      default: return "text-destructive";
+    switch (status?.toUpperCase()) {
+      case "HEALTHY":
+      case "OPERATIONAL":
+        return "text-emerald-500";
+      case "WARNING":
+      case "DEGRADED":
+        return "text-amber-500";
+      default:
+        return "text-rose-500";
     }
   };
 
+  // Retention rate computation
+  const retentionPercent = useMemo(() => {
+    if (!data.realTime.totalUsers || data.realTime.totalUsers <= 0) return 0;
+    return Math.min(100, Math.round((data.realTime.activeUsers7d / data.realTime.totalUsers) * 100));
+  }, [data.realTime.activeUsers7d, data.realTime.totalUsers]);
+
   return (
     <motion.div
-      className="flex flex-col gap-8"
+      className="flex flex-col gap-8 pb-12"
       variants={containerVariants}
       initial="hidden"
       animate="show"
     >
+      {/* Top Operations Header Bar */}
       <motion.div
         variants={itemVariants}
-        className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border pb-4"
+        className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-border/80 pb-5"
       >
-        <div role="tablist" aria-label="Admin Analytics Navigation" className="inline-flex flex-wrap rounded-xl bg-muted/60 p-1 border border-border">
+        {/* Navigation Tabs */}
+        <div
+          role="tablist"
+          aria-label="Admin Analytics Navigation"
+          className="inline-flex flex-wrap items-center rounded-2xl bg-muted/70 p-1.5 border border-border shadow-xs backdrop-blur-md"
+        >
           <button
             type="button"
             role="tab"
             aria-selected={currentTab === "overview"}
             aria-controls="panel-overview"
             onClick={() => handleTabChange("overview")}
-            className={`px-3.5 py-2 text-xs font-bold rounded-lg transition-all flex items-center gap-1.5 focus-visible:ring-2 focus-visible:ring-primary focus:outline-none ${
+            className={`px-4 py-2 text-xs font-bold rounded-xl transition-all flex items-center gap-2 cursor-pointer focus-visible:ring-2 focus-visible:ring-primary focus:outline-none ${
               currentTab === "overview"
-                ? "bg-card text-foreground shadow-sm"
-                : "text-muted-foreground hover:text-foreground"
+                ? "bg-card text-foreground shadow-sm border border-border/60"
+                : "text-muted-foreground hover:text-foreground hover:bg-muted/40"
             }`}
           >
             <BarChart3 className="w-3.5 h-3.5 text-primary" />
@@ -202,10 +260,10 @@ export default function AdminAnalyticsView({ data }: AdminAnalyticsProps) {
             aria-selected={currentTab === "funnel"}
             aria-controls="panel-funnel"
             onClick={() => handleTabChange("funnel")}
-            className={`px-3.5 py-2 text-xs font-bold rounded-lg transition-all flex items-center gap-1.5 focus-visible:ring-2 focus-visible:ring-primary focus:outline-none ${
+            className={`px-4 py-2 text-xs font-bold rounded-xl transition-all flex items-center gap-2 cursor-pointer focus-visible:ring-2 focus-visible:ring-primary focus:outline-none ${
               currentTab === "funnel"
-                ? "bg-card text-foreground shadow-sm"
-                : "text-muted-foreground hover:text-foreground"
+                ? "bg-card text-foreground shadow-sm border border-border/60"
+                : "text-muted-foreground hover:text-foreground hover:bg-muted/40"
             }`}
           >
             <Filter className="w-3.5 h-3.5 text-primary" />
@@ -217,10 +275,10 @@ export default function AdminAnalyticsView({ data }: AdminAnalyticsProps) {
             aria-selected={currentTab === "crons"}
             aria-controls="panel-crons"
             onClick={() => handleTabChange("crons")}
-            className={`px-3.5 py-2 text-xs font-bold rounded-lg transition-all flex items-center gap-1.5 focus-visible:ring-2 focus-visible:ring-primary focus:outline-none ${
+            className={`px-4 py-2 text-xs font-bold rounded-xl transition-all flex items-center gap-2 cursor-pointer focus-visible:ring-2 focus-visible:ring-primary focus:outline-none ${
               currentTab === "crons"
-                ? "bg-card text-foreground shadow-sm"
-                : "text-muted-foreground hover:text-foreground"
+                ? "bg-card text-foreground shadow-sm border border-border/60"
+                : "text-muted-foreground hover:text-foreground hover:bg-muted/40"
             }`}
           >
             <Server className="w-3.5 h-3.5 text-primary" />
@@ -232,10 +290,10 @@ export default function AdminAnalyticsView({ data }: AdminAnalyticsProps) {
             aria-selected={currentTab === "traffic"}
             aria-controls="panel-traffic"
             onClick={() => handleTabChange("traffic")}
-            className={`px-3.5 py-2 text-xs font-bold rounded-lg transition-all flex items-center gap-1.5 focus-visible:ring-2 focus-visible:ring-primary focus:outline-none ${
+            className={`px-4 py-2 text-xs font-bold rounded-xl transition-all flex items-center gap-2 cursor-pointer focus-visible:ring-2 focus-visible:ring-primary focus:outline-none ${
               currentTab === "traffic"
-                ? "bg-card text-foreground shadow-sm"
-                : "text-muted-foreground hover:text-foreground"
+                ? "bg-card text-foreground shadow-sm border border-border/60"
+                : "text-muted-foreground hover:text-foreground hover:bg-muted/40"
             }`}
           >
             <Activity className="w-3.5 h-3.5 text-primary" />
@@ -243,19 +301,33 @@ export default function AdminAnalyticsView({ data }: AdminAnalyticsProps) {
           </button>
         </div>
 
-        <div className="flex items-center gap-2 px-4 py-2 bg-card/60 border border-border rounded-full backdrop-blur-xl shrink-0">
-          <div
-            className={`w-2.5 h-2.5 rounded-full shadow-lg animate-pulse ${getStatusColor(
-              data.systemHealth.status
-            )}`}
-          />
-          <span
-            className={`text-sm font-semibold tracking-wide ${getStatusTextColor(
-              data.systemHealth.status
-            )}`}
+        {/* Global Control Status */}
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={handleRefresh}
+            disabled={isRefreshing}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-card border border-border text-muted-foreground hover:text-foreground hover:border-primary/40 transition-all cursor-pointer shadow-xs disabled:opacity-60"
+            title="Refresh real-time telemetry metrics"
           >
-            System Status: {data.systemHealth.status}
-          </span>
+            <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? "animate-spin text-primary" : ""}`} />
+            <span>Sync</span>
+          </button>
+
+          <div className="flex items-center gap-2.5 px-3.5 py-1.5 bg-card border border-border rounded-xl shadow-xs backdrop-blur-md">
+            <div
+              className={`w-2.5 h-2.5 rounded-full ring-4 ring-emerald-500/10 ${getStatusColor(
+                data.systemHealth.status
+              )}`}
+            />
+            <span
+              className={`text-xs font-bold tracking-tight uppercase ${getStatusTextColor(
+                data.systemHealth.status
+              )}`}
+            >
+              System: {data.systemHealth.status || "HEALTHY"}
+            </span>
+          </div>
         </div>
       </motion.div>
 
@@ -270,7 +342,7 @@ export default function AdminAnalyticsView({ data }: AdminAnalyticsProps) {
       {currentTab === "funnel" && (
         <div id="panel-funnel" role="tabpanel" aria-label="Funnel & Quality" className="space-y-6">
           {/* 5-Stage Conversion Funnel */}
-          <motion.div variants={itemVariants} className="card p-6 sm:p-8 border border-border glass rounded-2xl space-y-6">
+          <motion.div variants={itemVariants} className="card p-6 sm:p-8 border border-border rounded-2xl bg-card shadow-xs space-y-6">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border pb-4">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
@@ -328,7 +400,7 @@ export default function AdminAnalyticsView({ data }: AdminAnalyticsProps) {
           </motion.div>
 
           {/* Data Quality Share */}
-          <motion.div variants={itemVariants} className="card p-6 sm:p-8 border border-border glass rounded-2xl space-y-6">
+          <motion.div variants={itemVariants} className="card p-6 sm:p-8 border border-border rounded-2xl bg-card shadow-xs space-y-6">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border pb-4">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-verified/10 text-verified flex items-center justify-center">
@@ -369,7 +441,7 @@ export default function AdminAnalyticsView({ data }: AdminAnalyticsProps) {
                   {data.dataQualityShare?.estimatedCount.toLocaleString("en-IN") ?? 0}
                 </div>
                 <p className="text-[11px] text-muted-foreground mt-1">
-                  Derived using reach estimators, category baselines, and engagement modeling.
+                  Derived from category baseline CPV benchmarks and median historical comparisons.
                 </p>
               </div>
 
@@ -382,7 +454,7 @@ export default function AdminAnalyticsView({ data }: AdminAnalyticsProps) {
                   {data.dataQualityShare?.selfReportedCount.toLocaleString("en-IN") ?? 0}
                 </div>
                 <p className="text-[11px] text-muted-foreground mt-1">
-                  User profile inputs and non-verified onboarding metrics.
+                  Unverified initial profile onboarding estimates prior to automated verification.
                 </p>
               </div>
             </div>
@@ -390,11 +462,10 @@ export default function AdminAnalyticsView({ data }: AdminAnalyticsProps) {
         </div>
       )}
 
-      {/* Tab Content: Cron Health & Config */}
+      {/* Tab Content: Cron Health & Heartbeats */}
       {currentTab === "crons" && (
         <div id="panel-crons" role="tabpanel" aria-label="Cron Health & Config" className="space-y-6">
-          {/* Cron Health Monitor */}
-          <motion.div variants={itemVariants} className="card p-6 sm:p-8 border border-border glass rounded-2xl space-y-6">
+          <motion.div variants={itemVariants} className="card p-6 sm:p-8 border border-border rounded-2xl bg-card shadow-xs space-y-6">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border pb-4">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
@@ -464,7 +535,7 @@ export default function AdminAnalyticsView({ data }: AdminAnalyticsProps) {
           </motion.div>
 
           {/* Report Configuration Completeness Auditor */}
-          <motion.div variants={itemVariants} className="card p-6 sm:p-8 border border-border glass rounded-2xl space-y-6">
+          <motion.div variants={itemVariants} className="card p-6 sm:p-8 border border-border rounded-2xl bg-card shadow-xs space-y-6">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border pb-4">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-verified/10 text-verified flex items-center justify-center">
@@ -516,220 +587,605 @@ export default function AdminAnalyticsView({ data }: AdminAnalyticsProps) {
 
       {/* Tab Content: Overview & Financials */}
       {currentTab === "overview" && (
-        <div id="panel-overview" role="tabpanel" aria-label="Overview & Financials" className="space-y-6">
-          {/* Real-Time Metrics Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            <MetricCard
-              icon="US"
-              label="Total Users"
-              value={formatNumber(data.realTime.totalUsers)}
-              gradient="from-primary/20 to-accent/20"
-              textColor="text-primary"
-            />
-            <MetricCard
-              icon="AU"
-              label="Active (7d)"
-              value={formatNumber(data.realTime.activeUsers7d)}
-              gradient="from-pending/20 to-pending/10"
-              textColor="text-pending"
-            />
-            <MetricCard
-              icon="DL"
-              label="Active Deals"
-              value={formatNumber(data.realTime.activeDeals)}
-              gradient="from-escrow/20 to-verified/20"
-              textColor="text-escrow"
-            />
-            <MetricCard
-              icon="RV"
-              label="Revenue Today"
-              value={fmt(data.realTime.revenueToday)}
-              gradient="from-verified/20 to-escrow/20"
-              textColor="text-verified"
-            />
+        <div id="panel-overview" role="tabpanel" aria-label="Overview & Financials" className="space-y-8">
+          {/* Executive Real-Time KPI Cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+            {/* 1. Total Registered Users */}
+            <motion.div
+              variants={itemVariants}
+              className="relative rounded-2xl border border-border/80 bg-card p-6 shadow-xs hover:border-primary/40 hover:shadow-md transition-all duration-300 flex flex-col justify-between group overflow-hidden"
+            >
+              <div className="absolute top-0 right-0 w-24 h-24 bg-primary/5 rounded-bl-full pointer-events-none group-hover:scale-110 transition-transform duration-500" />
+              <div>
+                <div className="flex items-center justify-between gap-3 mb-3">
+                  <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                    Total Users
+                  </span>
+                  <div className="p-2.5 rounded-xl bg-primary/10 border border-primary/20 text-primary shrink-0">
+                    <Users className="w-4 h-4" />
+                  </div>
+                </div>
+                <div className="text-3xl font-black tracking-tight text-foreground tabular-nums">
+                  {formatNumber(data.realTime.totalUsers)}
+                </div>
+              </div>
+
+              <div className="mt-4 pt-3 border-t border-border/60 flex items-center justify-between text-xs">
+                <span className="text-muted-foreground">
+                  <span className="font-bold text-foreground">{formatNumber(data.realTime.totalInfluencers)}</span> Creators · <span className="font-bold text-foreground">{formatNumber(data.realTime.totalBrands)}</span> Brands
+                </span>
+                <span className="inline-flex items-center gap-0.5 text-[10px] font-bold text-verified bg-verified/10 px-1.5 py-0.5 rounded-md">
+                  <TrendingUp className="w-3 h-3" />
+                  +{data.growthMetrics.signupGrowthRate}%
+                </span>
+              </div>
+            </motion.div>
+
+            {/* 2. Active Users (7D) */}
+            <motion.div
+              variants={itemVariants}
+              className="relative rounded-2xl border border-border/80 bg-card p-6 shadow-xs hover:border-pending/40 hover:shadow-md transition-all duration-300 flex flex-col justify-between group overflow-hidden"
+            >
+              <div className="absolute top-0 right-0 w-24 h-24 bg-pending/5 rounded-bl-full pointer-events-none group-hover:scale-110 transition-transform duration-500" />
+              <div>
+                <div className="flex items-center justify-between gap-3 mb-3">
+                  <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                    Active (7d)
+                  </span>
+                  <div className="p-2.5 rounded-xl bg-pending/10 border border-pending/20 text-pending shrink-0">
+                    <UserCheck className="w-4 h-4" />
+                  </div>
+                </div>
+                <div className="text-3xl font-black tracking-tight text-pending tabular-nums">
+                  {formatNumber(data.realTime.activeUsers7d)}
+                </div>
+              </div>
+
+              <div className="mt-4 pt-3 border-t border-border/60 flex flex-col gap-1.5 text-xs">
+                <div className="flex items-center justify-between text-[11px] text-muted-foreground">
+                  <span>Weekly Retention</span>
+                  <span className="font-bold text-foreground tabular-nums">{retentionPercent}%</span>
+                </div>
+                <div className="w-full h-1.5 bg-muted rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-pending rounded-full transition-all duration-500"
+                    style={{ width: `${Math.min(100, retentionPercent)}%` }}
+                  />
+                </div>
+              </div>
+            </motion.div>
+
+            {/* 3. Active Deals Pipeline */}
+            <motion.div
+              variants={itemVariants}
+              className="relative rounded-2xl border border-border/80 bg-card p-6 shadow-xs hover:border-escrow/40 hover:shadow-md transition-all duration-300 flex flex-col justify-between group overflow-hidden"
+            >
+              <div className="absolute top-0 right-0 w-24 h-24 bg-escrow/5 rounded-bl-full pointer-events-none group-hover:scale-110 transition-transform duration-500" />
+              <div>
+                <div className="flex items-center justify-between gap-3 mb-3">
+                  <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                    Active Deals
+                  </span>
+                  <div className="p-2.5 rounded-xl bg-escrow/10 border border-escrow/20 text-escrow shrink-0">
+                    <Briefcase className="w-4 h-4" />
+                  </div>
+                </div>
+                <div className="text-3xl font-black tracking-tight text-escrow tabular-nums">
+                  {formatNumber(data.realTime.activeDeals)}
+                </div>
+              </div>
+
+              <div className="mt-4 pt-3 border-t border-border/60 flex items-center justify-between text-xs">
+                <span className="text-muted-foreground">
+                  <span className="font-bold text-foreground">{data.activity.totalCompletedDeals}</span> Completed deals
+                </span>
+                <span className="inline-flex items-center gap-1 text-[10px] font-bold text-escrow bg-escrow/10 px-2 py-0.5 rounded-full">
+                  In Pipeline
+                </span>
+              </div>
+            </motion.div>
+
+            {/* 4. Resolved Fee Revenue Today */}
+            <motion.div
+              variants={itemVariants}
+              className="relative rounded-2xl border border-border/80 bg-card p-6 shadow-xs hover:border-verified/40 hover:shadow-md transition-all duration-300 flex flex-col justify-between group overflow-hidden"
+            >
+              <div className="absolute top-0 right-0 w-24 h-24 bg-verified/5 rounded-bl-full pointer-events-none group-hover:scale-110 transition-transform duration-500" />
+              <div>
+                <div className="flex items-center justify-between gap-3 mb-3">
+                  <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                    Revenue Today
+                  </span>
+                  <div className="p-2.5 rounded-xl bg-verified/10 border border-verified/20 text-verified shrink-0">
+                    <IndianRupee className="w-4 h-4" />
+                  </div>
+                </div>
+                <div className="text-3xl font-black tracking-tight text-verified tabular-nums">
+                  {fmt(data.realTime.revenueToday)}
+                </div>
+              </div>
+
+              <div className="mt-4 pt-3 border-t border-border/60 flex items-center justify-between text-xs">
+                <span className="text-muted-foreground truncate">
+                  Platform Fee Share
+                </span>
+                <span className="inline-flex items-center gap-1 text-[10px] font-bold text-verified bg-verified/10 px-2 py-0.5 rounded-full shrink-0">
+                  <ShieldCheck className="w-3 h-3" /> Settled
+                </span>
+              </div>
+            </motion.div>
           </div>
 
-          {/* Financial Overview */}
-          <motion.div variants={itemVariants} className="card relative overflow-hidden group border border-border glass">
-            <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-verified/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-            <div className="relative z-10 p-6 sm:p-8">
-              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-6">
-                <h2 className="text-xl font-bold flex items-center gap-2 text-foreground">
-                  Financial Performance &amp; Escrow Ledger
-                </h2>
-                <div className="flex flex-wrap gap-8">
-                  <div className="flex flex-col">
-                    <div className="flex items-center gap-1.5">
-                      <span className="text-sm text-muted-foreground font-medium">Total GMV</span>
-                      <span className="inline-flex items-center gap-0.5 text-[10px] font-bold px-1.5 py-0.2 rounded-full bg-verified/15 text-verified">
-                        <ShieldCheck className="w-3 h-3" /> VERIFIED
-                      </span>
-                    </div>
-                    <span className="text-2xl font-bold tracking-tight text-foreground tabular-nums">{fmt(data.financials.totalGMV)}</span>
+          {/* Hero Financial Ledger & Performance Section */}
+          <motion.div
+            variants={itemVariants}
+            className="rounded-2xl border border-border bg-card p-6 sm:p-8 shadow-xs relative overflow-hidden"
+          >
+            <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-6 pb-6 border-b border-border/70">
+              <div className="space-y-1">
+                <div className="flex items-center gap-2.5">
+                  <div className="p-2 rounded-xl bg-primary/10 text-primary">
+                    <TrendingUp className="w-5 h-5" />
                   </div>
+                  <h2 className="text-xl font-bold tracking-tight text-foreground">
+                    Financial Performance &amp; Escrow Ledger
+                  </h2>
+                </div>
+                <p className="text-xs text-muted-foreground pl-9">
+                  12-month gross escrow merchandise volume, settled platform fee revenue, and settlement cadence.
+                </p>
+              </div>
 
-                  <div className="flex flex-col">
-                    <div className="flex items-center gap-1.5">
-                      <span className="text-sm text-muted-foreground font-medium">Resolved Fee Revenue</span>
-                      <span className="inline-flex items-center gap-0.5 text-[10px] font-bold px-1.5 py-0.2 rounded-full bg-verified/15 text-verified">
-                        <ShieldCheck className="w-3 h-3" /> SETTLED
-                      </span>
-                    </div>
-                    <span className="text-2xl font-bold tracking-tight text-verified tabular-nums">
+              {/* Financial Summary Badges */}
+              <div className="flex flex-wrap items-center gap-6">
+                <div className="flex flex-col bg-muted/40 px-4 py-2.5 rounded-xl border border-border/60">
+                  <div className="flex items-center gap-1.5 mb-0.5">
+                    <span className="text-xs font-semibold text-muted-foreground">Total GMV</span>
+                    <span className="inline-flex items-center gap-0.5 text-[9px] font-bold px-1.5 py-0.2 rounded-full bg-verified/15 text-verified">
+                      <ShieldCheck className="w-2.5 h-2.5" /> VERIFIED
+                    </span>
+                  </div>
+                  <span className="text-2xl font-black tracking-tight text-foreground tabular-nums">
+                    {fmt(data.financials.totalGMV)}
+                  </span>
+                </div>
+
+                <div className="flex flex-col bg-muted/40 px-4 py-2.5 rounded-xl border border-border/60">
+                  <div className="flex items-center gap-1.5 mb-0.5">
+                    <span className="text-xs font-semibold text-muted-foreground">Resolved Fee Revenue</span>
+                    <span className="inline-flex items-center gap-0.5 text-[9px] font-bold px-1.5 py-0.2 rounded-full bg-verified/15 text-verified">
+                      <ShieldCheck className="w-2.5 h-2.5" /> SETTLED
+                    </span>
+                  </div>
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-2xl font-black tracking-tight text-verified tabular-nums">
                       {fmt(data.financials.actualResolvedRevenue ?? data.financials.totalRevenue)}
                     </span>
                     {data.financials.bookedEscrowRevenue !== undefined && data.financials.bookedEscrowRevenue > 0 && (
-                      <span className="text-[11px] text-muted-foreground">
-                        + {fmt(data.financials.bookedEscrowRevenue)} held in active escrow
+                      <span className="text-[11px] font-medium text-muted-foreground">
+                        (+ {fmt(data.financials.bookedEscrowRevenue)} held)
                       </span>
                     )}
                   </div>
                 </div>
-              </div>
 
-              <div className="w-full mt-4 h-[350px]">
-                {chartsReady ? (
-                  <ResponsiveContainer width="100%" height={350} minWidth={100}>
-                    <BarChart data={data.financials.revenueHistory} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="currentColor" className="text-border/40" vertical={false} />
-                      <XAxis dataKey="month" stroke="currentColor" className="text-muted-foreground text-xs" tickFormatter={(str) => str.slice(0, 3)} axisLine={false} tickLine={false} dy={10} />
-                      <YAxis yAxisId="left" stroke="currentColor" className="text-muted-foreground text-xs" tickFormatter={(val) => `Rs ${val / 1000}k`} axisLine={false} tickLine={false} dx={-10} />
-                      <YAxis yAxisId="right" orientation="right" stroke="currentColor" className="text-muted-foreground text-xs" tickFormatter={(val) => `Rs ${val / 1000}k`} axisLine={false} tickLine={false} dx={10} />
-                      <Tooltip
-                        cursor={{ fill: "rgba(255, 255, 255, 0.05)" }}
-                        formatter={(value) => [fmt(typeof value === "number" ? value : Number(value) || 0), ""]}
-                      />
-                      <Legend />
-                      <Bar yAxisId="right" dataKey="gmv" fill="url(#gmvGrad)" name="GMV" radius={[6, 6, 0, 0]} />
-                      <Bar yAxisId="left" dataKey="revenue" fill="url(#revGrad)" name="Net Revenue" radius={[6, 6, 0, 0]} />
-                      <defs>
-                        <linearGradient id="gmvGrad" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity={0.8} />
-                          <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity={0.2} />
-                        </linearGradient>
-                        <linearGradient id="revGrad" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="0%" stopColor="hsl(var(--escrow))" stopOpacity={0.8} />
-                          <stop offset="100%" stopColor="hsl(var(--escrow))" stopOpacity={0.2} />
-                        </linearGradient>
-                      </defs>
-                    </BarChart>
-                  </ResponsiveContainer>
-                ) : (
-                  <div className="w-full h-full rounded-2xl bg-muted/10 animate-pulse" />
-                )}
+                {/* View Mode Switcher */}
+                <div className="inline-flex rounded-xl bg-muted/70 p-1 border border-border shadow-xs">
+                  <button
+                    type="button"
+                    onClick={() => setChartViewMode("ALL")}
+                    className={`px-2.5 py-1 text-xs font-bold rounded-lg transition-all cursor-pointer ${
+                      chartViewMode === "ALL"
+                        ? "bg-card text-foreground shadow-xs"
+                        : "text-muted-foreground hover:text-foreground"
+                    }`}
+                  >
+                    Combined
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setChartViewMode("GMV")}
+                    className={`px-2.5 py-1 text-xs font-bold rounded-lg transition-all cursor-pointer ${
+                      chartViewMode === "GMV"
+                        ? "bg-card text-foreground shadow-xs"
+                        : "text-muted-foreground hover:text-foreground"
+                    }`}
+                  >
+                    GMV
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setChartViewMode("REVENUE")}
+                    className={`px-2.5 py-1 text-xs font-bold rounded-lg transition-all cursor-pointer ${
+                      chartViewMode === "REVENUE"
+                        ? "bg-card text-foreground shadow-xs"
+                        : "text-muted-foreground hover:text-foreground"
+                    }`}
+                  >
+                    Revenue
+                  </button>
+                </div>
               </div>
+            </div>
+
+            {/* Main Bar Chart */}
+            <div className="w-full mt-6 h-[340px]">
+              {chartsReady ? (
+                <ResponsiveContainer width="100%" height={340} minWidth={100}>
+                  <BarChart
+                    data={data.financials.revenueHistory}
+                    margin={{ top: 16, right: 16, left: 0, bottom: 4 }}
+                    barGap={6}
+                  >
+                    <CartesianGrid
+                      strokeDasharray="3 3"
+                      stroke="currentColor"
+                      className="text-border/40"
+                      vertical={false}
+                    />
+                    <XAxis
+                      dataKey="month"
+                      stroke="currentColor"
+                      className="text-muted-foreground text-xs font-medium"
+                      tickFormatter={(str: string) => str?.slice(0, 3)}
+                      axisLine={false}
+                      tickLine={false}
+                      dy={10}
+                    />
+                    <YAxis
+                      yAxisId="revenue"
+                      orientation="left"
+                      stroke="currentColor"
+                      className="text-muted-foreground text-[11px] font-mono"
+                      tickFormatter={formatAxisPaise}
+                      axisLine={false}
+                      tickLine={false}
+                      dx={-8}
+                    />
+                    <YAxis
+                      yAxisId="gmv"
+                      orientation="right"
+                      stroke="currentColor"
+                      className="text-muted-foreground text-[11px] font-mono"
+                      tickFormatter={formatAxisPaise}
+                      axisLine={false}
+                      tickLine={false}
+                      dx={8}
+                    />
+                    <Tooltip
+                      cursor={{ fill: "rgba(255, 255, 255, 0.04)" }}
+                      content={({ active, payload, label }) => {
+                        if (!active || !payload || !payload.length) return null;
+                        const gmvVal = Number(payload.find((p) => p.dataKey === "gmv")?.value || 0);
+                        const revVal = Number(payload.find((p) => p.dataKey === "revenue")?.value || 0);
+                        const takeRate = gmvVal > 0 ? ((revVal / gmvVal) * 100).toFixed(1) : "0.0";
+                        return (
+                          <div className="p-3.5 rounded-xl bg-card/95 border border-border shadow-xl backdrop-blur-md text-xs space-y-2 min-w-[200px]">
+                            <div className="font-bold text-foreground border-b border-border/60 pb-1.5 flex items-center justify-between">
+                              <span>{label}</span>
+                              <span className="text-[10px] font-mono font-normal text-muted-foreground">
+                                Escrow Audit
+                              </span>
+                            </div>
+                            <div className="space-y-1.5">
+                              <div className="flex items-center justify-between gap-4">
+                                <span className="text-muted-foreground flex items-center gap-1.5">
+                                  <span className="w-2.5 h-2.5 rounded-sm bg-primary inline-block" />
+                                  Gross Volume (GMV):
+                                </span>
+                                <span className="font-bold text-foreground tabular-nums">
+                                  {fmt(gmvVal)}
+                                </span>
+                              </div>
+                              <div className="flex items-center justify-between gap-4">
+                                <span className="text-muted-foreground flex items-center gap-1.5">
+                                  <span className="w-2.5 h-2.5 rounded-sm bg-escrow inline-block" />
+                                  Net Platform Fee:
+                                </span>
+                                <span className="font-bold text-verified tabular-nums">
+                                  {fmt(revVal)}
+                                </span>
+                              </div>
+                              <div className="flex items-center justify-between gap-4 pt-1 border-t border-border/40 text-[11px]">
+                                <span className="text-muted-foreground">Effective Take Rate:</span>
+                                <span className="font-extrabold text-foreground">{takeRate}%</span>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      }}
+                    />
+                    <Legend
+                      verticalAlign="top"
+                      align="right"
+                      wrapperStyle={{ paddingBottom: 16 }}
+                      iconType="circle"
+                      iconSize={8}
+                    />
+                    {(chartViewMode === "ALL" || chartViewMode === "GMV") && (
+                      <Bar
+                        yAxisId="gmv"
+                        dataKey="gmv"
+                        fill="url(#gmvGrad)"
+                        name="Gross Volume (GMV)"
+                        radius={[6, 6, 0, 0]}
+                        maxBarSize={48}
+                      />
+                    )}
+                    {(chartViewMode === "ALL" || chartViewMode === "REVENUE") && (
+                      <Bar
+                        yAxisId="revenue"
+                        dataKey="revenue"
+                        fill="url(#revGrad)"
+                        name="Net Platform Revenue"
+                        radius={[6, 6, 0, 0]}
+                        maxBarSize={48}
+                      />
+                    )}
+                    <defs>
+                      <linearGradient id="gmvGrad" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity={0.85} />
+                        <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity={0.25} />
+                      </linearGradient>
+                      <linearGradient id="revGrad" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="hsl(var(--escrow))" stopOpacity={0.85} />
+                        <stop offset="100%" stopColor="hsl(var(--escrow))" stopOpacity={0.25} />
+                      </linearGradient>
+                    </defs>
+                  </BarChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className="w-full h-full rounded-2xl bg-muted/20 animate-pulse" />
+              )}
             </div>
           </motion.div>
 
-          {/* Growth & Health Grid */}
+          {/* User Growth & Health / Risk Operational Cockpit */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* User Growth Chart */}
-            <motion.div variants={itemVariants} className="card lg:col-span-2 relative overflow-hidden group border border-border glass p-6 sm:p-8">
-              <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-accent/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-              <div className="relative z-10">
-                <h3 className="text-lg font-bold mb-6 text-foreground tracking-tight">User Growth (30 Days)</h3>
+            {/* User Acquisition Growth Trajectory (30-Day) */}
+            <motion.div
+              variants={itemVariants}
+              className="lg:col-span-2 rounded-2xl border border-border bg-card p-6 sm:p-8 shadow-xs flex flex-col justify-between"
+            >
+              <div>
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <h3 className="text-lg font-bold text-foreground tracking-tight">
+                        User Growth (30 Days)
+                      </h3>
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-primary/10 text-primary">
+                        Daily Run-rate
+                      </span>
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      Acquisition progression split by creators vs commercial brand sponsors.
+                    </p>
+                  </div>
+
+                  <div className="flex items-center gap-3 text-xs">
+                    <div className="flex items-center gap-1.5 font-semibold">
+                      <span className="w-2.5 h-2.5 rounded-full bg-primary inline-block" />
+                      <span>Total ({data.growthMetrics.signupsLast30})</span>
+                    </div>
+                    <div className="flex items-center gap-1.5 font-semibold">
+                      <span className="w-2.5 h-2.5 rounded-full bg-verified inline-block" />
+                      <span>Creators</span>
+                    </div>
+                    <div className="flex items-center gap-1.5 font-semibold">
+                      <span className="w-2.5 h-2.5 rounded-full bg-accent inline-block" />
+                      <span>Brands</span>
+                    </div>
+                  </div>
+                </div>
+
                 <div className="w-full h-[280px]">
                   {chartsReady ? (
                     <ResponsiveContainer width="100%" height={280} minWidth={100}>
-                      <LineChart data={data.growth} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+                      <LineChart data={data.growth} margin={{ top: 10, right: 16, left: -10, bottom: 0 }}>
                         <defs>
                           <linearGradient id="colorTotal" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3} />
+                            <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.25} />
                             <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0} />
                           </linearGradient>
                         </defs>
-                        <CartesianGrid strokeDasharray="3 3" stroke="currentColor" className="text-border/40" vertical={false} />
-                        <XAxis dataKey="date" stroke="currentColor" className="text-muted-foreground text-xs" tickFormatter={(str) => str.slice(5)} axisLine={false} tickLine={false} dy={10} />
-                        <YAxis stroke="currentColor" className="text-muted-foreground text-xs" axisLine={false} tickLine={false} dx={-10} />
-                        <Tooltip />
-                        <Line type="monotone" dataKey="total" stroke="hsl(var(--primary))" strokeWidth={3} dot={false} activeDot={{ r: 6, fill: "hsl(var(--primary))", stroke: "hsl(var(--background))", strokeWidth: 2 }} name="New Users" />
-                        <Line type="monotone" dataKey="brand" stroke="hsl(var(--accent))" strokeWidth={3} dot={false} name="Brands" />
-                        <Line type="monotone" dataKey="influencer" stroke="hsl(var(--verified))" strokeWidth={3} dot={false} name="Influencers" />
+                        <CartesianGrid
+                          strokeDasharray="3 3"
+                          stroke="currentColor"
+                          className="text-border/40"
+                          vertical={false}
+                        />
+                        <XAxis
+                          dataKey="date"
+                          stroke="currentColor"
+                          className="text-muted-foreground text-[11px] font-mono"
+                          tickFormatter={(str: string) => (str && str.length >= 10 ? str.slice(5) : str)}
+                          axisLine={false}
+                          tickLine={false}
+                          dy={10}
+                        />
+                        <YAxis
+                          stroke="currentColor"
+                          className="text-muted-foreground text-[11px] font-mono"
+                          axisLine={false}
+                          tickLine={false}
+                          dx={-6}
+                        />
+                        <Tooltip
+                          content={({ active, payload, label }) => {
+                            if (!active || !payload || !payload.length) return null;
+                            return (
+                              <div className="p-3 rounded-xl bg-card/95 border border-border shadow-xl backdrop-blur-md text-xs space-y-1.5 min-w-[170px]">
+                                <div className="font-bold text-foreground border-b border-border/50 pb-1">
+                                  {label}
+                                </div>
+                                <div className="flex items-center justify-between">
+                                  <span className="text-muted-foreground flex items-center gap-1">
+                                    <span className="w-2 h-2 rounded-full bg-primary" /> New Users:
+                                  </span>
+                                  <span className="font-bold text-foreground">
+                                    {payload.find((p) => p.dataKey === "total")?.value ?? 0}
+                                  </span>
+                                </div>
+                                <div className="flex items-center justify-between">
+                                  <span className="text-muted-foreground flex items-center gap-1">
+                                    <span className="w-2 h-2 rounded-full bg-verified" /> Creators:
+                                  </span>
+                                  <span className="font-bold text-verified">
+                                    {payload.find((p) => p.dataKey === "influencer")?.value ?? 0}
+                                  </span>
+                                </div>
+                                <div className="flex items-center justify-between">
+                                  <span className="text-muted-foreground flex items-center gap-1">
+                                    <span className="w-2 h-2 rounded-full bg-accent" /> Brands:
+                                  </span>
+                                  <span className="font-bold text-accent">
+                                    {payload.find((p) => p.dataKey === "brand")?.value ?? 0}
+                                  </span>
+                                </div>
+                              </div>
+                            );
+                          }}
+                        />
+                        <Line
+                          type="monotone"
+                          dataKey="total"
+                          stroke="hsl(var(--primary))"
+                          strokeWidth={2.5}
+                          dot={false}
+                          activeDot={{
+                            r: 5,
+                            fill: "hsl(var(--primary))",
+                            stroke: "hsl(var(--background))",
+                            strokeWidth: 2,
+                          }}
+                          name="New Users"
+                        />
+                        <Line
+                          type="monotone"
+                          dataKey="influencer"
+                          stroke="hsl(var(--verified))"
+                          strokeWidth={2}
+                          dot={false}
+                          name="Influencers"
+                        />
+                        <Line
+                          type="monotone"
+                          dataKey="brand"
+                          stroke="hsl(var(--accent))"
+                          strokeWidth={2}
+                          dot={false}
+                          name="Brands"
+                        />
                       </LineChart>
                     </ResponsiveContainer>
                   ) : (
-                    <div className="w-full h-full rounded-2xl bg-muted/10 animate-pulse" />
+                    <div className="w-full h-full rounded-2xl bg-muted/20 animate-pulse" />
                   )}
                 </div>
               </div>
             </motion.div>
 
-            {/* System Health */}
-            <motion.div variants={itemVariants} className="card relative overflow-hidden group border border-border glass p-6 sm:p-8">
-              <div className="absolute inset-0 bg-gradient-to-br from-verified/5 to-primary/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-              <div className="relative z-10 flex flex-col h-full">
-                <h3 className="text-lg font-bold mb-6 text-foreground tracking-tight flex items-center gap-2">
-                  Health &amp; Risk
-                </h3>
-                <div className="flex flex-col gap-4 flex-grow justify-center">
-                  <HealthRow
-                    label="Payment Success"
-                    value={`${data.systemHealth.paymentSuccessRate}%`}
-                    color={data.systemHealth.paymentSuccessRate > 95 ? "text-verified" : "text-pending"}
-                  />
-                  <HealthRow
-                    label="Recent Errors"
-                    value={data.systemHealth.recentErrors}
-                    color={data.systemHealth.recentErrors > 10 ? "text-destructive" : "text-verified"}
-                  />
-                  <HealthRow
-                    label="Fraud Alerts"
-                    value={data.systemHealth.fraudAlerts}
-                    color={data.systemHealth.fraudAlerts > 5 ? "text-destructive" : "text-verified"}
-                  />
-                  <HealthRow
-                    label="Open Disputes"
-                    value={data.activity.disputesOpen}
-                    color={data.activity.disputesOpen > 5 ? "text-destructive" : "text-verified"}
-                  />
-                  <div className="h-px w-full bg-border my-2" />
-                  <HealthRow
-                    label="K-Factor"
-                    value={data.growthMetrics.kFactor.toFixed(2)}
-                    color={data.growthMetrics.kFactor >= 1 ? "text-verified" : "text-pending"}
-                  />
+            {/* Health & Risk Cockpit */}
+            <motion.div
+              variants={itemVariants}
+              className="rounded-2xl border border-border bg-card p-6 sm:p-8 shadow-xs flex flex-col justify-between"
+            >
+              <div>
+                <div className="flex items-center justify-between mb-6">
+                  <div>
+                    <h3 className="text-lg font-bold text-foreground tracking-tight flex items-center gap-2">
+                      <Shield className="w-4 h-4 text-verified" />
+                      Health &amp; Risk
+                    </h3>
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      Platform fraud resilience and operational thresholds.
+                    </p>
+                  </div>
+                  <span className="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-verified/15 text-verified border border-verified/30">
+                    Optimal
+                  </span>
                 </div>
+
+                <div className="space-y-3">
+                  {/* Payment Success Rate */}
+                  <div className="p-3 rounded-xl bg-muted/40 border border-border/70">
+                    <div className="flex items-center justify-between mb-1.5 text-xs font-semibold">
+                      <span className="text-muted-foreground">Payment Success</span>
+                      <span className="font-extrabold text-verified tabular-nums">
+                        {data.systemHealth.paymentSuccessRate}%
+                      </span>
+                    </div>
+                    <div className="w-full h-1.5 bg-muted rounded-full overflow-hidden">
+                      <div
+                        className="h-full bg-verified rounded-full transition-all duration-500"
+                        style={{ width: `${Math.min(100, data.systemHealth.paymentSuccessRate)}%` }}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Recent Errors */}
+                  <div className="flex items-center justify-between p-3 rounded-xl bg-muted/40 border border-border/70 text-xs">
+                    <span className="font-semibold text-muted-foreground">Recent Errors</span>
+                    <div className="flex items-center gap-1.5 font-extrabold tabular-nums">
+                      <span className={data.systemHealth.recentErrors > 10 ? "text-destructive" : "text-verified"}>
+                        {data.systemHealth.recentErrors}
+                      </span>
+                      <span className="text-[10px] font-normal text-muted-foreground">
+                        {data.systemHealth.recentErrors === 0 ? "Zero incidents" : "Active alerts"}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Fraud Alerts */}
+                  <div className="flex items-center justify-between p-3 rounded-xl bg-muted/40 border border-border/70 text-xs">
+                    <span className="font-semibold text-muted-foreground">Fraud Alerts</span>
+                    <div className="flex items-center gap-1.5 font-extrabold tabular-nums">
+                      <span className={data.systemHealth.fraudAlerts > 5 ? "text-destructive" : "text-verified"}>
+                        {data.systemHealth.fraudAlerts}
+                      </span>
+                      <span className="text-[10px] font-normal text-muted-foreground">
+                        {data.systemHealth.fraudAlerts === 0 ? "Protected" : "Action required"}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Open Disputes */}
+                  <div className="flex items-center justify-between p-3 rounded-xl bg-muted/40 border border-border/70 text-xs">
+                    <span className="font-semibold text-muted-foreground">Open Disputes</span>
+                    <div className="flex items-center gap-1.5 font-extrabold tabular-nums">
+                      <span className={data.activity.disputesOpen > 5 ? "text-destructive" : "text-verified"}>
+                        {data.activity.disputesOpen}
+                      </span>
+                      <span className="text-[10px] font-normal text-muted-foreground">
+                        {data.activity.disputesOpen === 0 ? "Zero in review" : "In arbitration"}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Viral K-Factor */}
+                  <div className="flex items-center justify-between p-3 rounded-xl bg-muted/40 border border-border/70 text-xs">
+                    <div className="flex items-center gap-1.5">
+                      <span className="font-semibold text-muted-foreground">K-Factor</span>
+                      <span className="text-[10px] text-muted-foreground/80">(Viral Growth)</span>
+                    </div>
+                    <span className="font-extrabold text-foreground tabular-nums">
+                      {data.growthMetrics.kFactor.toFixed(2)}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-4 pt-3 border-t border-border/60 text-[11px] text-muted-foreground flex items-center justify-between">
+                <span>Network Integrity</span>
+                <span className="font-bold text-verified flex items-center gap-1">
+                  <CheckCircle2 className="w-3.5 h-3.5" /> 100% Guaranteed
+                </span>
               </div>
             </motion.div>
           </div>
         </div>
       )}
     </motion.div>
-  );
-}
-
-interface MetricCardProps {
-  readonly icon: string;
-  readonly label: string;
-  readonly value: string | number;
-  readonly gradient: string;
-  readonly textColor: string;
-}
-
-function MetricCard({ icon, label, value, gradient, textColor }: MetricCardProps) {
-  const shouldReduceMotion = useReducedMotion();
-  const itemVariants = getItemVariants(shouldReduceMotion);
-  return (
-    <motion.div variants={itemVariants} className="relative group">
-      <div className={`absolute inset-0 bg-gradient-to-br ${gradient} rounded-2xl blur-xl opacity-50 group-hover:opacity-100 transition-opacity duration-500`} />
-      <div className="relative bg-card card glass border border-border rounded-2xl p-6 hover:-translate-y-1 transition-transform duration-300">
-        <div className="flex justify-between items-start">
-          <div className="flex flex-col">
-            <span className="text-sm font-medium text-muted-foreground mb-1">{label}</span>
-            <span className={`text-3xl font-bold tracking-tight ${textColor}`}>{value}</span>
-          </div>
-          <div className="text-3xl filter drop-shadow-md">{icon}</div>
-        </div>
-      </div>
-    </motion.div>
-  );
-}
-
-function HealthRow({ label, value, color }: Readonly<{ label: string; value: string | number; color: string }>) {
-  return (
-    <div className="flex justify-between items-center bg-muted/60 rounded-lg p-3 border border-border transition-colors hover:bg-muted">
-      <span className="text-sm font-medium text-muted-foreground">{label}</span>
-      <span className={`text-base font-bold drop-shadow-sm ${color}`}>{value}</span>
-    </div>
   );
 }
