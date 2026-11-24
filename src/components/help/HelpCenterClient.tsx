@@ -365,6 +365,14 @@ export default function HelpCenterClient() {
 
           <div className="flex items-center gap-3 shrink-0 w-full sm:w-auto">
             <Button
+              href="/dashboard/guide"
+              variant="secondary"
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 text-xs font-bold"
+            >
+              <span>Product Guides</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </Button>
+            <Button
               href="/dashboard/support"
               variant="primary"
               className="w-full sm:w-auto inline-flex items-center justify-center gap-2 text-xs font-bold shadow-md shadow-primary/25"

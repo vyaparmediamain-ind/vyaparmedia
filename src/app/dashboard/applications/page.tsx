@@ -481,7 +481,9 @@ export default function ApplicationsPage() {
               description="You haven't pitched to any campaigns yet. Browse live verified campaigns and submit your proposal to earn escrow-guaranteed payouts."
               actionLabel="Discover Verified Campaigns"
               actionHref="/dashboard/campaigns"
-            />
+              guideId="influencer-applications-tracker"
+          guideLabel="How Applications Tracker Works (Guide)"
+        />
           ) : filteredApplications.length === 0 ? (
             <div className="bg-card border border-border p-12 text-center rounded-2xl">
               <Layers className="w-12 h-12 text-muted-foreground mx-auto mb-3 opacity-60" />

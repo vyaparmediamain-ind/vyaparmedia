@@ -772,7 +772,9 @@ export default function BankAccountManager({
               title="No Payout Beneficiaries Added"
               description="Add a verified Indian bank account or UPI ID to receive escrow releases directly."
               compact
-            />
+              guideId="influencer-wallet-and-taxes"
+          guideLabel="How Bank Payouts Work (Guide)"
+        />
           </div>
         )}
       </div>

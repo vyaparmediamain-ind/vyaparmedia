@@ -453,6 +453,8 @@ export default function DisputesPage() {
             description="All your escrow deals are running smoothly with zero disputes or hold-ups."
             actionLabel="View Active Deals"
             actionHref="/dashboard/deals"
+            guideId="influencer-dispute-resolution"
+            guideLabel="How Dispute Arbitration Works (Guide)"
           />
         ) : filteredDisputes.length === 0 ? (
           <div className="bg-card border border-border rounded-2xl p-10 text-center space-y-3">

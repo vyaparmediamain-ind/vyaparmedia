@@ -4,6 +4,7 @@ import { auth } from "@/lib/auth";
 import { resolveDispute } from "../../dispute-actions";
 import EmptyState from "@/components/ui/EmptyState";
 import { Badge, Button, PageContainer, PageHeader } from "@/components/ui";
+import { HelpTip } from "@/components/guides/HelpTip";
 import { formatCurrency, formatDate } from "@/lib/utils-client";
 import { humanizeString } from "@/lib/audit-formatters";
 import { checkDisputeResolutionEligibility } from "@/lib/action-eligibility";
@@ -266,6 +267,8 @@ export default async function AdminDisputeDetailPage({
               title="No Evidence Filed"
               description="Neither party has uploaded supporting screenshots or files yet."
               compact
+              guideId="admin-dispute-arbitration"
+              guideLabel="Dispute Evidence Guide"
             />
           ) : (
             <div className="space-y-3">
@@ -336,9 +339,12 @@ export default async function AdminDisputeDetailPage({
       {/* Global Verdict Action Panel */}
       <footer className="p-6 sm:p-8 rounded-2xl bg-card border border-border space-y-4">
         <div>
-          <h3 className="text-lg font-black text-foreground">
-            Administrative Final Verdict
-          </h3>
+          <div className="flex items-center gap-2">
+            <h3 className="text-lg font-black text-foreground">
+              Administrative Final Verdict
+            </h3>
+            <HelpTip guideId="admin-dispute-arbitration" stepIndex={2} label="Destructive Action: Dispute Binding Verdict / Escrow Split Rules" />
+          </div>
           <p className="text-xs text-muted-foreground mt-0.5">
             Render a binding decision. This executes irrevocable escrow transfers and notifies all parties.
           </p>

@@ -96,6 +96,8 @@ export default function AdminViolationsPage() {
         emoji=""
         title="No Violations"
         description="No violations match the filter."
+        guideId="admin-violations-and-enforcement"
+        guideLabel="Violations and Enforcement Guide"
       />
     );
   } else {

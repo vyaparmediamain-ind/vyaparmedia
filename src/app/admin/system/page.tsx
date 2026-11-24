@@ -29,6 +29,7 @@ import ReportConfigManager from "@/components/admin/system/ReportConfigManager";
 import InstagramInsightsCard from "@/components/admin/system/InstagramInsightsCard";
 import CronHeartbeatsCard from "@/components/admin/system/CronHeartbeatsCard";
 import { Flag, FileSpreadsheet } from "lucide-react";
+import { HelpTip } from "@/components/guides/HelpTip";
 
 interface KillSwitchesApiResponse {
   success: boolean;
@@ -168,15 +169,18 @@ export default function AdminKillSwitchesPage() {
         title="Emergency Controls & Kill Switches"
         subtitle="Real-time operational circuit breakers. Instantly pause degraded vendors, payment gateways, or platform traffic."
         actions={
-          <Button
-            variant="secondary"
-            onClick={() => mutate()}
-            disabled={isLoading}
-            className="flex items-center gap-1.5 text-xs font-bold min-h-[44px] px-3.5 cursor-pointer"
-          >
-            <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? "animate-spin" : ""}`} />
-            Refresh Status
-          </Button>
+          <div className="flex items-center gap-2">
+            <HelpTip guideId="admin-system-health-and-dlq" stepIndex={3} label="Kill Switch Operating Procedures" />
+            <Button
+              variant="secondary"
+              onClick={() => mutate()}
+              disabled={isLoading}
+              className="flex items-center gap-1.5 text-xs font-bold min-h-[44px] px-3.5 cursor-pointer"
+            >
+              <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? "animate-spin" : ""}`} />
+              Refresh Status
+            </Button>
+          </div>
         }
       />
 

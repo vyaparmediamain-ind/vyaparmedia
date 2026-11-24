@@ -17,7 +17,9 @@ import {
   MessageSquare,
   User,
   Shield,
+  BookOpen,
 } from "lucide-react";
+import { useGuideDrawer } from "@/components/guides/GuideDrawerContext";
 
 interface MobileBottomBarProps {
   userType?: string | null | undefined;
@@ -55,6 +57,7 @@ export default function MobileBottomBar({
 }: Readonly<MobileBottomBarProps>) {
   const pathname = usePathname();
   const shouldReduceMotion = useReducedMotion();
+  const { openGuideDrawer } = useGuideDrawer();
   const [mounted, setMounted] = useState(false);
   const navItems = getNavigationItems(userType);
 
@@ -149,6 +152,23 @@ export default function MobileBottomBar({
               </Link>
             );
           })}
+
+          {/* Global Guide button */}
+          <button
+            type="button"
+            role="tab"
+            aria-selected={false}
+            onClick={() => openGuideDrawer()}
+            aria-label="Open Interactive Guide"
+            className="relative flex flex-col items-center justify-center flex-1 py-1 px-1.5 text-center min-w-[56px] min-h-[48px] touch-target-44 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-lg transition-colors group cursor-pointer"
+          >
+            <div className="relative flex items-center justify-center w-6 h-6 my-0.5">
+              <BookOpen className="w-5 h-5 text-muted-foreground group-hover:text-primary stroke-[1.75]" />
+            </div>
+            <span className="text-[10px] tracking-tight font-medium text-muted-foreground group-hover:text-primary truncate max-w-[56px]">
+              Guide
+            </span>
+          </button>
         </div>
       </nav>
     </>

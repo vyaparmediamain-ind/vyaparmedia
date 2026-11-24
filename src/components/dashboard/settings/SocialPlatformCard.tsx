@@ -2,6 +2,7 @@
 
 import { CheckCircle2, AlertTriangle, Clock, XCircle, Info } from "lucide-react";
 import { Button, Input } from "@/components/ui";
+import { HelpTip } from "@/components/guides/HelpTip";
 
 interface SocialPlatformCardProps {
   platform: "instagram" | "youtube";
@@ -104,9 +105,10 @@ export default function SocialPlatformCard({
             <h2 className="text-base font-bold mb-1 text-foreground">{title}</h2>
             {/* Status indicator badges */}
             {needsReconnect ? (
-              <span className="inline-flex items-center gap-1 text-xs text-pending font-medium">
+              <span className="inline-flex items-center gap-1.5 text-xs text-pending font-medium">
                 <AlertTriangle className="w-3.5 h-3.5" />
                 Needs reconnect
+                <HelpTip guideId="influencer-settings-social" stepIndex={2} label="How to reconnect your social account" />
               </span>
             ) : pendingApproval ? (
               <span className="inline-flex items-center gap-1 text-xs text-escrow font-medium">

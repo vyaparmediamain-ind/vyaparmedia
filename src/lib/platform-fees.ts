@@ -3,8 +3,9 @@ import redis from "@/lib/redis";
 import { calculateLevel, getPlatformFeePercentage } from "@/lib/drs-score";
 import { getEffectivePlatformFee } from "@/lib/referral-engine";
 import { logger } from "@/lib/logger";
+import { ABSOLUTE_MIN_PLATFORM_FEE } from "@/constants/platform-fees";
 
-export const ABSOLUTE_MIN_PLATFORM_FEE = 7;
+export { ABSOLUTE_MIN_PLATFORM_FEE };
 const FEE_SNAPSHOT_CACHE_TTL_SECONDS = 300; // 5 minutes
 
 export interface PlatformFeeSnapshot {

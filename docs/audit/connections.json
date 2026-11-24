@@ -1,6 +1,6 @@
 {
-  "generatedAt": "2026-11-23T15:14:42.768Z",
-  "totalCallSites": 159,
+  "generatedAt": "2026-11-24T08:18:44.101Z",
+  "totalCallSites": 160,
   "brokenCallSitesCount": 0,
   "candidateDeadRoutesCount": 0,
   "methodMismatchesCount": 0,
@@ -16,7 +16,7 @@
     },
     {
       "file": "src/app/admin/payouts/page.tsx",
-      "line": 70,
+      "line": 71,
       "rawExpression": "`/api/admin/payouts?status=${encodeURIComponent(filter)}&page=1&limit=50`",
       "normalizedRoute": "/api/admin/payouts",
       "method": "GET",
@@ -61,7 +61,7 @@
     },
     {
       "file": "src/app/admin/system/page.tsx",
-      "line": 39,
+      "line": 40,
       "rawExpression": "\"/api/admin/system/kill-switches\"",
       "normalizedRoute": "/api/admin/system/kill-switches",
       "method": "GET",
@@ -70,7 +70,7 @@
     },
     {
       "file": "src/app/admin/system/page.tsx",
-      "line": 82,
+      "line": 83,
       "rawExpression": "\"/api/admin/system/kill-switches\"",
       "normalizedRoute": "/api/admin/system/kill-switches",
       "method": "POST",
@@ -79,7 +79,7 @@
     },
     {
       "file": "src/app/admin/users/page.tsx",
-      "line": 770,
+      "line": 774,
       "rawExpression": "`/api/admin/users?${queryParams.toString()}`",
       "normalizedRoute": "/api/admin/users",
       "method": "GET",
@@ -205,7 +205,7 @@
     },
     {
       "file": "src/components/admin/system/DeadLetterQueueManager.tsx",
-      "line": 53,
+      "line": 54,
       "rawExpression": "`/api/admin/jobs/dlq?${queryParams.toString()}`",
       "normalizedRoute": "/api/admin/jobs/dlq",
       "method": "GET",
@@ -214,7 +214,7 @@
     },
     {
       "file": "src/components/admin/system/DeadLetterQueueManager.tsx",
-      "line": 73,
+      "line": 74,
       "rawExpression": "\"/api/admin/jobs/dlq\"",
       "normalizedRoute": "/api/admin/jobs/dlq",
       "method": "POST",
@@ -412,7 +412,7 @@
     },
     {
       "file": "src/components/dashboard/home/DashboardHomeClient.tsx",
-      "line": 55,
+      "line": 57,
       "rawExpression": "\"/api/deals?limit=10&status=active\"",
       "normalizedRoute": "/api/deals",
       "method": "GET",
@@ -564,6 +564,15 @@
       "matchedRoute": true
     },
     {
+      "file": "src/components/guides/GuideFeedback.tsx",
+      "line": 41,
+      "rawExpression": "\"/api/guides/feedback\"",
+      "normalizedRoute": "/api/guides/feedback",
+      "method": "POST",
+      "sourceType": "fetch",
+      "matchedRoute": true
+    },
+    {
       "file": "src/components/navigation/BetaModeBanner.tsx",
       "line": 18,
       "rawExpression": "\"/api/auth/registration-config\"",
@@ -646,7 +655,7 @@
     },
     {
       "file": "src/components/scout/ScoutDashboardClient.tsx",
-      "line": 84,
+      "line": 85,
       "rawExpression": "\"/api/scout/dashboard\"",
       "normalizedRoute": "/api/scout/dashboard",
       "method": "GET",
@@ -655,7 +664,7 @@
     },
     {
       "file": "src/components/scout/ScoutDashboardClient.tsx",
-      "line": 89,
+      "line": 90,
       "rawExpression": "\"/api/scout/network\"",
       "normalizedRoute": "/api/scout/network",
       "method": "GET",

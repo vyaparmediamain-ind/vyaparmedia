@@ -291,7 +291,9 @@ export default function AdminScoutsPage() {
                 ? "There are no pending scout verifications waiting right now."
                 : "Try adjusting your search query or status filter."
             }
-          />
+            guideId="admin-campus-scouts"
+        guideLabel="Campus Scouts Governance Guide"
+      />
         </div>
       ) : (
         <div className="space-y-4">

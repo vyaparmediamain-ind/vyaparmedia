@@ -10,6 +10,7 @@ import { analyzeInfluencerFraudProfile } from "@/lib/social-proof-core";
 import Image from "next/image";
 import EmptyState from "@/components/ui/EmptyState";
 import { Badge, Button, Input, Select, PageContainer, PageHeader } from "@/components/ui";
+import { HelpTip } from "@/components/guides/HelpTip";
 import { formatDate } from "@/lib/utils-client";
 import { formatUserError } from "@/lib/user-messages";
 import { useToasts, ToastContainer } from "@/components/ui";
@@ -730,15 +731,18 @@ function UserRow({ user, onBan, onUnban, onAwardBadge, onInspectFraud, onConfigu
                   Unban
                 </Button>
               ) : (
-                <Button
-                  variant="danger"
-                  onClick={() => onBan(user.id)}
-                  className="min-h-[44px] px-3.5 font-bold cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-                  disabled={Boolean(isActionLoading) || !banEligibility.allowed}
-                  title={!banEligibility.allowed ? banEligibility.reason : undefined}
-                >
-                  Ban
-                </Button>
+                <div className="flex items-center gap-1.5">
+                  <Button
+                    variant="danger"
+                    onClick={() => onBan(user.id)}
+                    className="min-h-[44px] px-3.5 font-bold cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                    disabled={Boolean(isActionLoading) || !banEligibility.allowed}
+                    title={!banEligibility.allowed ? banEligibility.reason : undefined}
+                  >
+                    Ban
+                  </Button>
+                  <HelpTip guideId="admin-user-management" stepIndex={2} label="Destructive Action: User Ban / Suspension Rules" />
+                </div>
               )}
             </>
           )}

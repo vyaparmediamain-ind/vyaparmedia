@@ -9,6 +9,7 @@ import { apiClient } from "@/lib/api-client";
 import { formatUserError } from "@/lib/user-messages";
 import EmptyState from "@/components/ui/EmptyState";
 import { Badge, Button, Textarea, Modal, PageContainer, PageHeader } from "@/components/ui";
+import { HelpTip } from "@/components/guides/HelpTip";
 import { z } from "zod";
 import {
   Banknote,
@@ -158,6 +159,8 @@ export default function PayoutsAdminPage() {
                 ? "There are no pending withdrawals waiting for manual review."
                 : `No ${filter.toLowerCase()} payouts found in the ledger.`
             }
+            guideId="admin-payout-authorizations"
+            guideLabel="Payout Authorizations Guide"
           />
         </div>
       );
@@ -478,6 +481,7 @@ export default function PayoutsAdminPage() {
               <span className="flex items-center gap-2">
                 <XCircle className="w-5 h-5 text-disputed" />
                 Reject Payout
+                <HelpTip guideId="admin-payout-authorizations" stepIndex={2} label="Destructive Action: Payout Rejection Rules" />
               </span>
             )
           }

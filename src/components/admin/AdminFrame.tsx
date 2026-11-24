@@ -27,7 +27,9 @@ import {
   Menu,
   X,
   ChevronRight,
+  BookOpen,
 } from "lucide-react";
+import { useGuideDrawer } from "@/components/guides/GuideDrawerContext";
 
 type AdminFrameProps = {
   children: ReactNode;
@@ -53,6 +55,7 @@ const navItems = [
   { icon: ShieldAlert,     label: "Review Collusion", href: "/admin/suspicious-reviews" },
   { icon: Power,           label: "System Controls",  href: "/admin/system" },
   { icon: Mail,            label: "Newsletter",       href: "/admin/newsletter" },
+  { icon: BookOpen,        label: "Guide & SOPs",     href: "/admin/guide" },
 ] as const;
 
 function getInitials(name?: string | null, email?: string | null) {
@@ -68,6 +71,7 @@ function getInitials(name?: string | null, email?: string | null) {
 
 export default function AdminFrame({ children, user }: Readonly<AdminFrameProps>) {
   const pathname = usePathname();
+  const { openGuideDrawer } = useGuideDrawer();
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
   // Sync initial state responsively on mount
@@ -250,6 +254,15 @@ export default function AdminFrame({ children, user }: Readonly<AdminFrameProps>
             </div>
           </div>
           <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => openGuideDrawer()}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-border bg-card hover:bg-muted text-xs font-semibold text-foreground transition-colors cursor-pointer"
+              title="Open Admin Guides & SOPs"
+            >
+              <BookOpen className="w-3.5 h-3.5 text-primary" />
+              <span className="hidden sm:inline">Admin SOPs</span>
+            </button>
             <Link
               href="/dashboard"
               className="text-xs font-semibold text-primary hover:underline px-2.5 py-1.5 rounded-xl border border-primary/20 bg-primary/5 hover:bg-primary/10 transition-colors"

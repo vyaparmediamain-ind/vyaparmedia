@@ -30,8 +30,10 @@ import {
   BarChart3,
   HelpCircle,
   FileText,
+  BookOpen,
 } from "lucide-react";
 import { signOut } from "next-auth/react";
+import { useGuideDrawer } from "@/components/guides/GuideDrawerContext";
 
 export interface SidebarUser {
   id?: string | null | undefined;
@@ -84,6 +86,7 @@ export default function DesktopSidebar({
   const shouldReduceMotion = useReducedMotion();
   const [mounted, setMounted] = useState(false);
   const pathname = usePathname();
+  const { openGuideDrawer } = useGuideDrawer();
   const navItems = getNavigationItems(userType);
   const createAction = getCreateActionConfig(userType);
 
@@ -266,6 +269,30 @@ export default function DesktopSidebar({
               <HelpCircle className="w-4 h-4 stroke-[1.75]" />
               <span className="flex-1 tracking-tight">Support & Help</span>
             </Link>
+
+            <button
+              type="button"
+              onClick={() => openGuideDrawer()}
+              className="w-full flex items-center gap-3 px-3.5 py-2 rounded-xl text-xs font-semibold text-primary bg-primary/5 hover:bg-primary/10 border border-primary/20 transition-colors cursor-pointer text-left"
+              title="Open Interactive Guide"
+            >
+              <BookOpen className="w-4 h-4 stroke-[2]" />
+              <span className="flex-1 tracking-tight">Interactive Guide</span>
+            </button>
+          </div>
+        )}
+
+        {isScout && (
+          <div className="pt-2 mt-2 border-t border-border/60 space-y-1">
+            <button
+              type="button"
+              onClick={() => openGuideDrawer()}
+              className="w-full flex items-center gap-3 px-3.5 py-2 rounded-xl text-xs font-semibold text-primary bg-primary/5 hover:bg-primary/10 border border-primary/20 transition-colors cursor-pointer text-left"
+              title="Open Interactive Guide"
+            >
+              <BookOpen className="w-4 h-4 stroke-[2]" />
+              <span className="flex-1 tracking-tight">Scout Guide</span>
+            </button>
           </div>
         )}
       </nav>

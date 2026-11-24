@@ -367,6 +367,8 @@ export default function CampaignsClient({
                 }
               : undefined
           }
+          guideId={canCreateCampaign ? "brand-campaign-creation" : "influencer-discover-campaigns"}
+          guideLabel={canCreateCampaign ? "How to Launch Campaigns (Guide)" : "How to Discover Opportunities (Guide)"}
         />
       )}
 

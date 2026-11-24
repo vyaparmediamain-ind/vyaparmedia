@@ -21,6 +21,8 @@ import { QuickDiscoveryRow } from "./QuickDiscoveryRow";
 import { DashboardStoriesBar } from "./DashboardStoriesBar";
 import { AuthenticityAppealBanner } from "@/components/dashboard/AuthenticityAppealBanner";
 import WeeklyChallengesCard from "@/components/dashboard/WeeklyChallengesCard";
+import { FirstRunChecklist } from "@/components/guides/FirstRunChecklist";
+import { HelpTip } from "@/components/guides/HelpTip";
 import AnalyticsPageClient from "@/app/dashboard/analytics/AnalyticsPageClient";
 import { PageHeader } from "@/components/ui";
 import type { InfluencerAnalyticsData } from "@/components/analytics/InfluencerDashboard";
@@ -146,6 +148,10 @@ export default function DashboardHomeClient({
                   </Link>
                 </>
               )}
+              <HelpTip
+                guideId={isInfluencer ? "influencer-wallet-and-taxes" : "brand-wallet-and-escrow"}
+                label="Learn how escrow balances and wallet payouts work"
+              />
             </div>
 
             {/* View Switcher: Action Feed vs Deep-Dive Analytics */}
@@ -191,6 +197,9 @@ export default function DashboardHomeClient({
       {/* 3. MAIN VIEW CONTENT */}
       {activeView === "feed" ? (
         <main className="space-y-6 sm:space-y-8">
+          {/* First-Run Onboarding Checklist */}
+          <FirstRunChecklist role={user.userType} userId={user.id} />
+
           {/* Creator Authenticity Audit Alert & Appeal Banner */}
           {isInfluencer && <AuthenticityAppealBanner />}
 

@@ -25,6 +25,7 @@ import {
   MessageCircle,
 } from "lucide-react";
 import { Button, Modal, Skeleton } from "@/components/ui";
+import { FirstRunChecklist } from "@/components/guides/FirstRunChecklist";
 
 interface ScoutDashboardData {
   isRegistered: boolean;
@@ -203,6 +204,9 @@ export default function ScoutDashboardClient() {
             </Button>
           </div>
         </div>
+
+        {/* ── FIRST-RUN ONBOARDING CHECKLIST ── */}
+        <FirstRunChecklist role="SCOUT" userId={d.scoutCode || "scout"} className="mt-6" />
 
         {/* ── MONTHLY ACTIVITY STREAK BANNER ── */}
         <div className="mt-6 rounded-2xl border border-border bg-muted/40 p-4">

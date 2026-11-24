@@ -267,6 +267,8 @@ function DealsContent() {
                 actionLabel={emptyActionLabel}
                 actionHref={emptyActionHref}
                 onActionClick={onEmptyActionClick}
+                guideId={isInfluencer ? "influencer-deal-lifecycle" : "brand-deal-management"}
+                guideLabel="How Deals & Escrow Work (Guide)"
               />
             )}
 

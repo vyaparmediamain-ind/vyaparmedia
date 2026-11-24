@@ -51,7 +51,17 @@ export function isActor(val: unknown): val is Actor {
  * Used by services during the transition to accept either an Actor object or legacy parameters.
  */
 export function normalizeActor(
-  actorOrUserId: Actor | string | { id: string; role?: string | undefined; userType?: string | undefined; isActiveAdmin?: boolean | undefined; email?: string | null | undefined; name?: string | null | undefined },
+  actorOrUserId:
+    | Actor
+    | string
+    | {
+        id: string;
+        role?: string | undefined;
+        userType?: string | undefined;
+        isActiveAdmin?: boolean | undefined;
+        email?: string | null | undefined;
+        name?: string | null | undefined;
+      },
   legacyIsAdmin = false
 ): Actor {
   if (typeof actorOrUserId === "string") {
@@ -67,13 +77,16 @@ export function normalizeActor(
   }
 
   const role = actorOrUserId.role || actorOrUserId.userType || "USER";
-  const activeAdmin = actorOrUserId.isActiveAdmin !== undefined
-    ? actorOrUserId.isActiveAdmin
-    : (legacyIsAdmin || role === "ADMIN");
+  const activeAdmin =
+    actorOrUserId.isActiveAdmin !== undefined
+      ? actorOrUserId.isActiveAdmin
+      : legacyIsAdmin || role === "ADMIN";
 
   return {
     id: actorOrUserId.id,
     role,
+    userType: actorOrUserId.userType ?? role,
+    name: actorOrUserId.name ?? null,
     email: actorOrUserId.email ?? null,
     isActiveAdmin: Boolean(activeAdmin),
   };
@@ -89,11 +102,11 @@ export function normalizeActor(
  */
 export async function resolveActor(session: SessionLike | null | undefined): Promise<Actor> {
   const user = session?.user;
-  if (!user?.id) {
+  if (!user || !user.id) {
     throw AppError.unauthorized("Authentication required");
   }
 
-  const role = user.userType || user.role || "USER";
+  const role = (user.userType || user.role || "USER").toUpperCase();
   let isActiveAdmin = false;
 
   if (role === "ADMIN") {
@@ -119,3 +132,4 @@ export async function resolveActor(session: SessionLike | null | undefined): Pro
     isActiveAdmin,
   };
 }
+

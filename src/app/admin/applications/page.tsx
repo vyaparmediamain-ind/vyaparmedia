@@ -82,7 +82,9 @@ export default async function AdminApplicationsPage() {
           emoji=""
           title="No Flagged Applications"
           description="All applications have passed the security risk check."
-        />
+          guideId="admin-application-review"
+        guideLabel="Applications Moderation Guide"
+      />
       ) : (
         <div className="space-y-4">
           {flaggedApps.map((app: FlaggedApp) => {

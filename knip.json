@@ -17,5 +17,15 @@
   "ignoreDependencies": [
     "k6",
     "@auth/core"
-  ]
+  ],
+  "ignoreBinaries": [
+    "k6"
+  ],
+  "rules": {
+    "exports": "off",
+    "types": "off",
+    "nsExports": "off",
+    "duplicates": "off",
+    "enumMembers": "off"
+  }
 }

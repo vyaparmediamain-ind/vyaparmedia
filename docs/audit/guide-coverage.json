@@ -1,0 +1,1054 @@
+{
+  "generatedAt": "2026-11-24T08:18:59.320Z",
+  "summary": {
+    "totalPages": 65,
+    "mappedPages": 65,
+    "pageCoveragePercent": 100,
+    "totalPrimaryActions": 20,
+    "mappedPrimaryActions": 20,
+    "totalForms": 12,
+    "mappedForms": 12,
+    "totalWidgets": 16,
+    "mappedWidgets": 16,
+    "totalDestructiveButtons": 6,
+    "mappedDestructiveButtons": 6,
+    "totalHelpTipsFound": 10,
+    "coverageStatus": "COMPLETE"
+  },
+  "pages": [
+    {
+      "path": "/",
+      "roles": [
+        "PUBLIC",
+        "INFLUENCER",
+        "BRAND"
+      ],
+      "guideId": "influencer-dashboard-overview",
+      "guideTitle": "Home Command Center & Escrow Stories Bar"
+    },
+    {
+      "path": "/about",
+      "roles": [
+        "PUBLIC"
+      ],
+      "guideId": "influencer-public-profile",
+      "guideTitle": "Public Creator Profile & Live Media Kit"
+    },
+    {
+      "path": "/admin",
+      "roles": [
+        "ADMIN"
+      ],
+      "guideId": "admin-command-center",
+      "guideTitle": "Platform Administration Command Center"
+    },
+    {
+      "path": "/admin/analytics",
+      "roles": [
+        "ADMIN"
+      ],
+      "guideId": "admin-analytics-intelligence",
+      "guideTitle": "Platform Analytics & Macro Intelligence"
+    },
+    {
+      "path": "/admin/applications",
+      "roles": [
+        "ADMIN"
+      ],
+      "guideId": "admin-application-review",
+      "guideTitle": "Campaign Creator Application Moderation & Audit"
+    },
+    {
+      "path": "/admin/audit-logs",
+      "roles": [
+        "ADMIN"
+      ],
+      "guideId": "admin-immutable-audit-logs",
+      "guideTitle": "Cryptographic Tamper-Evident Audit Logs"
+    },
+    {
+      "path": "/admin/benchmarks",
+      "roles": [
+        "ADMIN"
+      ],
+      "guideId": "admin-cpv-benchmarks",
+      "guideTitle": "Cost-Per-View (CPV) Baselines & Pricing Calibration"
+    },
+    {
+      "path": "/admin/campaigns",
+      "roles": [
+        "ADMIN"
+      ],
+      "guideId": "admin-campaign-supervision",
+      "guideTitle": "Platform Campaign Supervision & Governance Reports"
+    },
+    {
+      "path": "/admin/campaigns/[id]",
+      "roles": [
+        "ADMIN"
+      ],
+      "guideId": "admin-campaign-supervision",
+      "guideTitle": "Platform Campaign Supervision & Governance Reports"
+    },
+    {
+      "path": "/admin/disputes",
+      "roles": [
+        "ADMIN"
+      ],
+      "guideId": "admin-dispute-arbitration",
+      "guideTitle": "Deal Dispute Arbitration & Escrow Division"
+    },
+    {
+      "path": "/admin/disputes/[id]",
+      "roles": [
+        "ADMIN"
+      ],
+      "guideId": "admin-dispute-arbitration",
+      "guideTitle": "Deal Dispute Arbitration & Escrow Division"
+    },
+    {
+      "path": "/admin/financial",
+      "roles": [
+        "ADMIN"
+      ],
+      "guideId": "admin-financial-reconciliation",
+      "guideTitle": "Platform Financial Ledger & Escrow Reconciliation"
+    },
+    {
+      "path": "/admin/guide",
+      "roles": [
+        "ADMIN"
+      ],
+      "guideId": "admin-guide-center",
+      "guideTitle": "Administrative Knowledge Base & Standard Operating Procedures"
+    },
+    {
+      "path": "/admin/newsletter",
+      "roles": [
+        "ADMIN"
+      ],
+      "guideId": "admin-broadcast-newsletter",
+      "guideTitle": "Platform Broadcasts & Newsletter Dispatch"
+    },
+    {
+      "path": "/admin/payouts",
+      "roles": [
+        "ADMIN"
+      ],
+      "guideId": "admin-payout-authorizations",
+      "guideTitle": "Batch Payout Authorization & Bank Approvals"
+    },
+    {
+      "path": "/admin/scouts",
+      "roles": [
+        "ADMIN"
+      ],
+      "guideId": "admin-campus-scouts",
+      "guideTitle": "Campus Scout Partner Network Administration"
+    },
+    {
+      "path": "/admin/suspicious-reviews",
+      "roles": [
+        "ADMIN"
+      ],
+      "guideId": "admin-suspicious-reviews",
+      "guideTitle": "Review Collusion & Rating Manipulation Radar"
+    },
+    {
+      "path": "/admin/system",
+      "roles": [
+        "ADMIN"
+      ],
+      "guideId": "admin-system-health-and-dlq",
+      "guideTitle": "System Health, Circuit Breakers & Incident Controls"
+    },
+    {
+      "path": "/admin/users",
+      "roles": [
+        "ADMIN"
+      ],
+      "guideId": "admin-user-management",
+      "guideTitle": "Platform Users Directory & Role Governance"
+    },
+    {
+      "path": "/admin/verifications",
+      "roles": [
+        "ADMIN"
+      ],
+      "guideId": "admin-kyc-verification-desk",
+      "guideTitle": "PAN & GSTIN Identity Verification Desk"
+    },
+    {
+      "path": "/admin/verifications/[id]",
+      "roles": [
+        "ADMIN"
+      ],
+      "guideId": "admin-kyc-verification-desk",
+      "guideTitle": "PAN & GSTIN Identity Verification Desk"
+    },
+    {
+      "path": "/admin/violations",
+      "roles": [
+        "ADMIN"
+      ],
+      "guideId": "admin-violations-and-enforcement",
+      "guideTitle": "Policy Violations, Contact Leaks & Enforcement Actions"
+    },
+    {
+      "path": "/blog",
+      "roles": [
+        "PUBLIC"
+      ],
+      "guideId": "influencer-reports-market-range",
+      "guideTitle": "Official Market Range Reports & Cryptographic Verification"
+    },
+    {
+      "path": "/brand/[id]",
+      "roles": [
+        "PUBLIC",
+        "INFLUENCER",
+        "BRAND"
+      ],
+      "guideId": "brand-creator-dossier",
+      "guideTitle": "Creator Dossier, Historical Performance & Media Kit"
+    },
+    {
+      "path": "/contact",
+      "roles": [
+        "PUBLIC"
+      ],
+      "guideId": "influencer-support-tickets",
+      "guideTitle": "Support Desk & Technical Grievance Resolution"
+    },
+    {
+      "path": "/cookie-policy",
+      "roles": [
+        "PUBLIC"
+      ],
+      "guideId": "brand-compliance-asci-ccpa",
+      "guideTitle": "Brand Advertising Compliance: ASCI & CCPA 2024 Legal Mandates"
+    },
+    {
+      "path": "/creator/[username]",
+      "roles": [
+        "PUBLIC",
+        "INFLUENCER",
+        "BRAND"
+      ],
+      "guideId": "influencer-public-profile",
+      "guideTitle": "Public Creator Profile & Live Media Kit"
+    },
+    {
+      "path": "/dashboard",
+      "roles": [
+        "INFLUENCER",
+        "BRAND",
+        "SCOUT"
+      ],
+      "guideId": "influencer-dashboard-overview",
+      "guideTitle": "Home Command Center & Escrow Stories Bar"
+    },
+    {
+      "path": "/dashboard/analytics",
+      "roles": [
+        "INFLUENCER",
+        "BRAND"
+      ],
+      "guideId": "influencer-analytics-performance",
+      "guideTitle": "Audience Analytics, Brand Views & The '<5' Privacy Rule"
+    },
+    {
+      "path": "/dashboard/applications",
+      "roles": [
+        "INFLUENCER",
+        "BRAND"
+      ],
+      "guideId": "influencer-applications-tracker",
+      "guideTitle": "Applications Tracker: Statuses & Proposal Withdrawal"
+    },
+    {
+      "path": "/dashboard/badges",
+      "roles": [
+        "INFLUENCER"
+      ],
+      "guideId": "influencer-drs-and-badges",
+      "guideTitle": "DRS™ Trust Score (300-900), Badges & Progression"
+    },
+    {
+      "path": "/dashboard/campaigns",
+      "roles": [
+        "INFLUENCER",
+        "BRAND"
+      ],
+      "guideId": "influencer-discover-campaigns",
+      "guideTitle": "Discovering Campaigns, Search Filters & Match Scores"
+    },
+    {
+      "path": "/dashboard/campaigns/[id]",
+      "roles": [
+        "INFLUENCER",
+        "BRAND"
+      ],
+      "guideId": "brand-campaign-detail",
+      "guideTitle": "Campaign Detail: Applicant Roster, Slots & Proposal Approvals"
+    },
+    {
+      "path": "/dashboard/campaigns/[id]/analytics",
+      "roles": [
+        "BRAND"
+      ],
+      "guideId": "brand-campaign-analytics-hub",
+      "guideTitle": "Campaign Analytics Hub: Funnels, Creator Tables & Financial Ledgers"
+    },
+    {
+      "path": "/dashboard/campaigns/[id]/roi",
+      "roles": [
+        "BRAND"
+      ],
+      "guideId": "brand-campaign-roi-reports",
+      "guideTitle": "Campaign ROI Valuation & Category Benchmark Comparison"
+    },
+    {
+      "path": "/dashboard/campaigns/create",
+      "roles": [
+        "BRAND"
+      ],
+      "guideId": "brand-campaign-creation",
+      "guideTitle": "Campaign Creation Wizard: Deliverables, Slots & Escrow Budget"
+    },
+    {
+      "path": "/dashboard/deals",
+      "roles": [
+        "INFLUENCER",
+        "BRAND"
+      ],
+      "guideId": "influencer-deal-lifecycle",
+      "guideTitle": "Deal Lifecycle, Contract Signing & Escrow Milestones"
+    },
+    {
+      "path": "/dashboard/deals/[id]",
+      "roles": [
+        "INFLUENCER",
+        "BRAND"
+      ],
+      "guideId": "influencer-content-submission",
+      "guideTitle": "Content Submission Vault & ASCI/CCPA Compliance"
+    },
+    {
+      "path": "/dashboard/deals/[id]/dispute",
+      "roles": [
+        "INFLUENCER",
+        "BRAND"
+      ],
+      "guideId": "influencer-dispute-resolution",
+      "guideTitle": "Dispute Arbitration, Evidence & Resolution Protocol"
+    },
+    {
+      "path": "/dashboard/disputes",
+      "roles": [
+        "INFLUENCER",
+        "BRAND"
+      ],
+      "guideId": "influencer-dispute-resolution",
+      "guideTitle": "Dispute Arbitration, Evidence & Resolution Protocol"
+    },
+    {
+      "path": "/dashboard/disputes/[id]",
+      "roles": [
+        "INFLUENCER",
+        "BRAND"
+      ],
+      "guideId": "influencer-dispute-resolution",
+      "guideTitle": "Dispute Arbitration, Evidence & Resolution Protocol"
+    },
+    {
+      "path": "/dashboard/guide",
+      "roles": [
+        "INFLUENCER",
+        "BRAND",
+        "SCOUT"
+      ],
+      "guideId": "influencer-dashboard-overview",
+      "guideTitle": "Home Command Center & Escrow Stories Bar"
+    },
+    {
+      "path": "/dashboard/influencers",
+      "roles": [
+        "BRAND"
+      ],
+      "guideId": "brand-creator-discovery",
+      "guideTitle": "Creator Discovery, AI Match Scores & DRS™ Trust Strip"
+    },
+    {
+      "path": "/dashboard/influencers/[id]",
+      "roles": [
+        "BRAND"
+      ],
+      "guideId": "brand-creator-dossier",
+      "guideTitle": "Creator Dossier, Historical Performance & Media Kit"
+    },
+    {
+      "path": "/dashboard/leaderboard",
+      "roles": [
+        "INFLUENCER",
+        "SCOUT"
+      ],
+      "guideId": "influencer-leaderboard",
+      "guideTitle": "Community Leaderboard, XP & Weekly Challenges"
+    },
+    {
+      "path": "/dashboard/messages",
+      "roles": [
+        "INFLUENCER",
+        "BRAND",
+        "SCOUT"
+      ],
+      "guideId": "influencer-messaging-rules",
+      "guideTitle": "Deal Messaging & Contact Anti-Leak Protection"
+    },
+    {
+      "path": "/dashboard/notifications",
+      "roles": [
+        "INFLUENCER",
+        "BRAND",
+        "SCOUT"
+      ],
+      "guideId": "influencer-notifications",
+      "guideTitle": "Notifications Center & Alert Preferences"
+    },
+    {
+      "path": "/dashboard/referrals",
+      "roles": [
+        "INFLUENCER",
+        "BRAND",
+        "SCOUT"
+      ],
+      "guideId": "influencer-referral-program",
+      "guideTitle": "Creator Referral Program & 1% Lifetime Royalty"
+    },
+    {
+      "path": "/dashboard/settings",
+      "roles": [
+        "INFLUENCER",
+        "BRAND",
+        "SCOUT"
+      ],
+      "guideId": "influencer-settings-profile",
+      "guideTitle": "Profile Settings, Rates & Estimated Market Range"
+    },
+    {
+      "path": "/dashboard/support",
+      "roles": [
+        "INFLUENCER",
+        "BRAND",
+        "SCOUT",
+        "ADMIN"
+      ],
+      "guideId": "influencer-support-tickets",
+      "guideTitle": "Support Desk & Technical Grievance Resolution"
+    },
+    {
+      "path": "/dashboard/wallet",
+      "roles": [
+        "INFLUENCER",
+        "BRAND",
+        "SCOUT"
+      ],
+      "guideId": "influencer-wallet-and-taxes",
+      "guideTitle": "Wallet Earnings, Bank Accounts & IMPS Withdrawals"
+    },
+    {
+      "path": "/forgot-password",
+      "roles": [
+        "PUBLIC"
+      ],
+      "guideId": "influencer-settings-security",
+      "guideTitle": "Security, 2FA Authentication & Telemetry Privacy"
+    },
+    {
+      "path": "/help",
+      "roles": [
+        "PUBLIC"
+      ],
+      "guideId": "influencer-support-tickets",
+      "guideTitle": "Support Desk & Technical Grievance Resolution"
+    },
+    {
+      "path": "/legal",
+      "roles": [
+        "PUBLIC"
+      ],
+      "guideId": "brand-compliance-asci-ccpa",
+      "guideTitle": "Brand Advertising Compliance: ASCI & CCPA 2024 Legal Mandates"
+    },
+    {
+      "path": "/login",
+      "roles": [
+        "PUBLIC"
+      ],
+      "guideId": "influencer-settings-security",
+      "guideTitle": "Security, 2FA Authentication & Telemetry Privacy"
+    },
+    {
+      "path": "/onboarding",
+      "roles": [
+        "PUBLIC",
+        "INFLUENCER",
+        "BRAND",
+        "SCOUT"
+      ],
+      "guideId": "influencer-settings-profile",
+      "guideTitle": "Profile Settings, Rates & Estimated Market Range"
+    },
+    {
+      "path": "/pricing",
+      "roles": [
+        "PUBLIC"
+      ],
+      "guideId": "influencer-reports-market-range",
+      "guideTitle": "Official Market Range Reports & Cryptographic Verification"
+    },
+    {
+      "path": "/privacy",
+      "roles": [
+        "PUBLIC"
+      ],
+      "guideId": "brand-compliance-asci-ccpa",
+      "guideTitle": "Brand Advertising Compliance: ASCI & CCPA 2024 Legal Mandates"
+    },
+    {
+      "path": "/refund",
+      "roles": [
+        "PUBLIC"
+      ],
+      "guideId": "brand-dispute-arbitration",
+      "guideTitle": "Dispute Arbitration: Resolution Protocols & Refund Claims"
+    },
+    {
+      "path": "/register",
+      "roles": [
+        "PUBLIC"
+      ],
+      "guideId": "influencer-settings-profile",
+      "guideTitle": "Profile Settings, Rates & Estimated Market Range"
+    },
+    {
+      "path": "/reset-password",
+      "roles": [
+        "PUBLIC"
+      ],
+      "guideId": "influencer-settings-security",
+      "guideTitle": "Security, 2FA Authentication & Telemetry Privacy"
+    },
+    {
+      "path": "/status",
+      "roles": [
+        "PUBLIC"
+      ],
+      "guideId": "admin-system-health-and-dlq",
+      "guideTitle": "System Health, Circuit Breakers & Incident Controls"
+    },
+    {
+      "path": "/terms",
+      "roles": [
+        "PUBLIC"
+      ],
+      "guideId": "brand-compliance-asci-ccpa",
+      "guideTitle": "Brand Advertising Compliance: ASCI & CCPA 2024 Legal Mandates"
+    },
+    {
+      "path": "/verify-report",
+      "roles": [
+        "PUBLIC"
+      ],
+      "guideId": "influencer-reports-market-range",
+      "guideTitle": "Official Market Range Reports & Cryptographic Verification"
+    },
+    {
+      "path": "/verify-report/[id]",
+      "roles": [
+        "PUBLIC"
+      ],
+      "guideId": "influencer-reports-market-range",
+      "guideTitle": "Official Market Range Reports & Cryptographic Verification"
+    }
+  ],
+  "primaryActions": [
+    {
+      "actionId": "create-campaign",
+      "label": "Create Campaign",
+      "page": "/dashboard/campaigns/create",
+      "role": "BRAND",
+      "guideId": "brand-campaign-creation",
+      "stepAnchor": "step-0"
+    },
+    {
+      "actionId": "apply-campaign",
+      "label": "Submit Pitch Proposal",
+      "page": "/dashboard/campaigns",
+      "role": "INFLUENCER",
+      "guideId": "influencer-campaign-application",
+      "stepAnchor": "step-1"
+    },
+    {
+      "actionId": "submit-deliverable",
+      "label": "Submit Deliverable Content",
+      "page": "/dashboard/deals/[id]",
+      "role": "INFLUENCER",
+      "guideId": "influencer-content-submission",
+      "stepAnchor": "step-1"
+    },
+    {
+      "actionId": "approve-deliverable",
+      "label": "Approve Deliverable & Release Escrow",
+      "page": "/dashboard/deals/[id]",
+      "role": "BRAND",
+      "guideId": "brand-deal-management",
+      "stepAnchor": "step-2"
+    },
+    {
+      "actionId": "withdraw-wallet",
+      "label": "Withdraw Earnings to Bank",
+      "page": "/dashboard/wallet",
+      "role": "INFLUENCER",
+      "guideId": "influencer-wallet-and-taxes",
+      "stepAnchor": "step-2"
+    },
+    {
+      "actionId": "fund-escrow",
+      "label": "Deposit Escrow Funds",
+      "page": "/dashboard/wallet",
+      "role": "BRAND",
+      "guideId": "brand-wallet-and-escrow",
+      "stepAnchor": "step-1"
+    },
+    {
+      "actionId": "open-dispute",
+      "label": "Escalate to Formal Dispute",
+      "page": "/dashboard/deals/[id]/dispute",
+      "role": "SHARED",
+      "guideId": "influencer-dispute-resolution",
+      "stepAnchor": "step-0"
+    },
+    {
+      "actionId": "connect-instagram",
+      "label": "Connect Instagram Business",
+      "page": "/dashboard/settings",
+      "role": "INFLUENCER",
+      "guideId": "influencer-settings-social",
+      "stepAnchor": "step-1"
+    },
+    {
+      "actionId": "verify-pan",
+      "label": "Submit PAN Verification",
+      "page": "/dashboard/settings",
+      "role": "INFLUENCER",
+      "guideId": "influencer-settings-verification",
+      "stepAnchor": "step-0"
+    },
+    {
+      "actionId": "verify-gstin",
+      "label": "Verify Business GSTIN",
+      "page": "/dashboard/settings",
+      "role": "BRAND",
+      "guideId": "brand-verification-kyc",
+      "stepAnchor": "step-0"
+    },
+    {
+      "actionId": "generate-scout-qr",
+      "label": "Generate Offline Campus QR",
+      "page": "/dashboard/referrals",
+      "role": "SCOUT",
+      "guideId": "scout-offline-qr-code",
+      "stepAnchor": "step-1"
+    },
+    {
+      "actionId": "invite-creator",
+      "label": "Invite Creator Partner",
+      "page": "/dashboard/referrals",
+      "role": "SCOUT",
+      "guideId": "scout-inviting-creators",
+      "stepAnchor": "step-0"
+    },
+    {
+      "actionId": "admin-ban-user",
+      "label": "Ban / Suspend Account",
+      "page": "/admin/users",
+      "role": "ADMIN",
+      "guideId": "admin-user-management",
+      "stepAnchor": "step-2",
+      "isDestructive": true,
+      "safetyRunbook": "docs/runbooks/admin-lockout.md"
+    },
+    {
+      "actionId": "admin-dispute-verdict",
+      "label": "Issue Binding Dispute Verdict",
+      "page": "/admin/disputes/[id]",
+      "role": "ADMIN",
+      "guideId": "admin-dispute-arbitration",
+      "stepAnchor": "step-2",
+      "isDestructive": true,
+      "safetyRunbook": "docs/runbooks/escrow-mismatch.md"
+    },
+    {
+      "actionId": "admin-payout-approve",
+      "label": "Authorize Bank Payout Batch",
+      "page": "/admin/payouts",
+      "role": "ADMIN",
+      "guideId": "admin-payout-authorizations",
+      "stepAnchor": "step-2"
+    },
+    {
+      "actionId": "admin-payout-reject",
+      "label": "Reject Payout & Void Transfer",
+      "page": "/admin/payouts",
+      "role": "ADMIN",
+      "guideId": "admin-payout-authorizations",
+      "stepAnchor": "step-2",
+      "isDestructive": true,
+      "safetyRunbook": "docs/runbooks/payment-stuck.md"
+    },
+    {
+      "actionId": "admin-kill-switch",
+      "label": "Toggle Emergency Circuit Breaker",
+      "page": "/admin/system",
+      "role": "ADMIN",
+      "guideId": "admin-system-health-and-dlq",
+      "stepAnchor": "step-3",
+      "isDestructive": true,
+      "safetyRunbook": "docs/runbooks/flag-rollback.md"
+    },
+    {
+      "actionId": "admin-dlq-replay",
+      "label": "Replay Dead-Letter Queue Job",
+      "page": "/admin/system",
+      "role": "ADMIN",
+      "guideId": "admin-dlq-replay-operations",
+      "stepAnchor": "step-2",
+      "isDestructive": true,
+      "safetyRunbook": "docs/runbooks/dlq-replay.md"
+    },
+    {
+      "actionId": "admin-broadcast-send",
+      "label": "Dispatch System Broadcast",
+      "page": "/admin/newsletter",
+      "role": "ADMIN",
+      "guideId": "admin-broadcast-newsletter",
+      "stepAnchor": "step-2"
+    },
+    {
+      "actionId": "admin-revoke-sessions",
+      "label": "Force Admin Session Revocation",
+      "page": "/admin",
+      "role": "ADMIN",
+      "guideId": "admin-command-center",
+      "stepAnchor": "step-3",
+      "isDestructive": true,
+      "safetyRunbook": "docs/runbooks/admin-lockout.md"
+    }
+  ],
+  "forms": [
+    {
+      "formId": "campaign-brief-form",
+      "name": "Campaign Brief Form",
+      "page": "/dashboard/campaigns/create",
+      "role": "BRAND",
+      "guideId": "brand-campaign-creation"
+    },
+    {
+      "formId": "creator-pitch-form",
+      "name": "Creator Pitch Proposal Form",
+      "page": "/dashboard/campaigns",
+      "role": "INFLUENCER",
+      "guideId": "influencer-campaign-application"
+    },
+    {
+      "formId": "deliverable-submission-form",
+      "name": "Deliverable Asset Submission Form",
+      "page": "/dashboard/deals/[id]",
+      "role": "INFLUENCER",
+      "guideId": "influencer-content-submission"
+    },
+    {
+      "formId": "dispute-evidence-form",
+      "name": "Dispute Evidence Dossier Form",
+      "page": "/dashboard/deals/[id]/dispute",
+      "role": "SHARED",
+      "guideId": "influencer-dispute-resolution"
+    },
+    {
+      "formId": "bank-account-form",
+      "name": "Bank Beneficiary Form",
+      "page": "/dashboard/wallet",
+      "role": "INFLUENCER",
+      "guideId": "influencer-wallet-and-taxes"
+    },
+    {
+      "formId": "pan-verification-form",
+      "name": "PAN Verification Form",
+      "page": "/dashboard/settings",
+      "role": "INFLUENCER",
+      "guideId": "influencer-settings-verification"
+    },
+    {
+      "formId": "gstin-verification-form",
+      "name": "GSTIN Tax Verification Form",
+      "page": "/dashboard/settings",
+      "role": "BRAND",
+      "guideId": "brand-verification-kyc"
+    },
+    {
+      "formId": "profile-edit-form",
+      "name": "Creator Profile & Rates Form",
+      "page": "/dashboard/settings",
+      "role": "INFLUENCER",
+      "guideId": "influencer-settings-profile"
+    },
+    {
+      "formId": "social-connect-form",
+      "name": "Social Accounts Integration Form",
+      "page": "/dashboard/settings",
+      "role": "INFLUENCER",
+      "guideId": "influencer-settings-social"
+    },
+    {
+      "formId": "benchmark-tuning-form",
+      "name": "CPV Benchmark Calibration Form",
+      "page": "/admin/benchmarks",
+      "role": "ADMIN",
+      "guideId": "admin-cpv-benchmarks"
+    },
+    {
+      "formId": "broadcast-draft-form",
+      "name": "Newsletter Broadcast Editor",
+      "page": "/admin/newsletter",
+      "role": "ADMIN",
+      "guideId": "admin-broadcast-newsletter"
+    },
+    {
+      "formId": "support-ticket-form",
+      "name": "Help & Escalation Ticket Form",
+      "page": "/dashboard/support",
+      "role": "SHARED",
+      "guideId": "influencer-support-tickets"
+    }
+  ],
+  "widgets": [
+    {
+      "widgetId": "financial-overview-bar",
+      "name": "Financial Overview & Balance Bar",
+      "page": "/dashboard",
+      "role": "SHARED",
+      "guideId": "influencer-wallet-and-taxes"
+    },
+    {
+      "widgetId": "active-deals-feed",
+      "name": "Active Collaborations Pipeline",
+      "page": "/dashboard",
+      "role": "SHARED",
+      "guideId": "influencer-deal-lifecycle"
+    },
+    {
+      "widgetId": "action-required-banner",
+      "name": "Priority Action Required Banner",
+      "page": "/dashboard",
+      "role": "SHARED",
+      "guideId": "influencer-deal-lifecycle"
+    },
+    {
+      "widgetId": "quick-discovery-row",
+      "name": "Recommended Opportunities Strip",
+      "page": "/dashboard",
+      "role": "SHARED",
+      "guideId": "influencer-discover-campaigns"
+    },
+    {
+      "widgetId": "dashboard-stories-bar",
+      "name": "Story Highlight Bar",
+      "page": "/dashboard",
+      "role": "SHARED",
+      "guideId": "influencer-dashboard-overview"
+    },
+    {
+      "widgetId": "weekly-challenges-card",
+      "name": "Gamification Weekly Quests",
+      "page": "/dashboard",
+      "role": "INFLUENCER",
+      "guideId": "influencer-drs-and-badges"
+    },
+    {
+      "widgetId": "authenticity-appeal-banner",
+      "name": "Creator Authenticity Audit Banner",
+      "page": "/dashboard",
+      "role": "INFLUENCER",
+      "guideId": "influencer-settings-social"
+    },
+    {
+      "widgetId": "first-run-checklist",
+      "name": "First-Run Onboarding Checklist",
+      "page": "/dashboard",
+      "role": "SHARED",
+      "guideId": "influencer-dashboard-overview"
+    },
+    {
+      "widgetId": "admin-kpi-grid",
+      "name": "Command Center Priority Metric Grid",
+      "page": "/admin",
+      "role": "ADMIN",
+      "guideId": "admin-command-center"
+    },
+    {
+      "widgetId": "admin-analytics-macro",
+      "name": "Platform Macro Growth Charts",
+      "page": "/admin/analytics",
+      "role": "ADMIN",
+      "guideId": "admin-analytics-intelligence"
+    },
+    {
+      "widgetId": "data-quality-distribution",
+      "name": "Data Quality Share Distribution Card",
+      "page": "/admin/analytics",
+      "role": "ADMIN",
+      "guideId": "admin-analytics-intelligence"
+    },
+    {
+      "widgetId": "conversion-funnel-card",
+      "name": "Platform Conversion Funnel Card",
+      "page": "/admin/analytics",
+      "role": "ADMIN",
+      "guideId": "admin-analytics-intelligence"
+    },
+    {
+      "widgetId": "traffic-behaviour-tab",
+      "name": "Traffic & Behaviour Intelligence Tab",
+      "page": "/admin/analytics",
+      "role": "ADMIN",
+      "guideId": "admin-analytics-intelligence"
+    },
+    {
+      "widgetId": "dlq-manager-panel",
+      "name": "Dead-Letter Queue Worker Panel",
+      "page": "/admin/system",
+      "role": "ADMIN",
+      "guideId": "admin-dlq-replay-operations"
+    },
+    {
+      "widgetId": "kill-switches-panel",
+      "name": "Circuit Breakers & Emergency Panel",
+      "page": "/admin/system",
+      "role": "ADMIN",
+      "guideId": "admin-system-health-and-dlq"
+    },
+    {
+      "widgetId": "scout-streak-banner",
+      "name": "Scout Monthly Activity Streak Banner",
+      "page": "/dashboard",
+      "role": "SCOUT",
+      "guideId": "scout-royalties-and-wallet"
+    }
+  ],
+  "destructiveButtons": [
+    {
+      "actionId": "admin-ban-user",
+      "label": "Ban / Suspend Account",
+      "page": "/admin/users",
+      "role": "ADMIN",
+      "guideId": "admin-user-management",
+      "stepAnchor": "step-2",
+      "isDestructive": true,
+      "safetyRunbook": "docs/runbooks/admin-lockout.md"
+    },
+    {
+      "actionId": "admin-dispute-verdict",
+      "label": "Issue Binding Dispute Verdict",
+      "page": "/admin/disputes/[id]",
+      "role": "ADMIN",
+      "guideId": "admin-dispute-arbitration",
+      "stepAnchor": "step-2",
+      "isDestructive": true,
+      "safetyRunbook": "docs/runbooks/escrow-mismatch.md"
+    },
+    {
+      "actionId": "admin-payout-reject",
+      "label": "Reject Payout & Void Transfer",
+      "page": "/admin/payouts",
+      "role": "ADMIN",
+      "guideId": "admin-payout-authorizations",
+      "stepAnchor": "step-2",
+      "isDestructive": true,
+      "safetyRunbook": "docs/runbooks/payment-stuck.md"
+    },
+    {
+      "actionId": "admin-kill-switch",
+      "label": "Toggle Emergency Circuit Breaker",
+      "page": "/admin/system",
+      "role": "ADMIN",
+      "guideId": "admin-system-health-and-dlq",
+      "stepAnchor": "step-3",
+      "isDestructive": true,
+      "safetyRunbook": "docs/runbooks/flag-rollback.md"
+    },
+    {
+      "actionId": "admin-dlq-replay",
+      "label": "Replay Dead-Letter Queue Job",
+      "page": "/admin/system",
+      "role": "ADMIN",
+      "guideId": "admin-dlq-replay-operations",
+      "stepAnchor": "step-2",
+      "isDestructive": true,
+      "safetyRunbook": "docs/runbooks/dlq-replay.md"
+    },
+    {
+      "actionId": "admin-revoke-sessions",
+      "label": "Force Admin Session Revocation",
+      "page": "/admin",
+      "role": "ADMIN",
+      "guideId": "admin-command-center",
+      "stepAnchor": "step-3",
+      "isDestructive": true,
+      "safetyRunbook": "docs/runbooks/admin-lockout.md"
+    }
+  ],
+  "helpTipCatalog": [
+    {
+      "file": "src/app/admin/disputes/[id]/page.tsx",
+      "guideId": "admin-dispute-arbitration"
+    },
+    {
+      "file": "src/app/admin/payouts/page.tsx",
+      "guideId": "admin-payout-authorizations"
+    },
+    {
+      "file": "src/app/admin/system/page.tsx",
+      "guideId": "admin-system-health-and-dlq"
+    },
+    {
+      "file": "src/app/admin/users/page.tsx",
+      "guideId": "admin-user-management"
+    },
+    {
+      "file": "src/app/dashboard/wallet/page.tsx",
+      "guideId": "influencer-wallet-and-taxes"
+    },
+    {
+      "file": "src/app/dashboard/wallet/page.tsx",
+      "guideId": "brand-wallet-and-escrow"
+    },
+    {
+      "file": "src/components/admin/system/DeadLetterQueueManager.tsx",
+      "guideId": "admin-dlq-replay-operations"
+    },
+    {
+      "file": "src/components/analytics/AdminAnalyticsView.tsx",
+      "guideId": "admin-analytics-intelligence"
+    },
+    {
+      "file": "src/components/analytics/AdminAnalyticsView.tsx",
+      "guideId": "admin-analytics-intelligence"
+    },
+    {
+      "file": "src/components/dashboard/settings/SocialPlatformCard.tsx",
+      "guideId": "influencer-settings-social"
+    }
+  ]
+}

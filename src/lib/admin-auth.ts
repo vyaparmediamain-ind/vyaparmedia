@@ -4,9 +4,9 @@ import { logger } from "@/lib/logger";
 import { redis } from "@/lib/redis";
 
 export type AdminSessionUser = {
-id?: string | null;
-email?: string | null;
-userType?: string | null;
+  id?: string | null | undefined;
+  email?: string | null | undefined;
+  userType?: string | null | undefined;
 };
 
 export type ActiveAdminIdentity = {

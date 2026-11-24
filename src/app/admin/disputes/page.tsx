@@ -126,7 +126,9 @@ function renderDisputeContent(
     const description = showHistory
       ? "No historical disputes have been recorded."
       : "There are no active disputes at the moment.";
-    return <EmptyState title={title} description={description} compact />;
+    return <EmptyState title={title} description={description} compact   guideId="admin-dispute-arbitration"
+        guideLabel="Dispute Arbitration Guide"
+      />;
   }
   return (
     <div className="space-y-3">

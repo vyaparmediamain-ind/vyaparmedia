@@ -26,6 +26,7 @@
     "test:all": "npm test && npm run test:e2e",
     "validate": "npm run lint && npm run lint:theme && npm run lint:actions && npm run typecheck && npm run db:verify-rls && npx prisma validate",
     "deploy:check": "npm run validate && npm run test && npm run build",
+    "release:check": "npm run validate && npm test && npm run test:resilience && npm run knip && npm run audit:connections && npm run audit:routes",
     "seed": "npx tsx --conditions=react-server scripts/seed-test-accounts.ts",
     "cron:verify": "npx tsx scripts/verify-qstash-crons.ts",
     "cron:sync": "npx tsx scripts/setup-qstash-crons.ts",
@@ -37,7 +38,9 @@
     "audit:routes": "npx tsx scripts/audit/route-manifest.ts",
     "audit:connections": "npx tsx scripts/audit/connections.ts",
     "audit:tests": "npx tsx scripts/audit/test-matrix.ts",
-    "audit:fallbacks": "npx tsx scripts/audit/fallbacks.ts"
+    "audit:fallbacks": "npx tsx scripts/audit/fallbacks.ts",
+    "audit:guides": "npx tsx scripts/audit/guide-coverage.ts",
+    "audit:guide-docs": "npx tsx scripts/audit/generate-guide-docs.ts"
   },
   "engines": {
     "node": "24.x"

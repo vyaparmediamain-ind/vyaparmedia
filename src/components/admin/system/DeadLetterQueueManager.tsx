@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import useSWR from "swr";
 import { fetcher } from "@/lib/fetcher";
 import { Button, Input, Badge } from "@/components/ui";
+import { HelpTip } from "@/components/guides/HelpTip";
 import { formatUserError } from "@/lib/user-messages";
 import { formatDate } from "@/lib/utils-client";
 import {
@@ -143,6 +144,8 @@ export default function DeadLetterQueueManager({
             <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? "animate-spin" : ""}`} />
             Refresh
           </Button>
+
+          <HelpTip guideId="admin-dlq-replay-operations" label="Dead-Letter Queue Replay Guide" />
         </div>
       </div>
 

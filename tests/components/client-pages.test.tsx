@@ -25,6 +25,7 @@ import CreateCampaignClient from "@/app/dashboard/campaigns/create/CreateCampaig
 import CampaignDetailClient from "@/app/dashboard/campaigns/[id]/CampaignDetailClient";
 import { CampaignAnalyticsClient } from "@/app/dashboard/campaigns/[id]/analytics/CampaignAnalyticsClient";
 import { RoiClient } from "@/app/dashboard/campaigns/[id]/roi/RoiClient";
+import GuideCenterClient from "@/app/dashboard/guide/GuideCenterClient";
 
 describe("Client Page Components Suite (*Client.tsx)", () => {
   let fetchMock: ReturnType<typeof createFetchMock>;
@@ -271,5 +272,10 @@ describe("Client Page Components Suite (*Client.tsx)", () => {
     renderWithProviders(<RoiClient campaignId="camp-300" />);
 
     expect(document.body).toBeInTheDocument();
+  });
+
+  it("renders GuideCenterClient with guide cards", () => {
+    renderWithProviders(<GuideCenterClient userRole="INFLUENCER" />);
+    expect(screen.getByText("Interactive Product Guide Center")).toBeInTheDocument();
   });
 });

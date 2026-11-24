@@ -359,7 +359,9 @@ export default function BadgesPage() {
                     title="No Badges Found"
                     description="No achievements match the selected filters. Try adjusting the category or rarity."
                     compact
-                  />
+                    guideId="influencer-drs-and-badges"
+          guideLabel="How Badges and Trust Levels Work (Guide)"
+        />
                 </div>
               ) : (
                 filteredBadges.map((badge, index) => {

@@ -191,7 +191,9 @@ export default function AdminSuspiciousReviewsPage() {
         <EmptyState
           title={`No ${statusFilter.toLowerCase()} collusion patterns found`}
           description="The DRS anti-collusion engine is continuously monitoring counterparty review diversity."
-        />
+          guideId="admin-suspicious-reviews"
+        guideLabel="Suspicious Reviews Guide"
+      />
       ) : (
         <div className="space-y-4">
           {flags.map((flag) => {

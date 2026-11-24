@@ -1,6 +1,8 @@
 "use client";
 import React from "react";
 import { Button } from "./Button";
+import { useGuideDrawer } from "@/components/guides/GuideDrawerContext";
+import { HelpCircle } from "lucide-react";
 
 export interface EmptyStateProps {
   readonly emoji?: string | undefined;
@@ -14,6 +16,8 @@ export interface EmptyStateProps {
   readonly onSecondaryActionClick?: (() => void) | undefined;
   readonly compact?: boolean | undefined;
   readonly className?: string | undefined;
+  readonly guideId?: string | undefined;
+  readonly guideLabel?: string | undefined;
 }
 
 function getIconForTitle(title: string, description: string): React.ReactNode {
@@ -140,7 +144,11 @@ export function EmptyState({
   onSecondaryActionClick,
   compact = false,
   className = "",
+  guideId,
+  guideLabel,
 }: EmptyStateProps) {
+  const { openGuideDrawer } = useGuideDrawer();
+
   return (
     <div
       className={`empty-state ${compact ? "compact" : ""} ${className}`}
@@ -180,6 +188,20 @@ export function EmptyState({
               {secondaryActionLabel}
             </Button>
           )}
+        </div>
+      )}
+
+      {guideId && (
+        <div className="mt-3 flex justify-center">
+          <button
+            type="button"
+            onClick={() => openGuideDrawer(guideId)}
+            data-guide-id={guideId}
+            className="inline-flex items-center gap-1.5 text-xs text-primary hover:text-primary/80 font-medium bg-primary/5 hover:bg-primary/10 px-3 py-1.5 rounded-full border border-primary/20 transition-colors cursor-pointer"
+          >
+            <HelpCircle className="w-3.5 h-3.5" aria-hidden="true" />
+            <span>{guideLabel || "How this works (Guide)"}</span>
+          </button>
         </div>
       )}
     </div>

@@ -1,7 +1,7 @@
 {
-  "generatedAt": "2026-11-23T15:15:15.686Z",
-  "totalApiRoutes": 154,
-  "totalPageRoutes": 63,
+  "generatedAt": "2026-11-24T08:18:35.607Z",
+  "totalApiRoutes": 155,
+  "totalPageRoutes": 65,
   "apiRoutes": [
     {
       "path": "/api/admin/audit-logs",
@@ -2452,6 +2452,30 @@
       "serverActions": []
     },
     {
+      "path": "/api/guides/feedback",
+      "file": "src/app/api/guides/feedback/route.ts",
+      "type": "api",
+      "methods": [
+        "POST"
+      ],
+      "authOptions": {
+        "POST": {
+          "requireAuth": false,
+          "requireAdmin": false,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": "RATE_LIMIT_CONFIGS.API_DEFAULT",
+          "validateSchemas": {
+            "body": "GuideFeedbackSchema"
+          },
+          "skipCsrf": false,
+          "maxBodySize": 4096
+        }
+      },
+      "serverActions": []
+    },
+    {
       "path": "/api/health",
       "file": "src/app/api/health/route.ts",
       "type": "api",
@@ -4128,6 +4152,14 @@
       "serverActions": []
     },
     {
+      "path": "/admin/guide",
+      "file": "src/app/admin/guide/page.tsx",
+      "type": "page",
+      "isClientComponent": false,
+      "authGuard": "admin-layout",
+      "serverActions": []
+    },
+    {
       "path": "/admin/newsletter",
       "file": "src/app/admin/newsletter/page.tsx",
       "type": "page",
@@ -4351,6 +4383,14 @@
       "type": "page",
       "isClientComponent": true,
       "authGuard": "dashboard-layout",
+      "serverActions": []
+    },
+    {
+      "path": "/dashboard/guide",
+      "file": "src/app/dashboard/guide/page.tsx",
+      "type": "page",
+      "isClientComponent": false,
+      "authGuard": "auth()",
       "serverActions": []
     },
     {

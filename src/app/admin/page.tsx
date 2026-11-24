@@ -2,6 +2,7 @@ import prisma from "@/lib/db";
 import { AdminService } from "@/services/admin.service";
 import VerificationQueue from "@/components/admin/VerificationQueue";
 import { PageContainer, PageHeader } from "@/components/ui";
+import { FirstRunChecklist } from "@/components/guides/FirstRunChecklist";
 import Link from "next/link";
 import {
   ShieldCheck,
@@ -140,6 +141,9 @@ export default async function AdminOverviewPage() {
         title="Operations Overview"
         subtitle="Live moderation, queue monitoring, and back-office management."
       />
+
+      {/* First-Run Onboarding Checklist */}
+      <FirstRunChecklist role="ADMIN" userId="admin" />
 
       {/* Priority Action Metrics */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">

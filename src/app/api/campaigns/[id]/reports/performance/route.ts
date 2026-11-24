@@ -4,12 +4,18 @@ import { isFeatureEnabled, FEATURE_FLAGS } from "@/lib/feature-flags";
 import { CampaignPerformanceReportService } from "@/services/campaign-performance-report.service";
 import { csvResponse } from "@/lib/csv-export";
 import { ReportVerificationService } from "@/services/report-verification.service";
+import { createActivityLog } from "@/lib/audit";
 import { resolveActor } from "@/lib/authz";
-import prisma from "@/lib/db";
 
 const paramsSchema = z
   .object({
     id: z.string().min(1, "Campaign ID is required"),
+  })
+  .strict();
+
+const querySchema = z
+  .object({
+    format: z.enum(["json", "csv"]).optional().default("json"),
   })
   .strict();
 
@@ -30,7 +36,8 @@ export const GET = apiWrapper(
       return ApiResponse.forbidden("Official Branded Reports feature is currently not enabled.");
     }
 
-    const fmt = new URL(req.url).searchParams.get("format") === "csv" ? "csv" : "json";
+    const { searchParams } = new URL(req.url);
+    const { format: fmt } = querySchema.parse(Object.fromEntries(searchParams.entries()));
 
     const reportData = await CampaignPerformanceReportService.getCampaignPerformanceReport(
       id,
@@ -38,21 +45,17 @@ export const GET = apiWrapper(
     );
 
     // Activity log entry for brand export
-    await prisma.activityLog
-      .create({
-        data: {
-          userId: actor.id,
-          action: "CAMPAIGN_PERFORMANCE_REPORT_EXPORT",
-          entityType: "Campaign",
-          entityId: id,
-          metadata: {
-            format: fmt,
-            reportId: reportData.reportMeta.reportId,
-            integrityCode: reportData.reportMeta.integrityCode,
-          },
-        },
-      })
-      .catch(() => {});
+    await createActivityLog({
+      userId: actor.id,
+      action: "CAMPAIGN_PERFORMANCE_REPORT_EXPORT",
+      entityType: "Campaign",
+      entityId: id,
+      metadata: {
+        format: fmt,
+        reportId: reportData.reportMeta.reportId,
+        integrityCode: reportData.reportMeta.integrityCode,
+      },
+    }).catch(() => { });
 
     // Cryptographic report verification registration
     await ReportVerificationService.recordReport({
@@ -73,6 +76,7 @@ export const GET = apiWrapper(
   },
   {
     requireAuth: true,
+    maxBodySize: 1024 * 1024,
     userRateLimit: { bucket: "REPORTS" },
   }
 );

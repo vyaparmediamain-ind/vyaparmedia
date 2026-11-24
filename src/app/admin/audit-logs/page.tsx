@@ -82,6 +82,8 @@ export default function AdminAuditLogsPage() {
         emoji=""
         title="No Audit Logs"
         description="No activity matches your filters."
+        guideId="admin-immutable-audit-logs"
+        guideLabel="Audit Logs Guide"
       />
     );
   } else {

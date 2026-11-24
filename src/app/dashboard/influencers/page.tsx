@@ -492,7 +492,9 @@ export default function DiscoverInfluencersPage() {
                 description="Click the bookmark icon on any creator card to save them to your shortlist for fast campaign outreach."
                 actionLabel="Explore All Creators"
                 onActionClick={() => setViewTab("all")}
-              />
+                guideId="brand-creator-discovery"
+          guideLabel="How Creator Discovery Works (Guide)"
+        />
             ) : (
               <EmptyState
                 title="Zero Creators Match Filters"

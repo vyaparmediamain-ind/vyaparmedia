@@ -28,6 +28,7 @@ import { useWallet } from "@/hooks/api/useWallet";
 import { formatCurrency, formatDateTime } from "@/lib/utils-client";
 import { checkWalletTopUpEligibility, checkWithdrawalEligibility } from "@/lib/action-eligibility";
 import { copyToClipboard } from "@/lib/clipboard";
+import { HelpTip } from "@/components/guides/HelpTip";
 import {
   Button,
   Input,
@@ -567,7 +568,8 @@ export default function WalletPage() {
                 <div className="flex items-center justify-between">
                   <span className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-verified">
                     <Zap className="w-3.5 h-3.5" />
-                    {isBrand ? "Available Balance" : "Ready for Payout"}
+                    <span>{isBrand ? "Available Balance" : "Ready for Payout"}</span>
+                    <HelpTip guideId="influencer-wallet-and-taxes" tooltip="Learn about payout settlements and taxes" />
                   </span>
                   <span className="text-[11px] font-semibold text-muted-foreground px-2 py-0.5 rounded-md bg-muted/60">
                     24x7 IMPS Active
@@ -649,7 +651,8 @@ export default function WalletPage() {
                 <div className="flex items-center justify-between">
                   <span className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-escrow">
                     <Lock className="w-3.5 h-3.5" />
-                    Safeguarded in Escrow
+                    <span>Safeguarded in Escrow</span>
+                    <HelpTip guideId="brand-wallet-and-escrow" tooltip="Learn about escrow milestones and rules" />
                   </span>
                   <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-escrow px-2 py-0.5 rounded-md bg-escrow-muted border border-escrow-border">
                     <ShieldCheck className="w-3 h-3" />

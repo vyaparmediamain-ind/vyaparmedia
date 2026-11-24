@@ -460,7 +460,9 @@ export default function LeaderboardPage() {
                 title="No Rankings Found"
                 description="No users match the selected city or category criteria. Try broadening your filter selection."
                 compact
-              />
+                guideId="influencer-leaderboard"
+          guideLabel="How Leaderboard and DRS Work (Guide)"
+        />
             </div>
           ) : (
             <div className="divide-y divide-border/60">

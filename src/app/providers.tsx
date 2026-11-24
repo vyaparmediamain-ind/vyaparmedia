@@ -10,6 +10,8 @@ import CustomInstallBanner from "@/components/pwa/CustomInstallBanner";
 import BetaModeBanner from "@/components/navigation/BetaModeBanner";
 import { TelemetryConsentBanner } from "@/components/telemetry/TelemetryConsentBanner";
 import { PageViewTracker } from "@/components/analytics/PageViewTracker";
+import { GuideDrawerProvider } from "@/components/guides/GuideDrawerContext";
+import { GuideDrawer } from "@/components/guides/GuideDrawer";
 import { SWRConfig } from "swr";
 
 export function Providers({
@@ -45,7 +47,10 @@ export function Providers({
               <BetaModeBanner />
               <TelemetryConsentBanner />
               <PageViewTracker />
-              {children}
+              <GuideDrawerProvider>
+                <GuideDrawer />
+                {children}
+              </GuideDrawerProvider>
             </SecurityProvider>
           </ErrorBoundary>
         </SWRConfig>
