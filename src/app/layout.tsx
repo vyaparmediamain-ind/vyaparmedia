@@ -145,6 +145,7 @@ return (
                   "@type": "Organization",
                   "@id": `${siteUrl}/#organization`,
                   "name": "VyaparMedia",
+                  "legalName": "Krishna Mangal (Proprietorship) t/a VyaparMedia",
                   "url": siteUrl,
                   "logo": {
                     "@type": "ImageObject",
@@ -154,6 +155,16 @@ return (
                   },
                   "description":
                     "India's premier influencer marketplace with smart escrow contracts, verified metrics, and guaranteed payouts.",
+                  "taxID": "09KPIPM8835Q1ZK",
+                  "vatID": "09KPIPM8835Q1ZK",
+                  "address": {
+                    "@type": "PostalAddress",
+                    "streetAddress": "46/90 F-1, Laxmi Nagar, Jagdeeshpura",
+                    "addressLocality": "Agra",
+                    "addressRegion": "Uttar Pradesh",
+                    "postalCode": "282002",
+                    "addressCountry": "IN",
+                  },
                   "sameAs": [
                     "https://instagram.com/vyaparmedia",
                     "https://twitter.com/vyaparmedia",
@@ -162,6 +173,7 @@ return (
                   "contactPoint": {
                     "@type": "ContactPoint",
                     "contactType": "Customer Support",
+                    "telephone": "+919639325726",
                     "email": "support@vyaparmedia.in",
                     "availableLanguage": ["English", "Hindi"],
                   },
@@ -174,7 +186,15 @@ return (
                   "publisher": {
                     "@id": `${siteUrl}/#organization`,
                   },
-                  "inLanguage": "en-IN",
+                  "potentialAction": {
+                    "@type": "SearchAction",
+                    "target": {
+                      "@type": "EntryPoint",
+                      "urlTemplate": `${siteUrl}/campaigns?q={search_term_string}`
+                    },
+                    "query-input": "required name=search_term_string"
+                  },
+                  "inLanguage": ["en-IN", "hi-IN"],
                 },
                 {
                   "@type": "SoftwareApplication",

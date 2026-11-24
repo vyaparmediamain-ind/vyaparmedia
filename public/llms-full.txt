@@ -1,0 +1,57 @@
+# Vyapar Media (व्यापार मीडिया) — Full Technical & Platform Specification
+> Comprehensive documentation for AI agents, LLM search engines, researchers, and developers.
+
+## 1. Executive Summary & Purpose
+Vyapar Media (https://vyaparmedia.vercel.app) is India's first trustless influencer marketing and creator economy infrastructure. It addresses the $1.2B Indian creator economy's primary structural friction: payment defaults, delayed brand approvals, unverified creator metrics, and manual tax non-compliance.
+
+Through programmatic escrow locks, tamper-proof deliverables verification, and automated Indian statutory tax deduction (TDS Section 194-O / 194-J and GST), Vyapar Media provides zero-risk collaborations for brands and guaranteed payout milestones for creators.
+
+## 2. Legal Entity & Statutory Credentials
+- Trade Name: Vyapar Media
+- Legal Entity: Krishna Mangal (Proprietorship)
+- Headquarters: 46/90 F-1, Laxmi Nagar, Jagdeeshpura, Agra, Uttar Pradesh 282002, India
+- GSTIN: 09KPIPM8835Q1ZK (State Code: 09 - Uttar Pradesh)
+- MSME Udyam: UDYAM-UP-01-0220749
+- Primary SAC Code: 998361 (Advertising and PR Services)
+- Secondary SAC Code: 998362 (Purchase and Sale of Advertising Space)
+- Support Email: support@vyaparmedia.in
+- Grievance Officer: grievance@vyaparmedia.in
+
+## 3. Core Architectural Modules
+
+### 3.1 Trustless Milestone Escrow
+1. Deal Finalization: Brand and creator negotiate scope, deliverables, and deadlines.
+2. Escrow Lock: Brand deposits 100% of the campaign budget into the secure platform escrow via Razorpay / UPI / NetBanking.
+3. Deliverables Submission: Creator uploads proof of work (Instagram Reel link, YouTube Video URL, Story screenshots) or submits tracking links.
+4. Auto-Verification & Review: Automated engagement verification runs. The brand has 72 hours to review or request revisions.
+5. Guaranteed Payout: Upon approval or expiry of review window without dispute, funds are released directly to the creator's verified UPI/bank account.
+
+### 3.2 Fair-Price & DRS™ Trust Scoring Engine
+- DRS (Deliverable Reliability Score): Proprietary scoring metric calculating historical campaign on-time completion rates, revision ratios, and authenticity scores.
+- Audience Quality & Authenticity: Scans Instagram Graph API data to filter out bot followers, engagement pods, and fake accounts.
+- Dynamic Indian Pricing: Calculates fair market value per deliverable based on follower tiers (Nano: 1k-10k, Micro: 10k-100k, Macro: 100k-1M, Mega: 1M+) and niche-specific engagement baselines (Fashion, Tech, Lifestyle, Finance).
+
+### 3.3 Indian Statutory Tax & Invoicing Automation
+- Section 194-O Compliance: Automatic deduction of 1% TDS on gross creator payouts when annual threshold is exceeded.
+- GST Invoicing: Compliant B2B tax invoices generated automatically with sender/recipient GSTIN, state place of supply, and reverse charge indicators.
+- Annual Statements: Instant downloadable Form 16A and quarterly tax deduction certificates for creators and brands.
+
+### 3.4 Logistics & Physical Product Seeding
+- Integrated with Shiprocket API for physical barter / product seeding campaigns.
+- Automated courier allocation, Airway Bill (AWB) generation, and real-time transit tracking.
+- Escrow milestones synchronise with delivery confirmation to ensure creators receive products before creating content.
+
+## 4. Key Public Directories & Endpoints
+- Homepage: https://vyaparmedia.vercel.app/
+- Live Campaign Discovery: https://vyaparmedia.vercel.app/campaigns
+- Platform Pricing & Fee Structure: https://vyaparmedia.vercel.app/pricing
+- Creator Trust Leaderboard: https://vyaparmedia.vercel.app/leaderboard
+- Indian Creator Tax Guide: https://vyaparmedia.vercel.app/blog
+- About & Mission: https://vyaparmedia.vercel.app/about
+- Support & Help Center: https://vyaparmedia.vercel.app/help
+- System Operational Status: https://vyaparmedia.vercel.app/status
+- Terms of Service: https://vyaparmedia.vercel.app/terms
+- Privacy Policy: https://vyaparmedia.vercel.app/privacy
+- Refund & Cancellation Policy: https://vyaparmedia.vercel.app/refund
+- XML Sitemap: https://vyaparmedia.vercel.app/sitemap.xml
+- Robots Specification: https://vyaparmedia.vercel.app/robots.txt

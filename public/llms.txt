@@ -10,7 +10,11 @@ Vyapar Media is a dual-sided creator marketplace designed specifically for the I
 - Registered GSTIN: 09KPIPM8835Q1ZK
 - MSME Udyam: UDYAM-UP-01-0220749
 
-## Core Features
+## Detailed Specifications
+- Comprehensive Technical & Architectural Documentation: https://vyaparmedia.vercel.app/llms-full.txt
+- Dynamic XML Sitemap: https://vyaparmedia.vercel.app/sitemap.xml
+
+## Core Platform Features
 - Automated Escrow: Funds are held securely until agreed campaign deliverables and engagement metrics are fulfilled.
 - Fair Price Calculator: Algorithmic pricing guidance evaluating follower counts, engagement rate (ER), and audience quality.
 - Statutory Indian Tax Compliance: Automatic GST invoice generation, TDS (Section 194-O / 194-J) deductions, and monthly tax summaries.
@@ -18,8 +22,10 @@ Vyapar Media is a dual-sided creator marketplace designed specifically for the I
 - Multi-Platform Logistics: Shiprocket integration for physical product seeding campaigns with automated AWB and tracking.
 
 ## Key Public Pages
-- Home & Discovery: https://vyaparmedia.vercel.app
+- Home & Discovery: https://vyaparmedia.vercel.app/
+- Live Campaign Discovery: https://vyaparmedia.vercel.app/campaigns
 - Pricing & Platform Fees: https://vyaparmedia.vercel.app/pricing
+- Creator Leaderboard: https://vyaparmedia.vercel.app/leaderboard
 - Compliance & Tax Guide: https://vyaparmedia.vercel.app/blog
 - About Vyapar Media: https://vyaparmedia.vercel.app/about
 - Help Center & Support: https://vyaparmedia.vercel.app/help
