@@ -23,7 +23,7 @@ const plusJakartaSans = Plus_Jakarta_Sans({
   display: "swap",
 });
 
-const rawSiteUrl = process.env.NEXT_PUBLIC_APP_URL || "https://vyaparmedia-nine.vercel.app";
+const rawSiteUrl = process.env.NEXT_PUBLIC_APP_URL || "https://vyaparmedia.vercel.app";
 const siteUrl = rawSiteUrl.replace(/\/+$/, "");
 
 export const metadata: Metadata = {

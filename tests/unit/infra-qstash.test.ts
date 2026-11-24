@@ -135,11 +135,11 @@ describe("INFRA-QSTASH-01: QStash Guard, Anti-Replay, Idempotency & Cron Automat
         const handler = vi.fn();
         const guarded = secureQStashEndpoint(handler);
 
-        const req = new NextRequest("https://vyaparmedia-nine.vercel.app/api/jobs/consumer", {
+        const req = new NextRequest("https://vyaparmedia.vercel.app/api/jobs/consumer", {
           method: "POST",
           headers: {
             "upstash-signature": "valid_mock_qstash_signature",
-            host: "vyaparmedia-nine.vercel.app",
+            host: "vyaparmedia.vercel.app",
           },
         });
 
@@ -160,7 +160,7 @@ describe("INFRA-QSTASH-01: QStash Guard, Anti-Replay, Idempotency & Cron Automat
       const origCurrent = process.env.QSTASH_CURRENT_SIGNING_KEY;
       try {
         (process.env as Record<string, string | undefined>)["NODE_ENV"] = "production";
-        process.env.NEXT_PUBLIC_APP_URL = "https://vyaparmedia-nine.vercel.app";
+        process.env.NEXT_PUBLIC_APP_URL = "https://vyaparmedia.vercel.app";
         process.env.QSTASH_CURRENT_SIGNING_KEY = "current_key_secret";
 
         const handler = vi.fn();

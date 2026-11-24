@@ -38,7 +38,7 @@ jobs:
         run: |
           TARGET_URL="${{ secrets.APP_URL }}"
           if [ -z "$TARGET_URL" ]; then
-            TARGET_URL="https://vyaparmedia-nine.vercel.app"
+            TARGET_URL="https://vyaparmedia.vercel.app"
           fi
           echo "APP_URL=$TARGET_URL" >> $GITHUB_ENV
           echo "Target Application URL: $TARGET_URL"

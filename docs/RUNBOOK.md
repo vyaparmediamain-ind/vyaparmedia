@@ -103,7 +103,7 @@ This runbook defines operational incident triage procedures, alert thresholds, o
   2. Check Upstash QStash console for failed deliveries.
   3. Trigger manual reconciliation run:
      ```bash
-     curl -X GET "https://vyaparmedia-nine.vercel.app/api/cron/reconcile-payouts" \
+     curl -X GET "https://vyaparmedia.vercel.app/api/cron/reconcile-payouts" \
        -H "Authorization: Bearer $CRON_SECRET"
      ```
 - **Remediation**:

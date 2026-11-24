@@ -40,7 +40,7 @@ const detectedAppUrl =
   process.env.APP_BASE_URL ||
   (process.env.VERCEL_PROJECT_PRODUCTION_URL ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}` : null) ||
   (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null) ||
-  "https://vyaparmedia-nine.vercel.app";
+  "https://vyaparmedia.vercel.app";
 
 const emptyAsUndefined = <T extends z.ZodTypeAny>(schema: T) =>
   z.preprocess((val) => (typeof val === "string" && val.trim() === "" ? undefined : val), schema);
@@ -197,7 +197,7 @@ export const envSchema = z.object({
   PLATFORM_ADDRESS: emptyAsUndefined(z.string().optional()),
   PLATFORM_EMAIL: z.string().email().default("support@VyaparMedia.in"),
   PLATFORM_PHONE: z.string().default("+91-8045678900"),
-  PLATFORM_WEBSITE: z.string().default("https://vyaparmedia-nine.vercel.app"),
+  PLATFORM_WEBSITE: z.string().default("https://vyaparmedia.vercel.app"),
   NEXT_PUBLIC_PLATFORM_GSTIN: emptyAsUndefined(z.string().optional()),
   NEXT_PUBLIC_PLATFORM_CIN: emptyAsUndefined(z.string().optional()),
   NEXT_PUBLIC_PLATFORM_UDYAM: emptyAsUndefined(z.string().optional()),

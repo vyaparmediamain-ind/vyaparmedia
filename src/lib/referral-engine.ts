@@ -317,7 +317,7 @@ export async function getReferralStats(
   });
 
   const referredUsers = includeUsers ? await fetchReferredUsersList(userId, offset, limit) : [];
-  const shareableLink = `${process.env.NEXT_PUBLIC_APP_URL || "https://vyaparmedia-nine.vercel.app"}/register?ref=${activeReferralCode}`;
+  const shareableLink = `${process.env.NEXT_PUBLIC_APP_URL || "https://vyaparmedia.vercel.app"}/register?ref=${activeReferralCode}`;
 
   const result = {
     totalReferrals,

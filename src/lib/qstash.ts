@@ -184,7 +184,7 @@ function getBaseAppUrl(): string {
     process.env.NEXTAUTH_URL ||
     process.env.NEXT_PUBLIC_APP_URL ||
     process.env.APP_BASE_URL ||
-    "https://vyaparmedia-nine.vercel.app"
+    "https://vyaparmedia.vercel.app"
   ).replace(/\/$/, "");
 }
 

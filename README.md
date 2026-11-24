@@ -117,16 +117,16 @@ The platform encompasses **61 distinct page entrypoints** (60 `page.tsx` routes 
 Next.js dynamically generates `/sitemap.xml` for search indexing:
 
 ```text
-https://vyaparmedia-nine.vercel.app/             (Priority: 1.0, Weekly)
-https://vyaparmedia-nine.vercel.app/campaigns    (Priority: 0.8, Hourly)
-https://vyaparmedia-nine.vercel.app/leaderboard  (Priority: 0.7, Daily)
-https://vyaparmedia-nine.vercel.app/about        (Priority: 0.6, Monthly)
-https://vyaparmedia-nine.vercel.app/help         (Priority: 0.7, Weekly)
-https://vyaparmedia-nine.vercel.app/legal        (Priority: 0.3, Monthly)
-https://vyaparmedia-nine.vercel.app/privacy      (Priority: 0.3, Monthly)
-https://vyaparmedia-nine.vercel.app/terms        (Priority: 0.3, Monthly)
-https://vyaparmedia-nine.vercel.app/refund       (Priority: 0.3, Monthly)
-https://vyaparmedia-nine.vercel.app/cookie-policy(Priority: 0.3, Monthly)
+https://vyaparmedia.vercel.app/             (Priority: 1.0, Weekly)
+https://vyaparmedia.vercel.app/campaigns    (Priority: 0.8, Hourly)
+https://vyaparmedia.vercel.app/leaderboard  (Priority: 0.7, Daily)
+https://vyaparmedia.vercel.app/about        (Priority: 0.6, Monthly)
+https://vyaparmedia.vercel.app/help         (Priority: 0.7, Weekly)
+https://vyaparmedia.vercel.app/legal        (Priority: 0.3, Monthly)
+https://vyaparmedia.vercel.app/privacy      (Priority: 0.3, Monthly)
+https://vyaparmedia.vercel.app/terms        (Priority: 0.3, Monthly)
+https://vyaparmedia.vercel.app/refund       (Priority: 0.3, Monthly)
+https://vyaparmedia.vercel.app/cookie-policy(Priority: 0.3, Monthly)
 ```
 
 Robots directives (`src/app/robots.ts`) grant crawler access to public pages while strictly disallowing private and administrative sections (`/api/*`, `/admin/*`, `/dashboard/*`).

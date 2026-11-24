@@ -5,7 +5,7 @@ export const revalidate = 86400; // Cache and revalidate daily
 export const dynamic = "force-dynamic";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const rawBaseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://vyaparmedia-nine.vercel.app";
+  const rawBaseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://vyaparmedia.vercel.app";
   const baseUrl = rawBaseUrl.replace(/\/+$/, "");
   const now = new Date();
 

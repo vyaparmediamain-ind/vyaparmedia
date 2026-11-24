@@ -87,21 +87,21 @@ describe("Cron Guard & Authorization Architecture", () => {
   });
 
   it("rejects requests attempting authentication via ?key=<secret> in URL query parameter (P0-REL-03)", async () => {
-    const mockReq = new Request(`https://vyaparmedia-nine.vercel.app/api/cron/ledger-scan?key=${TEST_SECRET}`);
+    const mockReq = new Request(`https://vyaparmedia.vercel.app/api/cron/ledger-scan?key=${TEST_SECRET}`);
     await expect(validateCronSecret(mockReq)).rejects.toMatchObject({
       statusCode: 401,
     });
   });
 
   it("rejects requests attempting authentication via ?secret=<secret> in URL query parameter (P0-REL-03)", async () => {
-    const mockReq = new Request(`https://vyaparmedia-nine.vercel.app/api/cron/ledger-scan?secret=${TEST_SECRET}`);
+    const mockReq = new Request(`https://vyaparmedia.vercel.app/api/cron/ledger-scan?secret=${TEST_SECRET}`);
     await expect(validateCronSecret(mockReq)).rejects.toMatchObject({
       statusCode: 401,
     });
   });
 
   it("rejects requests with invalid query parameter secret", async () => {
-    const mockReq = new Request(`https://vyaparmedia-nine.vercel.app/api/cron/ledger-scan?key=invalid_secret`);
+    const mockReq = new Request(`https://vyaparmedia.vercel.app/api/cron/ledger-scan?key=invalid_secret`);
     await expect(validateCronSecret(mockReq)).rejects.toMatchObject({
       statusCode: 401,
     });

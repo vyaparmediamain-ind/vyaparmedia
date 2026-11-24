@@ -1,7 +1,7 @@
 import { MetadataRoute } from "next";
 
 export default function robots(): MetadataRoute.Robots {
-  const rawBaseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://vyaparmedia-nine.vercel.app";
+  const rawBaseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://vyaparmedia.vercel.app";
   const baseUrl = rawBaseUrl.replace(/\/+$/, "");
 
   return {

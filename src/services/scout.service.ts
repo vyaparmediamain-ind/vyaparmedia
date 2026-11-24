@@ -153,7 +153,7 @@ export class ScoutService {
       where: { userId },
     });
 
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://vyaparmedia-nine.vercel.app";
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://vyaparmedia.vercel.app";
 
     if (!scout) {
       return {

@@ -55,7 +55,7 @@ function getReplyToEmail(): string {
 }
 
 function getAppUrl(): string {
-  return env.NEXTAUTH_URL || env.NEXT_PUBLIC_APP_URL || "https://vyaparmedia-nine.vercel.app";
+  return env.NEXTAUTH_URL || env.NEXT_PUBLIC_APP_URL || "https://vyaparmedia.vercel.app";
 }
 
 interface EmailParams {

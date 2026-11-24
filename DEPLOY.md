@@ -461,9 +461,9 @@ The following metrics are exported via `GET /api/metrics` with strict alert thre
 # ==============================================================================
 NODE_ENV="production"
 PORT=3000
-NEXTAUTH_URL="https://vyaparmedia-nine.vercel.app"
-NEXT_PUBLIC_APP_URL="https://vyaparmedia-nine.vercel.app"
-APP_BASE_URL="https://vyaparmedia-nine.vercel.app"
+NEXTAUTH_URL="https://vyaparmedia.vercel.app"
+NEXT_PUBLIC_APP_URL="https://vyaparmedia.vercel.app"
+APP_BASE_URL="https://vyaparmedia.vercel.app"
 LOG_LEVEL="info"
 
 # Cryptographic Keys (Generate each using: openssl rand -hex 32)
@@ -488,7 +488,7 @@ PLATFORM_PAN="AABCV1234F"
 PLATFORM_ADDRESS="Bellandur, Outer Ring Road, Bengaluru, Karnataka 560103"
 PLATFORM_EMAIL="support@vyaparmedia.in"
 PLATFORM_PHONE="+91-8045678900"
-PLATFORM_WEBSITE="https://vyaparmedia-nine.vercel.app"
+PLATFORM_WEBSITE="https://vyaparmedia.vercel.app"
 
 # ==============================================================================
 # 3. DATABASE (SUPABASE POSTGRESQL)
