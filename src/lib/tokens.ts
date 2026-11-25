@@ -66,9 +66,9 @@ if (existingToken.replacedByToken) {
 const newToken = await prisma.refreshToken.findUnique({
 where: { token: existingToken.replacedByToken },
 });
-// Grace period of 10s for concurrent client requests (race conditions)
-if (newToken && (Date.now() - newToken.createdAt.getTime()) < 10000) {
-return newToken;
+// Grace period of 45s for concurrent client requests (race conditions on page load / tab wake)
+if (newToken && (Date.now() - newToken.createdAt.getTime()) < 45000) {
+  return newToken;
 }
 }
 // Token theft / actual reuse: Revoke entire token family

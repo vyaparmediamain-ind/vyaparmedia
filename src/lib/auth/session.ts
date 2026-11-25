@@ -170,11 +170,41 @@ export async function verifyActiveSessionToken(userId: string, currentRefreshTok
       // In development without Redis, allow fallback; in production, fail closed
       return process.env.NODE_ENV !== "production";
     }
-    return activeToken === currentRefreshToken;
+    if (activeToken === currentRefreshToken) return true;
+
+    // Concurrency grace check: if currentRefreshToken was rotated to activeToken within the last 45s, allow it
+    if (typeof currentRefreshToken === "string") {
+      const recentToken = await prisma.refreshToken.findUnique({
+        where: { token: currentRefreshToken },
+        select: { replacedByToken: true, createdAt: true },
+      });
+      if (
+        recentToken?.replacedByToken === activeToken &&
+        Date.now() - recentToken.createdAt.getTime() < 45_000
+      ) {
+        return true;
+      }
+    }
+
+    return false;
   } catch (err) {
     logger.warn("Active session token check error", { userId, error: String(err) });
     return process.env.NODE_ENV !== "production";
   }
+}
+
+const inFlightTokenRotations = new Map<string, Promise<{ token: string; expiresAt: Date } | null>>();
+
+async function safeRotateRefreshTokenWithLock(oldToken: string): Promise<{ token: string; expiresAt: Date } | null> {
+  const existingPromise = inFlightTokenRotations.get(oldToken);
+  if (existingPromise) {
+    return existingPromise;
+  }
+  const rotationPromise = rotateRefreshToken(oldToken).finally(() => {
+    inFlightTokenRotations.delete(oldToken);
+  });
+  inFlightTokenRotations.set(oldToken, rotationPromise);
+  return rotationPromise;
 }
 
 async function checkSessionSecurityAndStatus(token: Record<string, unknown>): Promise<{ valid: boolean; status?: string }> {
@@ -222,7 +252,7 @@ error: "AccountBlocked",
 }
 if (!token.refreshToken) throw AppError.badRequest("No refresh token");
 
-const newRefreshToken = await rotateRefreshToken(
+const newRefreshToken = await safeRotateRefreshTokenWithLock(
 token.refreshToken as string,
 );
 

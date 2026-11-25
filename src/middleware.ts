@@ -469,8 +469,23 @@ if (roleRedirect) return roleRedirect;
 
 // 4. Prevent logged-in users from seeing /login and /register
 const authPages = new Set(["/login", "/register", "/forgot-password", "/reset-password"]);
-if (isAuth && authPages.has(pathname)) {
-return applyCSP(NextResponse.redirect(redirectTo("/dashboard")));
+if (authPages.has(pathname)) {
+  const reason = req.nextUrl.searchParams.get("reason");
+  if (reason) {
+    // User is landing on an auth page due to an explicit logout or session termination event.
+    // Clear residual session cookies to break any potential ping-pong redirect loop.
+    const response = NextResponse.next();
+    response.cookies.delete("authjs.session-token");
+    response.cookies.delete("__Secure-authjs.session-token");
+    response.cookies.delete("next-auth.session-token");
+    response.cookies.delete("__Secure-next-auth.session-token");
+    response.headers.set("x-nonce", nonce);
+    response.headers.set("Content-Security-Policy", cspHeader);
+    return applyCSP(response);
+  }
+  if (isAuth) {
+    return applyCSP(NextResponse.redirect(redirectTo("/dashboard")));
+  }
 }
 
 // 5. Cron route protection - fallback in case guard import is forgotten

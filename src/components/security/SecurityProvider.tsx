@@ -11,7 +11,7 @@
 * 5. Visibility-based session check (validates session when tab refocuses)
 */
 
-import { useEffect, useCallback } from "react";
+import { useEffect, useCallback, useRef } from "react";
 import { useSession, signOut } from "next-auth/react";
 import { useRouter, usePathname } from "next/navigation";
 import { useInactivityLogout } from "@/hooks/useInactivityLogout";
@@ -120,26 +120,37 @@ callbackUrl: "/login?reason=manual_logout",
 }, []);
 
 // Session error detection
+const isSigningOutRef = useRef(false);
+
 useEffect(() => {
-const sessionError = session?.error;
+  const sessionError = session?.error;
 
-const forceSignOut = (reason: string) => {
-signOut({ redirect: false }).finally(() => {
-if (typeof window !== "undefined") {
-window.location.href = `/login?reason=${reason}`;
-}
-});
-};
+  const forceSignOut = async (reason: string) => {
+    if (isSigningOutRef.current) return;
+    isSigningOutRef.current = true;
+    try {
+      await signOut({ redirect: false });
+    } catch {
+      // Best-effort signout
+    }
+    if (typeof document !== "undefined") {
+      document.cookie = "authjs.session-token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
+      document.cookie = "__Secure-authjs.session-token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
+      document.cookie = "next-auth.session-token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
+      document.cookie = "__Secure-next-auth.session-token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
+    }
+    if (typeof window !== "undefined") {
+      window.location.href = `/login?reason=${reason}`;
+    }
+  };
 
-if (sessionError === "RefreshAccessTokenError") {
-// Token rotation failed, so force sign out.
-forceSignOut("token_expired");
-}
+  if (sessionError === "RefreshAccessTokenError") {
+    forceSignOut("token_expired");
+  }
 
-if (sessionError === "SessionRevoked") {
-// Session was revoked (new login on another device)
-forceSignOut("session_revoked");
-}
+  if (sessionError === "SessionRevoked") {
+    forceSignOut("session_revoked");
+  }
 }, [session]);
 
   // Tab-nabbing protection: Delegated click handler guarantees external links have rel="noopener noreferrer"

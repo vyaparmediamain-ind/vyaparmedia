@@ -103,13 +103,23 @@ const sessionExpires = session?.expires
 
 const now = Date.now();
 
-const forceSignOut = (reason: string) => {
+const forceSignOut = async (reason: string) => {
+  if (hasSignedOut.current) return;
   hasSignedOut.current = true;
-  signOut({ redirect: false }).finally(() => {
-    if (typeof window !== "undefined") {
-      window.location.href = `/login?reason=${reason}`;
-    }
-  });
+  try {
+    await signOut({ redirect: false });
+  } catch {
+    // Best-effort signout
+  }
+  if (typeof document !== "undefined") {
+    document.cookie = "authjs.session-token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
+    document.cookie = "__Secure-authjs.session-token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
+    document.cookie = "next-auth.session-token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
+    document.cookie = "__Secure-next-auth.session-token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
+  }
+  if (typeof window !== "undefined") {
+    window.location.href = `/login?reason=${reason}`;
+  }
 };
 
 if (lastRefreshed !== undefined && lastRefreshed !== null) {
