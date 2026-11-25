@@ -300,17 +300,17 @@ return NextResponse.json(
 {
 success: true,
 message: "Transactions retrieved",
-transactions: result.wallet?.transactions ?? [],
+transactions: result?.wallet?.transactions ?? [],
 pagination: {
-totalTransactions: result.totalTransactions,
-totalPages: result.totalPages,
+totalTransactions: result?.totalTransactions ?? 0,
+totalPages: result?.totalPages ?? 0,
 page: parsed.page,
 limit: parsed.limit,
 },
 data: {
-transactions: result.wallet?.transactions ?? [],
-totalTransactions: result.totalTransactions,
-totalPages: result.totalPages,
+transactions: result?.wallet?.transactions ?? [],
+totalTransactions: result?.totalTransactions ?? 0,
+totalPages: result?.totalPages ?? 0,
 },
 },
 { status: 200 }

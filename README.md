@@ -183,8 +183,9 @@ For deep technical specifications, refer to canonical repository references:
 - **[DESIGN_TOKENS.md](./DESIGN_TOKENS.md)** — Design Tokens, Typography, Dark Mode Palettes, and WCAG AA Specifications
 - **[MESSAGES.md](./MESSAGES.md)** — Centralized User-Facing Message Architecture & Error Sanitization Catalog
 - **[DEPLOY.md](./DEPLOY.md)** — Complete Production Deployment, Core Architecture, Indian Compliance & Integrations Manual
-- **[ACTION_VALIDATION_AUDIT.md](./ACTION_VALIDATION_AUDIT.md)** — System-Wide Action Validation, Gating & Eligibility Audit
-- **[FEATURE_VERIFICATION.md](./FEATURE_VERIFICATION.md)** — End-to-End Feature Tracing & Verification Report (18 Core Features)
+- **[LAUNCH_PLAYBOOK.md](./LAUNCH_PLAYBOOK.md)** — Production Go-Live Execution Playbook, DNS & Verification Checklist
+- **[docs/RUNBOOK.md](./docs/RUNBOOK.md)** — Emergency Operations, Recovery, and Runbook Directory
+- **[docs/REDIS_QSTASH_MATRIX.md](./docs/REDIS_QSTASH_MATRIX.md)** — Upstash Redis & QStash Architecture, Keyspace & Cron Specifications
 - **[.env.example](./.env.example)** — Master Environment Variable Template (18 sections, 0 drift)
 
 

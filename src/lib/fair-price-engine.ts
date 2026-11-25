@@ -216,7 +216,10 @@ export function computeInputsHash(input: FairPriceInput): string {
       .sort((a, b) => a - b),
     expectedViewsMid: input.expectedViews?.mid ?? null,
     categoryBaselineCpvPaise: Math.max(1, input.categoryBaselineCpvPaise || 1),
-    authenticityScore: Math.max(0, Math.min(100, input.authenticityScore || 0)),
+    authenticityScore:
+      typeof input.authenticityScore === "number" && Number.isFinite(input.authenticityScore)
+        ? Math.max(0, Math.min(100, input.authenticityScore))
+        : null,
     drsScore: input.drsScore ?? null,
     deliverables: {
       count: Math.max(1, input.deliverables?.count || 1),

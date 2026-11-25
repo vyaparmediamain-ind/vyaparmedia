@@ -427,7 +427,7 @@ describe("Campaign Daily Metrics & Funnel Aggregator", () => {
       expect(derived.blendedCpvPaise.dataQuality).toBe("ESTIMATED");
       expect(derived.cpePaise.value).toBe(0);
       expect(derived.cpePaise.dataQuality).toBe("ESTIMATED");
-      expect(derived.roiScore.value).toBe(100); // calculateRoiScore with 0 cpv defaults to 100
+      expect(derived.roiScore.value).toBe(0); // 0 views delivered returns 0 ROI score sentinel
     });
 
     it("calculates on-time delivery rate, approval cycle time, and revision rate", () => {

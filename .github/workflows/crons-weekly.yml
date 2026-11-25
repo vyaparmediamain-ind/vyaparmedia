@@ -1,11 +1,8 @@
-name: "Crons: Weekly Maintenance (Weekly Challenges, Social Proof)"
+name: "Crons: Weekly Maintenance (Manual / Disaster Recovery Trigger)"
 
+# NOTE: Production automated cron scheduling is managed authoritatively by Upstash QStash.
+# This workflow is strictly for manual on-demand execution, testing, or disaster recovery.
 on:
-  schedule:
-    # Monday 00:00 UTC (05:30 AM IST) - Weekly challenges rollover
-    - cron: "0 0 * * 1"
-    # Sunday 01:00 UTC (06:30 AM IST) - Social proof authenticity re-scoring
-    - cron: "0 1 * * 0"
   workflow_dispatch:
     inputs:
       job:

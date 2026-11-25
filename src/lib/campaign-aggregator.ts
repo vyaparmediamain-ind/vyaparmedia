@@ -351,8 +351,11 @@ export function calculateDerivedCampaignMetrics(options: {
     cpePaise = Math.round(totalSpendPaise / engagements);
   }
 
-  // 4. ROI Score via calculateRoiScore + resolved baseline
-  const roiScore = calculateRoiScore(blendedCpvPaise, categoryOrBaseline ?? DEFAULT_BASELINE_CPV_PAISE);
+  // 4. ROI Score via calculateRoiScore + resolved baseline (0 delivered views yields 0 ROI score sentinel)
+  const roiScore =
+    deliveredViews > 0 && blendedCpvPaise > 0
+      ? calculateRoiScore(blendedCpvPaise, categoryOrBaseline ?? DEFAULT_BASELINE_CPV_PAISE)
+      : 0;
 
   // 5. On-Time Delivery Rate
   // Exclude CANCELLED deals

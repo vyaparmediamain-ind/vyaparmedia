@@ -250,8 +250,14 @@ export class TelemetryService {
     const serverSecret =
       process.env.TELEMETRY_DAILY_SALT_SECRET ||
       process.env.TELEMETRY_DAILY_SALT ||
-      process.env.NEXTAUTH_SECRET ||
-      "vm_telemetry_default_salt";
+      process.env.NEXTAUTH_SECRET;
+
+    if (!serverSecret) {
+      telemetryEventsDroppedTotal.inc({ reason: "missing_salt_secret" });
+      logger.error("Telemetry event dropped: server salt secret missing from environment. Public constant fallback refused for security.");
+      return { enqueued: false, droppedReason: "missing_salt_secret" };
+    }
+
     const nowClock = opts?.clock ?? new Date();
     // Bucket day in Asia/Kolkata
     const dateStr = nowClock.toLocaleDateString("en-CA", { timeZone: "Asia/Kolkata" }); // YYYY-MM-DD

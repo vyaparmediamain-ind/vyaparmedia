@@ -1,9 +1,8 @@
-name: "Crons: High-Frequency (Payouts, Signatures, Campaigns, Approvals, Engagement)"
+name: "Crons: High-Frequency (Manual / Disaster Recovery Trigger)"
 
+# NOTE: Production automated cron scheduling is managed authoritatively by Upstash QStash.
+# This workflow is strictly for manual on-demand execution, testing, or disaster recovery.
 on:
-  schedule:
-    # Runs every 30 minutes
-    - cron: "*/30 * * * *"
   workflow_dispatch:
     inputs:
       job:

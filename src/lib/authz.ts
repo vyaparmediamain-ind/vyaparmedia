@@ -10,6 +10,8 @@
 
 import { requireActiveAdmin } from "@/lib/admin-auth";
 import { AppError } from "@/lib/errors";
+import { logger } from "@/lib/logger";
+import { adminVerificationFailuresTotal } from "@/lib/metrics";
 
 export interface Actor {
   id: string;
@@ -121,9 +123,21 @@ export async function resolveActor(session: SessionLike | null | undefined): Pro
         userType: "ADMIN",
       });
       isActiveAdmin = true;
-    } catch {
-      // Failed admin verification: user is suspended, demoted, or deleted
+    } catch (err) {
+      // Failed admin verification: user is suspended, demoted, deleted, or DB/Redis error
       isActiveAdmin = false;
+      const errorMsg = err instanceof Error ? err.message : String(err);
+      const isSystemError =
+        errorMsg.includes("connect") ||
+        errorMsg.includes("timeout") ||
+        errorMsg.includes("database") ||
+        errorMsg.includes("redis");
+      const failureReason = isSystemError ? "database_or_network_error" : "verification_denied";
+      adminVerificationFailuresTotal.inc({ reason: failureReason });
+      logger.warn(
+        "Admin actor verification failed during resolveActor; downgraded to non-admin",
+        { userId: user.id, error: errorMsg, reason: failureReason }
+      );
     }
   }
 

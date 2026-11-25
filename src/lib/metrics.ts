@@ -189,6 +189,14 @@ export const cronJobRunsTotal = getOrCreateCounter(
   },
 );
 
+export const adminVerificationFailuresTotal = getOrCreateCounter(
+  "VyaparMedia_admin_verification_failures_total",
+  {
+    help: "Total admin verification failures during actor resolution",
+    labelNames: ["reason"],
+  },
+);
+
 // Provide access to the metrics string
 export const getMetrics = async () => {
 return await client.register.metrics();

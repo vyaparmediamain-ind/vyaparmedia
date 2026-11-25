@@ -1,9 +1,8 @@
-name: "Crons: Daily Maintenance (Ledger, Tokens, Fulfillment, Badges, Cleanup)"
+name: "Crons: Daily Maintenance (Manual / Disaster Recovery Trigger)"
 
+# NOTE: Production automated cron scheduling is managed authoritatively by Upstash QStash.
+# This workflow is strictly for manual on-demand execution, testing, or disaster recovery.
 on:
-  schedule:
-    # Runs daily at 02:00 UTC (07:30 AM IST)
-    - cron: "0 2 * * *"
   workflow_dispatch:
     inputs:
       job:

@@ -47,10 +47,10 @@ export function getTrustTier(
   trustScore?: number | null,
   isKycVerified?: boolean | null,
 ): TrustTier {
-  if (isKycVerified && (trustScore ?? 0) >= 700) {
+  if (isKycVerified && (trustScore ?? 600) >= 700) {
     return "HIGH";
   }
-  if ((trustScore ?? 0) >= 300) {
+  if ((trustScore ?? 600) >= 300) {
     return "STANDARD";
   }
   return "LOW";
