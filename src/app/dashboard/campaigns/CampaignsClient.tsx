@@ -139,6 +139,8 @@ function CampaignGridSkeleton({ listView }: { listView: boolean }) {
   );
 }
 
+const campaignsFetcher = createSchemaFetcher(campaignsListResponseSchema);
+
 export default function CampaignsClient({
   user,
 }: {
@@ -172,7 +174,6 @@ export default function CampaignsClient({
     selectedStatus
   );
 
-  const campaignsFetcher = createSchemaFetcher(campaignsListResponseSchema);
   const {
     data: payload,
     isLoading: loading,

@@ -44,6 +44,8 @@ function normalizeDeal(raw: RawDeal): Deal {
   };
 }
 
+const dealsListFetcher = createSchemaFetcher(dealsListResponseSchema);
+
 function DealsLoadingSkeleton() {
   return (
     <div className="space-y-4 animate-pulse" aria-hidden="true">
@@ -94,7 +96,6 @@ function DealsContent() {
   const campaignParam = campaignId ? `&campaignId=${encodeURIComponent(campaignId)}` : "";
 
   const statusParam = statusFilter === "all" ? "" : `&status=${statusFilter}`;
-  const dealsListFetcher = createSchemaFetcher(dealsListResponseSchema);
   const { data: payload, isLoading: loading, mutate } = useSWR<DealsApiResponse>(
     `/api/deals?page=${currentPage}&limit=${DEALS_PER_PAGE}${statusParam}${campaignParam}`,
     dealsListFetcher

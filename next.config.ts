@@ -29,12 +29,12 @@ const s3Region = process.env.S3_REGION || "ap-south-1";
 const isVercel = process.env.VERCEL === "1";
 const allowedDevOrigins = process.env.ALLOWED_DEV_ORIGINS
   ? Array.from(
-      new Set(
-        process.env.ALLOWED_DEV_ORIGINS.split(",")
-          .map((origin) => origin.trim())
-          .filter(Boolean),
-      ),
-    )
+    new Set(
+      process.env.ALLOWED_DEV_ORIGINS.split(",")
+        .map((origin) => origin.trim())
+        .filter(Boolean),
+    ),
+  )
   : [];
 
 const nextConfig: NextConfig = {
@@ -44,10 +44,22 @@ const nextConfig: NextConfig = {
   allowedDevOrigins,
   ...(isVercel ? {} : { output: "standalone" as const }),
   compress: true,
+  compiler: {
+    removeConsole: process.env.NODE_ENV === "production" ? { exclude: ["error", "warn"] } : false,
+  },
   experimental: {
-    optimizePackageImports: ["framer-motion", "date-fns", "recharts"],
+    optimizePackageImports: [
+      "framer-motion",
+      "date-fns",
+      "recharts",
+      "lucide-react",
+      "swr",
+      "@tanstack/react-virtual",
+    ],
   },
   images: {
+    formats: ["image/avif", "image/webp"],
+    minimumCacheTTL: 31536000,
     remotePatterns: [
       {
         protocol: "https",
@@ -66,16 +78,25 @@ const nextConfig: NextConfig = {
         : []),
       ...(s3Bucket
         ? [
-            {
-              protocol: "https" as const,
-              hostname: `${s3Bucket}.s3.${s3Region}.amazonaws.com`,
-            },
-          ]
+          {
+            protocol: "https" as const,
+            hostname: `${s3Bucket}.s3.${s3Region}.amazonaws.com`,
+          },
+        ]
         : []),
     ],
   },
   async headers() {
     return [
+      {
+        source: '/(icon-.*|apple-touch-icon.*|logo.*|og-image.png|favicon.ico)',
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "public, max-age=31536000, immutable",
+          },
+        ],
+      },
       {
         source: '/(.*)',
         headers: [

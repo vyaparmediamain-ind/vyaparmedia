@@ -17,45 +17,45 @@ import { buildReportMeta } from "@/lib/report-meta";
 import { ReportVerificationService } from "@/services/report-verification.service";
 
 const preprocessNumeric = (val: unknown) => {
-if (val === undefined || val === null || val === "") return undefined;
-const num = Number(val);
-return Number.isNaN(num) ? undefined : num;
+  if (val === undefined || val === null || val === "") return undefined;
+  const num = Number(val);
+  return Number.isNaN(num) ? undefined : num;
 };
 
 const querySchema = z.object({
-page: z.preprocess(preprocessNumeric, z.number().int().min(1).max(1000).default(1)),
-limit: z.preprocess(preprocessNumeric, z.number().int().min(1).max(100).default(20)),
-type: z.nativeEnum(TransactionType).optional(),
-status: z.nativeEnum(TransactionStatus).optional(),
-startDate: z.string().optional(),
-endDate: z.string().optional(),
+  page: z.preprocess(preprocessNumeric, z.number().int().min(1).max(1000).default(1)),
+  limit: z.preprocess(preprocessNumeric, z.number().int().min(1).max(100).default(20)),
+  type: z.nativeEnum(TransactionType).optional(),
+  status: z.nativeEnum(TransactionStatus).optional(),
+  startDate: z.string().optional(),
+  endDate: z.string().optional(),
 }).superRefine((data, ctx) => {
-const startTs = data.startDate ? Date.parse(data.startDate) : Number.NaN;
-const endTs = data.endDate ? Date.parse(data.endDate) : Number.NaN;
+  const startTs = data.startDate ? Date.parse(data.startDate) : Number.NaN;
+  const endTs = data.endDate ? Date.parse(data.endDate) : Number.NaN;
 
-if (data.startDate && Number.isNaN(startTs)) {
-ctx.addIssue({
-code: z.ZodIssueCode.custom,
-path: ["startDate"],
-message: "Invalid startDate",
-});
-}
+  if (data.startDate && Number.isNaN(startTs)) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["startDate"],
+      message: "Invalid startDate",
+    });
+  }
 
-if (data.endDate && Number.isNaN(endTs)) {
-ctx.addIssue({
-code: z.ZodIssueCode.custom,
-path: ["endDate"],
-message: "Invalid endDate",
-});
-}
+  if (data.endDate && Number.isNaN(endTs)) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["endDate"],
+      message: "Invalid endDate",
+    });
+  }
 
-if (!Number.isNaN(startTs) && !Number.isNaN(endTs) && startTs > endTs) {
-ctx.addIssue({
-code: z.ZodIssueCode.custom,
-path: ["endDate"],
-message: "endDate must be greater than or equal to startDate",
-});
-}
+  if (!Number.isNaN(startTs) && !Number.isNaN(endTs) && startTs > endTs) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["endDate"],
+      message: "endDate must be greater than or equal to startDate",
+    });
+  }
 });
 
 interface CsvTxn extends Record<string, unknown> {
@@ -165,7 +165,7 @@ async function handleCsvExport(
         reportId: reportMeta.reportId,
       },
     },
-  }).catch(() => {});
+  }).catch(() => { });
 
   // Cryptographic report verification registration
   await ReportVerificationService.recordReport({
@@ -267,34 +267,34 @@ export const GET = apiWrapper(async (req) => {
   const userId = session?.user?.id;
   if (!userId) return ApiResponse.unauthorized();
 
-const { searchParams } = req.nextUrl;
-const parsed = querySchema.parse({
-page: searchParams.get("page") || undefined,
-limit: searchParams.get("limit") || undefined,
-type: searchParams.get("type") || undefined,
-status: searchParams.get("status") || undefined,
-startDate: searchParams.get("startDate") || undefined,
-endDate: searchParams.get("endDate") || undefined,
-});
+  const { searchParams } = req.nextUrl;
+  const parsed = querySchema.parse({
+    page: searchParams.get("page") || undefined,
+    limit: searchParams.get("limit") || undefined,
+    type: searchParams.get("type") || undefined,
+    status: searchParams.get("status") || undefined,
+    startDate: searchParams.get("startDate") || undefined,
+    endDate: searchParams.get("endDate") || undefined,
+  });
 
-const startDate = parsed.startDate ? new Date(parsed.startDate) : undefined;
-const endDate = parsed.endDate ? new Date(parsed.endDate) : undefined;
-if (endDate && /^\d{4}-\d{2}-\d{2}$/.test(parsed.endDate || "")) {
-endDate.setHours(23, 59, 59, 999);
-}
+  const startDate = parsed.startDate ? new Date(parsed.startDate) : undefined;
+  const endDate = parsed.endDate ? new Date(parsed.endDate) : undefined;
+  if (endDate && /^\d{4}-\d{2}-\d{2}$/.test(parsed.endDate || "")) {
+    endDate.setHours(23, 59, 59, 999);
+  }
 
-const walletFilters = {
-...(parsed.type ? { type: parsed.type } : {}),
-...(parsed.status ? { status: parsed.status } : {}),
-...(startDate ? { startDate } : {}),
-...(endDate ? { endDate } : {}),
-};
+  const walletFilters = {
+    ...(parsed.type ? { type: parsed.type } : {}),
+    ...(parsed.status ? { status: parsed.status } : {}),
+    ...(startDate ? { startDate } : {}),
+    ...(endDate ? { endDate } : {}),
+  };
 
-if (searchParams.get("format") === "csv") {
-return handleCsvExport(userId, walletFilters, parsed);
-}
+  if (searchParams.get("format") === "csv") {
+    return handleCsvExport(userId, walletFilters, parsed);
+  }
 
-const result = await WalletService.getWallet(userId, parsed.page, parsed.limit, walletFilters);
+  const result = await WalletService.getWallet(userId, parsed.page, parsed.limit, walletFilters);
 
 return NextResponse.json(
 {

@@ -102,6 +102,8 @@ export function normalizeCreatorItem(inf: RawInfluencerApiItem): CreatorDiscover
   };
 }
 
+const creatorsFetcher = createSchemaFetcher(creatorsListResponseSchema);
+
 export default function DiscoverInfluencersPage() {
   const { data: session } = useSession();
   const [search, setSearch] = useState("");
@@ -140,7 +142,6 @@ export default function DiscoverInfluencersPage() {
     return params;
   }, [search, selectedCategory, filters]);
 
-  const creatorsFetcher = createSchemaFetcher(creatorsListResponseSchema);
   const { data: payload, isLoading: loading } = useSWR<CreatorsListResponse>(
     isBrandOrAdmin ? `/api/influencers?${queryParams.toString()}` : null,
     creatorsFetcher,

@@ -4,30 +4,44 @@ import React, { useEffect, useState } from "react";
 import Image from "next/image";
 
 export function AppSplashScreen() {
-  const [visible, setVisible] = useState(true);
+  const [visible, setVisible] = useState(false);
   const [fade, setFade] = useState(false);
 
   useEffect(() => {
-    // Only suppress within the same active tab memory session (not on fresh open/reload)
-    if (typeof window !== "undefined" && (window as unknown as { __vm_splash_active?: boolean }).__vm_splash_active) {
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    let hideTimer: ReturnType<typeof setTimeout> | undefined;
+
+    // Check if splash was already shown in this browser session
+    try {
+      const alreadyShown =
+        (typeof window !== "undefined" && (window as unknown as { __vm_splash_active?: boolean }).__vm_splash_active) ||
+        (typeof sessionStorage !== "undefined" && sessionStorage.getItem("__vm_splash_shown") === "1");
+
+      if (!alreadyShown) {
+        if (typeof window !== "undefined") {
+          (window as unknown as { __vm_splash_active?: boolean }).__vm_splash_active = true;
+        }
+        if (typeof sessionStorage !== "undefined") {
+          sessionStorage.setItem("__vm_splash_shown", "1");
+        }
+
+        // First time in session: show for a brief 150ms then smoothly fade out in 150ms
+        setVisible(true);
+        timer = setTimeout(() => {
+          setFade(true);
+          hideTimer = setTimeout(() => {
+            setVisible(false);
+          }, 150);
+        }, 150);
+      }
+    } catch {
       setVisible(false);
-      return;
     }
 
-    if (typeof window !== "undefined") {
-      (window as unknown as { __vm_splash_active?: boolean }).__vm_splash_active = true;
-    }
-
-    // Display splash for 900ms, then start smooth 350ms fade-out
-    const timer = setTimeout(() => {
-      setFade(true);
-      const hideTimer = setTimeout(() => {
-        setVisible(false);
-      }, 350);
-      return () => clearTimeout(hideTimer);
-    }, 900);
-
-    return () => clearTimeout(timer);
+    return () => {
+      if (timer) clearTimeout(timer);
+      if (hideTimer) clearTimeout(hideTimer);
+    };
   }, []);
 
   if (!visible) return null;
@@ -36,9 +50,8 @@ export function AppSplashScreen() {
     <div
       role="status"
       aria-label="Loading VyaparMedia"
-      className={`fixed inset-0 z-[99999] flex flex-col items-center justify-center bg-background text-foreground transition-opacity duration-300 ease-out select-none ${
-        fade ? "opacity-0 pointer-events-none" : "opacity-100"
-      }`}
+      className={`fixed inset-0 z-[99999] flex flex-col items-center justify-center bg-background text-foreground transition-opacity duration-300 ease-out select-none ${fade ? "opacity-0 pointer-events-none" : "opacity-100"
+        }`}
       style={{
         backgroundColor: "hsl(var(--background))",
         color: "hsl(var(--foreground))",

@@ -7,6 +7,13 @@ const TOKEN_REVOKE_PREFIX = "revoke:token:";
 
 // In-process memory safety net for active bans during Redis outages
 const memoryBannedIps = new Map<string, number>();
+// In-process cache of verified clean IPs to eliminate Redis network roundtrips on every API call (0ms)
+const memoryCleanIps = new Map<string, number>();
+const CLEAN_IP_TTL_MS = 300_000; // 5 minutes
+
+function isLoopbackIp(ip: string): boolean {
+  return !ip || ip === "unknown" || ip === "127.0.0.1" || ip === "::1" || ip === "localhost";
+}
 
 /**
  * Dynamic Threat Blacklisting and JWT revocation.
@@ -18,6 +25,7 @@ export async function banIp(
   reason: string,
   durationSeconds: number = 86400,
 ): Promise<void> {
+  memoryCleanIps.delete(ip);
   memoryBannedIps.set(ip, Date.now() + durationSeconds * 1000);
   try {
     await redis.setex(`${IP_BAN_PREFIX}${ip}`, durationSeconds, reason);
@@ -29,6 +37,7 @@ export async function banIp(
 
 export async function unbanIp(ip: string): Promise<boolean> {
   memoryBannedIps.delete(ip);
+  memoryCleanIps.set(ip, Date.now() + CLEAN_IP_TTL_MS);
   try {
     const deleted = await redis.del(`${IP_BAN_PREFIX}${ip}`);
     logger.info(`[SECURITY] IP Unbanned: ${ip}`, { success: deleted > 0 });
@@ -40,23 +49,44 @@ export async function unbanIp(ip: string): Promise<boolean> {
 }
 
 export async function isIpBanned(ip: string): Promise<boolean> {
-  try {
-    const result = await redis.get(`${IP_BAN_PREFIX}${ip}`);
-    if (result) return true;
-  } catch (_error) {
-    logger.warn(
-      "IP ban check failed due to Redis error, checking in-process security memory",
-      { ip, error: _error },
-    );
+  // Fast path 0: Localhost / loopback IPs bypass Redis check (0ms)
+  if (isLoopbackIp(ip)) {
+    return false;
   }
 
-  // Safety net: check in-process ban records with expiry
+  // Fast path 1: Check in-process clean IP cache (0ms)
+  const cleanExpiresAt = memoryCleanIps.get(ip);
+  if (cleanExpiresAt && cleanExpiresAt > Date.now()) {
+    return false;
+  }
+
+  // Fast path 2: Check in-process ban records with expiry
   const memoryExpiresAt = memoryBannedIps.get(ip);
   if (memoryExpiresAt) {
     if (Date.now() < memoryExpiresAt) {
       return true;
     }
     memoryBannedIps.delete(ip);
+  }
+
+  try {
+    const result = await redis.get(`${IP_BAN_PREFIX}${ip}`);
+    if (result) {
+      memoryBannedIps.set(ip, Date.now() + 300_000);
+      return true;
+    } else {
+      memoryCleanIps.set(ip, Date.now() + CLEAN_IP_TTL_MS);
+      if (memoryCleanIps.size > 10_000) {
+        const oldest = memoryCleanIps.keys().next().value;
+        if (oldest) memoryCleanIps.delete(oldest);
+      }
+      return false;
+    }
+  } catch (_error) {
+    logger.warn(
+      "IP ban check failed due to Redis error, checking in-process security memory",
+      { ip, error: _error },
+    );
   }
 
   return false;

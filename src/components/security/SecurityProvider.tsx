@@ -142,43 +142,24 @@ forceSignOut("session_revoked");
 }
 }, [session]);
 
-// Tab-nabbing protection
-// Patches all external links to use rel="noopener noreferrer"
-useEffect(() => {
-const patchExternalLinks = () => {
-const links = document.querySelectorAll<HTMLAnchorElement>("a[href]");
-links.forEach((link) => {
-const href = link.getAttribute("href") || "";
-const isExternal =
-href.startsWith("http") && !href.startsWith(window.location.origin);
-if (isExternal) {
-if (!link.rel.includes("noopener")) {
-link.rel = "noopener noreferrer";
-}
-if (link.target === "_blank" && !link.rel.includes("noopener")) {
-link.rel = "noopener noreferrer";
-}
-}
-});
-};
-
-    // Run immediately and observe DOM mutations for dynamically rendered links
-    patchExternalLinks();
-    let debounceTimer: ReturnType<typeof setTimeout> | null = null;
-    const observer = new MutationObserver(() => {
-      if (debounceTimer) return;
-      debounceTimer = setTimeout(() => {
-        debounceTimer = null;
-        patchExternalLinks();
-      }, 300);
-    });
-    observer.observe(document.body, { childList: true, subtree: true });
-
-    return () => {
-      if (debounceTimer) clearTimeout(debounceTimer);
-      observer.disconnect();
+  // Tab-nabbing protection: Delegated click handler guarantees external links have rel="noopener noreferrer"
+  // without expensive full-DOM mutation observers that cause main thread jank.
+  useEffect(() => {
+    const handleLinkClick = (e: MouseEvent) => {
+      const target = (e.target as HTMLElement | null)?.closest?.("a[href]") as HTMLAnchorElement | null;
+      if (!target) return;
+      const href = target.getAttribute("href") || "";
+      const isExternal = href.startsWith("http") && !href.startsWith(window.location.origin);
+      if (isExternal && !target.rel.includes("noopener")) {
+        target.rel = target.rel ? `${target.rel} noopener noreferrer` : "noopener noreferrer";
+      }
     };
-  }, [pathname]); // Re-run on route change
+
+    document.addEventListener("click", handleLinkClick, { capture: true, passive: true });
+    return () => {
+      document.removeEventListener("click", handleLinkClick, { capture: true });
+    };
+  }, []);
 
 // Visibility change: re-validate session when tab refocuses and run periodic heartbeat checks.
 useEffect(() => {

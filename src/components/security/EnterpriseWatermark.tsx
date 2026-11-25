@@ -57,29 +57,43 @@ export function EnterpriseWatermark() {
   useEffect(() => {
     if (!mounted || !isSensitiveRoute || !session?.user) return;
 
-    // DOM tamper detection
+    // Targeted tamper detection: observe direct body children removal and watermark style only
     const watermarkId = "enterprise-security-watermark";
     let isTearingDown = false;
 
-    // MutationObserver detects if someone tries to delete the watermark from DOM
-    const observer = new MutationObserver((mutations) => {
+    // Detects if the watermark node is removed from DOM
+    const bodyObserver = new MutationObserver((mutations) => {
       if (isTearingDown || !isSensitivePath()) return;
       for (const mutation of mutations) {
         checkRemovedNodes(mutation.removedNodes, watermarkId, isTearingDown);
-        checkStyleChanges(mutation, watermarkId, isTearingDown);
       }
     });
 
-    observer.observe(document.body, {
+    bodyObserver.observe(document.body, {
       childList: true,
-      subtree: true,
-      attributes: true,
-      attributeFilter: ["style"],
+      subtree: false,
     });
+
+    // Directly observe only the watermark element itself for inline style tampering
+    const watermarkEl = document.getElementById(watermarkId);
+    let styleObserver: MutationObserver | null = null;
+    if (watermarkEl) {
+      styleObserver = new MutationObserver((mutations) => {
+        if (isTearingDown || !isSensitivePath()) return;
+        for (const mutation of mutations) {
+          checkStyleChanges(mutation, watermarkId, isTearingDown);
+        }
+      });
+      styleObserver.observe(watermarkEl, {
+        attributes: true,
+        attributeFilter: ["style"],
+      });
+    }
 
     return () => {
       isTearingDown = true;
-      observer.disconnect();
+      bodyObserver.disconnect();
+      if (styleObserver) styleObserver.disconnect();
     };
   }, [mounted, isSensitiveRoute, session]);
 

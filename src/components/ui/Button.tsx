@@ -77,7 +77,7 @@ const SIZE_CLASSES: Record<NonNullable<ButtonProps["size"]>, string> = {
   lg: "btn-lg",
 };
 
-export const Button = React.forwardRef<HTMLButtonElement | HTMLAnchorElement, ButtonProps>(
+const ButtonComponent = React.forwardRef<HTMLButtonElement | HTMLAnchorElement, ButtonProps>(
   (
     {
       children,
@@ -158,33 +158,34 @@ ref={ref as React.Ref<HTMLAnchorElement>}
 );
 }
 
-return (
-<button
-type={type}
-autoFocus={autoFocus}
-className={classes}
-disabled={disabled || loading}
-onClick={onClick}
-onMouseEnter={onMouseEnter}
-onMouseLeave={onMouseLeave}
-onMouseDown={onMouseDown}
-onMouseUp={onMouseUp}
-onFocus={onFocus}
-onBlur={onBlur}
-onKeyDown={onKeyDown}
-onKeyUp={onKeyUp}
-form={form}
-name={name}
-value={value}
-id={id}
-tabIndex={tabIndex}
-ref={ref as React.Ref<HTMLButtonElement>}
-{...ariaProps}
->
-{content}
-</button>
-);
-}
+    return (
+      <button
+        type={type}
+        autoFocus={autoFocus}
+        className={classes}
+        disabled={disabled || loading}
+        onClick={onClick}
+        onMouseEnter={onMouseEnter}
+        onMouseLeave={onMouseLeave}
+        onMouseDown={onMouseDown}
+        onMouseUp={onMouseUp}
+        onFocus={onFocus}
+        onBlur={onBlur}
+        onKeyDown={onKeyDown}
+        onKeyUp={onKeyUp}
+        form={form}
+        name={name}
+        value={value}
+        id={id}
+        tabIndex={tabIndex}
+        ref={ref as React.Ref<HTMLButtonElement>}
+        {...ariaProps}
+      >
+        {content}
+      </button>
+    );
+  }
 );
 
+export const Button = React.memo(ButtonComponent);
 Button.displayName = "Button";

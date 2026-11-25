@@ -11,9 +11,18 @@ let warned = false;
 const edgeKnownBannedIps = new Set<string>();
 // In-memory cache of verified clean IPs at edge runtime to eliminate round-trip Redis latency for normal users
 const edgeKnownCleanIps = new Map<string, number>();
-const CLEAN_IP_TTL_MS = 180_000; // 3 minutes
+const CLEAN_IP_TTL_MS = 600_000; // 10 minutes
+
+function isLoopbackIp(ip: string): boolean {
+  return !ip || ip === "unknown" || ip === "127.0.0.1" || ip === "::1" || ip === "localhost";
+}
 
 export async function isIpBannedEdge(ip: string): Promise<boolean> {
+  // Fast path 0: Localhost / loopback IPs bypass external Redis lookups (0ms)
+  if (isLoopbackIp(ip)) {
+    return false;
+  }
+
   // Fast path 1: Check local edge clean IP cache first (0ms instantaneous lookup)
   const cleanExpiresAt = edgeKnownCleanIps.get(ip);
   if (cleanExpiresAt && cleanExpiresAt > Date.now()) {

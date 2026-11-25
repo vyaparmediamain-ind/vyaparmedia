@@ -86,7 +86,7 @@ export function CampaignDiscoveryCard({
     /* ── LIST VIEW (horizontal compact row) ───────────────────────── */
     return (
       <article
-        className={`rounded-2xl border p-4 shadow-sm transition-all flex items-center justify-between gap-4 group ${
+        className={`content-visibility-auto rounded-2xl border p-4 shadow-sm transition-all flex items-center justify-between gap-4 group ${
           isApplied
             ? "border-verified/50 bg-card hover:border-verified"
             : isRecommended
@@ -242,7 +242,7 @@ export function CampaignDiscoveryCard({
   /* ── GRID VIEW (default card) ──────────────────────────────────── */
   return (
     <article
-      className={`rounded-2xl border p-5 shadow-sm transition-all flex flex-col justify-between group relative overflow-hidden ${
+      className={`content-visibility-auto rounded-2xl border p-5 shadow-sm transition-all flex flex-col justify-between group relative overflow-hidden ${
         isCancelled
           ? "border-destructive/30 bg-card/75 opacity-90"
           : isApplied

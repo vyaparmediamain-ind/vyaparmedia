@@ -146,6 +146,8 @@ function ApplicationsSkeleton() {
   );
 }
 
+const applicationsFetcher = createSchemaFetcher(applicationsResponseSchema);
+
 export default function ApplicationsPage() {
   const { data: session } = useSession();
   const [page, setPage] = useState(1);
@@ -154,7 +156,6 @@ export default function ApplicationsPage() {
   const [viewMode, setViewMode] = useState<ViewMode>("cards");
   const limit = 10;
 
-  const applicationsFetcher = createSchemaFetcher(applicationsResponseSchema);
   const {
     data: payload,
     isLoading: loading,

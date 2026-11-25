@@ -186,7 +186,7 @@ export function DealPipelineCard({
       onClick={onToggleSelect}
       aria-expanded={isSelected}
       aria-label={`Deal for ${deal.campaign.title}`}
-      className={`overflow-hidden ${
+      className={`content-visibility-auto overflow-hidden ${
         isActionRequired
           ? "border-pending-border/90 hover:border-pending"
           : ""
