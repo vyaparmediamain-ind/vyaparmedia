@@ -260,6 +260,7 @@ interface TierStatusCardProps {
   readonly tierLimit: number | null;
   readonly tierDesc: string;
   readonly trustScore: number;
+  readonly isScout?: boolean;
 }
 
 export function TierStatusCardComponent({
@@ -269,16 +270,19 @@ export function TierStatusCardComponent({
   tierLimit,
   tierDesc,
   trustScore,
+  isScout = false,
 }: TierStatusCardProps) {
-  const tierNames = ["Tier 0: Unverified", "Tier 1: Basic Identity", "Tier 2: Financial & Tax", "Tier 3: Business Enterprise"];
-  const currentTierName = tierNames[Math.min(tier, 3)] || "Tier 0: Unverified";
+  const tierNames = isScout
+    ? ["Scout Onboarding", "Basic Identity Verified", "Campus Partner Verified", "Campus Partner Verified"]
+    : ["Tier 0: Unverified", "Tier 1: Basic Identity", "Tier 2: Financial & Tax", "Tier 3: Business Enterprise"];
+  const currentTierName = tierNames[Math.min(tier, 3)] || (isScout ? "Scout Onboarding" : "Tier 0: Unverified");
 
   return (
     <div className="p-5 sm:p-6 rounded-2xl border border-border bg-card shadow-xs space-y-4">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
-            Verification Level &amp; Privileges
+            {isScout ? "Partner Status & Privileges" : "Verification Level & Privileges"}
           </span>
           <div className="flex items-center gap-3 mt-1.5">
             <div className="p-2.5 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
@@ -289,7 +293,9 @@ export function TierStatusCardComponent({
                 {currentTierName}
               </h2>
               <p className="text-xs text-muted-foreground mt-0.5">
-                {tierDesc || "Complete identity checkpoints to expand payout volumes."}
+                {tierDesc || (isScout
+                  ? (tier >= 2 ? "Full campus partner privileges active. 1% lifetime GMV royalties credit directly to your wallet." : "Complete basic identity (Aadhaar + Selfie) and PAN for automated royalty settlements.")
+                  : "Complete identity checkpoints to expand payout volumes.")}
               </p>
             </div>
           </div>
@@ -297,38 +303,51 @@ export function TierStatusCardComponent({
 
         <div className="sm:text-right p-3 sm:p-0 rounded-xl bg-muted/30 sm:bg-transparent border sm:border-0 border-border">
           <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
-            Monthly Payout Cap
+            {isScout ? "Royalty Payout Status" : "Monthly Payout Cap"}
           </span>
           <div className="text-2xl font-extrabold text-foreground tabular-nums tracking-tight mt-0.5">
-            {getMonthlyLimitText(isUnlimited, tier, tierLimit)}
+            {isScout ? "Uncapped Royalties" : getMonthlyLimitText(isUnlimited, tier, tierLimit)}
           </div>
-          <span className="text-[11px] text-muted-foreground">Automated Escrow Settlements</span>
+          <span className="text-[11px] text-muted-foreground">
+            {isScout ? "1% GMV Passive Royalty Settlements" : "Automated Escrow Settlements"}
+          </span>
         </div>
       </div>
 
-      {/* Trust Score Contribution Bar */}
-      <div className="pt-2 border-t border-border">
-        <div className="flex items-center justify-between text-xs font-semibold mb-1.5">
-          <span className="text-muted-foreground flex items-center gap-1.5">
-            <ShieldCheck className="w-4 h-4 text-verified" /> Verified DRS Credit Rating (CIBIL 300-900)
+      {/* Trust Score / Partner Standing */}
+      {isScout ? (
+        <div className="pt-2 border-t border-border flex items-center justify-between text-xs">
+          <span className="text-muted-foreground flex items-center gap-1.5 font-semibold">
+            <ShieldCheck className="w-4 h-4 text-verified" /> Partner Network Standing
           </span>
-          <span className="text-foreground font-bold tabular-nums">
-            {trustScore} / 900 Score
+          <span className="text-verified font-bold flex items-center gap-1">
+            <CheckCircle2 className="w-3.5 h-3.5" /> 1% Lifetime Royalty Model Active
           </span>
         </div>
-        <div className="w-full bg-muted rounded-full h-2 overflow-hidden">
-          <div
-            className="bg-verified h-full rounded-full transition-all duration-300"
-            style={{ width: `${Math.min(100, Math.max(0, ((trustScore - 300) / 600) * 100))}%` }}
-          />
+      ) : (
+        <div className="pt-2 border-t border-border">
+          <div className="flex items-center justify-between text-xs font-semibold mb-1.5">
+            <span className="text-muted-foreground flex items-center gap-1.5">
+              <ShieldCheck className="w-4 h-4 text-verified" /> Verified DRS Credit Rating (CIBIL 300-900)
+            </span>
+            <span className="text-foreground font-bold tabular-nums">
+              {trustScore} / 900 Score
+            </span>
+          </div>
+          <div className="w-full bg-muted rounded-full h-2 overflow-hidden">
+            <div
+              className="bg-verified h-full rounded-full transition-all duration-300"
+              style={{ width: `${Math.min(100, Math.max(0, ((trustScore - 300) / 600) * 100))}%` }}
+            />
+          </div>
+          <div className="flex justify-between text-[10px] text-muted-foreground mt-1">
+            <span>300 (Subprime)</span>
+            <span>600 (Neutral)</span>
+            <span>750+ (Prime)</span>
+            <span>900 (Elite)</span>
+          </div>
         </div>
-        <div className="flex justify-between text-[10px] text-muted-foreground mt-1">
-          <span>300 (Subprime)</span>
-          <span>600 (Neutral)</span>
-          <span>750+ (Prime)</span>
-          <span>900 (Elite)</span>
-        </div>
-      </div>
+      )}
     </div>
   );
 }

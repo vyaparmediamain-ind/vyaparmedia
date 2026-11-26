@@ -67,11 +67,11 @@ const ALL_TABS: TabDef[] = [
 
 function getTabSubtitle(tab: string, userType?: string): string {
   switch (tab) {
-    case "profile":       return userType === "INFLUENCER" ? "Your public creator profile and personal details" : "Your company profile and brand details";
+    case "profile":       return userType === "INFLUENCER" ? "Your public creator profile and personal details" : userType === "SCOUT" ? "Your campus partner profile and account details" : "Your company profile and brand details";
     case "social":        return "Connect and verify your Instagram and YouTube accounts";
     case "rates":         return "Set your campaign pricing and minimum collaboration rates";
     case "bank":          return "Manage bank accounts and UPI IDs for withdrawals";
-    case "verification":  return "Complete KYC to unlock full payout and deal access";
+    case "verification":  return userType === "SCOUT" ? "Complete identity verification to activate royalty payouts" : "Complete KYC to unlock full payout and deal access";
     case "tax":           return "PAN, GST, ITR, and TDS details for India compliance";
     case "notifications": return "Choose how you receive alerts. Critical financial and deal events are delivered even when the app is closed.";
     case "appearance":    return "Customize interface appearance, color mode, and active session";
@@ -218,7 +218,7 @@ export default function SettingsPage() {
 
   const visibleTabs = ALL_TABS.filter((t) => {
     if (isScoutUser) {
-      return ["profile", "bank", "notifications", "appearance", "security"].includes(t.id);
+      return ["profile", "bank", "verification", "notifications", "appearance", "security"].includes(t.id);
     }
     if (t.influencerOnly && user?.userType !== "INFLUENCER") return false;
     return true;

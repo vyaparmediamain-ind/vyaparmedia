@@ -60,6 +60,7 @@ export default function VerificationTab({
   const phoneVerified: boolean = !!verificationData.phoneVerified;
   const roleType: string = verificationData.userType || user?.userType || "INFLUENCER";
   const isBrand = roleType === "BRAND";
+  const isScout = roleType === "SCOUT";
 
   const getDocStatus = (type: string) => docs.find((d) => d.type === type);
   const tierColors = ["#6b7280", "#0d9488", "#f59e0b", "#10b981"];
@@ -103,6 +104,7 @@ export default function VerificationTab({
         tierLimit={tierLimit}
         tierDesc={tierDesc}
         trustScore={verificationData.trustScore || 600}
+        isScout={isScout}
       />
 
       {/* 2. Step 1 Prerequisite: Contact Verification */}
@@ -130,11 +132,13 @@ export default function VerificationTab({
         renderDocRow={renderDocRow}
       />
 
-      {/* 6. Tier 3: Corporate & Business Verification (GST, MSME, CIN) */}
-      <Tier3CardComponent
-        tier={tier}
-        renderDocRow={renderDocRow}
-      />
+      {/* 6. Tier 3: Corporate & Business Verification (GST, MSME, CIN) - Not required for Campus Scouts */}
+      {!isScout && (
+        <Tier3CardComponent
+          tier={tier}
+          renderDocRow={renderDocRow}
+        />
+      )}
 
       {/* 7. Indian DPDP & Escrow Trust Footer */}
       <div className="p-4 rounded-2xl bg-card border border-border shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-muted-foreground">
