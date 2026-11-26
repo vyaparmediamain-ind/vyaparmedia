@@ -16,6 +16,7 @@ import {
   GST_STANDARD_RATE,
 } from "@/constants";
 import { PLATFORM_CONFIG } from "@/lib/platform-config";
+import { usePlatformConfig } from "@/hooks/usePlatformConfig";
 import { extractAllDealHashtagsAndMentions } from "./DealDetailHelpers";
 
 export interface ContractPrintViewProps {
@@ -68,6 +69,19 @@ export interface ContractPrintViewProps {
 
 export function ContractPrintView({ deal, onClose }: ContractPrintViewProps) {
   const [mounted, setMounted] = useState(false);
+  const platformConfig = usePlatformConfig();
+
+  const platformHeaderName = platformConfig.tradeName
+    ? platformConfig.legalName
+      ? `${platformConfig.tradeName.toUpperCase()} (${platformConfig.legalName.toUpperCase()})`
+      : platformConfig.tradeName.toUpperCase()
+    : (platformConfig.legalName || platformConfig.name || "VYAPARMEDIA").toUpperCase();
+
+  const intermediaryName =
+    platformConfig.legalName ||
+    platformConfig.tradeName ||
+    platformConfig.name ||
+    "VyaparMedia";
 
   useEffect(() => {
     setMounted(true);
@@ -160,15 +174,15 @@ export function ContractPrintView({ deal, onClose }: ContractPrintViewProps) {
 
           <div className="text-left sm:text-right text-xs text-muted-foreground space-y-0.5 font-sans">
             <div className="font-bold text-foreground">
-              {PLATFORM_CONFIG.tradeName ? `${PLATFORM_CONFIG.tradeName.toUpperCase()} (${PLATFORM_CONFIG.legalName.toUpperCase()})` : PLATFORM_CONFIG.legalName.toUpperCase()}
+              {platformHeaderName}
             </div>
             <div>
-              {PLATFORM_CONFIG.cin && !["N/A", "NONE", "PROPRIETORSHIP"].includes(PLATFORM_CONFIG.cin.toUpperCase()) ? `CIN: ${PLATFORM_CONFIG.cin} | ` : ""}
-              {PLATFORM_CONFIG.udyam ? `Udyam: ${PLATFORM_CONFIG.udyam} | ` : ""}
-              GSTIN: {PLATFORM_CONFIG.gstin}
-              {PLATFORM_CONFIG.pan ? ` | PAN: ${PLATFORM_CONFIG.pan}` : ""}
+              {platformConfig.cin && !["N/A", "NONE", "PROPRIETORSHIP"].includes(platformConfig.cin.toUpperCase()) ? `CIN: ${platformConfig.cin} | ` : ""}
+              {platformConfig.udyam ? `Udyam: ${platformConfig.udyam} | ` : ""}
+              {platformConfig.gstin ? `GSTIN: ${platformConfig.gstin}` : ""}
+              {platformConfig.pan ? ` | PAN: ${platformConfig.pan}` : ""}
             </div>
-            <div>{PLATFORM_CONFIG.address}</div>
+            {platformConfig.address && <div>{platformConfig.address}</div>}
             <div className="font-mono text-2xs text-muted-foreground pt-1">
               Ref: DEAL-{deal.id.slice(-8).toUpperCase()} | Date: {formatDate(deal.createdAt)}
             </div>
@@ -180,7 +194,7 @@ export function ContractPrintView({ deal, onClose }: ContractPrintViewProps) {
           <p className="text-xs text-foreground/90 leading-relaxed">
             This Independent Influencer Collaboration &amp; Escrow Services Agreement (the <strong>&quot;Agreement&quot;</strong>) is 
             entered into and made effective as of <strong>{formatDate(deal.createdAt)}</strong>, by and between the parties identified below, 
-            facilitated by <strong>{PLATFORM_CONFIG.legalName}</strong> acting as the neutral escrow agent and platform intermediary.
+            facilitated by <strong>{intermediaryName}</strong> acting as the neutral escrow agent and platform intermediary.
           </p>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">

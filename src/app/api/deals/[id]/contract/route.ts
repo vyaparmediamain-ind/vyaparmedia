@@ -43,7 +43,7 @@ import prisma from "@/lib/db";
 import { toCsv, csvResponse, paiseToRupees } from "@/lib/csv-export";
 import { format } from "date-fns";
 import { RATE_LIMIT_CONFIGS } from "@/lib/rate-limit";
-import { getPlatformHeader, getPlatformFooter } from "@/lib/platform-config";
+import { getPlatformHeader, getPlatformFooter, PLATFORM_CONFIG } from "@/lib/platform-config";
 import { getDealParticipantRole } from "@/lib/utils";
 import { tryDecrypt } from "@/lib/encryption";
 import {
@@ -412,7 +412,7 @@ return ApiResponse.error("No contract terms available for this deal", 400);
 }
 
 const terms = deal.contractTerms as ContractTermsType;
-const platform = terms.platform || {};
+const platform = { ...PLATFORM_CONFIG, ...(terms.platform || {}) };
 
 // Contract Signature Verification
 // Verify the cryptographic integrity of all stored signatures at download

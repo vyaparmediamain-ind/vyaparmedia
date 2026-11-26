@@ -300,22 +300,45 @@ export function buildBrandedCsv<T extends Record<string, unknown>>(
 
 export function csvPlatformHeader(reportType: string): string {
   let out = "";
-  out += csvRow(PLATFORM_CONFIG.legalName, "");
-  if (PLATFORM_CONFIG.cin && !["N/A", "NONE", "PROPRIETORSHIP"].includes(PLATFORM_CONFIG.cin.toUpperCase())) {
+  const entity =
+    PLATFORM_CONFIG.legalName ||
+    PLATFORM_CONFIG.tradeName ||
+    PLATFORM_CONFIG.name ||
+    "VyaparMedia";
+  out += csvRow("Platform Legal Entity", entity);
+  if (
+    PLATFORM_CONFIG.cin &&
+    !["N/A", "NONE", "PROPRIETORSHIP"].includes(PLATFORM_CONFIG.cin.toUpperCase())
+  ) {
     out += csvRow("Corporate Identity Number (CIN)", PLATFORM_CONFIG.cin);
   }
   if (PLATFORM_CONFIG.udyam) {
     out += csvRow("MSME / Udyam Registration", PLATFORM_CONFIG.udyam);
   }
-  out += csvRow("GSTIN", PLATFORM_CONFIG.gstin);
+  if (PLATFORM_CONFIG.gstin) {
+    out += csvRow("GSTIN", PLATFORM_CONFIG.gstin);
+  }
   if (PLATFORM_CONFIG.pan) {
     out += csvRow("Permanent Account Number (PAN)", PLATFORM_CONFIG.pan);
   }
-  out += csvRow("Registered Address", PLATFORM_CONFIG.address);
+  if (PLATFORM_CONFIG.address) {
+    out += csvRow("Registered Address", PLATFORM_CONFIG.address);
+  }
   out += csvRow("Report Title", reportType);
-  out += csvRow("Website", PLATFORM_CONFIG.website);
-  out += csvRow("Tax & Compliance Support", "compliance@vyaparmedia.in");
-  out += csvRow("SAC Code", "998365 (Advertising, Marketing & Influencer Services)");
+  if (PLATFORM_CONFIG.website) {
+    out += csvRow("Website", PLATFORM_CONFIG.website);
+  }
+  const complianceEmail =
+    PLATFORM_CONFIG.legalEmail ||
+    PLATFORM_CONFIG.email ||
+    PLATFORM_CONFIG.officialEmail;
+  if (complianceEmail) {
+    out += csvRow("Tax & Compliance Support", complianceEmail);
+  }
+  const sac = PLATFORM_CONFIG.sacCode
+    ? `${PLATFORM_CONFIG.sacCode} (Advertising, Marketing & Influencer Services)`
+    : "Advertising, Marketing & Influencer Services";
+  out += csvRow("SAC Code", sac);
   out += csvSep();
   return out;
 }

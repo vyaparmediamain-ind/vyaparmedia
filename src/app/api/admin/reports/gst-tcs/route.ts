@@ -5,9 +5,13 @@ import { toCsv, csvResponse, paiseToRupees, parseReportQueryParams } from "@/lib
 import { format } from "date-fns";
 import { RATE_LIMIT_CONFIGS } from "@/lib/rate-limit";
 import { getPlatformHeader, getPlatformFooter } from "@/lib/platform-config";
+import { assertTaxReportPrerequisites } from "@/lib/platform-config-check";
 import { GST_TCS_RATE_PERCENT_STRING } from "@/constants";
 
 async function _handler(req: NextRequest) {
+  // Statutory tax reports require complete corporate identity configuration
+  assertTaxReportPrerequisites();
+
   const { fy, format: fmt, bounds } = parseReportQueryParams(req.url);
   if (!bounds) return ApiResponse.error("Invalid FY format. Use YYYY-YY e.g. 2025-26");
 

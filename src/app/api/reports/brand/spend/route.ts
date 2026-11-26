@@ -12,6 +12,7 @@ import {
 import { format } from "date-fns";
 import { RATE_LIMIT_CONFIGS } from "@/lib/rate-limit";
 import { assertTaxReportPrerequisites } from "@/lib/platform-config-check";
+import { PLATFORM_CONFIG } from "@/lib/platform-config";
 import { buildReportMeta } from "@/lib/report-meta";
 import { ReportVerificationService } from "@/services/report-verification.service";
 import {
@@ -125,7 +126,7 @@ async function _handler(req: NextRequest) {
         reportId: reportMeta.reportId,
       },
     },
-  }).catch(() => {});
+  }).catch(() => { });
 
   // Cryptographic report verification registration
   await ReportVerificationService.recordReport({
@@ -187,7 +188,12 @@ async function _handler(req: NextRequest) {
       {
         title: "GST SUMMARY",
         rows: [
-          ["Service Accounting Code (SAC)", "998365 (Advertising, Marketing & Influencer Services)"],
+          [
+            "Service Accounting Code (SAC)",
+            PLATFORM_CONFIG.sacCode
+              ? `${PLATFORM_CONFIG.sacCode} (Advertising, Marketing & Influencer Services)`
+              : "Advertising, Marketing & Influencer Services",
+          ],
           ["Total Amount Paid to Influencers (INR)", paiseToRupees(totalPaid)],
           ["Total Platform Fee (INR)", paiseToRupees(totalPlatformFee)],
           [`Total GST @ ${GST_STANDARD_RATE_PERCENT_STRING} on Platform Fee (INR)`, paiseToRupees(totalGST)],

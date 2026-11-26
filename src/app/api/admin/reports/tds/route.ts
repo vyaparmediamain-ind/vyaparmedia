@@ -5,6 +5,7 @@ import { toCsv, csvResponse, paiseToRupees, parseReportQueryParams } from "@/lib
 import { format } from "date-fns";
 import { RATE_LIMIT_CONFIGS } from "@/lib/rate-limit";
 import { getPlatformHeader, getPlatformFooter } from "@/lib/platform-config";
+import { assertTaxReportPrerequisites } from "@/lib/platform-config-check";
 import {
   TDS_194O_RATE_PERCENT_STRING,
   TDS_194J_RATE_PERCENT_STRING,
@@ -12,7 +13,10 @@ import {
 } from "@/constants";
 
 async function _handler(req: NextRequest) {
-const { fy, format: fmt, bounds } = parseReportQueryParams(req.url);
+  // Statutory tax reports require complete corporate identity configuration
+  assertTaxReportPrerequisites();
+
+  const { fy, format: fmt, bounds } = parseReportQueryParams(req.url);
 if (!bounds) return ApiResponse.error("Invalid FY format. Use YYYY-YY e.g. 2025-26");
 
 // Query all TDS transactions in FY

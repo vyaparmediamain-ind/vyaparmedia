@@ -240,9 +240,17 @@ async function _handler(req: NextRequest) {
             "Deduction Rate",
             `${TDS_194O_RATE_PERCENT_STRING} on gross payments exceeding statutory limits (or ${TDS_206AA_PENAL_RATE_PERCENT_STRING} if PAN unverified)`,
           ],
-          ["Deductor Entity", PLATFORM_CONFIG.legalName.toUpperCase()],
-          ["Deductor CIN", PLATFORM_CONFIG.cin],
-          ["Deductor GSTIN", PLATFORM_CONFIG.gstin],
+          [
+            "Deductor Entity",
+            (
+              PLATFORM_CONFIG.legalName ||
+              PLATFORM_CONFIG.tradeName ||
+              PLATFORM_CONFIG.name ||
+              "VyaparMedia"
+            ).toUpperCase(),
+          ],
+          ...(PLATFORM_CONFIG.cin ? [["Deductor CIN", PLATFORM_CONFIG.cin]] : []),
+          ["Deductor GSTIN", PLATFORM_CONFIG.gstin || "Available on File"],
           ["Form 16A Availability", "Quarterly TDS certificates available post quarterly TRACES filing"],
         ] as Array<[string, string | number]>,
       },

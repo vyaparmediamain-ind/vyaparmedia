@@ -17,6 +17,7 @@ import {
   GST_DEAL_EXEMPT_THRESHOLD_PAISE,
 } from "@/constants/tax";
 import { csvEsc, getIndianFYBounds, paiseToRupees } from "@/lib/csv-export";
+import { getPlatformFooter } from "@/lib/platform-config";
 
 export interface RawFinanceDeal {
   id: string;
@@ -450,6 +451,12 @@ export function generateCampaignFinanceCsv(data: CampaignFinanceReportData): str
     ];
     lines.push(row.map(csvEsc).join(","));
   });
+
+  const footer = getPlatformFooter().filter(Boolean);
+  if (footer.length > 0) {
+    lines.push("");
+    footer.forEach((f) => lines.push(csvEsc(f)));
+  }
 
   return lines.join("\r\n");
 }

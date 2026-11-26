@@ -13,6 +13,7 @@ import { format } from "date-fns";
 import prisma from "@/lib/db";
 import { isInfluencer } from "@/lib/rbac";
 import { assertTaxReportPrerequisites } from "@/lib/platform-config-check";
+import { PLATFORM_CONFIG } from "@/lib/platform-config";
 import { buildReportMeta } from "@/lib/report-meta";
 import { ReportVerificationService } from "@/services/report-verification.service";
 
@@ -204,52 +205,62 @@ async function handleCsvExport(
     },
   ];
 
-  const customSections = [
-    {
-      title: "STATEMENT PARAMETERS",
-      rows: [
-        ["Document Type", "Escrow & Wallet Ledger Statement"],
-        ["Scope / Filter", filterDesc],
-        ["Total Records", String(txns.length)],
-        ["Base Currency", "INR (Indian Rupee)"],
-      ] as Array<[string, string | number]>,
-    },
-    {
-      title: "ACCOUNT HOLDER DOSSIER",
-      rows: [
-        ["Account Name", displayName || "Verified Platform Member"],
-        ["Registered Email", user.email || ""],
-        ["Location / State", location || "India"],
-        ["Account Classification", user.userType || "Standard"],
-      ] as Array<[string, string | number]>,
-    },
-    {
-      title: "EXECUTIVE FINANCIAL SUMMARY",
-      rows: [
-        ["Total Inflow / Deposits (INR)", paiseToRupees(totalCredit)],
-        ["Total Outflow / Settlements (INR)", paiseToRupees(totalDebit)],
-        ["Net Movement for Period (INR)", paiseToRupees(totalCredit - totalDebit)],
-      ] as Array<[string, string | number]>,
-    },
-    {
-      title: "STATUTORY & REGULATORY COMPLIANCE",
-      rows: [
-        ["Service Accounting Code (SAC)", "998365 (Advertising, Marketing & Influencer Services)"],
-        [
-          "TDS Compliance",
-          "TDS withheld under Section 194-O / 194-J of the Income Tax Act 1961 as applicable",
-        ],
-        [
-          "Escrow Reassurance",
-          "Funds held in RBI-compliant escrow trust accounts prior to milestone disbursement",
-        ],
-        [
-          "Legal Certification",
-          "This is a computer-generated document issued by the automated ledger system and does not require a physical signature.",
-        ],
-      ] as Array<[string, string | number]>,
-    },
-  ];
+    const sacDisplay = PLATFORM_CONFIG.sacCode
+      ? `${PLATFORM_CONFIG.sacCode} (Advertising, Marketing & Influencer Services)`
+      : "Advertising, Marketing & Influencer Services";
+
+    const platformDisplayName =
+      PLATFORM_CONFIG.tradeName ||
+      PLATFORM_CONFIG.name ||
+      PLATFORM_CONFIG.legalName ||
+      "the platform";
+
+    const customSections = [
+      {
+        title: "STATEMENT PARAMETERS",
+        rows: [
+          ["Document Type", "Escrow & Wallet Ledger Statement"],
+          ["Scope / Filter", filterDesc],
+          ["Total Records", String(txns.length)],
+          ["Base Currency", "INR (Indian Rupee)"],
+        ] as Array<[string, string | number]>,
+      },
+      {
+        title: "ACCOUNT HOLDER DOSSIER",
+        rows: [
+          ["Account Name", displayName || "Verified Platform Member"],
+          ["Registered Email", user.email || ""],
+          ["Location / State", location || "India"],
+          ["Account Classification", user.userType || "Standard"],
+        ] as Array<[string, string | number]>,
+      },
+      {
+        title: "EXECUTIVE FINANCIAL SUMMARY",
+        rows: [
+          ["Total Inflow / Deposits (INR)", paiseToRupees(totalCredit)],
+          ["Total Outflow / Settlements (INR)", paiseToRupees(totalDebit)],
+          ["Net Movement for Period (INR)", paiseToRupees(totalCredit - totalDebit)],
+        ] as Array<[string, string | number]>,
+      },
+      {
+        title: "STATUTORY & REGULATORY COMPLIANCE",
+        rows: [
+          ["Service Accounting Code (SAC)", sacDisplay],
+          [
+            "TDS Compliance",
+            "TDS withheld under Section 194-O / 194-J of the Income Tax Act 1961 as applicable",
+          ],
+          [
+            "Escrow Reassurance",
+            "Funds held in RBI-compliant escrow trust accounts prior to milestone disbursement",
+          ],
+          [
+            "Legal Certification",
+            `This is a computer-generated document issued by the automated ledger system of ${platformDisplayName} and does not require a physical signature.`,
+          ],
+        ] as Array<[string, string | number]>,
+      },
+    ];
 
   const csv = buildBrandedCsv<CsvTxn>({
     meta: reportMeta,
@@ -296,25 +307,25 @@ export const GET = apiWrapper(async (req) => {
 
   const result = await WalletService.getWallet(userId, parsed.page, parsed.limit, walletFilters);
 
-return NextResponse.json(
-{
-success: true,
-message: "Transactions retrieved",
-transactions: result?.wallet?.transactions ?? [],
-pagination: {
-totalTransactions: result?.totalTransactions ?? 0,
-totalPages: result?.totalPages ?? 0,
-page: parsed.page,
-limit: parsed.limit,
-},
-data: {
-transactions: result?.wallet?.transactions ?? [],
-totalTransactions: result?.totalTransactions ?? 0,
-totalPages: result?.totalPages ?? 0,
-},
-},
-{ status: 200 }
-);
+  return NextResponse.json(
+    {
+      success: true,
+      message: "Transactions retrieved",
+      transactions: result?.wallet?.transactions ?? [],
+      pagination: {
+        totalTransactions: result?.totalTransactions ?? 0,
+        totalPages: result?.totalPages ?? 0,
+        page: parsed.page,
+        limit: parsed.limit,
+      },
+      data: {
+        transactions: result?.wallet?.transactions ?? [],
+        totalTransactions: result?.totalTransactions ?? 0,
+        totalPages: result?.totalPages ?? 0,
+      },
+    },
+    { status: 200 }
+  );
 }, {
   requireAuth: true,
   userRateLimit: { bucket: "REPORTS" },
