@@ -149,15 +149,17 @@ export function getMissingTaxConfigFields(): PlatformConfigFieldStatus[] {
   return getPlatformConfigStatus().filter((f) => f.isTaxRequired && !f.isConfigured);
 }
 
-/**
- * Validates that all statutory tax report prerequisites are satisfied.
- */
-export function validateTaxReportPrerequisites(): {
+export interface TaxReportValidationResult {
   valid: boolean;
   missingFields: string[];
   missingFieldLabels: string[];
   errorMessage: string;
-} {
+}
+
+/**
+ * Validates that all statutory tax report prerequisites are satisfied.
+ */
+export function validateTaxReportPrerequisites(): TaxReportValidationResult {
   const missing = getMissingTaxConfigFields();
 
   if (missing.length === 0) {
