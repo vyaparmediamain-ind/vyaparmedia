@@ -125,8 +125,14 @@ export async function checkAndAwardBadges(
   const newBadges: BadgeDefinition[] = [];
 
   // 1. Check all badges defined in BADGES
-  // We filter out badges already owned and limit to those relevant to this trigger
-  const unearnedBadges = BADGES.filter((b) => !ownedBadgeIds.has(b.id));
+  // We filter out badges already owned and limit to those relevant to this trigger and role
+  const userType = (user.userType || "INFLUENCER").toUpperCase();
+  const unearnedBadges = BADGES.filter((b) => {
+    if (ownedBadgeIds.has(b.id)) return false;
+    if (b.role === "BRAND" && userType !== "BRAND" && userType !== "INDIVIDUAL") return false;
+    if (b.role === "INFLUENCER" && userType !== "INFLUENCER") return false;
+    return true;
+  });
   const relevantBadgeIds = TRIGGER_TO_BADGES[trigger] || [];
   const badgesToCheck = unearnedBadges.filter((b) => relevantBadgeIds.includes(b.id));
 

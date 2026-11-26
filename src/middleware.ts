@@ -349,6 +349,11 @@ function handleRoleRedirect(
     return applyCSP(NextResponse.redirect(redirectTo("/dashboard")));
   }
 
+  // Scout restriction: Gamification badges are for Influencers, Brands, and Admins
+  if (userType === "SCOUT" && (pathname === "/dashboard/badges" || pathname.startsWith("/dashboard/badges/"))) {
+    return applyCSP(NextResponse.redirect(redirectTo("/dashboard/referrals")));
+  }
+
   return null;
 }
 

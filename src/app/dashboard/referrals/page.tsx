@@ -306,27 +306,35 @@ export default function ReferralsPage() {
   const nextTierMin = stats.tier.name === "DIAMOND" ? 1000 : (stats.nextTier?.min ?? 10);
   const progress = Math.min((stats.activeReferrals / nextTierMin) * 100, 100);
 
+  const isScoutUser = session?.user?.userType === "SCOUT";
+
   return (
     <DashboardShell user={session.user}>
       <PageContainer maxWidth="7xl" className="space-y-6 pt-4 pb-0 sm:py-6">
 
         {/* ── Page Header ── */}
         <PageHeader
-          title="Partner Network"
+          title={isScoutUser ? "Scout Partner Network" : "Partner Network"}
           icon={
             <div className="w-10 h-10 rounded-xl bg-pending/10 border border-pending-border flex items-center justify-center">
               <Gift className="w-5 h-5 text-pending" />
             </div>
           }
-          subtitle="Invite creators & brands to earn 1% lifetime cash royalty on all their deals + up to 2% discount on your own deals."
+          subtitle={
+            isScoutUser
+              ? "Invite creators & brands to your campus network and earn a flat 1% lifetime cash royalty on all their completed deals."
+              : "Invite creators & brands to earn 1% lifetime cash royalty on all their deals + up to 2% discount on your own deals."
+          }
           actions={
             <span
               className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold border ${
-                TIERS.find((t) => t.name === stats.tier.name)?.accent ?? "bg-muted border-border text-muted-foreground"
+                isScoutUser
+                  ? "bg-primary/10 border-primary/25 text-primary"
+                  : (TIERS.find((t) => t.name === stats.tier.name)?.accent ?? "bg-muted border-border text-muted-foreground")
               }`}
             >
               <Crown className="w-3.5 h-3.5" />
-              {stats.tier.label} Partner
+              {isScoutUser ? "Campus Scout Partner" : `${stats.tier.label} Partner`}
             </span>
           }
           border={false}
@@ -337,21 +345,23 @@ export default function ReferralsPage() {
           {[
             {
               icon: <Users className="w-5 h-5 text-escrow" />,
-              label: "Active Partners",
+              label: isScoutUser ? "Onboarded Partners" : "Active Partners",
               value: String(stats.activeReferrals),
               bg: "bg-escrow/10 border-escrow-border",
             },
             {
               icon: <Zap className="w-5 h-5 text-pending" />,
-              label: stats.tier.feeDiscount > 0 ? "Fee Off + Deal Cut" : "Deal Royalty Cut",
-              value: stats.tier.revenueShare > 0
+              label: isScoutUser ? "Scout Deal Royalty" : stats.tier.feeDiscount > 0 ? "Fee Off + Deal Cut" : "Deal Royalty Cut",
+              value: isScoutUser
+                ? "1% Lifetime GMV"
+                : stats.tier.revenueShare > 0
                 ? `${stats.tier.feeDiscount > 0 ? `${stats.tier.feeDiscount}% Off + ` : ""}${(stats.tier.revenueShare * 100).toFixed(0)}% Deal Cut`
                 : `${stats.tier.feeDiscount}%`,
               bg: "bg-pending/10 border-pending-border",
             },
             {
               icon: <TrendingUp className="w-5 h-5 text-verified" />,
-              label: "Total Earnings",
+              label: isScoutUser ? "Total Royalties Earned" : "Total Earnings",
               value: formatCurrency(stats.earnings || 0),
               bg: "bg-verified/10 border-verified-border",
             },
@@ -491,94 +501,141 @@ export default function ReferralsPage() {
                 </div>
               </div>
 
-              {/* ── Milestone Progress (CRED Style) ── */}
-              <div className="p-5 rounded-2xl bg-card border border-border shadow-sm space-y-4">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                  <div className="flex items-center gap-3">
-                    {/* Circular Progress Ring */}
-                    <div className="relative w-12 h-12 flex items-center justify-center shrink-0">
-                      <svg className="w-12 h-12 -rotate-90" viewBox="0 0 72 72">
-                        <circle
-                          cx="36"
-                          cy="36"
-                          r="30"
-                          stroke="currentColor"
-                          strokeWidth="6"
-                          fill="transparent"
-                          className="text-muted-foreground"
-                        />
-                        <circle
-                          cx="36"
-                          cy="36"
-                          r="30"
-                          stroke="currentColor"
-                          strokeWidth="6"
-                          fill="transparent"
-                          strokeDasharray={2 * Math.PI * 30}
-                          strokeDashoffset={2 * Math.PI * 30 - (progress / 100) * (2 * Math.PI * 30)}
-                          strokeLinecap="round"
-                          className="text-primary transition-all duration-1000 ease-out"
-                        />
-                      </svg>
-                      <span className="absolute text-[11px] font-black text-foreground tabular-nums">
-                        {Math.round(progress)}%
+              {/* ── Milestone Progress / Scout Royalty Card ── */}
+              {isScoutUser ? (
+                <div className="p-5 sm:p-6 rounded-2xl bg-card border border-primary/30 shadow-sm space-y-4">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div className="flex items-center gap-3">
+                      <div className="w-12 h-12 rounded-xl bg-primary/10 border border-primary/25 flex items-center justify-center shrink-0">
+                        <Crown className="w-6 h-6 text-primary" />
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <h2 className="text-sm font-extrabold text-foreground">Verified Campus Partner</h2>
+                          <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold uppercase bg-verified-muted text-verified border border-verified-border">
+                            Active
+                          </span>
+                        </div>
+                        <p className="text-xs text-muted-foreground mt-0.5">
+                          Official Scout Program • 1% Lifetime Passive Royalty on all Network GMV
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-verified-muted border border-verified-border text-verified text-xs font-bold self-start sm:self-auto">
+                      <CheckCheck className="w-3.5 h-3.5" />
+                      <span>1% GMV Deal Royalty Active</span>
+                    </div>
+                  </div>
+
+                  {/* 3 Value Pillars for Scout */}
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
+                    <div className="p-3.5 rounded-xl bg-muted/40 border border-border">
+                      <div className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Royalty Model</div>
+                      <div className="text-sm font-extrabold text-foreground mt-0.5">1% Gross Deal Value (GMV)</div>
+                      <p className="text-[11px] text-muted-foreground mt-1">Automatic passive credit directly to your wallet on every escrow completion.</p>
+                    </div>
+                    <div className="p-3.5 rounded-xl bg-muted/40 border border-border">
+                      <div className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Network Coverage</div>
+                      <div className="text-sm font-extrabold text-foreground mt-0.5">All Creators &amp; Brands</div>
+                      <p className="text-[11px] text-muted-foreground mt-1">Earn across both creators and brands you onboard lifelong without deal limits.</p>
+                    </div>
+                    <div className="p-3.5 rounded-xl bg-muted/40 border border-border">
+                      <div className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Zero Deal Fees</div>
+                      <div className="text-sm font-extrabold text-foreground mt-0.5">No Platform Fee Deduction</div>
+                      <p className="text-[11px] text-muted-foreground mt-1">Scouts never pay platform fees. Deal fee discounts do not apply to scouts.</p>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="p-5 rounded-2xl bg-card border border-border shadow-sm space-y-4">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div className="flex items-center gap-3">
+                      {/* Circular Progress Ring */}
+                      <div className="relative w-12 h-12 flex items-center justify-center shrink-0">
+                        <svg className="w-12 h-12 -rotate-90" viewBox="0 0 72 72">
+                          <circle
+                            cx="36"
+                            cy="36"
+                            r="30"
+                            stroke="currentColor"
+                            strokeWidth="6"
+                            fill="transparent"
+                            className="text-muted-foreground"
+                          />
+                          <circle
+                            cx="36"
+                            cy="36"
+                            r="30"
+                            stroke="currentColor"
+                            strokeWidth="6"
+                            fill="transparent"
+                            strokeDasharray={2 * Math.PI * 30}
+                            strokeDashoffset={2 * Math.PI * 30 - (progress / 100) * (2 * Math.PI * 30)}
+                            strokeLinecap="round"
+                            className="text-primary transition-all duration-1000 ease-out"
+                          />
+                        </svg>
+                        <span className="absolute text-[11px] font-black text-foreground tabular-nums">
+                          {Math.round(progress)}%
+                        </span>
+                      </div>
+
+                      <div>
+                        <h2 className="text-sm font-extrabold text-foreground">Tier Unlock Progress</h2>
+                        <p className="text-xs text-muted-foreground">
+                          {stats.activeReferrals} of {nextTierMin} active referrals required for next tier
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Pending reward chip */}
+                    <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-pending-muted border border-pending-border text-pending text-xs font-bold self-start sm:self-auto">
+                      <Zap className="w-3.5 h-3.5" />
+                      <span>
+                        Next Reward: {TIERS.find((t) => t.min > stats.activeReferrals)?.reward ?? "Maximum Tier Active"}
                       </span>
                     </div>
-
-                    <div>
-                      <h2 className="text-sm font-extrabold text-foreground">Tier Unlock Progress</h2>
-                      <p className="text-xs text-muted-foreground">
-                        {stats.activeReferrals} of {nextTierMin} active referrals required for next tier
-                      </p>
-                    </div>
                   </div>
 
-                  {/* Pending reward chip */}
-                  <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-pending-muted border border-pending-border text-pending text-xs font-bold self-start sm:self-auto">
-                    <Zap className="w-3.5 h-3.5" />
-                    <span>
-                      Next Reward: {TIERS.find((t) => t.min > stats.activeReferrals)?.reward ?? "Maximum Tier Active"}
-                    </span>
+                  {/* Progress track */}
+                  <div className="h-2 w-full bg-muted rounded-full overflow-hidden">
+                    <motion.div
+                      initial={{ width: shouldReduceMotion ? `${progress}%` : 0 }}
+                      animate={{ width: `${progress}%` }}
+                      transition={{ duration: shouldReduceMotion ? 0 : 1.2, ease: "easeOut" }}
+                      className="h-full bg-gradient-to-r from-primary to-verified rounded-full"
+                    />
+                  </div>
+
+                  {/* Tier cards */}
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
+                    {TIERS.map((tier, i) => {
+                      const isActive = stats.tier.label === tier.label;
+                      return (
+                        <motion.div
+                          key={tier.name}
+                          initial={{ opacity: 0, y: shouldReduceMotion ? 0 : 8 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={shouldReduceMotion ? { duration: 0 } : { delay: i * 0.06 }}
+                          className={`text-center p-3 rounded-xl border transition-all ${
+                            isActive
+                              ? `${tier.accent} shadow-sm ring-1 ring-inset ring-current/20`
+                              : "bg-card border-border text-muted-foreground hover:bg-muted/30"
+                          }`}
+                        >
+                          {isActive && (
+                            <Crown className="w-3.5 h-3.5 mx-auto mb-1 text-current" />
+                          )}
+                          <div className="text-xs font-extrabold uppercase tracking-wider">{tier.label}</div>
+                          <div className="text-base font-extrabold tabular-nums mt-0.5">{tier.reward}</div>
+                          <div className="text-[10px] font-medium opacity-70">{tier.min}+ active</div>
+                        </motion.div>
+                      );
+                    })}
                   </div>
                 </div>
-
-                {/* Progress track */}
-                <div className="h-2 w-full bg-muted rounded-full overflow-hidden">
-                  <motion.div
-                    initial={{ width: shouldReduceMotion ? `${progress}%` : 0 }}
-                    animate={{ width: `${progress}%` }}
-                    transition={{ duration: shouldReduceMotion ? 0 : 1.2, ease: "easeOut" }}
-                    className="h-full bg-gradient-to-r from-primary to-verified rounded-full"
-                  />
-                </div>
-
-                {/* Tier cards */}
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
-                  {TIERS.map((tier, i) => {
-                    const isActive = stats.tier.label === tier.label;
-                    return (
-                      <motion.div
-                        key={tier.name}
-                        initial={{ opacity: 0, y: shouldReduceMotion ? 0 : 8 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={shouldReduceMotion ? { duration: 0 } : { delay: i * 0.06 }}
-                        className={`text-center p-3 rounded-xl border transition-all ${
-                          isActive
-                            ? `${tier.accent} shadow-sm ring-1 ring-inset ring-current/20`
-                            : "bg-card border-border text-muted-foreground hover:bg-muted/30"
-                        }`}
-                      >
-                        {isActive && (
-                          <Crown className="w-3.5 h-3.5 mx-auto mb-1 text-current" />
-                        )}
-                        <div className="text-xs font-extrabold uppercase tracking-wider">{tier.label}</div>
-                        <div className="text-base font-extrabold tabular-nums mt-0.5">{tier.reward}</div>
-                        <div className="text-[10px] font-medium opacity-70">{tier.min}+ active</div>
-                      </motion.div>
-                    );
-                  })}
-                </div>
-              </div>
+              )}
 
               {/* ── Partnership Roadmap ── */}
               <div className="p-5 rounded-2xl bg-card border border-border shadow-sm">
@@ -601,8 +658,10 @@ export default function ReferralsPage() {
                     },
                     {
                       num: "03",
-                      title: "Earn Lifetime Rewards",
-                      desc: "Unlock scaling GMV revenue share and permanent platform fee discounts.",
+                      title: isScoutUser ? "Earn Lifetime Royalties" : "Earn Lifetime Rewards",
+                      desc: isScoutUser
+                        ? "Earn 1% lifetime passive royalties deposited directly to your wallet on every completed deal."
+                        : "Unlock scaling GMV revenue share and permanent platform fee discounts.",
                       icon: "💸",
                     },
                   ].map((step) => (

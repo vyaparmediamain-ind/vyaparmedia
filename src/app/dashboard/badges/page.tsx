@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import useSWR from "swr";
 import { fetcher } from "@/lib/fetcher";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
 import DashboardShell from "@/components/dashboard/DashboardShell";
 import { BadgeDefinition } from "@/lib/badges";
 import EmptyState from "@/components/ui/EmptyState";
@@ -19,6 +20,7 @@ import {
   CheckCircle2,
   TrendingUp,
   Filter,
+  Building2,
 } from "lucide-react";
 import {
   type BadgesResponse,
@@ -32,13 +34,22 @@ interface BadgeWithStatus extends BadgeDefinition {
   targetProgress?: number;
 }
 
-const CATEGORY_ITEMS = [
+const INFLUENCER_CATEGORY_ITEMS = [
   { id: "ALL",          label: "All Badges",    icon: <Trophy className="w-3.5 h-3.5" /> },
   { id: "MILESTONE",    label: "Milestone",     icon: <TrendingUp className="w-3.5 h-3.5" /> },
   { id: "ACHIEVEMENT",  label: "Achievement",   icon: <Star className="w-3.5 h-3.5" /> },
   { id: "COMMUNITY",    label: "Community",     icon: <CheckCircle2 className="w-3.5 h-3.5" /> },
   { id: "SPECIAL",      label: "Special",       icon: <Zap className="w-3.5 h-3.5" /> },
   { id: "VERIFICATION", label: "Verification",  icon: <Lock className="w-3.5 h-3.5" /> },
+] as const;
+
+const BRAND_CATEGORY_ITEMS = [
+  { id: "ALL",          label: "All Badges",       icon: <Trophy className="w-3.5 h-3.5" /> },
+  { id: "BRAND",        label: "Brand Campaigns",  icon: <Building2 className="w-3.5 h-3.5" /> },
+  { id: "ACHIEVEMENT",  label: "Achievement",      icon: <Star className="w-3.5 h-3.5" /> },
+  { id: "COMMUNITY",    label: "Community",        icon: <CheckCircle2 className="w-3.5 h-3.5" /> },
+  { id: "SPECIAL",      label: "Special",          icon: <Zap className="w-3.5 h-3.5" /> },
+  { id: "VERIFICATION", label: "Verification",     icon: <Lock className="w-3.5 h-3.5" /> },
 ] as const;
 
 const RARITY_ITEMS = [
@@ -81,12 +92,25 @@ function rarityAccent(rarity: string): { border: string; glow: string; badge: st
 
 export default function BadgesPage() {
   const { data: session } = useSession();
+  const router = useRouter();
   const shouldReduceMotion = useReducedMotion();
   const [activeCategory, setActiveCategory] = useState<string>("ALL");
   const [activeRarity, setActiveRarity] = useState<string>("ALL");
 
+  const userType = (session?.user?.userType || "INFLUENCER").toUpperCase();
+  const isBrandUser = userType === "BRAND" || userType === "INDIVIDUAL";
+  const isScoutUser = userType === "SCOUT";
+
+  useEffect(() => {
+    if (isScoutUser) {
+      router.replace("/dashboard/referrals");
+    }
+  }, [isScoutUser, router]);
+
+  const categoryItems = isBrandUser ? BRAND_CATEGORY_ITEMS : INFLUENCER_CATEGORY_ITEMS;
+
   const { data, isLoading: loading, error: fetchErr, mutate } = useSWR<BadgesResponse>(
-    "/api/gamification/badges",
+    isScoutUser ? null : "/api/gamification/badges",
     fetcher
   );
 
@@ -118,6 +142,16 @@ export default function BadgesPage() {
     );
   }
 
+  if (isScoutUser) {
+    return (
+      <DashboardShell user={session.user}>
+        <PageContainer maxWidth="7xl" className="flex items-center justify-center h-48 pt-4 pb-0 sm:py-6">
+          <div className="w-8 h-8 rounded-full border-2 border-primary border-t-transparent animate-spin" />
+        </PageContainer>
+      </DashboardShell>
+    );
+  }
+
   return (
     <DashboardShell user={session.user}>
       <PageContainer maxWidth="7xl" className="space-y-6 pt-4 pb-0 sm:py-6">
@@ -130,7 +164,11 @@ export default function BadgesPage() {
               <Trophy className="w-5 h-5 text-pending" />
             </div>
           }
-          subtitle="Collect badges, earn XP, and level up your creator trust profile"
+          subtitle={
+            isBrandUser
+              ? "Collect badges, earn XP, and level up your brand trust profile"
+              : "Collect badges, earn XP, and level up your creator trust profile"
+          }
           actions={
             stats ? (
               <div className="flex items-center gap-2 shrink-0">
@@ -262,7 +300,7 @@ export default function BadgesPage() {
         {/* ── Category Filter Tabs ── */}
         <HorizontalScrollArea aria-label="Badge category filters" showScrollIndicator={true}>
           <div className="inline-flex items-center gap-2 py-1 px-1 min-w-max shrink-0">
-            {CATEGORY_ITEMS.map((cat) => {
+            {categoryItems.map((cat) => {
               const count =
                 cat.id === "ALL"
                   ? badges.length

@@ -2,7 +2,7 @@ import { apiWrapper } from "@/lib/api-wrapper";
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import prisma from "@/lib/db";
-import { BADGES } from "@/lib/badges";
+import { BADGES, getBadgesForRole } from "@/lib/badges";
 import { logger } from "@/lib/logger";
 import { WalletService } from "@/services/wallet.service";
 
@@ -51,7 +51,10 @@ include: { badge: true },
 }),
 ]);
 
-const responseBadges = BADGES.map((def) => {
+const userType = (user?.userType || session.user.userType || "INFLUENCER").toUpperCase();
+const roleBadges = getBadgesForRole(userType);
+
+const responseBadges = roleBadges.map((def) => {
 const userBadge = userBadges.find(
 (ub) => ub.badge?.name === def.name,
 );
@@ -148,13 +151,17 @@ targetProgress,
 };
 });
 
+const earnedRoleBadgesCount = userBadges.filter((ub) =>
+  roleBadges.some((rb) => rb.name === ub.badge?.name)
+).length;
+
 return NextResponse.json({
 badges: responseBadges,
 stats: {
 xp: user?.xp || 0,
 level: user?.level || 1,
-totalBadges: userBadges.length,
-availableBadges: BADGES.length,
+totalBadges: earnedRoleBadgesCount,
+availableBadges: roleBadges.length,
 },
 });
 } catch (error) {
