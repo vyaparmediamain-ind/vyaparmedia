@@ -1,6 +1,6 @@
 {
-  "generatedAt": "2026-11-24T08:58:57.052Z",
-  "totalApiRoutes": 155,
+  "generatedAt": "2026-11-26T09:55:44.066Z",
+  "totalApiRoutes": 157,
   "totalPageRoutes": 65,
   "apiRoutes": [
     {
@@ -96,8 +96,8 @@
       ],
       "authOptions": {
         "GET": {
-          "requireAuth": false,
-          "requireAdmin": false,
+          "requireAuth": true,
+          "requireAdmin": true,
           "requireBrand": false,
           "requireInfluencer": false,
           "requirePermission": null,
@@ -496,6 +496,27 @@
           "requireInfluencer": false,
           "requirePermission": null,
           "rateBucket": null,
+          "validateSchemas": {},
+          "skipCsrf": false
+        }
+      },
+      "serverActions": []
+    },
+    {
+      "path": "/api/admin/system/platform-config",
+      "file": "src/app/api/admin/system/platform-config/route.ts",
+      "type": "api",
+      "methods": [
+        "GET"
+      ],
+      "authOptions": {
+        "GET": {
+          "requireAuth": true,
+          "requireAdmin": true,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": "API_DEFAULT",
           "validateSchemas": {},
           "skipCsrf": false
         }
@@ -2990,6 +3011,27 @@
           "requireInfluencer": false,
           "requirePermission": null,
           "rateBucket": "CUSTOM",
+          "validateSchemas": {},
+          "skipCsrf": false
+        }
+      },
+      "serverActions": []
+    },
+    {
+      "path": "/api/public/platform-config",
+      "file": "src/app/api/public/platform-config/route.ts",
+      "type": "api",
+      "methods": [
+        "GET"
+      ],
+      "authOptions": {
+        "GET": {
+          "requireAuth": false,
+          "requireAdmin": false,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": null,
           "validateSchemas": {},
           "skipCsrf": false
         }

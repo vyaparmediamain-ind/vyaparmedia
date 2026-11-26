@@ -38,6 +38,13 @@ export function GuideDrawer() {
   const [isPrintModalOpen, setIsPrintModalOpen] = useState(false);
   const [adminGuides, setAdminGuides] = useState<Guide[]>([]);
 
+  // Synchronize current active guide when opened externally or selected via context
+  useEffect(() => {
+    if (selectedGuideId) {
+      setCurrentGuideId(selectedGuideId);
+    }
+  }, [selectedGuideId]);
+
   // Fetch admin-only guides on-demand only for authorized active admins
   useEffect(() => {
     let isCancelled = false;

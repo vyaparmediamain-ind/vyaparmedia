@@ -160,8 +160,8 @@ export function normalizeApiUrl(raw: string, knownRoutes: string[]): string | nu
 
   // Strip wrapping quotes or backticks if any
   if ((cleaned.startsWith('"') && cleaned.endsWith('"')) ||
-      (cleaned.startsWith("'") && cleaned.endsWith("'")) ||
-      (cleaned.startsWith("`") && cleaned.endsWith("`"))) {
+    (cleaned.startsWith("'") && cleaned.endsWith("'")) ||
+    (cleaned.startsWith("`") && cleaned.endsWith("`"))) {
     cleaned = cleaned.slice(1, -1);
   }
 
@@ -309,18 +309,24 @@ export function extractCallSitesFromFile(
       if (exprText === "useSWR" || exprText === "useSWRInfinite") {
         const firstArg = node.arguments[0];
         if (firstArg) {
-          const rawArg = firstArg.getText();
-          const normalized = normalizeApiUrl(rawArg, knownRoutes);
-          if (normalized) {
-            sites.push({
-              file: relativeFile,
-              line: getLineNumber(node.getStart()),
-              rawExpression: rawArg,
-              normalizedRoute: normalized,
-              method: "GET",
-              sourceType: "swr",
-              matchedRoute: knownRoutes.includes(normalized),
-            });
+          const targetNodes = ts.isConditionalExpression(firstArg)
+            ? [firstArg.whenTrue, firstArg.whenFalse]
+            : [firstArg];
+
+          for (const targetNode of targetNodes) {
+            const rawArg = targetNode.getText();
+            const normalized = normalizeApiUrl(rawArg, knownRoutes);
+            if (normalized) {
+              sites.push({
+                file: relativeFile,
+                line: getLineNumber(node.getStart()),
+                rawExpression: rawArg,
+                normalizedRoute: normalized,
+                method: "GET",
+                sourceType: "swr",
+                matchedRoute: knownRoutes.includes(normalized),
+              });
+            }
           }
         }
       }

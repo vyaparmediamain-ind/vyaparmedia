@@ -1,6 +1,6 @@
 {
-  "generatedAt": "2026-11-24T08:59:05.648Z",
-  "totalCallSites": 161,
+  "generatedAt": "2026-11-26T09:57:55.412Z",
+  "totalCallSites": 179,
   "brokenCallSitesCount": 0,
   "candidateDeadRoutesCount": 0,
   "methodMismatchesCount": 0,
@@ -79,7 +79,7 @@
     },
     {
       "file": "src/app/admin/users/page.tsx",
-      "line": 774,
+      "line": 785,
       "rawExpression": "`/api/admin/users?${queryParams.toString()}`",
       "normalizedRoute": "/api/admin/users",
       "method": "GET",
@@ -96,8 +96,17 @@
       "matchedRoute": true
     },
     {
+      "file": "src/app/dashboard/applications/page.tsx",
+      "line": 164,
+      "rawExpression": "`/api/applications?page=${page}&limit=${limit}`",
+      "normalizedRoute": "/api/applications",
+      "method": "GET",
+      "sourceType": "swr",
+      "matchedRoute": true
+    },
+    {
       "file": "src/app/dashboard/badges/page.tsx",
-      "line": 88,
+      "line": 112,
       "rawExpression": "\"/api/gamification/badges\"",
       "normalizedRoute": "/api/gamification/badges",
       "method": "GET",
@@ -106,7 +115,7 @@
     },
     {
       "file": "src/app/dashboard/campaigns/CampaignsClient.tsx",
-      "line": 180,
+      "line": 181,
       "rawExpression": "`/api/campaigns?${queryString}`",
       "normalizedRoute": "/api/campaigns",
       "method": "GET",
@@ -114,10 +123,37 @@
       "matchedRoute": true
     },
     {
+      "file": "src/app/dashboard/campaigns/create/CreateCampaignClient.tsx",
+      "line": 213,
+      "rawExpression": "\"/api/campaigns?scope=mine&status=DRAFT&limit=1\"",
+      "normalizedRoute": "/api/campaigns",
+      "method": "GET",
+      "sourceType": "swr",
+      "matchedRoute": true
+    },
+    {
+      "file": "src/app/dashboard/campaigns/create/CreateCampaignClient.tsx",
+      "line": 337,
+      "rawExpression": "`/api/campaigns/${activeCampaignId}`",
+      "normalizedRoute": "/api/campaigns/[id]",
+      "method": "GET",
+      "sourceType": "swr",
+      "matchedRoute": true
+    },
+    {
       "file": "src/app/dashboard/deals/page.tsx",
-      "line": 98,
+      "line": 99,
       "rawExpression": "`/api/deals?page=${currentPage}&limit=${DEALS_PER_PAGE}${statusParam}${campaignParam}`",
       "normalizedRoute": "/api/deals",
+      "method": "GET",
+      "sourceType": "swr",
+      "matchedRoute": true
+    },
+    {
+      "file": "src/app/dashboard/deals/[id]/dispute/page.tsx",
+      "line": 105,
+      "rawExpression": "`/api/deals/${dealId}`",
+      "normalizedRoute": "/api/deals/[id]",
       "method": "GET",
       "sourceType": "swr",
       "matchedRoute": true
@@ -127,6 +163,33 @@
       "line": 212,
       "rawExpression": "\"/api/disputes\"",
       "normalizedRoute": "/api/disputes",
+      "method": "GET",
+      "sourceType": "swr",
+      "matchedRoute": true
+    },
+    {
+      "file": "src/app/dashboard/disputes/[id]/page.tsx",
+      "line": 51,
+      "rawExpression": "`/api/disputes/${id}`",
+      "normalizedRoute": "/api/disputes/[id]",
+      "method": "GET",
+      "sourceType": "swr",
+      "matchedRoute": true
+    },
+    {
+      "file": "src/app/dashboard/influencers/page.tsx",
+      "line": 145,
+      "rawExpression": "`/api/influencers?${queryParams.toString()}`",
+      "normalizedRoute": "/api/influencers",
+      "method": "GET",
+      "sourceType": "swr",
+      "matchedRoute": true
+    },
+    {
+      "file": "src/app/dashboard/influencers/page.tsx",
+      "line": 151,
+      "rawExpression": "\"/api/bookmarks\"",
+      "normalizedRoute": "/api/bookmarks",
       "method": "GET",
       "sourceType": "swr",
       "matchedRoute": true
@@ -154,6 +217,15 @@
       "line": 160,
       "rawExpression": "\"/api/settings\"",
       "normalizedRoute": "/api/settings",
+      "method": "GET",
+      "sourceType": "swr",
+      "matchedRoute": true
+    },
+    {
+      "file": "src/app/dashboard/wallet/page.tsx",
+      "line": 286,
+      "rawExpression": "\"/api/wallet/transactions?limit=100\"",
+      "normalizedRoute": "/api/wallet/transactions",
       "method": "GET",
       "sourceType": "swr",
       "matchedRoute": true
@@ -223,7 +295,7 @@
     },
     {
       "file": "src/components/admin/system/FeatureFlagManager.tsx",
-      "line": 36,
+      "line": 48,
       "rawExpression": "\"/api/admin/system/feature-flags\"",
       "normalizedRoute": "/api/admin/system/feature-flags",
       "method": "GET",
@@ -232,7 +304,7 @@
     },
     {
       "file": "src/components/admin/system/FeatureFlagManager.tsx",
-      "line": 110,
+      "line": 129,
       "rawExpression": "\"/api/admin/system/feature-flags\"",
       "normalizedRoute": "/api/admin/system/feature-flags",
       "method": "PATCH",
@@ -241,7 +313,7 @@
     },
     {
       "file": "src/components/admin/system/FeatureFlagManager.tsx",
-      "line": 144,
+      "line": 163,
       "rawExpression": "\"/api/admin/system/feature-flags\"",
       "normalizedRoute": "/api/admin/system/feature-flags",
       "method": "PATCH",
@@ -303,6 +375,15 @@
       "matchedRoute": true
     },
     {
+      "file": "src/components/admin/system/ReportConfigManager.tsx",
+      "line": 33,
+      "rawExpression": "\"/api/admin/system/platform-config\"",
+      "normalizedRoute": "/api/admin/system/platform-config",
+      "method": "GET",
+      "sourceType": "swr",
+      "matchedRoute": true
+    },
+    {
       "file": "src/components/admin/violations/UserReportsQueue.tsx",
       "line": 51,
       "rawExpression": "\"/api/admin/user-reports\"",
@@ -339,15 +420,6 @@
       "matchedRoute": true
     },
     {
-      "file": "src/components/auth/AuthLayout.tsx",
-      "line": 24,
-      "rawExpression": "\"/api/public/landing\"",
-      "normalizedRoute": "/api/public/landing",
-      "method": "GET",
-      "sourceType": "swr",
-      "matchedRoute": true
-    },
-    {
       "file": "src/components/dashboard/AuthenticityAppealBanner.tsx",
       "line": 44,
       "rawExpression": "\"/api/influencers/appeal\"",
@@ -366,10 +438,28 @@
       "matchedRoute": true
     },
     {
+      "file": "src/components/dashboard/campaigns/details/useCampaignDetail.ts",
+      "line": 50,
+      "rawExpression": "`/api/campaigns/${encodeURIComponent(campaignId)}`",
+      "normalizedRoute": "/api/campaigns/[id]",
+      "method": "GET",
+      "sourceType": "swr",
+      "matchedRoute": true
+    },
+    {
       "file": "src/components/dashboard/challenges/WeeklyChallenges.tsx",
       "line": 160,
       "rawExpression": "\"/api/gamification/challenges\"",
       "normalizedRoute": "/api/gamification/challenges",
+      "method": "GET",
+      "sourceType": "swr",
+      "matchedRoute": true
+    },
+    {
+      "file": "src/components/dashboard/CreatorAppealBanner.tsx",
+      "line": 29,
+      "rawExpression": "\"/api/influencers/appeal\"",
+      "normalizedRoute": "/api/influencers/appeal",
       "method": "GET",
       "sourceType": "swr",
       "matchedRoute": true
@@ -411,6 +501,15 @@
       "matchedRoute": true
     },
     {
+      "file": "src/components/dashboard/deals/useDealDetail.ts",
+      "line": 91,
+      "rawExpression": "`/api/deals/${id}/engagement`",
+      "normalizedRoute": "/api/deals/[id]/engagement",
+      "method": "GET",
+      "sourceType": "swr",
+      "matchedRoute": true
+    },
+    {
       "file": "src/components/dashboard/home/DashboardHomeClient.tsx",
       "line": 57,
       "rawExpression": "\"/api/deals?limit=10&status=active\"",
@@ -420,10 +519,46 @@
       "matchedRoute": true
     },
     {
+      "file": "src/components/dashboard/home/QuickDiscoveryRow.tsx",
+      "line": 33,
+      "rawExpression": "\"/api/campaigns?limit=3&status=ACTIVE\"",
+      "normalizedRoute": "/api/campaigns",
+      "method": "GET",
+      "sourceType": "swr",
+      "matchedRoute": true
+    },
+    {
+      "file": "src/components/dashboard/home/QuickDiscoveryRow.tsx",
+      "line": 39,
+      "rawExpression": "\"/api/influencers?limit=3\"",
+      "normalizedRoute": "/api/influencers",
+      "method": "GET",
+      "sourceType": "swr",
+      "matchedRoute": true
+    },
+    {
+      "file": "src/components/dashboard/messages/useMessages.ts",
+      "line": 83,
+      "rawExpression": "\"/api/messages\"",
+      "normalizedRoute": "/api/messages",
+      "method": "GET",
+      "sourceType": "swr",
+      "matchedRoute": true
+    },
+    {
       "file": "src/components/dashboard/referrals/ReferralList.tsx",
       "line": 24,
       "rawExpression": "\"/api/referrals/list\"",
       "normalizedRoute": "/api/referrals/list",
+      "method": "GET",
+      "sourceType": "swr",
+      "matchedRoute": true
+    },
+    {
+      "file": "src/components/dashboard/settings/AuthenticityAuditCard.tsx",
+      "line": 52,
+      "rawExpression": "\"/api/influencers/audit\"",
+      "normalizedRoute": "/api/influencers/audit",
       "method": "GET",
       "sourceType": "swr",
       "matchedRoute": true
@@ -705,6 +840,33 @@
       "normalizedRoute": "/api/settings/telemetry-consent",
       "method": "POST",
       "sourceType": "fetch",
+      "matchedRoute": true
+    },
+    {
+      "file": "src/hooks/api/useDeal.ts",
+      "line": 44,
+      "rawExpression": "`/api/deals/${id}`",
+      "normalizedRoute": "/api/deals/[id]",
+      "method": "GET",
+      "sourceType": "swr",
+      "matchedRoute": true
+    },
+    {
+      "file": "src/hooks/api/useWallet.ts",
+      "line": 32,
+      "rawExpression": "\"/api/wallet\"",
+      "normalizedRoute": "/api/wallet",
+      "method": "GET",
+      "sourceType": "swr",
+      "matchedRoute": true
+    },
+    {
+      "file": "src/hooks/usePlatformConfig.ts",
+      "line": 40,
+      "rawExpression": "\"/api/public/platform-config\"",
+      "normalizedRoute": "/api/public/platform-config",
+      "method": "GET",
+      "sourceType": "swr",
       "matchedRoute": true
     },
     {
@@ -1475,7 +1637,7 @@
     },
     "/api/telemetry/event": {
       "endpoint": "/api/telemetry/event",
-      "status": "CONSOLIDATED_AND_DELETED",
+      "status": "UNREFERENCED_ROUTE",
       "description": "Unhardened duplicate endpoint removed. Telemetry ingestion consolidated into hardened `/api/telemetry/track` with 2KB stream cap and strict origin verification.",
       "details": {
         "routeFile": "src/app/api/telemetry/event/route.ts",

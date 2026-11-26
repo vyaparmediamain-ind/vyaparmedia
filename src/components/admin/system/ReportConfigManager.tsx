@@ -17,6 +17,10 @@ import type {
   PlatformConfigFieldStatus,
   TaxReportValidationResult,
 } from "@/lib/platform-config-check";
+import {
+  getPlatformConfigStatus,
+  validateTaxReportPrerequisites,
+} from "@/lib/platform-config-check";
 
 interface PlatformConfigApiResponse {
   success: boolean;
@@ -29,11 +33,25 @@ interface PlatformConfigApiResponse {
 export default function ReportConfigManager() {
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
 
+  const initialStatus = React.useMemo(
+    () => ({
+      success: true,
+      data: {
+        fields: getPlatformConfigStatus(),
+        taxCheck: validateTaxReportPrerequisites(),
+      },
+    }),
+    [],
+  );
+
   const { data, error, isLoading, isValidating, mutate } =
     useSWR<PlatformConfigApiResponse>(
       "/api/admin/system/platform-config",
       fetcher,
-      { revalidateOnFocus: true },
+      {
+        revalidateOnFocus: true,
+        fallbackData: initialStatus,
+      },
     );
 
   const handleCopy = (text: string, key: string) => {

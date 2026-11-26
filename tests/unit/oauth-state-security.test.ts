@@ -3,6 +3,10 @@ import { NextRequest } from "next/server";
 import prisma from "@/lib/db";
 import { initiateOAuthFlow } from "@/lib/oauth-helper";
 import { validateAndConsumeOAuthState } from "@/lib/oauth-callback-helper";
+import {
+  setKillSwitchOverride,
+  clearKillSwitchOverrides,
+} from "@/lib/kill-switch";
 
 vi.mock("@/lib/auth", () => ({
   auth: vi.fn(),
@@ -15,11 +19,15 @@ describe("OAuth State Security, Trusted Redirect URI & Idempotent Callbacks", ()
 
   beforeEach(() => {
     vi.clearAllMocks();
+    clearKillSwitchOverrides();
+    setKillSwitchOverride("killswitch:social:instagram", false);
+    setKillSwitchOverride("killswitch:social:youtube", false);
     vi.stubEnv("APP_URL", "https://app.vyaparmedia.in");
     vi.stubEnv("NEXTAUTH_URL", "https://app.vyaparmedia.in");
   });
 
   afterEach(() => {
+    clearKillSwitchOverrides();
     vi.unstubAllEnvs();
     vi.restoreAllMocks();
   });
