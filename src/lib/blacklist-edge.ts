@@ -9,9 +9,9 @@ import { logger } from "./logger-client";
 let warned = false;
 // In-memory cache of known banned IPs at the edge runtime to maintain protection during transient Redis hiccups
 const edgeKnownBannedIps = new Set<string>();
-// In-memory cache of verified clean IPs at edge runtime to eliminate round-trip Redis latency for normal users
+// In-memory micro-cache of verified clean IPs at edge runtime to eliminate round-trip Redis latency on bursts (10s)
 const edgeKnownCleanIps = new Map<string, number>();
-const CLEAN_IP_TTL_MS = 600_000; // 10 minutes
+const CLEAN_IP_TTL_MS = 10_000; // 10 seconds micro-cache to ensure rapid edge ban propagation
 
 function isLoopbackIp(ip: string): boolean {
   return !ip || ip === "unknown" || ip === "127.0.0.1" || ip === "::1" || ip === "localhost";

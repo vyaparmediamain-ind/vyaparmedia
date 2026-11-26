@@ -472,6 +472,12 @@ const authPages = new Set(["/login", "/register", "/forgot-password", "/reset-pa
 if (authPages.has(pathname)) {
   const reason = req.nextUrl.searchParams.get("reason");
   if (reason) {
+    const secFetchSite = req.headers.get("sec-fetch-site");
+    const isCrossSite = secFetchSite === "cross-site";
+    if (isCrossSite && isAuth) {
+      // Prevent cross-site logout CSRF: ignore external trigger if user has active session
+      return applyCSP(NextResponse.redirect(redirectTo("/dashboard")));
+    }
     // User is landing on an auth page due to an explicit logout or session termination event.
     // Clear residual session cookies to break any potential ping-pong redirect loop.
     const response = NextResponse.next();

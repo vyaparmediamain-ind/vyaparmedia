@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import prisma from "@/lib/db";
-import { handleExistingJwtSession } from "@/lib/auth/session";
+import { handleExistingJwtSession, verifyActiveSessionToken } from "@/lib/auth/session";
+import { redis } from "@/lib/redis";
 
 vi.mock("@/lib/auth", () => ({
   handlers: {
@@ -133,6 +134,42 @@ describe("O3-T7 / O3-T9: JWT Status Refresh Check & Auth Route Rate Limiting", (
 
       await GET(req, { params: Promise.resolve({ nextauth: ["session"] }) });
       expect(rateLimitSpy).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("verifyActiveSessionToken concurrency grace window", () => {
+    it("returns true when current token matches activeToken in redis", async () => {
+      vi.spyOn(redis, "get").mockResolvedValue("token_match_123");
+      const isValid = await verifyActiveSessionToken("user_1", "token_match_123");
+      expect(isValid).toBe(true);
+    });
+
+    it("returns true when token was replaced by activeToken and replacement is within 15s grace window", async () => {
+      vi.spyOn(redis, "get").mockResolvedValue("replacement_token_456");
+      vi.spyOn(prisma.refreshToken, "findUnique")
+        .mockResolvedValueOnce({ replacedByToken: "replacement_token_456" } as never)
+        .mockResolvedValueOnce({ createdAt: new Date(Date.now() - 5_000) } as never); // replacement token created 5s ago
+
+      const isValid = await verifyActiveSessionToken("user_1", "old_token_123");
+      expect(isValid).toBe(true);
+    });
+
+    it("returns false when token was replaced by activeToken but replacement was created > 15s ago", async () => {
+      vi.spyOn(redis, "get").mockResolvedValue("replacement_token_456");
+      vi.spyOn(prisma.refreshToken, "findUnique")
+        .mockResolvedValueOnce({ replacedByToken: "replacement_token_456" } as never)
+        .mockResolvedValueOnce({ createdAt: new Date(Date.now() - 20_000) } as never); // replacement token created 20s ago
+
+      const isValid = await verifyActiveSessionToken("user_1", "old_token_123");
+      expect(isValid).toBe(false);
+    });
+
+    it("returns false when old token does not have activeToken as replacement", async () => {
+      vi.spyOn(redis, "get").mockResolvedValue("unrelated_active_token");
+      vi.spyOn(prisma.refreshToken, "findUnique").mockResolvedValueOnce(null as never);
+
+      const isValid = await verifyActiveSessionToken("user_1", "old_token_123");
+      expect(isValid).toBe(false);
     });
   });
 });

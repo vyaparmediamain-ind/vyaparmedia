@@ -172,17 +172,23 @@ export async function verifyActiveSessionToken(userId: string, currentRefreshTok
     }
     if (activeToken === currentRefreshToken) return true;
 
-    // Concurrency grace check: if currentRefreshToken was rotated to activeToken within the last 45s, allow it
-    if (typeof currentRefreshToken === "string") {
+    // Concurrency grace check: if currentRefreshToken was rotated to activeToken within the last 15s (measured from replacement token creation), allow it
+    if (typeof currentRefreshToken === "string" && typeof activeToken === "string") {
       const recentToken = await prisma.refreshToken.findUnique({
         where: { token: currentRefreshToken },
-        select: { replacedByToken: true, createdAt: true },
+        select: { replacedByToken: true },
       });
-      if (
-        recentToken?.replacedByToken === activeToken &&
-        Date.now() - recentToken.createdAt.getTime() < 45_000
-      ) {
-        return true;
+      if (recentToken?.replacedByToken === activeToken) {
+        const replacementRecord = await prisma.refreshToken.findUnique({
+          where: { token: activeToken },
+          select: { createdAt: true },
+        });
+        if (
+          replacementRecord &&
+          Date.now() - replacementRecord.createdAt.getTime() < 15_000
+        ) {
+          return true;
+        }
       }
     }
 

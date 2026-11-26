@@ -59,6 +59,8 @@ describe("Rate Limiting & Abuse Prevention Layer Hardening", () => {
 
   describe("Requirement 2: Tiered Limits (Trust Score Tiers & Dual User+IP Tracking)", () => {
     it("should accurately calculate trust score tiers", () => {
+      expect(getTrustTier(null)).toBe("LOW");
+      expect(getTrustTier(undefined)).toBe("LOW");
       expect(getTrustTier(100, false)).toBe("LOW");
       expect(getTrustTier(299, false)).toBe("LOW");
       expect(getTrustTier(300, false)).toBe("STANDARD");

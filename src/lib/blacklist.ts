@@ -7,9 +7,9 @@ const TOKEN_REVOKE_PREFIX = "revoke:token:";
 
 // In-process memory safety net for active bans during Redis outages
 const memoryBannedIps = new Map<string, number>();
-// In-process cache of verified clean IPs to eliminate Redis network roundtrips on every API call (0ms)
+// In-process micro-cache of verified clean IPs to eliminate redundant Redis lookups on bursts (10s)
 const memoryCleanIps = new Map<string, number>();
-const CLEAN_IP_TTL_MS = 300_000; // 5 minutes
+const CLEAN_IP_TTL_MS = 10_000; // 10 seconds micro-cache to ensure rapid threat propagation across instances
 
 function isLoopbackIp(ip: string): boolean {
   return !ip || ip === "unknown" || ip === "127.0.0.1" || ip === "::1" || ip === "localhost";

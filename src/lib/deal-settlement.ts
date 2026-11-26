@@ -5,18 +5,18 @@ import { calculateGstTcs, getGstinStateCode } from "./india-compliance";
 import { PLATFORM_CONFIG } from "./platform-config";
 
 type DealFeeInput = {
-id: string;
-amount: number;
-platformFee: number;
-gatewayFee: number;
-influencerPayout: number | null;
+  id: string;
+  amount: number;
+  platformFee: number;
+  gatewayFee: number;
+  influencerPayout: number | null;
 };
 
 type PayoutWithTaxResult = {
-grossPayout: number;
-tdsAmount: number;
-gstTcsAmount: number;
-netPayout: number;
+  grossPayout: number;
+  tdsAmount: number;
+  gstTcsAmount: number;
+  netPayout: number;
 };
 
 
@@ -35,14 +35,14 @@ import {
 } from "@/constants";
 
 function currentIndianFinancialYearStart() {
-const now = new Date();
-// India Standard Time is UTC+5:30. Use IST so April 1 00:00 IST is correctly
-// treated as the new FY start (April 1 00:00 IST = March 31 18:30 UTC without
-// this offset getUTCMonth() returns 2/March and bucketing goes to the prior FY).
-const istNow = new Date(now.getTime() + IST_OFFSET_MS);
-const year = istNow.getUTCFullYear();
-const month = istNow.getUTCMonth();
-return new Date(Date.UTC(month >= 3 ? year : year - 1, 3, 1, 0, 0, 0, 0) - IST_OFFSET_MS);
+  const now = new Date();
+  // India Standard Time is UTC+5:30. Use IST so April 1 00:00 IST is correctly
+  // treated as the new FY start (April 1 00:00 IST = March 31 18:30 UTC without
+  // this offset getUTCMonth() returns 2/March and bucketing goes to the prior FY).
+  const istNow = new Date(now.getTime() + IST_OFFSET_MS);
+  const year = istNow.getUTCFullYear();
+  const month = istNow.getUTCMonth();
+  return new Date(Date.UTC(month >= 3 ? year : year - 1, 3, 1, 0, 0, 0, 0) - IST_OFFSET_MS);
 }
 
 async function calculateTdsForPayout(
@@ -103,7 +103,7 @@ async function calculateTdsForPayout(
     (sum, deal) => sum + (deal.tdsDeducted ?? 0),
     currentDealPriorTds,
   );
-  
+
   const tdsRate = calculateApplicableTdsRate(hasPan, is194J);
 
   const totalRequiredTds = Math.round(totalEarnings * tdsRate);
@@ -176,7 +176,11 @@ export async function creditInfluencerPayoutWithTax(
     const supplierStateCode =
       taxCompliance?.gstStateCode ||
       (taxCompliance?.gstin ? getGstinStateCode(taxCompliance.gstin) : null);
-    const operatorStateCode = PLATFORM_CONFIG.stateCode || (PLATFORM_CONFIG.gstin ? PLATFORM_CONFIG.gstin.slice(0, 2) : "09");
+    const gstinPrefix =
+      PLATFORM_CONFIG.gstin && PLATFORM_CONFIG.gstin.length >= 2
+        ? PLATFORM_CONFIG.gstin.slice(0, 2)
+        : null;
+    const operatorStateCode = gstinPrefix || PLATFORM_CONFIG.stateCode || "09";
     gstTcsResult = calculateGstTcs(grossPayout, supplierStateCode, operatorStateCode);
     gstTcsAmount = gstTcsResult.tcsAmountPaise;
   }
@@ -338,17 +342,17 @@ export async function creditInfluencerPayoutWithTax(
 
 
 export async function recordPlatformFeeRevenue(
-tx: Prisma.TransactionClient,
-params: {
-brandUserId: string | null | undefined;
-deal: DealFeeInput;
-feeRatio?: number;
-source: string;
-},
+  tx: Prisma.TransactionClient,
+  params: {
+    brandUserId: string | null | undefined;
+    deal: DealFeeInput;
+    feeRatio?: number;
+    source: string;
+  },
 ) {
-const ratio = Math.min(1, Math.max(0, params.feeRatio ?? 1));
-const platformFee = Math.round((params.deal.platformFee || 0) * ratio);
-const gatewayFee = Math.round((params.deal.gatewayFee || 0) * ratio);
+  const ratio = Math.min(1, Math.max(0, params.feeRatio ?? 1));
+  const platformFee = Math.round((params.deal.platformFee || 0) * ratio);
+  const gatewayFee = Math.round((params.deal.gatewayFee || 0) * ratio);
 
   if (!params.brandUserId || (platformFee <= 0 && gatewayFee <= 0)) return;
 
@@ -363,38 +367,38 @@ const gatewayFee = Math.round((params.deal.gatewayFee || 0) * ratio);
     select: { metadata: true },
   });
 
-const hasDuplicateFee = existingTransactions.some((t) => {
-const meta = t.metadata as Record<string, unknown> | null;
-return meta?.source === params.source;
-});
+  const hasDuplicateFee = existingTransactions.some((t) => {
+    const meta = t.metadata as Record<string, unknown> | null;
+    return meta?.source === params.source;
+  });
 
-if (hasDuplicateFee) return;
+  if (hasDuplicateFee) return;
 
-const wallet = await tx.wallet.upsert({
-where: { userId: params.brandUserId },
-create: { userId: params.brandUserId, balance: 0, pendingBalance: 0 },
-update: {},
-});
+  const wallet = await tx.wallet.upsert({
+    where: { userId: params.brandUserId },
+    create: { userId: params.brandUserId, balance: 0, pendingBalance: 0 },
+    update: {},
+  });
 
-if (platformFee > 0) {
-await tx.transaction.create({
-data: {
-walletId: wallet.id,
-dealId: params.deal.id,
-type: "PLATFORM_FEE",
-amount: platformFee,
-status: "COMPLETED",
-description: `Platform fee for deal: ${params.deal.id}`,
-metadata: {
-balanceImpact: false,
-source: params.source,
-gatewayFee,
-feeRatio: ratio,
-grossDealAmount: params.deal.amount,
-influencerPayout: params.deal.influencerPayout ?? params.deal.amount,
-},
-},
-});
+  if (platformFee > 0) {
+    await tx.transaction.create({
+      data: {
+        walletId: wallet.id,
+        dealId: params.deal.id,
+        type: "PLATFORM_FEE",
+        amount: platformFee,
+        status: "COMPLETED",
+        description: `Platform fee for deal: ${params.deal.id}`,
+        metadata: {
+          balanceImpact: false,
+          source: params.source,
+          gatewayFee,
+          feeRatio: ratio,
+          grossDealAmount: params.deal.amount,
+          influencerPayout: params.deal.influencerPayout ?? params.deal.amount,
+        },
+      },
+    });
 
     // Credit the PLATFORM_TREASURY wallet with all retained fees (platform + gateway)
     // so total debits and credits across the platform balance sheet remain equal (double-entry).
