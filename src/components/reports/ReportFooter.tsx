@@ -5,6 +5,7 @@ import Image from "next/image";
 import QRCode from "qrcode";
 import { PLATFORM_CONFIG } from "@/lib/platform-config";
 import { ShieldCheck } from "lucide-react";
+import { usePlatformConfig } from "@/hooks/usePlatformConfig";
 
 export interface ReportFooterProps {
   integrityCode?: string | undefined;
@@ -22,6 +23,7 @@ export function ReportFooter({
   className = "",
 }: ReportFooterProps) {
   const [qrDataUrl, setQrDataUrl] = useState<string | null>(null);
+  const platformConfig = usePlatformConfig();
 
   useEffect(() => {
     if (!reportId || !showQrCode) return;
@@ -29,7 +31,7 @@ export function ReportFooter({
     const origin =
       typeof window !== "undefined" && window.location.origin
         ? window.location.origin
-        : PLATFORM_CONFIG.website;
+        : platformConfig.website || PLATFORM_CONFIG.website;
 
     const verifyUrl = `${origin}/verify-report/${reportId}`;
 
@@ -45,10 +47,13 @@ export function ReportFooter({
       .catch(() => {
         // Fallback: omit QR if rendering fails
       });
-  }, [reportId, showQrCode]);
+  }, [reportId, showQrCode, platformConfig.website]);
 
-  const website = PLATFORM_CONFIG.domain || (PLATFORM_CONFIG.website ? PLATFORM_CONFIG.website.replace(/^https?:\/\//, "") : "");
-  const email = PLATFORM_CONFIG.email;
+  const website =
+    platformConfig.domain ||
+    (platformConfig.website ? platformConfig.website.replace(/^https?:\/\//, "") : "");
+  const email = platformConfig.email;
+  const platformName = platformConfig.name || "VyaparMedia";
 
   return (
     <footer className={`report-footer pt-6 border-t-2 border-border space-y-4 ${className}`}>
@@ -104,11 +109,19 @@ export function ReportFooter({
       {/* Repeating Print Footer with Page Counters */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-2xs text-muted-foreground print:text-[8pt] font-sans">
         <div>
-          <span>{PLATFORM_CONFIG.name || "VyaparMedia"}</span>
-          <span className="mx-1.5 opacity-50">&middot;</span>
-          <span>{website}</span>
-          <span className="mx-1.5 opacity-50">&middot;</span>
-          <span>{email}</span>
+          <span>{platformName}</span>
+          {website && (
+            <>
+              <span className="mx-1.5 opacity-50">&middot;</span>
+              <span>{website}</span>
+            </>
+          )}
+          {email && (
+            <>
+              <span className="mx-1.5 opacity-50">&middot;</span>
+              <span>{email}</span>
+            </>
+          )}
         </div>
 
         {/* CSS Page Counter for multi-page printouts */}

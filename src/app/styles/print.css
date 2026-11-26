@@ -42,10 +42,10 @@
   }
 
   /* Hide interactive web chrome, navbars, sidebars, buttons, alerts, modal backdrops */
-  header,
+  header:not(.report-letterhead):not(.printable-document header):not(.print-allow),
   nav,
   aside,
-  footer,
+  footer:not(.report-footer):not(.printable-document footer):not(.print-allow),
   button:not(.print-allow),
   a[href^="/dashboard"],
   .no-print,
@@ -83,6 +83,16 @@
     color: #000000 !important;
     box-shadow: none !important;
     border: none !important;
+  }
+
+  /* Ensure official document letterhead, footer and section headers are ALWAYS visible on print */
+  .report-letterhead,
+  .report-footer,
+  .printable-document header,
+  .printable-document footer {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
   }
 
   /* Prevent awkward page breaks inside critical sections */

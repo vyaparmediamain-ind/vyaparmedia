@@ -9,6 +9,7 @@ import { ReportLetterhead } from "@/components/reports/ReportLetterhead";
 import { ReportFooter } from "@/components/reports/ReportFooter";
 import { TDS_194O_RATE_PERCENT_STRING, TDS_194J_RATE_PERCENT_STRING } from "@/constants";
 import { PLATFORM_CONFIG } from "@/lib/platform-config";
+import { usePlatformConfig } from "@/hooks/usePlatformConfig";
 
 export interface StatementTransaction {
   id: string;
@@ -48,6 +49,16 @@ export function StatementPrintView({
   generatedDate,
 }: StatementPrintViewProps) {
   const [mounted, setMounted] = useState(false);
+  const platformConfig = usePlatformConfig();
+
+  const platformDisplayName = platformConfig.tradeName
+    ? platformConfig.legalName
+      ? `${platformConfig.tradeName} (${platformConfig.legalName})`
+      : platformConfig.tradeName
+    : platformConfig.legalName || platformConfig.name || "the platform";
+
+  const contactEmail =
+    platformConfig.billingEmail || platformConfig.email || platformConfig.officialEmail;
 
   useEffect(() => {
     setMounted(true);
@@ -280,9 +291,9 @@ export function StatementPrintView({
               <ShieldCheck className="w-4 h-4 text-verified" />
               <span>Statutory Compliance &amp; Tax Statement Verification</span>
             </div>
-            {PLATFORM_CONFIG.sacCode && (
+            {platformConfig.sacCode && (
               <div className="font-mono text-muted-foreground">
-                SAC Code: {PLATFORM_CONFIG.sacCode} (Advertising, Marketing &amp; Influencer Services)
+                SAC Code: {platformConfig.sacCode} (Advertising, Marketing &amp; Influencer Services)
               </div>
             )}
           </div>
@@ -296,7 +307,7 @@ export function StatementPrintView({
               2. <strong>Escrow Reassurance:</strong> All campaign funds are held in RBI-compliant escrow accounts and are disbursed strictly upon deliverable approval.
             </p>
             <p>
-              3. <strong>System Certification:</strong> This is a computer-generated statement issued by the automated ledger system of {PLATFORM_CONFIG.tradeName ? `${PLATFORM_CONFIG.tradeName} (${PLATFORM_CONFIG.legalName})` : PLATFORM_CONFIG.legalName} and does not require a physical signature. For queries, contact {PLATFORM_CONFIG.billingEmail}.
+              3. <strong>System Certification:</strong> This is a computer-generated statement issued by the automated ledger system of {platformDisplayName} and does not require a physical signature.{contactEmail ? ` For queries, contact ${contactEmail}.` : ""}
             </p>
           </div>
         </section>

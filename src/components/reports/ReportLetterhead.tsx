@@ -6,6 +6,7 @@ import Link from "next/link";
 import { AlertTriangle, ExternalLink } from "lucide-react";
 import { PLATFORM_CONFIG } from "@/lib/platform-config";
 import { isConfigValuePresent } from "@/lib/platform-config-check";
+import { usePlatformConfig } from "@/hooks/usePlatformConfig";
 
 export interface ReportLetterheadProps {
   title?: string | undefined;
@@ -28,10 +29,12 @@ export function ReportLetterhead({
   showAdminBanner = true,
   className = "",
 }: ReportLetterheadProps) {
+  const platformConfig = usePlatformConfig();
+
   const missingTaxFields: string[] = [];
-  if (!isConfigValuePresent(PLATFORM_CONFIG.legalName)) missingTaxFields.push("Company Legal Name");
-  if (!isConfigValuePresent(PLATFORM_CONFIG.gstin)) missingTaxFields.push("GSTIN");
-  if (!isConfigValuePresent(PLATFORM_CONFIG.address)) missingTaxFields.push("Registered Address");
+  if (!isConfigValuePresent(platformConfig.legalName)) missingTaxFields.push("Company Legal Name");
+  if (!isConfigValuePresent(platformConfig.gstin)) missingTaxFields.push("GSTIN");
+  if (!isConfigValuePresent(platformConfig.address)) missingTaxFields.push("Registered Address");
 
   const renderConfigValue = (val: string | undefined | null, fieldName: string) => {
     if (isConfigValuePresent(val)) {
@@ -48,8 +51,8 @@ export function ReportLetterhead({
   };
 
   const hasCin =
-    PLATFORM_CONFIG.cin &&
-    !["N/A", "NONE", "PROPRIETORSHIP"].includes(PLATFORM_CONFIG.cin.toUpperCase());
+    platformConfig.cin &&
+    !["N/A", "NONE", "PROPRIETORSHIP"].includes(platformConfig.cin.toUpperCase());
 
   return (
     <header className={`report-letterhead border-b-2 border-border pb-6 mb-8 ${className}`}>
@@ -122,53 +125,53 @@ export function ReportLetterhead({
           </div>
         </div>
 
-        {/* Right: Company Details (read ONLY from PLATFORM_CONFIG) */}
+        {/* Right: Company Details (read ONLY from platformConfig) */}
         <div className="text-left sm:text-right text-xs text-muted-foreground space-y-0.5 font-sans max-w-md">
           <div className="font-bold text-foreground">
-            {PLATFORM_CONFIG.tradeName && PLATFORM_CONFIG.tradeName !== PLATFORM_CONFIG.legalName
-              ? `${PLATFORM_CONFIG.tradeName.toUpperCase()} (${renderConfigValue(
-                  PLATFORM_CONFIG.legalName,
+            {platformConfig.tradeName && platformConfig.tradeName !== platformConfig.legalName
+              ? `${platformConfig.tradeName.toUpperCase()} (${renderConfigValue(
+                  platformConfig.legalName,
                   "Legal Name"
                 )})`
-              : renderConfigValue(PLATFORM_CONFIG.legalName, "Legal Name")}
+              : renderConfigValue(platformConfig.legalName, "Legal Name")}
           </div>
 
           <div>
             {hasCin && (
               <>
-                CIN: {PLATFORM_CONFIG.cin}
+                CIN: {platformConfig.cin}
                 <span className="mx-1 opacity-50">|</span>
               </>
             )}
-            {PLATFORM_CONFIG.udyam && (
+            {platformConfig.udyam && (
               <>
-                Udyam: {PLATFORM_CONFIG.udyam}
+                Udyam: {platformConfig.udyam}
                 <span className="mx-1 opacity-50">|</span>
               </>
             )}
-            GSTIN: {renderConfigValue(PLATFORM_CONFIG.gstin, "GSTIN")}
-            {PLATFORM_CONFIG.pan && (
+            GSTIN: {renderConfigValue(platformConfig.gstin, "GSTIN")}
+            {platformConfig.pan && (
               <>
                 <span className="mx-1 opacity-50">|</span>
-                PAN: {PLATFORM_CONFIG.pan}
+                PAN: {platformConfig.pan}
               </>
             )}
           </div>
 
           <div className="break-words">
-            {renderConfigValue(PLATFORM_CONFIG.address, "Registered Corporate Address")}
+            {renderConfigValue(platformConfig.address, "Registered Corporate Address")}
           </div>
 
           <div className="pt-0.5">
-            {PLATFORM_CONFIG.phone && (
+            {platformConfig.phone && (
               <>
-                Phone: {PLATFORM_CONFIG.phone}
+                Phone: {platformConfig.phone}
                 <span className="mx-1 opacity-50">|</span>
               </>
             )}
-            Email: {renderConfigValue(PLATFORM_CONFIG.email, "Support Email")}
+            Email: {renderConfigValue(platformConfig.email, "Support Email")}
             <span className="mx-1 opacity-50">|</span>
-            {renderConfigValue(PLATFORM_CONFIG.website, "Website")}
+            {renderConfigValue(platformConfig.website, "Website")}
           </div>
 
           {(generatedDate || referenceId) && (

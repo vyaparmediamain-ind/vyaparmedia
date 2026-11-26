@@ -15,13 +15,56 @@
 * placeholder string so that generated reports are never silently invalid.
 */
 
+// Static mapping for Next.js / Webpack client-side compile-time replacement
+const STATIC_CLIENT_ENV: Record<string, string | undefined> = {
+  PLATFORM_NAME: process.env.NEXT_PUBLIC_PLATFORM_NAME,
+  PLATFORM_LEGAL_NAME: process.env.NEXT_PUBLIC_PLATFORM_LEGAL_NAME,
+  PLATFORM_TRADE_NAME: process.env.NEXT_PUBLIC_PLATFORM_TRADE_NAME,
+  PLATFORM_CONSTITUTION: process.env.NEXT_PUBLIC_PLATFORM_CONSTITUTION,
+  PLATFORM_ADDRESS: process.env.NEXT_PUBLIC_PLATFORM_ADDRESS,
+  PLATFORM_ADDRESS_LINE1: process.env.NEXT_PUBLIC_PLATFORM_ADDRESS_LINE1,
+  PLATFORM_ADDRESS_LINE2: process.env.NEXT_PUBLIC_PLATFORM_ADDRESS_LINE2,
+  PLATFORM_CITY: process.env.NEXT_PUBLIC_PLATFORM_CITY,
+  PLATFORM_DISTRICT: process.env.NEXT_PUBLIC_PLATFORM_DISTRICT,
+  PLATFORM_STATE: process.env.NEXT_PUBLIC_PLATFORM_STATE,
+  PLATFORM_STATE_CODE: process.env.NEXT_PUBLIC_PLATFORM_STATE_CODE,
+  PLATFORM_PINCODE: process.env.NEXT_PUBLIC_PLATFORM_PINCODE,
+  PLATFORM_GSTIN: process.env.NEXT_PUBLIC_PLATFORM_GSTIN,
+  PLATFORM_UDYAM: process.env.NEXT_PUBLIC_PLATFORM_UDYAM,
+  PLATFORM_EMAIL: process.env.NEXT_PUBLIC_PLATFORM_EMAIL,
+  PLATFORM_OFFICIAL_EMAIL: process.env.NEXT_PUBLIC_PLATFORM_OFFICIAL_EMAIL,
+  PLATFORM_PHONE: process.env.NEXT_PUBLIC_PLATFORM_PHONE,
+  PLATFORM_WEBSITE: process.env.NEXT_PUBLIC_PLATFORM_WEBSITE || process.env.NEXT_PUBLIC_APP_URL,
+  PLATFORM_CIN: process.env.NEXT_PUBLIC_PLATFORM_CIN,
+  PLATFORM_PAN: process.env.NEXT_PUBLIC_PLATFORM_PAN,
+  PLATFORM_LEGAL_EMAIL: process.env.NEXT_PUBLIC_PLATFORM_LEGAL_EMAIL,
+  PLATFORM_PRIVACY_EMAIL: process.env.NEXT_PUBLIC_PLATFORM_PRIVACY_EMAIL,
+  PLATFORM_BILLING_EMAIL: process.env.NEXT_PUBLIC_PLATFORM_BILLING_EMAIL,
+  PLATFORM_GRIEVANCE_EMAIL: process.env.NEXT_PUBLIC_PLATFORM_GRIEVANCE_EMAIL,
+  PLATFORM_GRIEVANCE_OFFICER: process.env.NEXT_PUBLIC_PLATFORM_GRIEVANCE_OFFICER,
+  PLATFORM_PRIMARY_SAC: process.env.NEXT_PUBLIC_PLATFORM_PRIMARY_SAC,
+};
+
 export function configValue(envKey: string, defaultValue = ""): string {
-  const clientKey = envKey.startsWith("NEXT_PUBLIC_") ? envKey : `NEXT_PUBLIC_${envKey}`;
-  const rawKey = envKey.startsWith("NEXT_PUBLIC_") ? envKey.replace(/^NEXT_PUBLIC_/, "") : envKey;
-  const val =
-    (typeof process !== "undefined" && (process.env[rawKey] || process.env[clientKey])) ||
-    "";
-  if (val && typeof val === "string" && val.trim() && !val.includes("XXXX")) return val.trim();
+  const rawKey = envKey.replace(/^NEXT_PUBLIC_/, "");
+  const clientKey = `NEXT_PUBLIC_${rawKey}`;
+
+  // 1. Check statically inlined client env (available on client bundles)
+  const clientVal = STATIC_CLIENT_ENV[rawKey] || STATIC_CLIENT_ENV[clientKey];
+  if (clientVal && typeof clientVal === "string" && clientVal.trim() && !clientVal.includes("XXXX")) {
+    return clientVal.trim();
+  }
+
+  // 2. Check dynamic runtime process.env (available on server runtime)
+  const serverVal =
+    typeof process !== "undefined" && process.env
+      ? process.env[rawKey] || process.env[clientKey] || process.env[envKey]
+      : undefined;
+
+  if (serverVal && typeof serverVal === "string" && serverVal.trim() && !serverVal.includes("XXXX")) {
+    return serverVal.trim();
+  }
+
   return defaultValue;
 }
 
