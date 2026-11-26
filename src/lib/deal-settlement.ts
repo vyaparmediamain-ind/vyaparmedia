@@ -180,7 +180,12 @@ export async function creditInfluencerPayoutWithTax(
       PLATFORM_CONFIG.gstin && PLATFORM_CONFIG.gstin.length >= 2
         ? PLATFORM_CONFIG.gstin.slice(0, 2)
         : null;
-    const operatorStateCode = gstinPrefix || PLATFORM_CONFIG.stateCode || "09";
+    const operatorStateCode = gstinPrefix || (PLATFORM_CONFIG.stateCode ? PLATFORM_CONFIG.stateCode : null);
+    if (!operatorStateCode) {
+      throw new Error(
+        "Platform GST state code is not configured. Set PLATFORM_GSTIN or PLATFORM_STATE_CODE environment variable.",
+      );
+    }
     gstTcsResult = calculateGstTcs(grossPayout, supplierStateCode, operatorStateCode);
     gstTcsAmount = gstTcsResult.tcsAmountPaise;
   }

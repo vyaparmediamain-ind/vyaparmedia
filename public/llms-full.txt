@@ -6,16 +6,14 @@ Vyapar Media (https://vyaparmedia.vercel.app) is India's first trustless influen
 
 Through programmatic escrow locks, tamper-proof deliverables verification, and automated Indian statutory tax deduction (TDS Section 194-O / 194-J and GST), Vyapar Media provides zero-risk collaborations for brands and guaranteed payout milestones for creators.
 
-## 2. Legal Entity & Statutory Credentials
+## 2. Operational & Statutory Specifications
 - Trade Name: Vyapar Media
-- Legal Entity: Krishna Mangal (Proprietorship)
-- Headquarters: 46/90 F-1, Laxmi Nagar, Jagdeeshpura, Agra, Uttar Pradesh 282002, India
-- GSTIN: 09KPIPM8835Q1ZK (State Code: 09 - Uttar Pradesh)
-- MSME Udyam: UDYAM-UP-01-0220749
+- Operational Jurisdiction: India
 - Primary SAC Code: 998361 (Advertising and PR Services)
 - Secondary SAC Code: 998362 (Purchase and Sale of Advertising Space)
-- Support Email: support@vyaparmedia.in
-- Grievance Officer: grievance@vyaparmedia.in
+- Official Support: support@vyaparmedia.in
+- Grievance & Compliance: grievance@vyaparmedia.in
+- Statutory Compliance Engine: Full automated GST (CGST/SGST/IGST) invoicing, Section 52 TCS, and Section 194-O / 194-J TDS withholding on creator settlements.
 
 ## 3. Core Architectural Modules
 

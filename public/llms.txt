@@ -5,10 +5,10 @@
 Vyapar Media is a dual-sided creator marketplace designed specifically for the Indian creator economy. It connects brands with verified nano, micro, and macro creators across Instagram, YouTube, and regional social networks, with legally binding contracts and automated milestone-based financial escrow.
 
 - Website: https://vyaparmedia.vercel.app
-- Legal Entity: Krishna Mangal (Proprietorship) t/a Vyapar Media
-- Location: Agra, Uttar Pradesh, India
-- Registered GSTIN: 09KPIPM8835Q1ZK
-- MSME Udyam: UDYAM-UP-01-0220749
+- Trade Name: Vyapar Media
+- Location: India
+- Primary SAC Code: 998361 (Advertising, Marketing & Influencer Services)
+- Support Email: support@vyaparmedia.in
 
 ## Detailed Specifications
 - Comprehensive Technical & Architectural Documentation: https://vyaparmedia.vercel.app/llms-full.txt

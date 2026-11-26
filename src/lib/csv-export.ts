@@ -300,12 +300,16 @@ export function buildBrandedCsv<T extends Record<string, unknown>>(
 
 export function csvPlatformHeader(reportType: string): string {
   let out = "";
-  const entity =
-    PLATFORM_CONFIG.legalName ||
-    PLATFORM_CONFIG.tradeName ||
-    PLATFORM_CONFIG.name ||
-    "VyaparMedia";
-  out += csvRow("Platform Legal Entity", entity);
+  if (PLATFORM_CONFIG.legalName) {
+    out += csvRow("Platform Legal Entity", PLATFORM_CONFIG.legalName);
+  }
+  const brandOrTrade = PLATFORM_CONFIG.tradeName || PLATFORM_CONFIG.name;
+  if (brandOrTrade && brandOrTrade !== PLATFORM_CONFIG.legalName) {
+    out += csvRow("Platform Trade / Brand Name", brandOrTrade);
+  } else if (!PLATFORM_CONFIG.legalName) {
+    out += csvRow("Platform Trade / Brand Name", brandOrTrade || "VyaparMedia");
+  }
+
   if (
     PLATFORM_CONFIG.cin &&
     !["N/A", "NONE", "PROPRIETORSHIP"].includes(PLATFORM_CONFIG.cin.toUpperCase())
@@ -335,10 +339,11 @@ export function csvPlatformHeader(reportType: string): string {
   if (complianceEmail) {
     out += csvRow("Tax & Compliance Support", complianceEmail);
   }
-  const sac = PLATFORM_CONFIG.sacCode
-    ? `${PLATFORM_CONFIG.sacCode} (Advertising, Marketing & Influencer Services)`
-    : "Advertising, Marketing & Influencer Services";
-  out += csvRow("SAC Code", sac);
+  if (PLATFORM_CONFIG.sacCode) {
+    out += csvRow("SAC Code", `${PLATFORM_CONFIG.sacCode} (Advertising, Marketing & Influencer Services)`);
+  } else {
+    out += csvRow("Service Classification", "Advertising, Marketing & Influencer Services");
+  }
   out += csvSep();
   return out;
 }

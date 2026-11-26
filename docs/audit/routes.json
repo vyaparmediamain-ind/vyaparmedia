@@ -1,6 +1,6 @@
 {
-  "generatedAt": "2026-11-26T09:55:44.066Z",
-  "totalApiRoutes": 157,
+  "generatedAt": "2026-11-26T13:54:50.594Z",
+  "totalApiRoutes": 158,
   "totalPageRoutes": 65,
   "apiRoutes": [
     {
@@ -3158,6 +3158,27 @@
           "requireInfluencer": false,
           "requirePermission": "VIEW_OWN_FINANCE",
           "rateBucket": "REPORTS",
+          "validateSchemas": {},
+          "skipCsrf": false
+        }
+      },
+      "serverActions": []
+    },
+    {
+      "path": "/api/reports/platform-config",
+      "file": "src/app/api/reports/platform-config/route.ts",
+      "type": "api",
+      "methods": [
+        "GET"
+      ],
+      "authOptions": {
+        "GET": {
+          "requireAuth": true,
+          "requireAdmin": false,
+          "requireBrand": false,
+          "requireInfluencer": false,
+          "requirePermission": null,
+          "rateBucket": "CUSTOM",
           "validateSchemas": {},
           "skipCsrf": false
         }

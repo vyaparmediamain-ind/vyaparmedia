@@ -1,6 +1,6 @@
 {
-  "generatedAt": "2026-11-26T09:57:55.412Z",
-  "totalCallSites": 179,
+  "generatedAt": "2026-11-26T13:55:28.017Z",
+  "totalCallSites": 180,
   "brokenCallSitesCount": 0,
   "candidateDeadRoutesCount": 0,
   "methodMismatchesCount": 0,
@@ -376,7 +376,7 @@
     },
     {
       "file": "src/components/admin/system/ReportConfigManager.tsx",
-      "line": 33,
+      "line": 48,
       "rawExpression": "\"/api/admin/system/platform-config\"",
       "normalizedRoute": "/api/admin/system/platform-config",
       "method": "GET",
@@ -700,7 +700,7 @@
     },
     {
       "file": "src/components/guides/GuideDrawer.tsx",
-      "line": 45,
+      "line": 52,
       "rawExpression": "\"/api/admin/guides\"",
       "normalizedRoute": "/api/admin/guides",
       "method": "GET",
@@ -862,7 +862,16 @@
     },
     {
       "file": "src/hooks/usePlatformConfig.ts",
-      "line": 40,
+      "line": 45,
+      "rawExpression": "\"/api/reports/platform-config\"",
+      "normalizedRoute": "/api/reports/platform-config",
+      "method": "GET",
+      "sourceType": "swr",
+      "matchedRoute": true
+    },
+    {
+      "file": "src/hooks/usePlatformConfig.ts",
+      "line": 45,
       "rawExpression": "\"/api/public/platform-config\"",
       "normalizedRoute": "/api/public/platform-config",
       "method": "GET",
