@@ -57,7 +57,8 @@
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1047.0",
     "@aws-sdk/s3-request-presigner": "^3.1047.0",
-    "@prisma/client": "^6.19.3",
+    "@prisma/client": "6.19.3",
+    "prisma": "6.19.3",
     "@sentry/nextjs": "^10.59.0",
     "@tailwindcss/postcss": "^4.3.3",
     "@tanstack/react-virtual": "^3.14.12",
@@ -110,13 +111,14 @@
     "fast-check": "^4.5.4",
     "jsdom": "^29.1.1",
     "knip": "^6.48.0",
-    "prisma": "^6.19.3",
     "typescript": "^5",
     "vite": "^6.4.0",
     "vitest": "^5.0.0",
     "vitest-axe": "^0.1.0"
   },
   "overrides": {
+    "prisma": "6.19.3",
+    "@prisma/client": "6.19.3",
     "sharp": "^0.35.5"
   }
 }
