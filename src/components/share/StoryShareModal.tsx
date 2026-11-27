@@ -61,8 +61,8 @@ export default function StoryShareModal({
     (isScout || defaultTab === "referral") && hasReferral
       ? "referral"
       : hasProfile
-      ? "profile"
-      : "referral";
+        ? "profile"
+        : "referral";
 
   const [activeTab, setActiveTab] = useState<"profile" | "referral">(initialTab);
   const [profileQr, setProfileQr] = useState<string>("");
@@ -96,17 +96,17 @@ export default function StoryShareModal({
     () =>
       isBrand
         ? [
-            "Transparent 7-10% Brand Fees",
-            "Verified Brand Badge",
-            "Escrow-secured deliverables",
-          ]
+          "Transparent 7-10% Brand Fees",
+          "Verified Brand Badge",
+          "Escrow-secured deliverables",
+        ]
         : isScout
-        ? [
+          ? [
             "100% Escrow-secured brand deals",
             "Verified Creator & Brand network",
             "Official Campus Partner link",
           ]
-        : [
+          : [
             "0% Commission (Always Free)",
             "Verified Creator Badge",
             "100% Escrow-secured payouts",
@@ -283,8 +283,8 @@ export default function StoryShareModal({
           ? "🛡️ OFFICIAL BRAND PARTNER"
           : "🛡️ 100% ESCROW PROTECTED"
         : isBrand
-        ? "🎁 BRAND COLLABORATION INVITE"
-        : "🎁 EXCLUSIVE PARTNER INVITE";
+          ? "🎁 BRAND COLLABORATION INVITE"
+          : "🎁 EXCLUSIVE PARTNER INVITE";
     ctx.fillText(headerPillText, 540, 224);
 
     // 4. Central Hero Card
@@ -458,8 +458,8 @@ export default function StoryShareModal({
       const referralHeadline = isBrand
         ? "Partner With Top Creators"
         : isScout
-        ? "Vyapar Scout Partner Network"
-        : "Join My Creator Network";
+          ? "Vyapar Scout Partner Network"
+          : "Join My Creator Network";
       ctx.fillText(referralHeadline, 540, vmCardLogo ? 470 : 430);
 
       ctx.fillStyle = "#94A3B8";
@@ -467,8 +467,8 @@ export default function StoryShareModal({
       const referralSub = isBrand
         ? "Launch high-ROI influencer campaigns on VyaparMedia"
         : isScout
-        ? "Official Campus Talent Partner • 100% Escrow Safe"
-        : "Get exclusive brand deal access on VyaparMedia";
+          ? "Official Campus Talent Partner • 100% Escrow Safe"
+          : "Get exclusive brand deal access on VyaparMedia";
       ctx.fillText(referralSub, 540, vmCardLogo ? 520 : 485);
 
       // Referral Code Prominent Box
@@ -652,8 +652,8 @@ export default function StoryShareModal({
         ? `Check out our verified brand profile, active campaigns & reliability score on VyaparMedia! (100% Escrow Protected):`
         : `Check out my verified creator portfolio, rates & trust score on VyaparMedia! (100% Escrow Protected):`
       : isBrand
-      ? `Launch high-ROI influencer campaigns on VyaparMedia! Use our invite code ${referralCode || ""} to claim 0% platform fees on your first 3 campaigns:`
-      : `Join India's top brand-influencer deal platform! Use my invite code ${referralCode || ""} to get fast-track verification & 100% free escrow payouts:`;
+        ? `Launch high-ROI influencer campaigns on VyaparMedia! Use our invite code ${referralCode || ""} for verified creator discovery & 100% escrow protection:`
+        : `Join India's top brand-influencer deal platform! Use my invite code ${referralCode || ""} to get fast-track verification & 100% free escrow payouts:`;
 
   const whatsAppStatusText =
     activeTab === "profile"
@@ -661,8 +661,8 @@ export default function StoryShareModal({
         ? `Check out our official brand portfolio & campaigns on VyaparMedia:\n\n${activeUrl}\n\n(100% Escrow-Protected Collaborations)`
         : `Check out my verified creator portfolio, rate card & DRS trust score on VyaparMedia:\n\n${activeUrl}\n\n(100% Escrow Protected Collaborations)`
       : isBrand
-      ? `Launch influencer campaigns with verified creators on VyaparMedia!\n\nUse our invite code ${referralCode || ""} to unlock 0% platform fees on your first 3 campaigns:\n\n${activeUrl}`
-      : `Join India's leading creator & brand deal network!\n\nUse my invite code ${referralCode || ""} to claim 0% commission & 100% escrow-secured payouts:\n\n${activeUrl}`;
+        ? `Launch influencer campaigns with verified creators on VyaparMedia!\n\nUse our invite code ${referralCode || ""} to collaborate with escrow safety:\n\n${activeUrl}`
+        : `Join India's leading creator & brand deal network!\n\nUse my invite code ${referralCode || ""} to claim 0% commission & 100% escrow-secured payouts:\n\n${activeUrl}`;
 
   const whatsAppUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(whatsAppStatusText)}`;
   const facebookUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(activeUrl)}&quote=${encodeURIComponent(platformShareText)}`;
@@ -708,11 +708,10 @@ export default function StoryShareModal({
             <button
               type="button"
               onClick={() => setActiveTab("profile")}
-              className={`flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-xl text-xs font-bold transition-all duration-200 shrink-0 whitespace-nowrap cursor-pointer ${
-                activeTab === "profile"
-                  ? "bg-card text-foreground shadow-sm border border-border"
-                  : "text-muted-foreground hover:text-foreground"
-              }`}
+              className={`flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-xl text-xs font-bold transition-all duration-200 shrink-0 whitespace-nowrap cursor-pointer ${activeTab === "profile"
+                ? "bg-card text-foreground shadow-sm border border-border"
+                : "text-muted-foreground hover:text-foreground"
+                }`}
             >
               {isBrand ? (
                 <Building2 className="w-3.5 h-3.5 text-blue-400" />
@@ -724,11 +723,10 @@ export default function StoryShareModal({
             <button
               type="button"
               onClick={() => setActiveTab("referral")}
-              className={`flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-xl text-xs font-bold transition-all duration-200 shrink-0 whitespace-nowrap cursor-pointer ${
-                activeTab === "referral"
-                  ? "bg-card text-foreground shadow-sm border border-border"
-                  : "text-muted-foreground hover:text-foreground"
-              }`}
+              className={`flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-xl text-xs font-bold transition-all duration-200 shrink-0 whitespace-nowrap cursor-pointer ${activeTab === "referral"
+                ? "bg-card text-foreground shadow-sm border border-border"
+                : "text-muted-foreground hover:text-foreground"
+                }`}
             >
               <Sparkles className="w-3.5 h-3.5 text-purple-400" />
               <span>{isBrand ? "Partner Invite" : "Referral Invite"}</span>
@@ -812,12 +810,12 @@ export default function StoryShareModal({
                               !hasProfile || !hasReferral
                                 ? `${activeProgress}%`
                                 : i === 0
-                                ? activeTab === "profile"
-                                  ? `${activeProgress}%`
-                                  : "100%"
-                                : activeTab === "referral"
-                                ? `${activeProgress}%`
-                                : "0%",
+                                  ? activeTab === "profile"
+                                    ? `${activeProgress}%`
+                                    : "100%"
+                                  : activeTab === "referral"
+                                    ? `${activeProgress}%`
+                                    : "0%",
                             transition: "width 0.05s linear",
                           }}
                         />
@@ -1005,8 +1003,8 @@ export default function StoryShareModal({
                             {isBrand
                               ? "Partner With Top Creators"
                               : isScout
-                              ? "Vyapar Scout Partner Network"
-                              : "Join My Creator Network"}
+                                ? "Vyapar Scout Partner Network"
+                                : "Join My Creator Network"}
                           </div>
                           <div className="text-white/45 text-[8px] mt-0.5">
                             {isScout

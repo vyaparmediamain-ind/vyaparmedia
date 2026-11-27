@@ -182,7 +182,6 @@ const svg = `
 
 async function main() {
   const outPath = path.join(cwd, "public", "og-image.png");
-  const testSquarePath = path.join(cwd, "public", "og-image-square-test.png");
 
   console.log("Generating 1200x630 Open Graph Image...");
   const pngBuffer = await sharp(Buffer.from(svg))
@@ -191,17 +190,6 @@ async function main() {
 
   fs.writeFileSync(outPath, pngBuffer);
   console.log(`Saved: ${outPath} (${pngBuffer.length} bytes)`);
-
-  // Generate 1:1 square crop from center (x: 285 to 915, y: 0 to 630) to simulate WhatsApp mobile thumbnail
-  console.log("Generating 1:1 center crop to verify WhatsApp mobile thumbnail...");
-  const squareBuffer = await sharp(pngBuffer)
-    .extract({ left: 285, top: 0, width: 630, height: 630 })
-    .resize(300, 300)
-    .png()
-    .toBuffer();
-
-  fs.writeFileSync(testSquarePath, squareBuffer);
-  console.log(`Saved WhatsApp square preview simulation: ${testSquarePath} (${squareBuffer.length} bytes)`);
 }
 
 main().catch(console.error);
