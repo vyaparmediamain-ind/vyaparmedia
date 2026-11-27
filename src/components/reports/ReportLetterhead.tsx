@@ -150,12 +150,6 @@ export function ReportLetterhead({
               </>
             )}
             GSTIN: {renderConfigValue(platformConfig.gstin, "GSTIN")}
-            {platformConfig.pan && (
-              <>
-                <span className="mx-1 opacity-50">|</span>
-                PAN: {platformConfig.pan}
-              </>
-            )}
           </div>
 
           <div className="break-words">
@@ -163,12 +157,6 @@ export function ReportLetterhead({
           </div>
 
           <div className="pt-0.5">
-            {platformConfig.phone && (
-              <>
-                Phone: {platformConfig.phone}
-                <span className="mx-1 opacity-50">|</span>
-              </>
-            )}
             Email: {renderConfigValue(platformConfig.email, "Support Email")}
             <span className="mx-1 opacity-50">|</span>
             {renderConfigValue(platformConfig.website, "Website")}

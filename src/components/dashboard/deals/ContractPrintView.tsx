@@ -180,7 +180,6 @@ export function ContractPrintView({ deal, onClose }: ContractPrintViewProps) {
               {platformConfig.cin && !["N/A", "NONE", "PROPRIETORSHIP"].includes(platformConfig.cin.toUpperCase()) ? `CIN: ${platformConfig.cin} | ` : ""}
               {platformConfig.udyam ? `Udyam: ${platformConfig.udyam} | ` : ""}
               {platformConfig.gstin ? `GSTIN: ${platformConfig.gstin}` : ""}
-              {platformConfig.pan ? ` | PAN: ${platformConfig.pan}` : ""}
             </div>
             {platformConfig.address && <div>{platformConfig.address}</div>}
             <div className="font-mono text-2xs text-muted-foreground pt-1">
