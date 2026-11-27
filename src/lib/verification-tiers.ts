@@ -142,7 +142,7 @@ docs.has("CIN_CERTIFICATE")
 
 export async function getUserVerificationTier(
 userId: string,
-userType?: "BRAND" | "INFLUENCER",
+userType?: "BRAND" | "INFLUENCER" | "SCOUT",
 ): Promise<VerificationTier> {
 const user = await prisma.user.findUnique({
 where: { id: userId },
@@ -151,7 +151,7 @@ select: { emailVerified: true, phoneVerified: true, userType: true },
 if (!user) return 0;
 if (!user.emailVerified || !user.phoneVerified) return 0;
 
-const role = (userType || user.userType) as "BRAND" | "INFLUENCER";
+const role = (userType || user.userType) as "BRAND" | "INFLUENCER" | "SCOUT";
 const docs = await getVerifiedDocs(userId);
 
 const hasTier1 = docs.has("AADHAAR") && docs.has("SELFIE");
@@ -160,8 +160,8 @@ if (!hasTier1) return 0;
 const hasTier2 = docs.has("PAN_CARD") && docs.has("BANK_STATEMENT");
 if (!hasTier2) return 1;
 
-// Influencer: Tier 2 = unlimited (no Tier 3 needed)
-if (role === "INFLUENCER") return 2;
+// Influencer and Scout: Tier 2 is full compliance (no corporate Tier 3 needed)
+if (role === "INFLUENCER" || role === "SCOUT") return 2;
 
 // Brand: Tier 3 needs a business doc
 if (hasTier3Doc(docs)) return 3;
@@ -380,8 +380,14 @@ upgradeUrl: "/dashboard/settings?tab=verification",
 
 export function getTierDescription(
 tier: VerificationTier,
-userType: "BRAND" | "INFLUENCER",
+userType: "BRAND" | "INFLUENCER" | "SCOUT",
 ): string {
+if (userType === "SCOUT") {
+if (tier >= 2) return "Campus Partner — Full royalty withdrawal privileges active";
+if (tier === 1) return "Basic Onboarding — Up to ₹50,000/month (Add PAN to unlock)";
+return "Unverified — Complete Aadhaar and PAN verification";
+}
+
 if (userType === "INFLUENCER") {
 if (tier === 2) {
 return "Standard — Unlimited campaigns";

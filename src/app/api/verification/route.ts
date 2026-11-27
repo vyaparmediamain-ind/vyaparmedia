@@ -148,7 +148,12 @@ return (map[mimeType] || []).includes(extension);
 }
 
 // GET - Get verification status and documents
-function calculateTierLimit(userType: "BRAND" | "INFLUENCER", tier: number): number | null {
+function calculateTierLimit(userType: "BRAND" | "INFLUENCER" | "SCOUT", tier: number): number | null {
+if (userType === "SCOUT") {
+if (tier >= 2) return null; // Uncapped once Tier 2 (Identity + PAN/Bank) is verified
+if (tier === 1) return TIER_LIMITS.TIER_1_MAX_MONTHLY;
+return 0;
+}
 if (userType === "INFLUENCER") {
 if (tier >= 2) return null;
 if (tier === 1) return TIER_LIMITS.TIER_1_MAX_MONTHLY;
@@ -186,7 +191,7 @@ orderBy: { createdAt: "desc" },
 }),
 ]);
 
-const userType = (user?.userType || "INFLUENCER") as "BRAND" | "INFLUENCER";
+const userType = (user?.userType || "INFLUENCER") as "BRAND" | "INFLUENCER" | "SCOUT";
 const tier = await getUserVerificationTier(session.user.id, userType);
 const tierLimit = calculateTierLimit(userType, tier);
 

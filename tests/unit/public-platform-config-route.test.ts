@@ -60,7 +60,7 @@ describe("Platform Config API Routes & Sensitive Data Isolation", () => {
       expect(body.error).toBeDefined();
     });
 
-    it("returns full statutory details to authenticated users for official letterheads & statements", async () => {
+    it("returns official corporate statement details to authenticated users while strictly omitting raw personal PAN/phone", async () => {
       mockAuth.mockResolvedValue({
         user: { id: "usr_active_member", userType: "INFLUENCER", isActive: true },
       } as unknown as Awaited<ReturnType<typeof auth>>);
@@ -74,8 +74,10 @@ describe("Platform Config API Routes & Sensitive Data Isolation", () => {
       expect(body.data).toHaveProperty("legalName");
       expect(body.data).toHaveProperty("gstin");
       expect(body.data).toHaveProperty("address");
-      expect(body.data).toHaveProperty("pan");
       expect(body.data).toHaveProperty("sacCode");
+      // Verify raw personal PAN and phone are strictly omitted from client endpoint
+      expect(body.data).not.toHaveProperty("pan");
+      expect(body.data).not.toHaveProperty("phone");
     });
   });
 });

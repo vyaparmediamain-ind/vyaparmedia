@@ -2,6 +2,7 @@
 
 import React from "react";
 import { Button } from "@/components/ui";
+import { DEFAULT_SCOUT_ROYALTY_PERCENT } from "@/constants/deals";
 import {
   getTierIcon,
   getMonthlyLimitText,
@@ -294,7 +295,7 @@ export function TierStatusCardComponent({
               </h2>
               <p className="text-xs text-muted-foreground mt-0.5">
                 {tierDesc || (isScout
-                  ? (tier >= 2 ? "Full campus partner privileges active. 1% lifetime GMV royalties credit directly to your wallet." : "Complete basic identity (Aadhaar + Selfie) and PAN for automated royalty settlements.")
+                  ? (tier >= 2 ? `Full campus partner privileges active. ${DEFAULT_SCOUT_ROYALTY_PERCENT}% lifetime GMV royalties credit directly to your wallet.` : "Complete basic identity (Aadhaar + Selfie) and PAN for automated royalty settlements.")
                   : "Complete identity checkpoints to expand payout volumes.")}
               </p>
             </div>
@@ -306,10 +307,12 @@ export function TierStatusCardComponent({
             {isScout ? "Royalty Payout Status" : "Monthly Payout Cap"}
           </span>
           <div className="text-2xl font-extrabold text-foreground tabular-nums tracking-tight mt-0.5">
-            {isScout ? "Uncapped Royalties" : getMonthlyLimitText(isUnlimited, tier, tierLimit)}
+            {isScout
+              ? (isUnlimited ? "Uncapped Royalties" : getMonthlyLimitText(isUnlimited, tier, tierLimit))
+              : getMonthlyLimitText(isUnlimited, tier, tierLimit)}
           </div>
           <span className="text-[11px] text-muted-foreground">
-            {isScout ? "1% GMV Passive Royalty Settlements" : "Automated Escrow Settlements"}
+            {isScout ? `${DEFAULT_SCOUT_ROYALTY_PERCENT}% GMV Passive Royalty Settlements` : "Automated Escrow Settlements"}
           </span>
         </div>
       </div>
@@ -321,7 +324,7 @@ export function TierStatusCardComponent({
             <ShieldCheck className="w-4 h-4 text-verified" /> Partner Network Standing
           </span>
           <span className="text-verified font-bold flex items-center gap-1">
-            <CheckCircle2 className="w-3.5 h-3.5" /> 1% Lifetime Royalty Model Active
+            <CheckCircle2 className="w-3.5 h-3.5" /> {DEFAULT_SCOUT_ROYALTY_PERCENT}% Lifetime Royalty Model Active
           </span>
         </div>
       ) : (

@@ -20,6 +20,7 @@ export const DEFAULT_BRAND_LATE_APPROVAL_FEE_PERCENT = 10; // 10% penalty for br
 export const DEFAULT_BRAND_PLATFORM_FEE_PERCENT = 10; // 10% standard platform fee
 export const DEFAULT_GATEWAY_FEE_PERCENT = 2; // 2% payment gateway processing fee
 export const DEFAULT_PRODUCT_HANDLING_FEE_PERCENT = 2; // 2% product handling fee for seeded campaigns
+export const DEFAULT_SCOUT_ROYALTY_PERCENT = 1.0; // 1.0% lifetime GMV deal royalty for Campus Scouts & Referrers
 
 // Deal Query Limits
 export const DEFAULT_DEAL_LIST_LIMIT = 10;

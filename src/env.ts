@@ -195,13 +195,9 @@ export const envSchema = z.object({
   PLATFORM_UDYAM: emptyAsUndefined(z.string().optional()),
   PLATFORM_PAN: emptyAsUndefined(z.string().optional()),
   PLATFORM_ADDRESS: emptyAsUndefined(z.string().optional()),
-  PLATFORM_EMAIL: z.string().email().default("support@VyaparMedia.in"),
-  PLATFORM_PHONE: z.string().default("+91-8045678900"),
-  PLATFORM_WEBSITE: z.string().default("https://vyaparmedia.vercel.app"),
-  NEXT_PUBLIC_PLATFORM_GSTIN: emptyAsUndefined(z.string().optional()),
-  NEXT_PUBLIC_PLATFORM_CIN: emptyAsUndefined(z.string().optional()),
-  NEXT_PUBLIC_PLATFORM_UDYAM: emptyAsUndefined(z.string().optional()),
-  NEXT_PUBLIC_PLATFORM_PHONE: emptyAsUndefined(z.string().optional()),
+  PLATFORM_EMAIL: emptyAsUndefined(z.string().email().optional()),
+  PLATFORM_PHONE: emptyAsUndefined(z.string().optional()),
+  PLATFORM_WEBSITE: emptyAsUndefined(z.string().url().optional()),
 
   // Feature flags and limits
   PLATFORM_FEE_PERCENTAGE: z.coerce.number().default(DEFAULT_BRAND_PLATFORM_FEE_PERCENT),
@@ -257,7 +253,7 @@ function validatePlatformCompliance(env: Record<string, unknown>, ctx: z.Refinem
   }
 
   const cin = env.PLATFORM_CIN as string | undefined;
-  const udyam = (env.PLATFORM_UDYAM || env.NEXT_PUBLIC_PLATFORM_UDYAM) as string | undefined;
+  const udyam = env.PLATFORM_UDYAM as string | undefined;
   const hasValidUdyam = Boolean(udyam && !udyam.includes("XXXX") && udyam.trim().length > 5);
 
   if (!hasValidUdyam) {
