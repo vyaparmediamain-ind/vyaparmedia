@@ -96,7 +96,7 @@ export default function StoryShareModal({
     () =>
       isBrand
         ? [
-            "0% fee on first 3 campaigns",
+            "Transparent 7-10% Brand Fees",
             "Verified Brand Badge",
             "Escrow-secured deliverables",
           ]

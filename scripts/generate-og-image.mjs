@@ -159,19 +159,19 @@ const svg = `
     <text x="665" y="405" fill="#94A3B8" font-family="system-ui, -apple-system, sans-serif" font-size="11" font-weight="600">Direct to bank on approval</text>
   </g>
 
-  <!-- Trust Metrics Bar -->
-  <rect x="375" y="460" width="450" height="40" rx="12" fill="#0F172A" fill-opacity="0.9" stroke="#334155" stroke-width="1" />
-  <text x="600" y="485" text-anchor="middle" fill="#CBD5E1" font-family="system-ui, -apple-system, sans-serif" font-size="13" font-weight="700">
-    ⚡ 10,000+ Deals Protected  •  0% Payment Defaults  •  ₹0 Advance Loss
+  <!-- Trust / Statutory Security Bar -->
+  <rect x="370" y="460" width="460" height="40" rx="12" fill="#0F172A" fill-opacity="0.9" stroke="#334155" stroke-width="1" />
+  <text x="600" y="485" text-anchor="middle" fill="#CBD5E1" font-family="system-ui, -apple-system, sans-serif" font-size="12.5" font-weight="700">
+    🔒 100% Milestone Escrow  •  Section 194-O TDS  •  RBI Compliant
   </text>
 
   <!-- Referral Invitation Callout Banner -->
-  <rect x="340" y="525" width="520" height="55" rx="16" fill="url(#pillGrad)" stroke="#10B981" stroke-width="1.5" />
-  <text x="600" y="549" text-anchor="middle" fill="#FFFFFF" font-family="system-ui, -apple-system, sans-serif" font-size="16" font-weight="800">
+  <rect x="330" y="525" width="540" height="55" rx="16" fill="url(#pillGrad)" stroke="#10B981" stroke-width="1.5" />
+  <text x="600" y="549" text-anchor="middle" fill="#FFFFFF" font-family="system-ui, -apple-system, sans-serif" font-size="15" font-weight="800">
     Join with Invite Code to Claim Perks &amp; Royalties
   </text>
   <text x="600" y="569" text-anchor="middle" fill="#34D399" font-family="system-ui, -apple-system, sans-serif" font-size="12" font-weight="700">
-    Free Verified Badge  •  0% Platform Fee on First 3 Deals  •  DigiLocker KYC
+    0% Creator Commission  •  Transparent 7-10% Brand Fees  •  DigiLocker KYC
   </text>
 
   <!-- Outer Frame Highlight -->

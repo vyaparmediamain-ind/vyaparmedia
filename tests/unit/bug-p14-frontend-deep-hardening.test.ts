@@ -29,7 +29,7 @@ describe("Phase 14 Deep Frontend Hardening Suite (P14-FRONTEND)", () => {
   describe("P14-02: Story Share Modal Perks Role Differentiation", () => {
     it("provides correct distinct perks for brands and creators", () => {
       const brandPerks = [
-        "0% fee on first 3 campaigns",
+        "Transparent 7-10% Brand Fees",
         "Verified Brand Badge",
         "Escrow-secured deliverables",
       ];
@@ -39,7 +39,7 @@ describe("Phase 14 Deep Frontend Hardening Suite (P14-FRONTEND)", () => {
         "100% Escrow-secured payouts",
       ];
 
-      expect(brandPerks[0]).toContain("0% fee on first 3 campaigns");
+      expect(brandPerks[0]).toContain("Transparent 7-10% Brand Fees");
       expect(creatorPerks[0]).toContain("0% Commission (Always Free)");
       expect(brandPerks).not.toEqual(creatorPerks);
     });
