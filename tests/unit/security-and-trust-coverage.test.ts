@@ -315,9 +315,11 @@ describe("Security and Trust Coverage Suite", () => {
       expect(err.upgradeUrl).toContain("verification");
     });
 
-    it("returns correct tier description for Influencers and Brands", () => {
+    it("returns correct tier description for Influencers, Brands, and Scouts", () => {
       expect(getTierDescription(1, "INFLUENCER")).toContain("Basic");
       expect(getTierDescription(2, "INFLUENCER")).toContain("Standard — Unlimited");
+      expect(getTierDescription(1, "SCOUT")).toContain("Basic Onboarding");
+      expect(getTierDescription(2, "SCOUT")).toContain("Campus Partner — Full royalty withdrawal");
       expect(getTierDescription(2, "BRAND")).toContain("Standard — Up to ₹1,00,000");
       expect(getTierDescription(3, "BRAND")).toContain("Premium — Unlimited");
       expect(getTierDescription(0, "BRAND")).toContain("Unverified");

@@ -1,3 +1,4 @@
+import { DEFAULT_SCOUT_ROYALTY_PERCENT } from "@/constants/deals";
 import prisma, { ensurePlatformTreasury } from "@/lib/db";
 import { Prisma } from "@prisma/client";
 import { AppError } from "@/lib/errors";
@@ -512,7 +513,7 @@ export class ScoutService {
 
     for (const scout of scouts) {
       // Calculate royalty
-      const royaltyPercent = scout.royaltyPercent || 1.0;
+      const royaltyPercent = scout.royaltyPercent || DEFAULT_SCOUT_ROYALTY_PERCENT;
       const royaltyPaise = Math.max(1, Math.round((dealAmountPaise * royaltyPercent) / 100));
 
       // Idempotency: check if already credited
