@@ -150,7 +150,7 @@ const ROLE_CHECKLISTS: Record<GuideUserType, ChecklistItem[]> = {
     },
     {
       id: "sc-royalties",
-      title: "Track 5% Lifetime Deal Royalties",
+      title: "Track 1% Lifetime Deal Royalties",
       description: "Monitor weekly earnings credited whenever creators deliver paid brand collaborations.",
       estimatedMinutes: 3,
       guideId: "scout-royalties-and-wallet",

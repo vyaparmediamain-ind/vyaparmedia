@@ -1065,8 +1065,8 @@ export const ADMIN_GUIDES: Guide[] = [
       hinglish: "Campus Scout Partner Network Administration",
     },
     summary: {
-      en: "Oversee campus student ambassadors, verify college ID proofs, audit multi-tier affiliate trees, and monitor 5% royalty disbursements.",
-      hinglish: "College campus scouts manage karein, student IDs verify karein, referral network audit karein aur 5% royalties monitor karein.",
+      en: "Oversee campus student ambassadors, verify college ID proofs, audit multi-tier affiliate trees, and monitor 1% royalty disbursements.",
+      hinglish: "College campus scouts manage karein, student IDs verify karein, referral network audit karein aur 1% royalties monitor karein.",
     },
     whenToUse: {
       en: "Use to approve incoming student scout applications, investigate circular self-referral rings, or issue campus certificates.",
@@ -1097,12 +1097,12 @@ export const ADMIN_GUIDES: Guide[] = [
       },
       {
         title: {
-          en: "Monitor 5% Lifetime Royalty Accruals",
-          hinglish: "5% Lifetime Royalties Monitor Karein",
+          en: "Monitor 1% Lifetime Royalty Accruals",
+          hinglish: "1% Lifetime Royalties Monitor Karein",
         },
         body: {
-          en: "Verify that 5% commissions are correctly credited to scout wallets upon successful deal completion.",
-          hinglish: "Check karein ki deals complete hone par scouts ko 5% commission sahi calculate hokar wallet me gaya hai.",
+          en: "Verify that 1% commissions are correctly credited to scout wallets upon successful deal completion.",
+          hinglish: "Check karein ki deals complete hone par scouts ko 1% commission sahi calculate hokar wallet me gaya hai.",
         },
         uiRef: "RoyaltyEarningsTable",
       },
