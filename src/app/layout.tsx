@@ -6,6 +6,7 @@ import "./globals.css";
 import { Providers } from "./providers";
 import { AppSplashScreen } from "@/components/AppSplashScreen";
 import { PLATFORM_CONFIG } from "@/lib/platform-config";
+import { Analytics } from "@vercel/analytics/next";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -240,6 +241,7 @@ export default async function RootLayout({
           <AppSplashScreen />
           {children}
         </Providers>
+        <Analytics />
       </body>
     </html>
   );
