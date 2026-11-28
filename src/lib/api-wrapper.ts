@@ -46,11 +46,18 @@ req: ValidatedNextRequest,
 context: ApiContext,
 ) => Promise<Response> | Response;
 
+export const DEFAULT_API_RATE_LIMIT = {
+  limit: 120,
+  window: 60,
+};
+
 interface ApiWrapperOptions {
 rateLimit?: {
 limit: number;
-window: number; // in seconds
+window?: number; // in seconds
+windowSec?: number; // in seconds
 };
+skipRateLimit?: boolean; // Explicit opt-out for internal/cron/metrics routes
 requireAuth?: boolean; // Can be extended with session checks
 requireAdmin?: boolean; // Require active admin access
 adminErrorMessage?: string; // Custom error message for admin check failure
@@ -317,30 +324,54 @@ url: string,
 requestId: string,
 options?: ApiWrapperOptions
 ): Promise<{ response: NextResponse | null; headers?: Record<string, string> }> {
-if (!options?.rateLimit) {
+if (options?.skipRateLimit) {
 return { response: null };
 }
 
+const effectiveLimit = options?.rateLimit?.limit ?? DEFAULT_API_RATE_LIMIT.limit;
+const effectiveWindow =
+  options?.rateLimit?.window ??
+  options?.rateLimit?.windowSec ??
+  DEFAULT_API_RATE_LIMIT.window;
+
 const limitConfig = {
 uniqueToken: `ratelimit:${ip}:${url}`,
-limit: options.rateLimit.limit,
-window: options.rateLimit.window,
+limit: effectiveLimit,
+window: effectiveWindow,
 };
 
-const { success, limit, remaining, reset } = await rateLimit(limitConfig);
+let rateLimitSuccess = true;
+let limitVal = effectiveLimit;
+let remainingVal = effectiveLimit;
+let resetVal = Math.floor(Date.now() / 1000) + effectiveWindow;
 
-const rateLimitHeaders = {
-"x-ratelimit-limit": limit.toString(),
-"x-ratelimit-remaining": remaining.toString(),
-"x-ratelimit-reset": reset.toString(),
+try {
+  const limiter = rateLimit;
+  if (typeof limiter === "function") {
+    const res = await limiter(limitConfig);
+    if (res) {
+      rateLimitSuccess = res.success;
+      if (res.limit !== undefined) limitVal = res.limit;
+      if (res.remaining !== undefined) remainingVal = res.remaining;
+      if (res.reset !== undefined) resetVal = res.reset;
+    }
+  }
+} catch (rateErr) {
+  logger.warn("[API] Rate limiting check failed, failing open", { error: rateErr });
+}
+
+const rateLimitHeaders: Record<string, string> = {
+  "x-ratelimit-limit": String(limitVal),
+  "x-ratelimit-remaining": String(remainingVal),
+  "x-ratelimit-reset": String(resetVal),
 };
 
-if (!success) {
+if (!rateLimitSuccess) {
 logger.warn(`[API] Rate limit exceeded for ${ip} on ${url}`, {
 requestId,
 });
 
-const retryAfter = Math.max(0, Math.ceil(reset - Date.now() / 1000));
+const retryAfter = Math.max(0, Math.ceil(resetVal - Date.now() / 1000));
 
 const response = NextResponse.json(
 {
@@ -350,10 +381,10 @@ message: `Rate limit exceeded. Try again in ${retryAfter} seconds.`,
 {
 status: 429,
 headers: {
-"X-RateLimit-Limit": limit.toString(),
-"X-RateLimit-Remaining": remaining.toString(),
-"X-RateLimit-Reset": reset.toString(),
-"Retry-After": retryAfter.toString(),
+"X-RateLimit-Limit": String(limitVal),
+"X-RateLimit-Remaining": String(remainingVal),
+"X-RateLimit-Reset": String(resetVal),
+"Retry-After": String(retryAfter),
 },
 },
 );

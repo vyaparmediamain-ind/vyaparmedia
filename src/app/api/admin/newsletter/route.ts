@@ -3,6 +3,7 @@ import { apiWrapper } from "@/lib/api-wrapper";
 import prisma from "@/lib/db";
 import { logger } from "@/lib/logger";
 import { sendBlogNewsletterEmail } from "@/lib/email";
+import { sanitizeHtml, stripHtml } from "@/lib/sanitize";
 
 // H10 FIX: maxDuration reduced - actual bulk sending must be batched across
 // multiple calls or moved to a background job queue (QStash / Redis).
@@ -25,6 +26,9 @@ async function _handler_POST(request: NextRequest) {
   if (!content || typeof content !== "string" || content.trim().length < 10 || content.length > 50000) {
     return NextResponse.json({ success: false, message: "Content must be 10-50000 characters" }, { status: 400 });
   }
+
+  const cleanSubject = stripHtml(subject);
+  const cleanContent = sanitizeHtml(content);
 
   // Paginated batch: take only BATCH_SIZE subscribers at a time
   const subscribers = await prisma.blogSubscriber.findMany({
@@ -49,7 +53,7 @@ async function _handler_POST(request: NextRequest) {
 
   for (const subscriber of subscribers) {
     try {
-      await sendBlogNewsletterEmail(subscriber.email, subject, content, subscriber.unsubscribeToken);
+      await sendBlogNewsletterEmail(subscriber.email, cleanSubject, cleanContent, subscriber.unsubscribeToken);
       sentCount++;
     } catch (error) {
       failedCount++;

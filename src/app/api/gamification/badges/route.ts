@@ -47,6 +47,7 @@ OR: [
 }),
 prisma.userBadge.findMany({
 where: { userId },
+take: 100,
 include: { badge: true },
 }),
 ]);

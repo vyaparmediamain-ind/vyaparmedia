@@ -38,8 +38,9 @@ export default function AdminCampaignClient({ initialData }: AdminCampaignClient
     try {
       setActionLoadingDealId(dealId);
       await approveDeliverableVerification(dealId);
-    } catch {
-      // Handled via notification / toast
+    } catch (err) {
+      console.error("Failed to approve deliverable verification", err);
+      window.alert(err instanceof Error ? err.message : "Failed to approve deliverable verification");
     } finally {
       setActionLoadingDealId(null);
     }
@@ -51,8 +52,9 @@ export default function AdminCampaignClient({ initialData }: AdminCampaignClient
     try {
       setActionLoadingDealId(dealId);
       await rejectDeliverableVerification(dealId, reason.trim());
-    } catch {
-      // Handled via notification / toast
+    } catch (err) {
+      console.error("Failed to reject deliverable verification", err);
+      window.alert(err instanceof Error ? err.message : "Failed to reject deliverable verification");
     } finally {
       setActionLoadingDealId(null);
     }

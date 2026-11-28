@@ -700,6 +700,10 @@ export async function confirmUploadedObject(
   }
 
   if (!client || !bucket) {
+    if (process.env.NODE_ENV === "production") {
+      logger.error("[STORAGE] Missing cloud storage credentials in production during object confirmation");
+      return { success: false, error: "Storage service unconfigured in production" };
+    }
     return { success: true, size: 1024, contentType: "application/octet-stream" };
   }
 

@@ -12,6 +12,7 @@ import {
   RefreshCw,
 } from "lucide-react";
 import { formatUserError } from "@/lib/user-messages";
+import { sanitizeHtml } from "@/lib/sanitize";
 
 interface NewsletterBroadcastFormProps {
   readonly verifiedSubscribersCount: number;
@@ -191,7 +192,7 @@ export default function NewsletterBroadcastForm({
           {isPreview ? (
             <div className="p-5 rounded-xl border border-border bg-muted/20 min-h-[250px] max-h-[450px] overflow-y-auto prose dark:prose-invert max-w-none text-sm">
               {content ? (
-                <div dangerouslySetInnerHTML={{ __html: content }} />
+                <div dangerouslySetInnerHTML={{ __html: sanitizeHtml(content) }} />
               ) : (
                 <p className="text-muted-foreground italic">No content to preview.</p>
               )}

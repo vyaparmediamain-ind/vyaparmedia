@@ -473,7 +473,7 @@ model IndiaTaxCompliance {
   createdAt                DateTime  @default(now())
   updatedAt                DateTime  @updatedAt
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Restrict)
 
   @@index([status])
   @@index([gstRegistrationType])
@@ -823,7 +823,7 @@ model ContentSubmission {
   submittedAt DateTime  @default(now())
   reviewedAt  DateTime?
 
-  deal Deal @relation(fields: [dealId], references: [id], onDelete: Cascade)
+  deal Deal @relation(fields: [dealId], references: [id], onDelete: Restrict)
 
   @@index([dealId])
 }
@@ -845,7 +845,7 @@ model Wallet {
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
-  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user         User          @relation(fields: [userId], references: [id], onDelete: Restrict)
   transactions Transaction[]
   withdrawals  Withdrawal[]
   debtorClaims DebtClaim[]   @relation("DebtorWallet")
@@ -1004,7 +1004,7 @@ model BankAccount {
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Restrict)
 
   @@index([userId])
   @@index([accountNumberHash])
@@ -1374,6 +1374,7 @@ model UserChallengeProgress {
   challenge WeeklyChallenge @relation(fields: [weekId, challengeId], references: [weekId, challengeId])
 
   @@unique([userId, challengeId, weekId])
+  @@index([challengeId])
   @@index([userId, weekId])
   @@index([weekId, challengeId])
 }
@@ -1410,7 +1411,7 @@ model EngagementSnapshot {
   capturedAt DateTime @default(now())
   createdAt  DateTime @default(now())
 
-  deal Deal @relation(fields: [dealId], references: [id], onDelete: Cascade)
+  deal Deal @relation(fields: [dealId], references: [id], onDelete: Restrict)
 
   @@unique([dealId, interval])
   @@index([dealId])
@@ -1476,9 +1477,9 @@ model DebtClaim {
   createdAt       DateTime   @default(now())
   updatedAt       DateTime   @updatedAt
 
-  debtorWallet Wallet @relation("DebtorWallet", fields: [debtorWalletId], references: [id], onDelete: Cascade)
-  creditor     User   @relation("CreditorUser", fields: [creditorUserId], references: [id], onDelete: Cascade)
-  deal         Deal   @relation(fields: [dealId], references: [id], onDelete: Cascade)
+  debtorWallet Wallet @relation("DebtorWallet", fields: [debtorWalletId], references: [id], onDelete: Restrict)
+  creditor     User   @relation("CreditorUser", fields: [creditorUserId], references: [id], onDelete: Restrict)
+  deal         Deal   @relation(fields: [dealId], references: [id], onDelete: Restrict)
 
   @@index([debtorWalletId, status, createdAt])
   @@index([creditorUserId])
@@ -1743,6 +1744,7 @@ model PageViewEvent {
 
   user               User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
 
+  @@index([userId])
   @@index([routeKey, createdAt])
   @@index([targetInfluencerId, createdAt])
   @@index([targetCampaignId, createdAt])

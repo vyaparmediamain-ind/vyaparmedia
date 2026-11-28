@@ -104,20 +104,22 @@ async function awardHotCreatorBadges(now: Date): Promise<string[]> {
     if (firstDeal?._count?.id !== undefined) {
       const maxCount = firstDeal._count.id;
       const tiedInfluencers = topInfluencerDeals.filter((item) => item._count?.id === maxCount);
+      const influencerIds = tiedInfluencers
+        .map((item) => item.influencerId)
+        .filter((id): id is string => Boolean(id));
 
-      for (const item of tiedInfluencers) {
-        if (item.influencerId) {
+      if (influencerIds.length > 0) {
+        const influencers = await prisma.influencerProfile.findMany({
+          where: { id: { in: influencerIds } },
+          select: { userId: true },
+        });
+
+        for (const influencer of influencers) {
           try {
-            const influencer = await prisma.influencerProfile.findUnique({
-              where: { id: item.influencerId },
-              select: { userId: true },
-            });
-            if (influencer) {
-              await awardBadgeIfNotExists(influencer.userId, "hot_creator");
-              hotCreatorUserIds.push(influencer.userId);
-            }
+            await awardBadgeIfNotExists(influencer.userId, "hot_creator");
+            hotCreatorUserIds.push(influencer.userId);
           } catch (err) {
-            logger.error("Failed to award hot creator badge", { influencerId: item.influencerId, error: err });
+            logger.error("Failed to award hot creator badge", { userId: influencer.userId, error: err });
           }
         }
       }

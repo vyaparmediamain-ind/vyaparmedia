@@ -490,7 +490,7 @@ async function handleFormDataUpload(req: NextRequest, session: UploadSession) {
 }
 
 
-// Wrapped handlers via apiWrapper
+// Wrapped handlers via apiWrapper (Max 5MB for direct base64 uploads; larger files use /api/upload/presign)
 export const POST = apiWrapper(_handler_POST, {
-  maxBodySize: 50 * 1024 * 1024,
+  maxBodySize: 5 * 1024 * 1024,
 });

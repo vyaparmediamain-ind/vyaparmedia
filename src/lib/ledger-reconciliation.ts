@@ -245,15 +245,27 @@ export async function reconcileGatewayPaymentsIST(): Promise<{
       break;
     }
 
-    for (const payment of payments) {
-      if (payment.status !== "captured") continue;
+    const capturedPayments = payments.filter((p) => p.status === "captured");
+    const capturedIds = capturedPayments.map((p) => p.id);
+    const existingTxs = capturedIds.length > 0
+      ? await prisma.transaction.findMany({
+          where: { razorpayPaymentId: { in: capturedIds } },
+          select: { razorpayPaymentId: true, amount: true },
+        })
+      : [];
+    const existingTxMap = new Map<string, { amount: number }>();
+    for (const tx of existingTxs) {
+      if (tx.razorpayPaymentId) {
+        existingTxMap.set(tx.razorpayPaymentId, tx);
+      }
+    }
+
+    for (const payment of capturedPayments) {
       totalGatewayPayments++;
 
-      const tx = await prisma.transaction.findFirst({
-        where: { razorpayPaymentId: payment.id },
-      });
+      const matchedTx = existingTxMap.get(payment.id);
 
-      if (!tx) {
+      if (!matchedTx) {
         mismatchCount++;
         logger.critical("[Reconciliation] Gateway payment missing from ledger!", {
           paymentId: payment.id,
@@ -273,12 +285,12 @@ export async function reconcileGatewayPaymentsIST(): Promise<{
             status: "FAILED",
           },
         }).catch((err) => logger.error("Failed to record DLQ for missing payment", err));
-      } else if (tx.amount !== payment.amount) {
+      } else if (matchedTx.amount !== payment.amount) {
         mismatchCount++;
         logger.critical("[Reconciliation] Gateway payment amount mismatch with ledger!", {
           paymentId: payment.id,
           gatewayAmount: payment.amount,
-          ledgerAmount: tx.amount,
+          ledgerAmount: matchedTx.amount,
         });
 
         await prisma.deadLetterJob.create({
@@ -287,8 +299,8 @@ export async function reconcileGatewayPaymentsIST(): Promise<{
             category: "TIME_CRITICAL",
             topic: "reconciliation.gateway_mismatch",
             deduplicationId: `recon_amount_mismatch_${payment.id}`,
-            payload: { paymentId: payment.id, gatewayAmount: payment.amount, ledgerAmount: tx.amount, reason: "AMOUNT_MISMATCH" },
-            errorMessage: `Gateway payment ${payment.id} amount mismatch: Razorpay=${payment.amount} vs Ledger=${tx.amount}`,
+            payload: { paymentId: payment.id, gatewayAmount: payment.amount, ledgerAmount: matchedTx.amount, reason: "AMOUNT_MISMATCH" },
+            errorMessage: `Gateway payment ${payment.id} amount mismatch: Razorpay=${payment.amount} vs Ledger=${matchedTx.amount}`,
             attempts: 1,
             status: "FAILED",
           },

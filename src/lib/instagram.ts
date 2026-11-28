@@ -895,8 +895,11 @@ export async function findPostByUrlDetailed(
           if (errData?.error?.message || errData?.error?.code) {
             errorDetails = `${errData.error.message || "Error"} (code: ${errData.error.code ?? res.status})`;
           }
-        } catch {
-          // ignore json parse error
+        } catch (parseErr) {
+          logger.debug("Failed to parse Instagram API error payload", {
+            status: res.status,
+            error: parseErr instanceof Error ? parseErr.message : String(parseErr),
+          });
         }
         return { status: "API_ERROR", error: errorDetails };
       }
@@ -1011,8 +1014,11 @@ async function fetchInsightsSingleCall(
     let errorData: unknown = null;
     try {
       errorData = await res.json();
-    } catch {
-      // ignore json parse error
+    } catch (parseErr) {
+      logger.debug("Failed to parse Instagram non-ok error payload", {
+        status: res.status,
+        error: parseErr instanceof Error ? parseErr.message : String(parseErr),
+      });
     }
     return { ok: false, status: res.status, errorData };
   }
@@ -1197,8 +1203,11 @@ export async function getMediaInsights(
                   }
                 }
               }
-            } catch {
-              // Isolated per-metric failure, continue
+            } catch (metricErr) {
+              logger.debug("Isolated per-metric failure in Instagram insights", {
+                metric,
+                error: metricErr instanceof Error ? metricErr.message : String(metricErr),
+              });
             }
           }
         }

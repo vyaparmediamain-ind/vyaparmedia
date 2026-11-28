@@ -300,8 +300,10 @@ export class PricingConfigService {
         PRICING_CONFIG_CACHE_TTL,
         JSON.stringify(fallback)
       );
-    } catch {
-      // ignore redis write error on fallback
+    } catch (err) {
+      logger.warn("[PricingConfigService] Failed to set fallback pricing config in Redis", {
+        error: err instanceof Error ? err.message : String(err),
+      });
     }
 
     return fallback;

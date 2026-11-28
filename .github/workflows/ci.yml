@@ -36,6 +36,12 @@ jobs:
       - name: Run Theme Token Regression Guard
         run: npm run lint:theme
 
+      - name: Run Action Token Regression Guard
+        run: npm run lint:actions
+
+      - name: Production Dependency Security Audit
+        run: npm audit --omit=dev --audit-level=critical
+
   typecheck:
     name: TypeScript Strict Typecheck
     runs-on: ubuntu-latest

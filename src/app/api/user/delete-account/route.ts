@@ -91,6 +91,7 @@ async function collectFileUrlsToDelete(tx: Prisma.TransactionClient, userId: str
   const verificationDocs = await tx.verificationDocument.findMany({
     where: { userId },
     select: { documentUrl: true },
+    take: 100,
   });
   for (const doc of verificationDocs) {
     fileUrlsToDelete.push(doc.documentUrl);
@@ -99,6 +100,7 @@ async function collectFileUrlsToDelete(tx: Prisma.TransactionClient, userId: str
   const sentMessagesWithFiles = await tx.message.findMany({
     where: { senderId: userId, fileUrl: { not: null } },
     select: { fileUrl: true },
+    take: 500,
   });
   for (const msg of sentMessagesWithFiles) {
     if (msg.fileUrl) {

@@ -108,8 +108,8 @@ const forceSignOut = async (reason: string) => {
   hasSignedOut.current = true;
   try {
     await signOut({ redirect: false });
-  } catch {
-    // Best-effort signout
+  } catch (err) {
+    console.warn("useTokenRefreshGuard: best-effort signOut failed", err);
   }
   if (typeof document !== "undefined") {
     document.cookie = "authjs.session-token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
