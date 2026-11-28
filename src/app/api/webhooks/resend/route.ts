@@ -16,14 +16,13 @@ export async function POST(req: NextRequest) {
     const rawBody = await req.text();
     const webhookSecret = process.env.RESEND_WEBHOOK_SECRET;
 
-    if (process.env.NODE_ENV === "production" && !webhookSecret) {
-      logger.error("Resend webhook rejected: RESEND_WEBHOOK_SECRET not configured in production");
+    if (!webhookSecret) {
+      logger.error("Resend webhook rejected: RESEND_WEBHOOK_SECRET not configured");
       return NextResponse.json({ error: "Webhook secret not configured" }, { status: 500 });
     }
 
-    // Verify svix signature if secret configured
-    if (webhookSecret) {
-      const svixId = req.headers.get("svix-id");
+    // Verify svix signature
+    const svixId = req.headers.get("svix-id");
       const svixTimestamp = req.headers.get("svix-timestamp");
       const svixSignature = req.headers.get("svix-signature");
 
@@ -58,7 +57,6 @@ export async function POST(req: NextRequest) {
         logger.warn("Resend webhook rejected: invalid signature");
         return NextResponse.json({ error: "Invalid signature" }, { status: 401 });
       }
-    }
 
     const payload = JSON.parse(rawBody) as { type?: string; data?: { to?: string[] | string; email?: string } };
     const eventType = payload.type; // "email.bounced" | "email.complained" | "email.delivered"

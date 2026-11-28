@@ -27,7 +27,7 @@ export const applicationItemSchema = z.object({
       .optional(),
   }),
   matchScore: z.number().optional(),
-  matchBreakdown: z.record(z.string(), z.any()).nullable().optional(),
+  matchBreakdown: z.record(z.string(), z.unknown()).nullable().optional(),
   dealStatus: z.string().nullable().optional(),
 });
 

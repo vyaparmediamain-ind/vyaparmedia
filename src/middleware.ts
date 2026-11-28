@@ -47,6 +47,7 @@ function generateCspWithNonce(nonce: string): string {
   return [
     "default-src 'self'",
     `script-src 'self' 'nonce-${nonce}' 'strict-dynamic' https://*.google.com https://*.googleapis.com https://checkout.razorpay.com https://*.razorpay.com https://va.vercel-scripts.com${isDev ? " 'unsafe-eval'" : ""}`,
+    // style-src: 'unsafe-inline' is strictly restricted to styling (required for React dynamic inline style attributes like progress bars, and Google Fonts). script-src strictly enforces per-request cryptographic nonces and 'strict-dynamic'.
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
     `img-src 'self' data: blob: https://lh3.googleusercontent.com https://avatars.githubusercontent.com https://images.unsplash.com${storageImageStr}`,
     "font-src 'self' https://fonts.gstatic.com data:",

@@ -24,27 +24,23 @@ function safeTimingCompare(a: string, b: string): boolean {
 
 export async function POST(req: NextRequest) {
   try {
-    // In production, strictly require MSG91_WEBHOOK_SECRET (do not fall back to MSG91_AUTH_KEY)
-    const isProd = process.env.NODE_ENV === "production";
-    const webhookSecret = process.env.MSG91_WEBHOOK_SECRET || (!isProd ? process.env.MSG91_AUTH_KEY : undefined);
+    const webhookSecret = process.env.MSG91_WEBHOOK_SECRET || (process.env.NODE_ENV !== "production" ? process.env.MSG91_AUTH_KEY : undefined);
 
-    if (isProd && !webhookSecret) {
-      logger.error("MSG91 webhook rejected: MSG91_WEBHOOK_SECRET not configured in production");
+    if (!webhookSecret) {
+      logger.error("MSG91 webhook rejected: MSG91_WEBHOOK_SECRET not configured");
       return NextResponse.json({ error: "Webhook secret is not configured" }, { status: 500 });
     }
 
-    if (webhookSecret) {
-      // Strictly extract authentication secret from headers only (never from query strings)
-      const token =
-        req.headers.get("x-msg91-secret") ||
-        req.headers.get("authkey") ||
-        req.headers.get("authorization");
-      const cleanToken = token?.startsWith("Bearer ") ? token.slice(7).trim() : token?.trim();
+    // Strictly extract authentication secret from headers only (never from query strings)
+    const token =
+      req.headers.get("x-msg91-secret") ||
+      req.headers.get("authkey") ||
+      req.headers.get("authorization");
+    const cleanToken = token?.startsWith("Bearer ") ? token.slice(7).trim() : token?.trim();
 
-      if (!cleanToken || !safeTimingCompare(cleanToken, webhookSecret)) {
-        logger.warn("MSG91 webhook unauthorized attempt", { ip: req.headers.get("x-forwarded-for") });
-        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-      }
+    if (!cleanToken || !safeTimingCompare(cleanToken, webhookSecret)) {
+      logger.warn("MSG91 webhook unauthorized attempt", { ip: req.headers.get("x-forwarded-for") });
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     let body: Record<string, unknown> = {};

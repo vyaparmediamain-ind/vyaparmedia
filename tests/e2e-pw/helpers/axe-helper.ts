@@ -18,12 +18,17 @@ export async function assertAccessible(
   await page.addScriptTag({ path: axePath });
 
   const results = await page.evaluate(async () => {
-    // @ts-expect-error window.axe injected
-    if (typeof window.axe === "undefined") {
+    const axeWindow = window as unknown as {
+      axe?: {
+        run: (doc: Document, opts: unknown) => Promise<{
+          violations: Array<{ id: string; impact: string; description: string; nodes: Array<{ target: string[] }> }>;
+        }>;
+      };
+    };
+    if (typeof axeWindow.axe === "undefined") {
       throw new Error("axe-core script failed to inject into page");
     }
-    // @ts-expect-error window.axe injected
-    return await window.axe.run(document, {
+    return await axeWindow.axe.run(document, {
       runOnly: {
         type: "tag",
         values: ["wcag2a", "wcag2aa"],

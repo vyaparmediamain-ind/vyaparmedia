@@ -1,4 +1,5 @@
 import { z } from "zod";
+import type { DebtStatus } from "@prisma/client";
 import prisma from "@/lib/db";
 import { logger } from "@/lib/logger";
 import { createActivityLog } from "@/lib/audit";
@@ -350,7 +351,7 @@ export const JOB_TOPICS_REGISTRY: Record<string, JobTopicDefinition<any>> = {
             razorpayPaymentId: payload.paymentId,
             description: `Gateway refund replayed from DLQ for deal ${payload.dealId}`,
             metadata: {
-              refundId: (refundRes as any)?.id || null,
+              refundId: refundRes?.refundId || null,
               replayedAt: new Date().toISOString(),
               source: "DLQ_REPLAY",
             },
@@ -426,13 +427,13 @@ export const JOB_TOPICS_REGISTRY: Record<string, JobTopicDefinition<any>> = {
 
             const allocation = Math.min(remainingToDistribute, claim.amount);
             const newAmount = claim.amount - allocation;
-            const newStatus = newAmount === 0 ? "RECOVERED" : "PENDING";
+            const newStatus: DebtStatus = newAmount === 0 ? "RECOVERED" : "PENDING";
 
             await tx.debtClaim.update({
               where: { id: claim.id },
               data: {
                 amount: newAmount,
-                status: newStatus as any,
+                status: newStatus,
               },
             });
 

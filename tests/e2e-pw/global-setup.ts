@@ -51,6 +51,4 @@ export default async function globalSetup(_config: FullConfig): Promise<void> {
 
     fs.writeFileSync(authFilePath, JSON.stringify(storageState, null, 2), "utf-8");
   }
-
-  console.log("✅ Playwright global setup completed: Seeded auth storage states generated.");
 }

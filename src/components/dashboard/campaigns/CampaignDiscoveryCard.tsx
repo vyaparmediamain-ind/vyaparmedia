@@ -59,13 +59,12 @@ export function CampaignDiscoveryCard({
   const remainingSlots = maxInfluencers > 0 ? Math.max(0, maxInfluencers - acceptedCount) : null;
   const isSlotsUrgent = !isInactive && fillPercentage >= 80 && remainingSlots !== null && remainingSlots > 0;
 
-  const daysLeft = useMemo(() => {
-    if (isInactive || !campaign.postingDeadline) return null;
-    const due = new Date(campaign.postingDeadline).getTime();
-    // eslint-disable-next-line react-hooks/purity
-    const now = Date.now();
-    return Math.ceil((due - now) / (1000 * 60 * 60 * 24));
-  }, [isInactive, campaign.postingDeadline]);
+  const daysLeft =
+    isInactive || !campaign.postingDeadline
+      ? null
+      : Math.ceil(
+          (new Date(campaign.postingDeadline).getTime() - Date.now()) / (1000 * 60 * 60 * 24)
+        );
 
   const isDeadlineUrgent = !isInactive && daysLeft !== null && daysLeft > 0 && daysLeft <= 3;
 

@@ -705,16 +705,10 @@ export function verifyWebhookSecret(authHeader: string | null): boolean {
   const secret = process.env.SHIPROCKET_WEBHOOK_SECRET ?? env.SHIPROCKET_WEBHOOK_SECRET;
 
   if (!secret) {
-    if (process.env.NODE_ENV === "production") {
-      console.error(
-        "[Shiprocket Webhook] REJECTED: SHIPROCKET_WEBHOOK_SECRET is not configured in production environment.",
-      );
-      return false;
-    }
-    console.warn(
-      "[Shiprocket Webhook] Warning: SHIPROCKET_WEBHOOK_SECRET is not configured. Allowing in non-production mode.",
+    console.error(
+      "[Shiprocket Webhook] REJECTED: SHIPROCKET_WEBHOOK_SECRET is not configured (fail-closed in all environments).",
     );
-    return true;
+    return false;
   }
 
   if (!authHeader) {
