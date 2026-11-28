@@ -59,7 +59,7 @@
     "@aws-sdk/client-s3": "^3.1047.0",
     "@aws-sdk/s3-request-presigner": "^3.1047.0",
     "@prisma/client": "6.19.3",
-    "prisma": "6.19.3",
+    "prisma": "7.10.1",
     "@sentry/nextjs": "^10.78.0",
     "@tailwindcss/postcss": "^4.3.3",
     "@tanstack/react-virtual": "^3.14.12",
@@ -118,7 +118,7 @@
     "vitest-axe": "^0.1.0"
   },
   "overrides": {
-    "prisma": "6.19.3",
+    "prisma": "7.10.1",
     "@prisma/client": "6.19.3",
     "sharp": "^0.35.5",
     "axios": "^1.21.1",
