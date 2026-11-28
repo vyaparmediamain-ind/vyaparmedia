@@ -62,7 +62,7 @@
     "prisma": "6.19.3",
     "@sentry/nextjs": "^10.78.0",
     "@tailwindcss/postcss": "^4.3.3",
-    "@tanstack/react-virtual": "^3.14.12",
+    "@tanstack/react-virtual": "^3.14.28",
     "@upstash/qstash": "^2.12.0",
     "@vercel/analytics": "^2.0.1",
     "bcryptjs": "^3.0.3",
