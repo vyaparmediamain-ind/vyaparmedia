@@ -44,9 +44,9 @@ const contactChannels = [
     body: "GST invoicing queries, Section 194-O TDS certificate requests, contracts, and regulatory filings.",
     href: `mailto:${PLATFORM_CONFIG.legalEmail}`,
     label: PLATFORM_CONFIG.legalEmail,
-    color: "text-accent-purple",
-    bg: "bg-accent-purple/10",
-    border: "border-accent-purple/20",
+    color: "text-escrow",
+    bg: "bg-escrow-muted",
+    border: "border-escrow-border",
   },
   {
     icon: ShieldAlert,
@@ -54,9 +54,9 @@ const contactChannels = [
     body: "Account deletion, personal data audit, consent withdrawal, and DPDP Act grievance escalation.",
     href: `mailto:${PLATFORM_CONFIG.privacyEmail}`,
     label: PLATFORM_CONFIG.privacyEmail,
-    color: "text-warning",
-    bg: "bg-warning/10",
-    border: "border-warning-border",
+    color: "text-pending",
+    bg: "bg-pending-muted",
+    border: "border-pending-border",
   },
 ];
 
@@ -91,7 +91,7 @@ export default function ContactPage() {
           </div>
 
           <h1 className="text-4xl sm:text-5xl font-black text-foreground tracking-tight leading-[1.18] sm:leading-[1.2] py-1">
-            Contact <span className="inline-block py-0.5 bg-gradient-to-r from-primary to-accent-purple bg-clip-text text-transparent">VyaparMedia</span>
+            Contact <span className="inline-block py-0.5 pr-1 bg-gradient-to-r from-primary to-verified bg-clip-text text-transparent">Vyapar Media</span>
           </h1>
 
           <p className="text-base text-muted-foreground max-w-xl mx-auto leading-relaxed">

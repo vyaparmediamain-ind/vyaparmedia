@@ -142,7 +142,7 @@ export default function AboutPage() {
 
           <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black text-foreground tracking-tight leading-[1.18] sm:leading-[1.18] lg:leading-[1.2] text-balance py-1">
             Where Indian Brands &amp; Creators Build{" "}
-            <span className="inline-block py-0.5 bg-gradient-to-r from-primary to-accent-purple bg-clip-text text-transparent">
+            <span className="inline-block py-0.5 pr-1 bg-gradient-to-r from-primary to-verified bg-clip-text text-transparent">
               Trusted Business.
             </span>
           </h1>
