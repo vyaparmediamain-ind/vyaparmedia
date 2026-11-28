@@ -48,9 +48,46 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           vercel-args: ''
 
-  # 2. Production Deployment on main merge (with automated DB migration)
+  # 2. Quality & Safety Gate before Production (runs full validation & unit test suite)
+  ci-gate:
+    name: Pre-Deploy Quality Gate (Theme, Actions, Types, Schema & Tests)
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v4.1.2
+
+      - name: Setup Node.js 24.x
+        uses: actions/setup-node@60edb5dd545a775178f5252478337951c3269ab8 # v4.0.2
+        with:
+          node-version: 24
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci --legacy-peer-deps
+
+      - name: Run Theme Token Regression Guard
+        run: npm run lint:theme
+
+      - name: Run Action Button Eligibility Guard
+        run: npm run lint:actions
+
+      - name: Validate Prisma Schema
+        run: npx prisma validate
+
+      - name: Generate Prisma Client
+        run: npx prisma generate
+
+      - name: TypeScript Strict Typecheck
+        run: npm run typecheck
+
+      - name: Run Unit Test Suite
+        run: npm run test:unit
+
+  # 3. Production Deployment on main merge (runs ONLY if ci-gate succeeds)
   production-deploy:
     name: Vercel Production Deployment & Automated Migration
+    needs: [ci-gate]
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     environment: production

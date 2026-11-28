@@ -321,9 +321,10 @@ The platform provides live printable, PDF-exportable statements (`StatementPrint
   - Inbound Gateway: 2% + GST per successful transaction.
   - RazorpayX Bank Payouts: ₹2 to ₹9 per transfer.
   - Razorpay Route Split Transfer: ₹0 to creator linked account.
-- **Webhook Endpoints**:
-  - Payment Captures: `https://yourdomain.com/api/webhooks/razorpay`
-  - Route Split Transfer Reconciliation: `https://yourdomain.com/api/webhooks/razorpay/process`
+- **Webhook Endpoint**:
+  - Canonical Ingress URL: `https://yourdomain.com/api/webhooks/razorpay`
+  - Active Subscribed Events: `payment.captured`, `payment.failed`, `order.paid`, `transfer.processed`, `payout.processed`, `refund.processed`
+  - *Important*: Do NOT configure `https://yourdomain.com/api/webhooks/razorpay/process` in Razorpay Dashboard. That is an internal QStash async consumer that rejects direct calls without Upstash signatures. Legacy alias `/api/payments/webhook` automatically delegates to the canonical endpoint.
 
 ---
 

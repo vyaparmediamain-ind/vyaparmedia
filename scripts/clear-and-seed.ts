@@ -2,6 +2,12 @@ import { PrismaClient } from "@prisma/client";
 import { execSync } from "node:child_process";
 import path from "node:path";
 import fs from "node:fs";
+import { assertNotProduction } from "./guard-production";
+
+assertNotProduction("clear-and-seed.ts", {
+  allowRemoteWithFlag: true,
+  requireWipeConfirmation: true,
+});
 
 const prisma = new PrismaClient();
 
@@ -51,7 +57,8 @@ async function main() {
       : ["/usr/bin", "/bin"];
     const safePath = [nodeDir, ...systemDirs].join(process.platform === "win32" ? ";" : ":");
 
-    execSync(`"${npxPath}" tsx -r ./scripts/mock-server-only.js scripts/seed-test-accounts.ts`, {
+    const forwardedArgs = process.argv.slice(2).join(" ");
+    execSync(`"${npxPath}" tsx -r ./scripts/mock-server-only.js scripts/seed-test-accounts.ts ${forwardedArgs}`.trim(), {
       stdio: "inherit",
       env: {
         ...process.env,

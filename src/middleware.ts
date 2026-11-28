@@ -518,6 +518,6 @@ return response;
 
 export const config = {
   matcher: [
-    "/((?!api/auth/(?:session|providers|csrf|callback)|api/payments/webhook|api/webhooks/razorpay/process|api/jobs|api/metrics|_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|webmanifest|xml|txt|woff2?|ttf|eot)).*)",
+    "/((?!api/auth/(?:session|providers|csrf|callback)|api/webhooks(?:/.*)?|api/payments/webhook|api/jobs|api/metrics|_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|webmanifest|xml|txt|woff2?|ttf|eot)).*)",
   ],
 };
